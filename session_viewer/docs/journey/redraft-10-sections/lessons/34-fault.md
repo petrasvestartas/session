@@ -1,228 +1,98 @@
 # 4.2 · First failure and independent diagnostic reports
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.2** (Redraft `3.9`) · **6 checkpoints (`34-fault` → `34d-download`)** · **Study time: 6–12 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `34-fault` → `34d-download` (6 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement. By the final checkpoint (`34d-download`), you will download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal.
+> **Goal:** Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 4 Visual Explanation: Browser Lifetime State Machine, Circular Fault Ring-Buffer & GPU Recovery</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Active ↔ Hidden (bfcache) ↔ Device Lost state transitions. Center: Bounded circular fault ring. Right: Rc/Drop listener guard.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: State Machine Diagram -->
-    <rect x="18" y="64" width="280" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="158" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Browser &amp; GPU State Machine</text>
-    <rect x="34" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Active Frame</text>
-    <text x="89" y="132" text-anchor="middle" font-size="9" fill="#111111">Heartbeat ON</text>
-    <rect x="174" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="229" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Tab Hidden</text>
-    <text x="229" y="132" text-anchor="middle" font-size="9" fill="#111111">Timers Paused</text>
-    <line x1="144" y1="114" x2="172" y2="114" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="174" y1="128" x2="146" y2="128" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <!-- Bottom recovery state -->
-    <rect x="54" y="172" width="210" height="56" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="159" y="191" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Device Lost → Conservative Rebuild</text>
-    <text x="159" y="206" text-anchor="middle" font-size="9.5" fill="#111111">Re-create Adapter/Device at safe 1x MSAA</text>
-    <text x="159" y="220" text-anchor="middle" font-size="9" fill="#111111">&amp; restore retained Editor scene</text>
-    <line x1="89" y1="142" x2="115" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="195" y1="172" x2="125" y2="144" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
-
-    <line x1="298" y1="154" x2="320" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Circular Fault Ring-Buffer -->
-    <rect x="322" y="64" width="240" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="442" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Bounded Fault Ring-Buffer</text>
-    <circle cx="442" cy="144" r="46" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="442" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <line x1="442" y1="98" x2="442" y2="122" stroke="#111111" stroke-width="1.2"/>
-    <line x1="442" y1="166" x2="442" y2="190" stroke="#111111" stroke-width="1.2"/>
-    <line x1="396" y1="144" x2="420" y2="144" stroke="#111111" stroke-width="1.2"/>
-    <line x1="464" y1="144" x2="488" y2="144" stroke="#111111" stroke-width="1.2"/>
-    <line x1="410" y1="112" x2="426" y2="128" stroke="#111111" stroke-width="1.2"/>
-    <line x1="458" y1="160" x2="474" y2="176" stroke="#111111" stroke-width="1.2"/>
-    <line x1="474" y1="112" x2="458" y2="128" stroke="#111111" stroke-width="1.2"/>
-    <line x1="426" y1="160" x2="410" y2="176" stroke="#111111" stroke-width="1.2"/>
-    <text x="442" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">v1 JSON</text>
-    <text x="442" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Fixed capacity: overwrites oldest</text>
-    <text x="442" y="225" text-anchor="middle" font-size="9" fill="#111111">Uncaptured GPU errors never OOM</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Rc/Drop Event Listener Guard -->
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rc / Drop Listener Table</text>
-    <rect x="602" y="98" width="204" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="704" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Runtime::new() Registration</text>
-    <text x="614" y="133" font-size="9.5" fill="#111111">Stores (EventTarget, type, Closure)</text>
-    <text x="614" y="146" font-size="9.5" fill="#111111">Uses Weak::upgrade() in callbacks</text>
-    <line x1="704" y1="152" x2="704" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="602" y="172" width="204" height="56" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="190" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">impl Drop for Runtime</text>
-    <text x="614" y="207" font-size="9.5" fill="#111111">Calls remove_event_listener()</text>
-    <text x="614" y="220" font-size="9.5" font-weight="600" fill="#111111">Zero leaked WASM closures!</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 4.2 Pipeline Schematic: First failure and independent diagnostic reports</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (6 Checkpoints: 34-fault → 34d-download)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">callback clone</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">lock shared failure</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">first reason wins</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">later errors cannot</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">overwrite it</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">first scene</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">presented</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 4.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/gpu_fault.rs  ·  src/gpu_fault_tests.rs  ·  src/lib.rs  ·  src/browser_runtime.rs  ·  src/browser.rs  ·  src/diagnostic.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">6 Checkpoints: 34-fault → 34d-download — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Owned Listeners</text>
+  <rect x="44" y="62" width="182" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="80" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">pointerdown / move</text>
+  <rect x="44" y="98" width="182" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="116" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">keydown / wheel</text>
+  <rect x="44" y="136" width="182" height="28" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="154" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Drop -&gt; Unregister All</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Zero Closure Leaks</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Tab Lifecycle</text>
+  <rect x="324" y="90" width="76" height="44" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="362" y="116" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Active</text>
+  <rect x="438" y="90" width="76" height="44" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="476" y="116" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Paused</text>
+  <path d="M 400 100 L 434 100" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 438 124 L 404 124" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="419" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">pagehide</text>
+  <text x="419" y="148" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">pageshow</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">bfcache Safe</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Fault Recovery</text>
+  <circle cx="704" cy="108" r="42" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="704" cy="108" r="24" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Ring</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">1x Safe Fallback</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
-| **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
-| **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
+| **Rust / WASM** | `Drop` Listener Table | Unregisters DOM closures on teardown with zero memory leaks. |
+| **Browser DOM** | `pagehide` / `pageshow` | Pauses GPU timers when hidden or in `bfcache`. |
+| **WebGPU** | Fault Ring-Buffer + `1x` Fallback | Records GPU validation/OOM faults and rebuilds pipelines safely. |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`34-fault`](#checkpoint-34-fault) | Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement. | `src/gpu_fault.rs`, `src/gpu_fault_tests.rs`, `src/lib.rs` | `callback clone → lock shared failure → first reason wins → later errors cannot overwrite it` |
-| **2** | [`34a-stop`](#checkpoint-34a-stop) | Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device. | `src/browser_runtime.rs`, `src/browser.rs` | `GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure` |
-| **3** | [`34b-report`](#checkpoint-34b-report) | Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners. | `src/diagnostic.rs`, `src/diagnostic_tests.rs`, `src/lib.rs` | `browser metadata → owned Context → Report header → explicit JSON → independent snapshot` |
-| **4** | [`34ba-events`](#checkpoint-34ba-events) | Bound diagnostic observations while keeping the original failure independently of recent event rotation. | `src/diagnostic.rs`, `src/diagnostic_tests.rs` | `finite relative time → bounded event → first failure retained → last 24 observations → stable failed outcome` |
-| **5** | [`34c-browser`](#checkpoint-34c-browser) | Start a bounded page report and read real browser context independently of the renderer’s lifetime. | `src/browser_report.rs`, `Cargo.toml`, `src/lib.rs`, `src/browser.rs` | `page begins → sanitized context → independent report slot → current context → JSON snapshot` |
-| **6** | [`34d-download`](#checkpoint-34d-download) | Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal. | `src/file_output.rs`, `src/browser_report.rs`, `src/browser.rs`, `src/lib.rs` | `first scene presented → ready report → typed Report → JSON Blob → actual download → delayed URL cleanup` |
+![Recorded visual output for Lesson 4.2 (34d-download)](../../../screenshots/journey/34d-download-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-34-fault"></a>
 
 ### Step 1 of 6 · Keep the first GPU failure with its device (`34-fault`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/6 Visual Trace (34-fault): Keep the first GPU failure with its device</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_fault.rs, src/gpu_fault_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">callback clone</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lock shared failure</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">first reason wins</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later errors cannot</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">overwrite…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_fault.rs, src/gpu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">first reason wins</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later errors cannot ove…</text>
 </svg>
-</div>
-
-- **Goal:** Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement.
-- **Data Flow Trace:** `callback clone → lock shared failure → first reason wins → later errors cannot overwrite it`
-- **Files You Touch:** `src/gpu_fault.rs` (*Create the shared first-failure value; callback clones identify the same device lifetime.*) · `src/gpu_fault_tests.rs` (*Optional authoring fixture. Verify first-reason retention, replacement-device isolation and concurrent callback delivery.*) · `src/lib.rs` (*Expose the signal and include its native tests.*)
 
 Keep the first GPU error: later errors caused by the same loss must not overwrite its reason. This lesson adds the shared value; the next connects it to GPU callbacks.
 
 `Fault` owns an `Arc<Mutex<Option<String>>>`. `Arc::clone` shares one allocation. Locking the mutex makes checking and storing the first message one operation. `remember` returns true only to the first writer; `message` returns a copy so no lock stays held while reporting the error.
 
-Give a replacement device a new `Fault::default()`. `Arc::ptr_eq` compares allocations, so a late callback from the old device cannot identify the replacement as its owner. No mutex guard crosses an `.await`.
-
-> **Self-Check Question:** *Why must a late error from an old GPU device remain separate from a new device’s failure state?*  
-> **Answer:** Each new device gets a fresh Arc allocation. Clones share that allocation; same_device compares allocation identity so an old callback cannot be mistaken for the replacement.
-
-- **What You Should See:** Run the first-failure checks below. Two callback writers must share one original reason; a replacement device gets a separate Fault. Browser GPU callbacks are connected next.
-- **Hands-On Lab Experiment:** Change the first.is_some guard so every callback overwrites the stored reason. Inspect the tests and explain which useful evidence is lost. Then make a replacement by cloning the old Fault and explain why its identity test fails.
-
-<details>
-<summary>Implementation 34-fault: Keep the first GPU failure with its device</summary>
-
-Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement.
-
-Data flow: callback clone → lock shared failure → first reason wins → later errors cannot overwrite it.
+> **Check:** *Why must a late error from an old GPU device remain separate from a new device’s failure state?* — Each new device gets a fresh Arc allocation. Clones share that allocation; same_device compares allocation identity so an old callback cannot be mistaken for the replacement.
 
 ### 1. `src/gpu_fault.rs`
 
@@ -234,8 +104,7 @@ Create the file and type:
 --8<-- "journey/code/34-fault-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -249,20 +118,9 @@ Copy this supplied file:
 --8<-- "journey/code/34-fault-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Expose the signal and include its native tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod background;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -273,119 +131,46 @@ mod gpu_fault_tests;
 pub mod background;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34-fault`:** Run the first-failure checks below. Two callback writers must share one original reason; a replacement device gets a separate Fault. Browser GPU callbacks are connected next.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34-fault-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34a-stop"></a>
 
 ### Step 2 of 6 · Stop the viewer when its GPU device fails (`34a-stop`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/6 Visual Trace (34a-stop): Stop the viewer when its GPU device fails</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_runtime.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">GPU callback</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">first fault recorded</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">input guard</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">deferred</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching-owner…</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible failure</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_runtime.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">input guard</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible failure</text>
 </svg>
-</div>
-
-- **Goal:** Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device.
-- **Data Flow Trace:** `GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure`
-- **Files You Touch:** `src/browser_runtime.rs` (*Retain the device failure identity beside the callbacks that use that device.*) · `src/browser.rs` (*Mark failure immediately, then defer identity-checked disposal and visible feedback until callbacks return.*)
 
 Connect both GPU error callbacks to the same `Fault`. When the first error arrives, mark the device failed immediately so the input handler cannot submit another frame.
 
 Schedule disposal on the next microtask: the active callback must return before its Rust closure is released. Compare the captured Fault allocation with the installed runtime before taking that runtime out of its slot. An old device’s callback must leave a replacement alone.
 
-Drop then cancels pending requests and removes input listeners. The page shows “Cannot draw”. Reloading starts a new viewer; automatic recovery comes later.
-
-> **Self-Check Question:** *Why record a failure before deferring cleanup, and why check the device identity again during cleanup?*  
-> **Answer:** The immediate signal blocks any intervening input or GPU updates. Deferred cleanup waits for the active callback to return; its identity check prevents an old device’s callback from stopping a replacement.
-
-- **What You Should See:** Inspect the supplied state fixtures. The first GPU failure must remain unchanged when another callback reports a later failure.
-- **Hands-On Lab Experiment:** Move the failure guard below panel.update and explain which GPU writes could happen before it. Then remove the identity check in stop_if and explain how an older callback could stop a new runtime.
-
-<details>
-<summary>Implementation 34a-stop: Stop the viewer when its GPU device fails</summary>
-
-Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device.
-
-Data flow: GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure.
+> **Check:** *Why record a failure before deferring cleanup, and why check the device identity again during cleanup?* — The immediate signal blocks any intervening input or GPU updates. Deferred cleanup waits for the active callback to return; its identity check prevents an old device’s callback from stopping a replacement.
 
 ### 1. `src/browser_runtime.rs`
 
 Retain the device failure identity beside the callbacks that use that device. Only the matching device may dispose the active runtime; drop its owner after the slot borrow ends.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{browser_reload::Shared, listeners::Listeners, read_gate::ReadGate};
-use std::{cell::RefCell, rc::Rc};
-
-struct Runtime {
-    _listeners: Listeners,
-    request: Rc<RefCell<ReadGate>>,
-    reload: Shared,
-}
-
-impl Drop for Runtime {
-    fn drop(&mut self) {
-        self.request.borrow_mut().cancel();
-        self.reload.borrow_mut().cancel();
-    }
-}
-
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
-
-pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared) {
-    ACTIVE.with(|slot| slot.replace(Some(Runtime { _listeners: listeners, request, reload })));
-}
-
-pub fn stop() -> bool {
-    ACTIVE.with(|slot| slot.borrow_mut().take()).is_some()
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn runtime_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -430,29 +215,13 @@ pub fn stop() -> bool {
 pub fn runtime_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34a-stop-01.rs"
-```
-
-```text
---8<-- "journey/code/34a-stop-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Mark failure immediately, then defer identity-checked disposal and visible feedback until callbacks return. Connect the real error and device-loss callbacks to this device’s shared signal. Refuse new input, UI updates and GPU work as soon as the callback marks a failure. Install the runtime with the same device identity used by its failure callbacks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     listeners.listen(window.as_ref(), "viewer-file-error")?;
@@ -463,8 +232,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -478,8 +245,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
@@ -490,8 +256,6 @@ Replace it with:
             gesture.cancel();
             if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -507,8 +271,7 @@ Replace it with:
             if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .request_device(&wgpu::DeviceDescriptor::default())
@@ -519,8 +282,6 @@ Replace it with:
     let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
     let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
 ```
-
-</details>
 
 Replace it with:
 
@@ -538,8 +299,7 @@ Replace it with:
     let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -549,8 +309,6 @@ fn save_result(bytes: &[u8]) -> Result<String, String> {
     crate::file_output::download(bytes)
         .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
 ```
-
-</details>
 
 Replace it with:
 
@@ -570,8 +328,7 @@ fn save_result(bytes: &[u8]) -> Result<String, String> {
         .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -1139,94 +896,42 @@ fn present(
 }
 ```
 
-</details>
+**Result after `34a-stop`:** Inspect the supplied state fixtures. The first GPU failure must remain unchanged when another callback reports a later failure.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34a-stop-03.rs"
-```
-
-```text
---8<-- "journey/code/34a-stop-04.rs"
-```
-
-```text
---8<-- "journey/code/34a-stop-05.rs"
-```
-
-```text
---8<-- "journey/code/34a-stop-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34b-report"></a>
 
 ### Step 3 of 6 · Describe a viewer run without keeping its document (`34b-report`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/6 Visual Trace (34b-report): Describe a viewer run without keeping its document</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/diagnostic.rs, src/diagnostic_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">browser metadata</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned Context</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Report header</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit JSON</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent snapshot</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/diagnostic.rs, src/di…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Report header</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent snapshot</text>
 </svg>
-</div>
-
-- **Goal:** Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners.
-- **Data Flow Trace:** `browser metadata → owned Context → Report header → explicit JSON → independent snapshot`
-- **Files You Touch:** `src/diagnostic.rs` (*Create a serializable report header with owned browser context and explicit run outcome.*) · `src/diagnostic_tests.rs` (*Optional authoring fixture. Check the actual JSON field names, round trip and independence of a retained snapshot.*) · `src/lib.rs` (*Expose the report model and include its native tests.*)
 
 Create a report that survives losing the GPU. `Context` stores page/browser details and dimensions. `Report` stores that context, run identity, timestamps and outcome; it owns no document or device.
 
 Owned strings and copied dimensions make a clone an independent snapshot. `Outcome` distinguishes Running, Ready, Closed and Failed. A Running value alone is not proof of a crash.
 
-Serde’s derives serialize and parse the value. `rename_all` writes camelCase JSON names; `flatten` puts Context fields in the report’s top level. `version` identifies the format. `started` stays fixed while `lastSeen` can advance.
-
-This lesson builds the Rust value. Reading live browser metadata and downloading it are separate steps below.
-
-> **Self-Check Question:** *Why does a diagnostic snapshot own small strings and dimensions instead of keeping the editor or renderer?*  
-> **Answer:** The report must survive the viewer’s disposal without extending scene or GPU lifetimes. Owned metadata records the relevant context independently; document values and rendering handles are absent.
-
-- **What You Should See:** Run the report checks below. Serialize a report and inspect its flat JSON header; changing a cloned snapshot must not change the live value. Browser metadata is connected later.
-- **Hands-On Lab Experiment:** Remove serde(flatten), run the JSON assertion, and explain how the public format changed. Then compare the live and cloned report after changing its drawing-buffer size.
-
-<details>
-<summary>Implementation 34b-report: Describe a viewer run without keeping its document</summary>
-
-Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners.
-
-Data flow: browser metadata → owned Context → Report header → explicit JSON → independent snapshot.
+> **Check:** *Why does a diagnostic snapshot own small strings and dimensions instead of keeping the editor or renderer?* — The report must survive the viewer’s disposal without extending scene or GPU lifetimes. Owned metadata records the relevant context independently; document values and rendering handles are absent.
 
 ### 1. `src/diagnostic.rs`
 
@@ -1238,8 +943,7 @@ Create the file and type:
 --8<-- "journey/code/34b-report-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1253,20 +957,9 @@ Copy this supplied file:
 --8<-- "journey/code/34b-report-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Expose the report model and include its native tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod gpu_fault;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1277,127 +970,46 @@ mod diagnostic_tests;
 pub mod gpu_fault;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34b-report`:** Run the report checks below. Serialize a report and inspect its flat JSON header; changing a cloned snapshot must not change the live value. Browser metadata is connected later.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34b-report-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34ba-events"></a>
 
 ### Step 4 of 6 · Keep recent events without losing the first failure (`34ba-events`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/6 Visual Trace (34ba-events): Keep recent events without losing the first failure</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/diagnostic.rs, src/diagnostic_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite relative time</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded event</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">first failure</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">last 24 observations</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stable failed</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">outcome</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/diagnostic.rs, src/di…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">first failure retained</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable failed outcome</text>
 </svg>
-</div>
-
-- **Goal:** Bound diagnostic observations while keeping the original failure independently of recent event rotation.
-- **Data Flow Trace:** `finite relative time → bounded event → first failure retained → last 24 observations → stable failed outcome`
-- **Files You Touch:** `src/diagnostic.rs` (*Describe an observation separately from its bounded owner and preserve its relative timing.*) · `src/diagnostic_tests.rs` (*Optional authoring fixture. Prove bounded history/text, retained first failure, ready-state semantics and atomic rejection of invalid timing.*)
 
 Keep recent observations and the first fatal reason separately. `VecDeque` is a queue: pop its oldest entry before appending when it reaches 24 events. The first-failure field survives that rotation.
 
 `record` rejects negative or non-finite elapsed time before mutation, caps kind/message text at 64/4096 Unicode scalar values, updates lastSeen and appends one event. A fatal event sets Failed only once; a later ready milestone cannot clear the failure.
 
-These limits govern recording. Deserialized JSON still needs an admission check before the viewer trusts it.
-
-> **Self-Check Question:** *Why keep the first failure separately from the recent event queue?*  
-> **Answer:** Recent observations rotate to bound memory. The original failure must remain available even after follow-on errors evict that event from the recent window.
-
-- **What You Should See:** Run the event checks below. After 30 observations, exactly 24 remain, while the first fatal reason is preserved separately. Recording a success must not clear failure.
-- **Hands-On Lab Experiment:** Store failure only in the recent queue and run the rotation test. Then remove the failed-outcome guard and explain why a later successful milestone would misdescribe the run.
-
-<details>
-<summary>Implementation 34ba-events: Keep recent events without losing the first failure</summary>
-
-Bound diagnostic observations while keeping the original failure independently of recent event rotation.
-
-Data flow: finite relative time → bounded event → first failure retained → last 24 observations → stable failed outcome.
+> **Check:** *Why keep the first failure separately from the recent event queue?* — Recent observations rotate to bound memory. The original failure must remain available even after follow-on errors evict that event from the recent window.
 
 ### 1. `src/diagnostic.rs`
 
 Describe an observation separately from its bounded owner and preserve its relative timing. Retain the recent event window separately from the first failure, so rotation cannot erase it. Validate relative time, bound observation text/history, and make failure survive later milestones and event rotation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Context {
-    pub page: String,
-    pub browser: String,
-    pub secure_context: bool,
-    pub webgpu: bool,
-    pub viewport: [u32; 2],
-    pub canvas: [u32; 2],
-    pub device_pixel_ratio: f64,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Outcome { Running, Ready, Closed, Failed }
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Report {
-    pub version: u32,
-    pub tab: String,
-    pub started: String,
-    pub last_seen: String,
-    pub outcome: Outcome,
-    #[serde(flatten)]
-    pub context: Context,
-}
-
-impl Report {
-    pub fn new(tab: String, started: String, context: Context) -> Self {
-        Self { version: 1, tab, last_seen: started.clone(), started, outcome: Outcome::Running, context }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1468,27 +1080,7 @@ impl Report {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34ba-events-01.rs"
-```
-
-```text
---8<-- "journey/code/34ba-events-02.rs"
-```
-
-```text
---8<-- "journey/code/34ba-events-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1496,113 +1088,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Prove bounded history/text, retained first failure, ready-state semantics and atomic rejection of invalid timing.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::diagnostic::{Context, Outcome, Report};
-
-fn context() -> Context {
-    Context { page: "https://example.test/viewer/".into(), browser: "Test browser".into(),
-        secure_context: true, webgpu: true, viewport: [900, 760], canvas: [900, 760], device_pixel_ratio: 1.0 }
-}
-
-#[test]
-fn report_starts_running_with_flat_browser_context() {
-    let report = Report::new("tab-a".into(), "2026-10-03T18:00:00.000Z".into(), context());
-    let value = serde_json::to_value(&report).unwrap();
-    assert_eq!(value["version"], 1); assert_eq!(value["outcome"], "running");
-    assert_eq!(value["started"], value["lastSeen"]);
-    assert_eq!(value["secureContext"], true); assert_eq!(value["devicePixelRatio"], 1.0);
-    assert_eq!(value["viewport"], serde_json::json!([900, 760]));
-    assert!(value.get("context").is_none());
-    assert_eq!(serde_json::from_value::<Report>(value).unwrap(), report);
-}
-
-#[test]
-fn report_snapshot_keeps_its_own_context() {
-    let mut live = Report::new("tab-a".into(), "start".into(), context()); let snapshot = live.clone();
-    live.context.canvas = [618, 1373]; live.context.device_pixel_ratio = 2.625;
-    live.outcome = Outcome::Ready;
-    assert_eq!(snapshot.context.canvas, [900, 760]); assert_eq!(snapshot.outcome, Outcome::Running);
-    assert_eq!(serde_json::from_str::<Report>(&serde_json::to_string(&live).unwrap()).unwrap(), live);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/34ba-events-04.rs" skip=1382
 ```
 
-</details>
+**Result after `34ba-events`:** Run the event checks below. After 30 observations, exactly 24 remain, while the first fatal reason is preserved separately. Recording a success must not clear failure.
 
-</details>
+---
 
 <a id="checkpoint-34c-browser"></a>
 
 ### Step 5 of 6 · Read live diagnostic context outside the GPU runtime (`34c-browser`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/6 Visual Trace (34c-browser): Read live diagnostic context outside the GPU runtime</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_report.rs, Cargo.toml, src/lib.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">page begins</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sanitized context</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent report</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">slot</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current context</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">JSON snapshot</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_report.rs, Ca…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent report slot</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">JSON snapshot</text>
 </svg>
-</div>
-
-- **Goal:** Start a bounded page report and read real browser context independently of the renderer’s lifetime.
-- **Data Flow Trace:** `page begins → sanitized context → independent report slot → current context → JSON snapshot`
-- **Files You Touch:** `src/browser_report.rs` (*Own one bounded report for the page and read actual browser metadata without keeping any viewer or GPU owner.*) · `Cargo.toml` (*Enable typed browser address, identity and monotonic-clock access.*) · `src/lib.rs` (*Compile the browser report bridge only for WebAssembly.*) · `src/browser.rs` (*Start diagnostic context before awaiting the GPU connection; failure observation and downloads are connected next.*)
 
 Populate the report from the page before requesting a GPU. One thread-local `RefCell<Option<Report>>` owns metadata independently of the drawing runtime. `RefCell` checks short shared/mutable borrows at runtime.
 
 `context` reads the real viewport, canvas, density and browser details. Build the page value from origin and path, excluding query and fragment. `Reflect` reads WebGPU availability without generated WebGPU bindings.
 
-`start` creates a fresh run ID and UTC start time. `observe` combines `performance.now()` timing with a UTC timestamp. `diagnostic_snapshot` refreshes context and serializes the current report. Its debug export lets you inspect the JSON in the console; it does not add a feature button.
-
-Readiness and fatal observations are wired in the next lesson.
-
-> **Self-Check Question:** *Why does the report live outside the Runtime that GPU failure disposes?*  
-> **Answer:** A failed Runtime releases input, source and GPU owners. Its report must remain readable afterward, so a separate bounded metadata slot owns it without retaining those resources.
-
-- **What You Should See:** In the debug console, inspect `window.wasmBindings.diagnostic_snapshot()`. Its viewport and canvas dimensions must match this browser. Resize and read again: context should refresh without changing the scene.
-- **Hands-On Lab Experiment:** Put the report inside Runtime instead, trigger the actual device-loss check, and explain why it would disappear with the evidence it was meant to retain. Compare a URL containing a query parameter with the report’s page field.
-
-<details>
-<summary>Implementation 34c-browser: Read live diagnostic context outside the GPU runtime</summary>
-
-Start a bounded page report and read real browser context independently of the renderer’s lifetime.
-
-Data flow: page begins → sanitized context → independent report slot → current context → JSON snapshot.
+> **Check:** *Why does the report live outside the Runtime that GPU failure disposes?* — A failed Runtime releases input, source and GPU owners. Its report must remain readable afterward, so a separate bounded metadata slot owns it without retaining those resources.
 
 ### 1. `src/browser_report.rs`
 
@@ -1618,45 +1145,15 @@ Create the file and type:
 
 Enable typed browser address, identity and monotonic-clock access.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34c-browser-02.rs"
-```
-
-</details>
-
 ### 3. `src/lib.rs`
 
 Compile the browser report bridge only for WebAssembly.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch = "wasm32")]
-mod browser_runtime;
-```
-
-</details>
 
 After that block, type:
 
@@ -1665,29 +1162,9 @@ After that block, type:
 mod browser_report;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34c-browser-03.rs"
-```
-
-</details>
-
 ### 4. `src/browser.rs`
 
 Start diagnostic context before awaiting the GPU connection; failure observation and downloads are connected next.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1696,123 +1173,46 @@ Edit the existing block to match this code; keep unchanged lines:
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34c-browser`:** In the debug console, inspect `window.wasmBindings.diagnostic_snapshot()`. Its viewport and canvas dimensions must match this browser. Resize and read again: context should refresh without changing the scene.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34c-browser-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34d-download"></a>
 
 ### Step 6 of 6 · Download diagnostics through the real command line (`34d-download`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/6 Visual Trace (34d-download): Download diagnostics through the real command line</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/file_output.rs, src/browser_report.rs, src/browser.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">first scene</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">presented</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ready report</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">JSON Blob</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual download</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">delayed URL cleanup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/file_output.rs, src/b…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">JSON Blob</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">delayed URL cleanup</text>
 </svg>
-</div>
-
-- **Goal:** Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal.
-- **Data Flow Trace:** `first scene presented → ready report → typed Report → JSON Blob → actual download → delayed URL cleanup`
-- **Files You Touch:** `src/file_output.rs` (*Reuse the existing owned Blob/anchor cleanup for a named report while keeping Save’s filename unchanged.*) · `src/browser_report.rs` (*Download a current metadata snapshot and attempt one automatic download for the first fatal observation.*) · `src/browser.rs` (*Keep the matching device’s failure evidence after its GPU runtime is disposed.*) · `src/lib.rs` (*Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed.*)
 
 Add `Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.
 
 Finish serializing before clicking the temporary download anchor. This releases the report’s `RefCell` borrow before browser behavior can call back into Rust. The existing download owner revokes its Blob URL after ten seconds.
 
-A GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.
-
-> **Self-Check Question:** *Why can the failed viewer download a report after GPU input and drawing have stopped?*  
-> **Answer:** The independent report owns metadata only. JSON serialization and the existing Blob/anchor download need no GPU resources, so disposal can stop the renderer without destroying its evidence.
-
-- **What You Should See:** Type `Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
-- **Hands-On Lab Experiment:** Keep the report inside the GPU Runtime and explain why the fatal download would lose it. Then compare the actual document Save and diagnostic downloads and explain why they cannot be used interchangeably.
-
-<details>
-<summary>Implementation 34d-download: Download diagnostics through the real command line</summary>
-
-Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal.
-
-Data flow: first scene presented → ready report → typed Report → JSON Blob → actual download → delayed URL cleanup.
+> **Check:** *Why can the failed viewer download a report after GPU input and drawing have stopped?* — The independent report owns metadata only. JSON serialization and the existing Blob/anchor download need no GPU resources, so disposal can stop the renderer without destroying its evidence.
 
 ### 1. `src/file_output.rs`
 
 Reuse the existing owned Blob/anchor cleanup for a named report while keeping Save’s filename unchanged. Choose the diagnostic JSON filename without changing the document download contract.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn download(bytes: &[u8]) -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let body = document.body().ok_or("No document body")?;
-    let anchor: web_sys::HtmlAnchorElement = document.create_element("a")?.dyn_into()?;
-    anchor.set_hidden(true);
-    anchor.set_download("viewer.session");
-    body.append_child(&anchor)?;
-    let parts = js_sys::Array::new();
-    parts.push(&js_sys::Uint8Array::from(bytes));
-    let blob = match web_sys::Blob::new_with_u8_array_sequence(&parts) {
-        Ok(blob) => blob,
-        Err(error) => { anchor.remove(); return Err(error); }
-    };
-    let url = match web_sys::Url::create_object_url_with_blob(&blob) {
-        Ok(url) => url,
-        Err(error) => { anchor.remove(); return Err(error); }
-    };
-    anchor.set_href(&url);
-    anchor.click();
-    anchor.remove();
-    let cleanup: js_sys::Function = Closure::once_into_js(move || {
-        let _ = web_sys::Url::revoke_object_url(&url);
-    }).unchecked_into();
-    if let Err(error) = window.set_timeout_with_callback_and_timeout_and_arguments_0(&cleanup, 10_000) {
-        let _ = cleanup.call0(&JsValue::NULL);
-        return Err(error);
-    }
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1853,33 +1253,9 @@ pub fn download_named(bytes: &[u8], name: &str) -> Result<(), JsValue> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34d-download-01.rs"
-```
-
-```text
---8<-- "journey/code/34d-download-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser_report.rs`
 
 Download a current metadata snapshot and attempt one automatic download for the first fatal observation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[wasm_bindgen::prelude::wasm_bindgen]
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1897,25 +1273,13 @@ pub fn fatal(message: &str) {
 #[wasm_bindgen::prelude::wasm_bindgen]
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34d-download-03.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Keep the matching device’s failure evidence after its GPU runtime is disposed. Expose diagnostics through the actual command dock without an HTML feature button. Mark the report ready only after the initial scene frame is presented. Handle the typed report command separately from document Save and edit history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     input.click();
@@ -1925,8 +1289,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
                     &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
 ```
-
-</details>
 
 Replace it with:
 
@@ -1944,8 +1306,7 @@ Replace it with:
                     &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             &editor.camera.uniform(),
@@ -1955,8 +1316,6 @@ Replace it with:
     let input_canvas = canvas.clone();
     let browser_window = window.clone();
 ```
-
-</details>
 
 Replace it with:
 
@@ -1970,8 +1329,7 @@ Replace it with:
     let browser_window = window.clone();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Reload Sources",
@@ -1981,8 +1339,6 @@ Replace it with:
             "Example Triangle",
             "Select Next",
 ```
-
-</details>
 
 Replace it with:
 
@@ -1996,8 +1352,7 @@ Replace it with:
             "Select Next",
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 fn failed(fault: crate::gpu_fault::Fault, message: String) {
@@ -2007,8 +1362,6 @@ fn failed(fault: crate::gpu_fault::Fault, message: String) {
     });
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2024,8 +1377,7 @@ fn failed(fault: crate::gpu_fault::Fault, message: String) {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2604,43 +1956,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34d-download-04.rs"
-```
-
-```text
---8<-- "journey/code/34d-download-05.rs"
-```
-
-```text
---8<-- "journey/code/34d-download-06.rs"
-```
-
-```text
---8<-- "journey/code/34d-download-07.rs"
-```
-
-</details>
-
 ### 4. `src/lib.rs`
 
 Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            browser::report(&format!("Cannot draw: {error:?}"));
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2649,42 +1967,21 @@ Edit the existing block to match this code; keep unchanged lines:
             browser::report(&format!("Cannot draw: {error:?}"));
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34d-download-08.rs"
-```
-
-</details>
-
-</details>
+**Result after `34d-download`:** Type `Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 34d-download
-npm --prefix ../session_tests run course -- check 34d-download
-npm --prefix ../session_tests run course -- save 34d-download
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 4.2
+npm --prefix ../session_tests run course -- save 4.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 4.2 (34d-download)](../../../screenshots/journey/34d-download-browser.png)
-
-Type `Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
-
-- **Final Lesson Experiment:** Keep the report inside the GPU Runtime and explain why the fatal download would lose it. Then compare the actual document Save and diagnostic downloads and explain why they cannot be used interchangeably.
-
-Continue with [Admit useful evidence and bound stored runs](../../consolidation/34e-schema.md).
+Continue with [4.3 · Admit useful evidence and bound stored runs](../../consolidation/34e-schema.md).

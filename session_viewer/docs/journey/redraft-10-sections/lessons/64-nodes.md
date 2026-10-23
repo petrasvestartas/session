@@ -1,218 +1,89 @@
 # 11.2 · Validated original cloud columns and placed owners
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.2** (Redraft `6.11`) · **6 checkpoints (`64-nodes` → `64e-identity`)** · **Study time: 3–6 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `64-nodes` → `64e-identity` (6 steps) · **Production source:** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs) · [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl) · [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl) · [app/cloud_query.rs](../../../../src/app/cloud_query.rs)
 
-> **What You Will Learn & Build:** Check cloud cubes against their original point rows. By the final checkpoint (`64e-identity`), you will include clouds in whole selection history and rectangle checks.
+> **Goal:** Include clouds in whole selection history and rectangle checks.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
-    <!-- Outer CCW loop square -->
-    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Inner CW hole loop circle (white cutout!) -->
-    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
-    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
-    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
-    <!-- Curved 3D patch shape -->
-    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Elliptical 3D bore hole cutout in white -->
-    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
-    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
-    <!-- Smooth curve on left -->
-    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
-    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
-    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
-    <!-- Sharp crease corner on right -->
-    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
-    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
-    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
-    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
-    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 11.2 Pipeline Schematic: Validated original cloud columns and placed owners</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (6 Checkpoints: 64-nodes → 64e-identity)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original point</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">columns</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked source</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">ranges</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">contained node</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">cubes</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">derived descriptors</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original owner</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 11.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/cloud.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/rect_select.rs  ·  src/document.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">6 Checkpoints: 64-nodes → 64e-identity — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Trimmed B-Rep (u,v)</text>
+  <rect x="55" y="60" width="160" height="96" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="135" cy="108" r="24" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="112" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Hole</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Outer + Inner Loops</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Crease Split</text>
+  <polyline points="338,144 419,98 500,144" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="419" cy="98" r="4.5" fill="#111111"/>
+  <line x1="419" y1="98" x2="386" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <line x1="419" y1="98" x2="452" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="372" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N1</text>
+  <text x="458" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N2</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Sharp Edge Normals</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Sub-ID Pick</text>
+  <polygon points="650,74 758,74 780,138 628,138" fill="url(#hatch)" stroke="#111111" stroke-width="2.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[brep, face_2]</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Face &amp; Edge IDs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`64-nodes`](#checkpoint-64-nodes) | Check cloud cubes against their original point rows. | `src/cloud.rs`, `src/lib.rs` | `original point columns → checked source ranges → contained node cubes → derived descriptors` |
-| **2** | [`64a-tree`](#checkpoint-64a-tree) | Validate one rooted tree and disjoint original ranges. | `src/cloud.rs` | `column lengths → child ownership → rooted levels → complete disjoint ranges` |
-| **3** | [`64b-source`](#checkpoint-64b-source) | Prepare bounds and spacing without replacing source words. | `src/cloud.rs` | `checked original columns → source bounds and spacing → shared prepared owner → resident descriptor` |
-| **4** | [`64c-placements`](#checkpoint-64c-placements) | Place the cloud through an independent f64 instance model. | `src/cloud.rs` | `shared original cloud → independent instance model → placed corners → world bounds` |
-| **5** | [`64d-scene`](#checkpoint-64d-scene) | Insert a checked cloud on the current layer. | `src/scene.rs` | `validated source → stable scene row → current layer → checked placement` |
-| **6** | [`64e-identity`](#checkpoint-64e-identity) | Include clouds in whole selection history and rectangle checks. | `src/scene.rs`, `src/hierarchy.rs`, `src/rect_select.rs`, `src/document.rs` | `original owner → eligible whole selection → one history edit → shared source restoration` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-64-nodes"></a>
 
 ### Step 1 of 6 · Check cloud cubes against their original point rows (`64-nodes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/6 Visual Trace (64-nodes): Check cloud cubes against their original point rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original point columns</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source ranges</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">contained node cubes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived descriptors</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">contained node cubes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived descriptors</text>
 </svg>
-</div>
-
-- **Goal:** Check cloud cubes against their original point rows.
-- **Data Flow Trace:** `original point columns → checked source ranges → contained node cubes → derived descriptors`
-- **Files You Touch:** `src/cloud.rs` (*Own original cloud sources and validate each derived node against its source ranges and parent cube.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep immutable original f64 coordinates and stable point IDs beside derived node descriptors. Reject invalid ranges, nonfinite cubes and children outside their parent.
 
-> **Self-Check Question:** *Does an octree range identify a new editable point?*  
-> **Answer:** No. It names a run in the original stored point columns. Stable point IDs remain independent of storage order; a cube must contain its own points before the view can trust its spacing.
-
-- **What You Should See:** The selected CAD bore and its black silhouette remain visible. These preparations add the original cloud lane; the final checkpoint connects its interactive examples.
-- **Hands-On Lab Experiment:** Compare a source point ID with its current storage index. Try an out-of-range child, a negative count and a cube shifted away from its source points.
-
-<details>
-<summary>Implementation 64-nodes: Check cloud cubes against their original point rows</summary>
-
-Check cloud cubes against their original point rows.
-
-Data flow: original point columns → checked source ranges → contained node cubes → derived descriptors.
+> **Check:** *Does an octree range identify a new editable point?* — No. It names a run in the original stored point columns. Stable point IDs remain independent of storage order; a cube must contain its own points before the view can trust its spacing.
 
 ### 1. `src/cloud.rs`
 
@@ -228,89 +99,50 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod outline_math_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/64-nodes-02.rs" skip=37
 ```
 
-</details>
+**Result after `64-nodes`:** The selected CAD bore and its black silhouette remain visible. These preparations add the original cloud lane; the final checkpoint connects its interactive examples.
+
+---
 
 <a id="checkpoint-64a-tree"></a>
 
 ### Step 2 of 6 · Validate one rooted tree and disjoint original ranges (`64a-tree`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/6 Visual Trace (64a-tree): Validate one rooted tree and disjoint original ranges</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">column lengths</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">child ownership</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rooted levels</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete disjoint ranges</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rooted levels</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete disjoint ranges</text>
 </svg>
-</div>
-
-- **Goal:** Validate one rooted tree and disjoint original ranges.
-- **Data Flow Trace:** `column lengths → child ownership → rooted levels → complete disjoint ranges`
-- **Files You Touch:** `src/cloud.rs` (*Validate complete octree columns, rooted ownership and source-row coverage before traversal.*)
 
 Check every octree column length before indexing. Require one parent per child, increasing levels and nonoverlapping ranges that cover the complete original point storage.
 
-> **Self-Check Question:** *Can a cyclic or disconnected octree reach the view walk?*  
-> **Answer:** No. Its levels and unique rooted ownership are validated before adoption. Point ranges must cover the original storage once, so neither duplicated rows nor omitted source rows become display detail.
-
-- **Hands-On Lab Experiment:** Corrupt one child index or repeat one owner. Compare an empty node table with a malformed partial table and verify rejection happens before scene ID allocation.
-
-<details>
-<summary>Implementation 64a-tree: Validate one rooted tree and disjoint original ranges</summary>
-
-Validate one rooted tree and disjoint original ranges.
-
-Data flow: column lengths → child ownership → rooted levels → complete disjoint ranges.
+> **Check:** *Can a cyclic or disconnected octree reach the view walk?* — No. Its levels and unique rooted ownership are validated before adoption. Point ranges must cover the original storage once, so neither duplicated rows nor omitted source rows become display detail.
 
 ### 1. `src/cloud.rs`
 
 Validate complete octree columns, rooted ownership and source-row coverage before traversal.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  pub bounds: Rc<crate::bounds::Bounds>,
-  pub spacing: f32,
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -318,73 +150,42 @@ After that block, type:
 --8<-- "journey/code/64a-tree-01.rs" skip=64
 ```
 
-</details>
+---
 
 <a id="checkpoint-64b-source"></a>
 
 ### Step 3 of 6 · Prepare bounds and spacing without replacing source words (`64b-source`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/6 Visual Trace (64b-source): Prepare bounds and spacing without replacing source words</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked original columns</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source bounds and spacing</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared prepared owner</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">resident descriptor</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared prepared owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">resident descriptor</text>
 </svg>
-</div>
-
-- **Goal:** Prepare bounds and spacing without replacing source words.
-- **Data Flow Trace:** `checked original columns → source bounds and spacing → shared prepared owner → resident descriptor`
-- **Files You Touch:** `src/cloud.rs` (*Keep original source columns and measured bounds separate from derived node descriptors.*)
 
 Validate coordinates, colours, normals, size and stable IDs. Measure original f64 bounds and retain the original PointCloud beside shared derived node descriptors.
 
-> **Self-Check Question:** *Are accessible payload bytes the complete reserved source capacity?*  
-> **Answer:** No. Public slices expose their used bytes, not private vector capacity. Diagnostics keep logical original payload separate from actual derived and GPU allocations.
-
-- **Hands-On Lab Experiment:** Inspect f64 coordinates before any GPU float conversion. Reject duplicate explicit IDs, mismatched colour/normal columns and nonfinite point size; initialize the lazy source GUID before comparing serialized invariants.
-
-<details>
-<summary>Implementation 64b-source: Prepare bounds and spacing without replacing source words</summary>
-
-Prepare bounds and spacing without replacing source words.
-
-Data flow: checked original columns → source bounds and spacing → shared prepared owner → resident descriptor.
+> **Check:** *Are accessible payload bytes the complete reserved source capacity?* — No. Public slices expose their used bytes, not private vector capacity. Diagnostics keep logical original payload separate from actual derived and GPU allocations.
 
 ### 1. `src/cloud.rs`
 
 Keep original source columns and measured bounds separate from derived node descriptors.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  pub bounds: Rc<crate::bounds::Bounds>,
-  pub spacing: f32,
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -392,74 +193,42 @@ After that block, type:
 --8<-- "journey/code/64b-source-01.rs" skip=64
 ```
 
-</details>
+---
 
 <a id="checkpoint-64c-placements"></a>
 
 ### Step 4 of 6 · Place the cloud through an independent f64 instance model (`64c-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/6 Visual Trace (64c-placements): Place the cloud through an independent f64 instance model</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original cloud</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent instance model</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed corners</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed corners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world bounds</text>
 </svg>
-</div>
-
-- **Goal:** Place the cloud through an independent f64 instance model.
-- **Data Flow Trace:** `shared original cloud → independent instance model → placed corners → world bounds`
-- **Files You Touch:** `src/cloud.rs` (*Preserve original cloud ownership and derive world bounds from a separate f64 model.*)
 
 Give every cloud row its own viewer ID, GUID and f64 model while sharing the original PointCloud and its derived nodes. Transform all eight bound corners for Fit.
 
-> **Self-Check Question:** *Should moving a cloud rewrite every original coordinate?*  
-> **Answer:** No. Move changes the instance model. Copies can share original columns and derived nodes while retaining their own identities and placements.
-
-- **Hands-On Lab Experiment:** Compare the same source under two placements. Translate by 1,000,000,000.125 and inspect the exact model and unchanged original coordinates; GPU rebasing connects in the precision subject.
-
-<details>
-<summary>Implementation 64c-placements: Place the cloud through an independent f64 instance model</summary>
-
-Place the cloud through an independent f64 instance model.
-
-Data flow: shared original cloud → independent instance model → placed corners → world bounds.
+> **Check:** *Should moving a cloud rewrite every original coordinate?* — No. Move changes the instance model. Copies can share original columns and derived nodes while retaining their own identities and placements.
 
 ### 1. `src/cloud.rs`
 
 Preserve original cloud ownership and derive world bounds from a separate f64 model.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-
-fn checked_node(source: &PointCloud, p: &session_rust::proto::PointCloud, i: usize) -> Result<LodNode, &'static str> {
-  let n = p.lod_size.len();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -467,58 +236,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/64c-placements-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-64d-scene"></a>
 
 ### Step 5 of 6 · Insert a checked cloud on the current layer (`64d-scene`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/6 Visual Trace (64d-scene): Insert a checked cloud on the current layer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable scene row</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current layer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current layer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked placement</text>
 </svg>
-</div>
-
-- **Goal:** Insert a checked cloud on the current layer.
-- **Data Flow Trace:** `validated source → stable scene row → current layer → checked placement`
-- **Files You Touch:** `src/scene.rs` (*Insert validated cloud rows, route current-layer ownership and release them with the scene.*)
 
 Allocate one stable viewer ID after source validation. Attach the cloud to the current layer and reject invalid or out-of-display-range placement before changing its row.
 
-> **Self-Check Question:** *Can a failed placement consume a new cloud ID?*  
-> **Answer:** No. Source validation precedes insertion, and placement checks a candidate row before adoption. Current-layer attachment uses the same source/node identity rules as other geometry lanes.
-
-- **Hands-On Lab Experiment:** Insert two rows sharing a source, then try a singular or nonfinite placement. Compare their independent viewer IDs with the shared original source GUID.
-
-<details>
-<summary>Implementation 64d-scene: Insert a checked cloud on the current layer</summary>
-
-Insert a checked cloud on the current layer.
-
-Data flow: validated source → stable scene row → current layer → checked placement.
+> **Check:** *Can a failed placement consume a new cloud ID?* — No. Source validation precedes insertion, and placement checks a candidate row before adoption. Current-layer attachment uses the same source/node identity rules as other geometry lanes.
 
 ### 1. `src/scene.rs`
 
@@ -526,8 +275,7 @@ Insert validated cloud rows, route current-layer ownership and release them with
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.ids=Default::default();
@@ -537,8 +285,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.points = Vec::new();
         self.paths = Vec::new();
 ```
-
-</details>
 
 Replace it with:
 
@@ -552,8 +298,7 @@ Replace it with:
         self.paths = Vec::new();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -563,8 +308,6 @@ Replace it with:
     pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
     pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -586,8 +329,7 @@ Replace it with:
     pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -599,8 +341,6 @@ Replace it with:
         scene
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -613,8 +353,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ids:Rc<std::collections::HashSet<ObjectId>>,
@@ -624,8 +363,6 @@ Replace it with:
     points: Vec<PointObject>,
     paths: Vec<PathObject>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -639,8 +376,7 @@ Replace it with:
     paths: Vec<PathObject>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -746,7 +482,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1265,83 +1000,38 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64d-scene-01.rs"
-```
-
-```text
---8<-- "journey/code/64d-scene-02.rs"
-```
-
-```text
---8<-- "journey/code/64d-scene-03.rs"
-```
-
-```text
---8<-- "journey/code/64d-scene-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64e-identity"></a>
 
 ### Step 6 of 6 · Include clouds in whole selection history and rectangle checks (`64e-identity`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/6 Visual Trace (64e-identity): Include clouds in whole selection history and rectangle checks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/hierarchy.rs, src/rect_select.rs, src/document.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible whole selection</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history edit</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared source restoration</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/hierarc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source restorati…</text>
 </svg>
-</div>
-
-- **Goal:** Include clouds in whole selection history and rectangle checks.
-- **Data Flow Trace:** `original owner → eligible whole selection → one history edit → shared source restoration`
-- **Files You Touch:** `src/scene.rs` (*Connect cloud owners to existing placement, bounds, copy, next selection and deletion paths.*) · `src/hierarchy.rs` (*Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.*) · `src/rect_select.rs` (*Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.*) · `src/document.rs` (*Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.*) · `src/editor.rs` (*Make whole Select All include eligible original cloud owners.*)
 
 Connect cloud bounds, original row IDs, copy, layers, Select All, Move, Delete and Undo/Redo. Rectangle checks inspect original projected point centers and preserve eligibility.
 
-> **Self-Check Question:** *Can Delete erase only the displayed LOD subset?*  
-> **Answer:** No. Whole Delete removes the original cloud row as one reversible edit. The displayed runs are derived data. Saving clouds is explicitly guarded until mixed persistence connects.
-
-- **Hands-On Lab Experiment:** Hide or lock a cloud before Select All. Copy, move and delete it, then Undo. Compare source sharing and original IDs; use a crossing rectangle on point centers rather than accepting an empty bounding-box gap.
-
-<details>
-<summary>Implementation 64e-identity: Include clouds in whole selection history and rectangle checks</summary>
-
-Include clouds in whole selection history and rectangle checks.
-
-Data flow: original owner → eligible whole selection → one history edit → shared source restoration.
+> **Check:** *Can Delete erase only the displayed LOD subset?* — No. Whole Delete removes the original cloud row as one reversible edit. The displayed runs are derived data. Saving clouds is explicitly guarded until mixed persistence connects.
 
 ### 1. `src/scene.rs`
 
@@ -1349,8 +1039,7 @@ Connect cloud owners to existing placement, bounds, copy, next selection and del
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
@@ -1361,8 +1050,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1376,8 +1063,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn remove(&mut self, id: ObjectId) -> bool {
@@ -1388,8 +1074,6 @@ Replace it with:
         existed
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1403,8 +1087,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
@@ -1413,8 +1096,6 @@ Replace it with:
             .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1427,8 +1108,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
@@ -1438,8 +1118,6 @@ Replace it with:
         self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1453,8 +1131,7 @@ Replace it with:
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
@@ -1470,8 +1147,6 @@ Replace it with:
         let object = self.objects.iter().find(|object| object.id == id)?;
         let mut vertices = object.mesh.vertices().iter();
 ```
-
-</details>
 
 Replace it with:
 
@@ -1492,8 +1167,7 @@ Replace it with:
         let mut vertices = object.mesh.vertices().iter();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
@@ -1503,8 +1177,6 @@ Replace it with:
         else { self.place_point(id,model) }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1518,8 +1190,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
@@ -1528,8 +1199,6 @@ Replace it with:
             .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1542,8 +1211,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
@@ -1552,8 +1220,6 @@ Replace it with:
         bounds
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1566,8 +1232,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -1673,7 +1338,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2199,67 +1863,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64e-identity-01.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-02.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-03.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-04.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-05.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-06.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-07.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-08.rs"
-```
-
-```text
---8<-- "journey/code/64e-identity-09.rs"
-```
-
-</details>
-
 ### 2. `src/hierarchy.rs`
 
 Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.texts().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2271,18 +1877,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.points().iter().filter(|row|eligible(row.id)) {let point=row.point();if matches(matrix,size,rectangle,vec![vec![[point[0],point[1],point[2]]]]) {found.push(row.id);}}
-    for row in scene.texts().iter().filter(|row|eligible(row.id)) {if crate::scene_label_screen::matches(row,matrix,size,rectangle) {found.push(row.id);}}
-    found.sort_unstable_by_key(|id|id.value());found.dedup();found
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -2292,18 +1886,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/document.rs`
 
 Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if scene.objects().iter().any(|row|row.surface.is_some()||row.cad.is_some()) {return Err("This checkpoint cannot save CAD surface objects yet");}
-    if !scene.texts().is_empty() {return Err("This checkpoint cannot save scene text objects yet");}
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2315,46 +1897,26 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Make whole Select All include eligible original cloud owners.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Action::SelectAll => {
-                let ids: Vec<_> = self.scene.objects().iter().map(|r| r.id).chain(self.scene.lines().iter().map(|r| r.id))
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).collect();
-                self.select_objects(ids, false);return Ok(Change::View);
-            }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/64e-identity-13.rs"
 ```
 
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 64e-identity
-npm --prefix ../session_tests run course -- check 64e-identity
-npm --prefix ../session_tests run course -- save 64e-identity
+npm --prefix ../session_tests run course -- dependencies 11.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 11.2
+npm --prefix ../session_tests run course -- save 11.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-- **Final Lesson Experiment:** Hide or lock a cloud before Select All. Copy, move and delete it, then Undo. Compare source sharing and original IDs; use a crossing rectangle on point centers rather than accepting an empty bounding-box gap.
-
-Continue with [View-dependent LOD and cached point splats](../../consolidation/64f-projection.md).
+Continue with [11.3 · View-dependent LOD and cached point splats](../../consolidation/64f-projection.md).

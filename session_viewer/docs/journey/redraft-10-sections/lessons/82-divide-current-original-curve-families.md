@@ -1,212 +1,97 @@
 # 16.2 · Split original curves and joined faces
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.2** (Redraft `8.12`) · **8 checkpoints (`82-divide-current-original-curve-families` → `82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`)** · **Study time: 4–8 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `82-divide-current-original-curve-families` → `82g-exercise-curve-pieces-source-inheritance-and-one-step-undo` (8 steps) · **Production source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs)
 
-> **What You Will Learn & Build:** Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms. By the final checkpoint (`82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`), you will exercise curve pieces source inheritance and one-step Undo.
+> **Goal:** Exercise curve pieces source inheritance and one-step Undo.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 16.2 Pipeline Schematic: Split original curves and joined faces</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 82-divide-current-original-curve-families → 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">result or refusal</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve and</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">cutter</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">sibling originals</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 16.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/split_geometry.rs  ·  src/split_draft.rs  ·  src/lib.rs  ·  src/editor.rs  ·  src/commands.rs  ·  src/browser.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 82-divide-current-original-curve-families → 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`82-divide-current-original-curve-families`](#checkpoint-82-divide-current-original-curve-families) | Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms. | `src/split_geometry.rs` | `original family → pure calculation → result or refusal` |
-| **2** | [`82a-own-the-split-target-and-toggle-original-cutters`](#checkpoint-82a-own-the-split-target-and-toggle-original-cutters) | Own the split target and toggle original cutters. | `src/split_draft.rs`, `src/lib.rs` | `target original → pending cutter owners → whole-owner toggles` |
-| **3** | [`82b-transform-cutters-into-the-target-frame-before-dividing`](#checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing) | Transform cutters into the target frame before dividing. | `src/split_draft.rs` | `world placements → inverse target frame → local original cutters → division` |
-| **4** | [`82c-adopt-sibling-pieces-beside-the-original-target`](#checkpoint-82c-adopt-sibling-pieces-beside-the-original-target) | Adopt sibling pieces beside the original target. | `src/split_draft.rs` | `prepared pieces → target sibling identities → inherited parent and placement` |
-| **5** | [`82d-connect-pending-split-completion-to-one-history-change`](#checkpoint-82d-connect-pending-split-completion-to-one-history-change) | Connect pending split completion to one history change. | `src/editor.rs` | `pending cutter owners → prepared originals → one history transaction` |
-| **6** | [`82e-route-cutter-picks-cancellation-and-temporary-highlights`](#checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights) | Route cutter picks cancellation and temporary highlights. | `src/editor.rs` | `whole-owner picks → temporary highlights → completion or cancellation` |
-| **7** | [`82f-register-split-and-route-mouse-touch-and-confirmation`](#checkpoint-82f-register-split-and-route-mouse-touch-and-confirmation) | Register Split and route mouse touch and confirmation. | `src/commands.rs`, `src/browser.rs` | `current Split command → whole integer pick → pending cutter facts → confirm` |
-| **8** | [`82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`](#checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo) | Exercise curve pieces source inheritance and one-step Undo. | `src/split_tests.rs`, `src/lib.rs` | `original curve and cutter → sibling originals → one Undo → exact Save/Open` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-82-divide-current-original-curve-families"></a>
 
 ### Step 1 of 8 · Divide original curves and joined faces (`82-divide-current-original-curve-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (82-divide-current-original-curve-families): Divide original curves and joined faces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/split_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/split_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/split_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms. Return derived geometry and the number of regions without editing the scene.
 
-> **Self-Check Question:** *Do the pieces come from sampled display segments?*  
-> **Answer:** No. Split uses original line, polyline or rational curve geometry. Display samples render the results.
-
-- **What You Should See:** The extended original line and projected curve remain visible while original splitting connects.
-- **Hands-On Lab Experiment:** Compare the line, polyline and rational-curve branches. Explain why a split surface returns one BRep with several regions.
-
-<details>
-<summary>Implementation 82-divide-current-original-curve-families: Divide original curves and joined faces</summary>
-
-Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Do the pieces come from sampled display segments?* — No. Split uses original line, polyline or rational curve geometry. Display samples render the results.
 
 ### 1. `src/split_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Geometry::Polyline(polyline) => Ok(NurbsCurve::create(false, 1, &polyline.get_points())),
-        Geometry::NurbsCurve(curve) => Ok((**curve).clone()),
-        _ => Err("Choose a line, polyline or NURBS curve as cutter".into()),
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -284,65 +169,40 @@ pub fn divided(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `82-divide-current-original-curve-families`:** The extended original line and projected curve remain visible while original splitting connects.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/82-divide-current-original-curve-families-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-82a-own-the-split-target-and-toggle-original-cutters"></a>
 
 ### Step 2 of 8 · Own the split target and toggle original cutters (`82a-own-the-split-target-and-toggle-original-cutters`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (82a-own-the-split-target-and-toggle-original-cutters): Own the split target and toggle original cutters</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/split_draft.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">target original</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending cutter owners</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">whole-owner toggles</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/split_draft.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending cutter owners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">whole-owner toggles</text>
 </svg>
-</div>
-
-- **Goal:** Own the split target and toggle original cutters.
-- **Data Flow Trace:** `target original → pending cutter owners → whole-owner toggles`
-- **Files You Touch:** `src/split_draft.rs` (*Own the curve target and bounded original cutter toggles.*) · `src/lib.rs` (*Register the source-splitting component.*)
 
 Capture one eligible original curve target and toggle distinct eligible cutters. Keep cutter highlights separate from target selection.
 
-> **Self-Check Question:** *Can the target also be its own cutter?*  
-> **Answer:** No. Refuse it before changing the list. Hidden, locked, released and unsupported cutter rows are also rejected.
-
-- **Hands-On Lab Experiment:** Inspect the64-cutter ceiling and repeated-pick removal. Confirm the source target is a curve before accepting a pending operation.
-
-<details>
-<summary>Implementation 82a-own-the-split-target-and-toggle-original-cutters: Own the split target and toggle original cutters</summary>
-
-Own the split target and toggle original cutters.
-
-Data flow: target original → pending cutter owners → whole-owner toggles.
+> **Check:** *Can the target also be its own cutter?* — No. Refuse it before changing the list. Hidden, locked, released and unsupported cutter rows are also rejected.
 
 ### 1. `src/split_draft.rs`
 
@@ -358,89 +218,48 @@ Create the file and type:
 
 Register the source-splitting component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod split_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/82a-own-the-split-target-and-toggle-original-cutters-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing"></a>
 
 ### Step 3 of 8 · Transform cutters into the target frame before dividing (`82b-transform-cutters-into-the-target-frame-before-dividing`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (82b-transform-cutters-into-the-target-frame-before-dividing): Transform cutters into the target frame before dividing</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/split_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world placements</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inverse target frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local original cutters</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">division</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/split_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local original cutters</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">division</text>
 </svg>
-</div>
-
-- **Goal:** Transform cutters into the target frame before dividing.
-- **Data Flow Trace:** `world placements → inverse target frame → local original cutters → division`
-- **Files You Touch:** `src/split_draft.rs` (*Prepare original split pieces from fresh local-frame cutter copies.*)
 
 Validate source owners and placements, then transform each original cutter into the target’s local coordinates exactly once.
 
-> **Self-Check Question:** *What happens to a cutter’s saved placement?*  
-> **Answer:** It stays unchanged. Only a temporary curve copy is transformed for the target’s split calculation.
-
-- **Hands-On Lab Experiment:** Compare a target under nested translation with a cutter in another document. Check stale allocation/model guards before invoking the algorithm.
-
-<details>
-<summary>Implementation 82b-transform-cutters-into-the-target-frame-before-dividing: Transform cutters into the target frame before dividing</summary>
-
-Transform cutters into the target frame before dividing.
-
-Data flow: world placements → inverse target frame → local original cutters → division.
+> **Check:** *What happens to a cutter’s saved placement?* — It stays unchanged. Only a temporary curve copy is transformed for the target’s split calculation.
 
 ### 1. `src/split_draft.rs`
 
 Prepare original split pieces from fresh local-frame cutter copies.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(())
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -448,68 +267,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/82b-transform-cutters-into-the-target-frame-before-dividing-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-82c-adopt-sibling-pieces-beside-the-original-target"></a>
 
 ### Step 4 of 8 · Adopt sibling pieces beside the original target (`82c-adopt-sibling-pieces-beside-the-original-target`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (82c-adopt-sibling-pieces-beside-the-original-target): Adopt sibling pieces beside the original target</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/split_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared pieces</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">target sibling identities</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inherited parent and placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/split_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">target sibling identiti…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">inherited parent and pl…</text>
 </svg>
-</div>
-
-- **Goal:** Adopt sibling pieces beside the original target.
-- **Data Flow Trace:** `prepared pieces → target sibling identities → inherited parent and placement`
-- **Files You Touch:** `src/split_draft.rs` (*Adopt named original sibling pieces with inherited source parent, placement and colours.*)
 
 Copy the target’s source row and tree parent before replacing originals. Keep the first GUID and name each piece without moving it to the current layer.
 
-> **Self-Check Question:** *Should a new current layer receive the split pieces?*  
-> **Answer:** No. Pieces belong beside the source target. Their creation follows that target’s actual tree parent and original placement.
-
-- **Hands-On Lab Experiment:** Inspect sibling GUID allocation, source replacement and tree label updates. A caller wraps all these changes in one transaction.
-
-<details>
-<summary>Implementation 82c-adopt-sibling-pieces-beside-the-original-target: Adopt sibling pieces beside the original target</summary>
-
-Adopt sibling pieces beside the original target.
-
-Data flow: prepared pieces → target sibling identities → inherited parent and placement.
+> **Check:** *Should a new current layer receive the split pieces?* — No. Pieces belong beside the source target. Their creation follows that target’s actual tree parent and original placement.
 
 ### 1. `src/split_draft.rs`
 
 Adopt named original sibling pieces with inherited source parent, placement and colours.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -517,54 +310,38 @@ After that block, type:
 --8<-- "journey/code/82c-adopt-sibling-pieces-beside-the-original-target-01.rs" skip=8
 ```
 
-</details>
+---
 
 <a id="checkpoint-82d-connect-pending-split-completion-to-one-history-change"></a>
 
 ### Step 5 of 8 · Connect pending split completion to one history change (`82d-connect-pending-split-completion-to-one-history-change`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (82d-connect-pending-split-completion-to-one-history-change): Connect pending split completion to one history change</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending cutter owners</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared originals</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history transaction</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared originals</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history transaction</text>
 </svg>
-</div>
-
-- **Goal:** Connect pending split completion to one history change.
-- **Data Flow Trace:** `pending cutter owners → prepared originals → one history transaction`
-- **Files You Touch:** `src/editor.rs` (*Connect pending split actions, checked completion and one original adoption transaction.*)
 
 Expose checked Split actions after their handlers exist. Empty confirmation keeps the owner; nonempty completion consumes it and adopts all pieces once.
 
-> **Self-Check Question:** *Can a no-division result clear Redo?*  
-> **Answer:** No. Report it before opening a transaction. A real division records replacement and sibling creation together.
-
-- **Hands-On Lab Experiment:** Inspect empty confirmation, failed nonempty completion, no division and successful adoption. The original target remains selected after success.
-
-<details>
-<summary>Implementation 82d-connect-pending-split-completion-to-one-history-change: Connect pending split completion to one history change</summary>
-
-Connect pending split completion to one history change.
-
-Data flow: pending cutter owners → prepared originals → one history transaction.
+> **Check:** *Can a no-division result clear Redo?* — No. Report it before opening a transaction. A real division records replacement and sibling creation together.
 
 ### 1. `src/editor.rs`
 
@@ -572,8 +349,7 @@ Connect pending split actions, checked completion and one original adoption tran
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -583,8 +359,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::ExtendBegin{distance,asking}=>return self.begin_extend(distance,asking),
             Action::ExtendPick(id)=>return self.extend_pick(id),
 ```
-
-</details>
 
 Replace it with:
 
@@ -600,8 +374,7 @@ Replace it with:
             Action::ExtendPick(id)=>return self.extend_pick(id),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if commit{let hover=next.hover.clone().ok_or_else(||self.primitive_failure(if next.error.is_empty(){"Click near a curve end".into()}else{next.error.clone()}))?;hover.owner.valid(&self.scene)?;self.history.try_edit(&mut self.scene,|scene|scene.replace_original(hover.owner.id,hover.geometry))?;let added=hover.tail.windows(2).map(|p|(0..3).map(|i|(p[1][i]-p[0][i]).powi(2)).sum::<f64>().sqrt()).sum::<f64>();next.refreshed(&self.scene,hover.owner.id).map_err(|message|self.primitive_failure(message))?;self.tool_status=format!("Extended by {added:.3} · Undo reverts it");self.draft.as_mut().unwrap().extend=Some(next);return Ok(Change::Scene)}self.draft.as_mut().unwrap().extend=Some(next);self.tool_status=self.draft.as_ref().unwrap().prompt();Ok(Change::View)
@@ -611,8 +384,6 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -634,8 +405,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -647,8 +417,6 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -661,8 +429,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -672,8 +439,6 @@ pub struct Editor {
     pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
     gizmo_hover:Option<crate::gizmo::Handle>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -687,8 +452,7 @@ pub struct Editor {
     gizmo_hover:Option<crate::gizmo::Handle>,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -698,8 +462,6 @@ pub enum Action {
     GatherBegin{recipe:&'static crate::gather_input::Recipe,text:String},GatherPick(Option<ObjectId>),
     BeginTransformation(crate::transform_draft::Kind),
 ```
-
-</details>
 
 Replace it with:
 
@@ -713,8 +475,7 @@ pub enum Action {
     BeginTransformation(crate::transform_draft::Kind),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1752,83 +1513,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/82d-connect-pending-split-completion-to-one-history-change-01.rs"
-```
-
-```text
---8<-- "journey/code/82d-connect-pending-split-completion-to-one-history-change-02.rs"
-```
-
-```text
---8<-- "journey/code/82d-connect-pending-split-completion-to-one-history-change-03.rs"
-```
-
-```text
---8<-- "journey/code/82d-connect-pending-split-completion-to-one-history-change-04.rs"
-```
-
-```text
---8<-- "journey/code/82d-connect-pending-split-completion-to-one-history-change-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights"></a>
 
 ### Step 6 of 8 · Route cutter picks cancellation and temporary highlights (`82e-route-cutter-picks-cancellation-and-temporary-highlights`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (82e-route-cutter-picks-cancellation-and-temporary-highlights): Route cutter picks cancellation and temporary highlights</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole-owner picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary highlights</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">completion or cancellation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary highlights</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">completion or cancellat…</text>
 </svg>
-</div>
-
-- **Goal:** Route cutter picks cancellation and temporary highlights.
-- **Data Flow Trace:** `whole-owner picks → temporary highlights → completion or cancellation`
-- **Files You Touch:** `src/editor.rs` (*Route split input, cutter highlights, gizmo visibility and pending-owner lifecycle.*)
 
 Route tree and rectangle row picks to the pending cutter list. Hide its gizmo, preserve view controls and end pending state on scene history or another command.
 
-> **Self-Check Question:** *Does selecting a cutter replace the target selection?*  
-> **Answer:** No. It adds a temporary cutter highlight. Ending the tool removes those highlights and restores the target’s normal gizmo.
-
-- **Hands-On Lab Experiment:** Compare toggling a layer row and the same row through rectangle selection. Check Fit during Split and Escape, Undo or another drawing command afterward.
-
-<details>
-<summary>Implementation 82e-route-cutter-picks-cancellation-and-temporary-highlights: Route cutter picks cancellation and temporary highlights</summary>
-
-Route cutter picks cancellation and temporary highlights.
-
-Data flow: whole-owner picks → temporary highlights → completion or cancellation.
+> **Check:** *Does selecting a cutter replace the target selection?* — No. It adds a temporary cutter highlight. Ending the tool removes those highlights and restores the target’s normal gizmo.
 
 ### 1. `src/editor.rs`
 
@@ -1836,8 +1552,7 @@ Route split input, cutter highlights, gizmo visibility and pending-owner lifecyc
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::LayerProperty {key,property}=>{crate::layer_properties::apply(&mut self.scene,&key,property)?;self.repair_selection();if self.selected.is_some_and(|id|self.scene.pick_id(id.value()).is_none()) {self.selected=None;self.selected_part=None;}self.snap_index=None;return Ok(Change::Preview);},
@@ -1848,8 +1563,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
             Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1863,8 +1576,7 @@ Replace it with:
             Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn apply_action(&mut self, action: Action) -> Result<Change, &'static str> {
@@ -1874,8 +1586,6 @@ Replace it with:
             Action::Split=>return self.split_command(),
             Action::SplitPick(id)=>return self.split_pick(id),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1889,8 +1599,7 @@ Replace it with:
             Action::SplitPick(id)=>return self.split_pick(id),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 if self.canvas_drag.as_ref().unwrap().released.is_some() {return self.finish_canvas();}return Ok(Change::Preview);
@@ -1901,8 +1610,6 @@ Replace it with:
         }
         self.canvas_drag=None;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1916,8 +1623,7 @@ Replace it with:
         self.canvas_drag=None;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let draft=self.draft.as_ref().ok_or("No transform tool is running")?;let mut next=draft.transform.clone().ok_or("No transform tool is running")?;
@@ -1928,8 +1634,6 @@ Replace it with:
     fn gather_adopt(&mut self,next:crate::gather_draft::Draft,made:Option<crate::gather_input::Made>)->Result<Change,&'static str>{
         next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1943,8 +1647,7 @@ Replace it with:
         next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
@@ -1954,8 +1657,6 @@ Replace it with:
             return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1969,8 +1670,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1981,8 +1681,6 @@ Replace it with:
         if let Some(edit)=self.gizmo_edit.as_ref() {return Some(edit.origin());}
         if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1996,8 +1694,7 @@ Replace it with:
         if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3037,91 +2734,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/82e-route-cutter-picks-cancellation-and-temporary-highlights-01.rs"
-```
-
-```text
---8<-- "journey/code/82e-route-cutter-picks-cancellation-and-temporary-highlights-02-escape-drag.rs"
-```
-
-```text
---8<-- "journey/code/82e-route-cutter-picks-cancellation-and-temporary-highlights-03.rs"
-```
-
-```text
---8<-- "journey/code/82e-route-cutter-picks-cancellation-and-temporary-highlights-04.rs"
-```
-
-```text
---8<-- "journey/code/82e-route-cutter-picks-cancellation-and-temporary-highlights-05.rs"
-```
-
-```text
---8<-- "journey/code/82e-route-cutter-picks-cancellation-and-temporary-highlights-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-82f-register-split-and-route-mouse-touch-and-confirmation"></a>
 
 ### Step 7 of 8 · Register Split and route mouse touch and confirmation (`82f-register-split-and-route-mouse-touch-and-confirmation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (82f-register-split-and-route-mouse-touch-and-confirmation): Register Split and route mouse touch and confirmation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/commands.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Split command</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole integer pick</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending cutter facts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">confirm</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/commands.rs, src/brow…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending cutter facts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">confirm</text>
 </svg>
-</div>
-
-- **Goal:** Register Split and route mouse touch and confirmation.
-- **Data Flow Trace:** `current Split command → whole integer pick → pending cutter facts → confirm`
-- **Files You Touch:** `src/commands.rs` (*Register current Split vocabulary and argument-free dispatch.*) · `src/browser.rs` (*Route whole original cutters and expose pending split facts and options.*)
 
 Register the current argument-free command and route whole-owner integer picks. Show Split/Cancel options and observe the pending target and cutters.
 
-> **Self-Check Question:** *Should a saved face-picking mode make a cutter pick select an edge?*  
-> **Answer:** No. Pending cutter selection temporarily requests whole original owners while preserving the user’s saved picking mode.
-
-- **Hands-On Lab Experiment:** Inspect mouse/touch/tree routing, pending prompts and Enter/Cancel options. The browser contract projects actual world coordinates through the current camera.
-
-<details>
-<summary>Implementation 82f-register-split-and-route-mouse-touch-and-confirmation: Register Split and route mouse touch and confirmation</summary>
-
-Register Split and route mouse touch and confirmation.
-
-Data flow: current Split command → whole integer pick → pending cutter facts → confirm.
+> **Check:** *Should a saved face-picking mode make a cutter pick select an edge?* — No. Pending cutter selection temporarily requests whole original owners while preserving the user’s saved picking mode.
 
 ### 1. `src/commands.rs`
 
@@ -3129,8 +2773,7 @@ Register current Split vocabulary and argument-free dispatch.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let alias=crate::transform_commands::alias(&line);let line=alias.as_str();
@@ -3140,8 +2783,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
     if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3155,8 +2796,7 @@ Replace it with:
     if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 ];
@@ -3167,8 +2807,6 @@ pub fn names() -> Vec<&'static str> {
 
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
-
-</details>
 
 Replace it with:
 
@@ -3182,8 +2820,7 @@ pub fn names() -> Vec<&'static str> {
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -3351,31 +2988,13 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-01.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Route whole original cutters and expose pending split facts and options.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
@@ -3385,8 +3004,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-extend", &editor.draft.as_ref().and_then(|d|d.extend.as_ref()).map_or_else(||"null".into(), |e|serde_json::json!({"boundaries":e.boundaries.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"curves":e.curves,"distance":e.distance,"asking":e.asking,"candidates":e.candidates.len(),"hover":e.hover.as_ref().map(|h|serde_json::json!({"owner":h.owner.id.value(),"end":format!("{:?}",h.end),"tail":h.tail})),"error":e.error}).to_string()))?;
     canvas.set_attribute("data-gather",&editor.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||"null".into(),|g|serde_json::json!({"name":g.recipe.name,"step":g.progress.step,"rows":g.progress.rows,"answered":g.progress.answered,"choice":g.choice}).to_string()))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -3400,8 +3017,7 @@ Replace it with:
     canvas.set_attribute("data-gather",&editor.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||"null".into(),|g|serde_json::json!({"name":g.recipe.name,"step":g.progress.step,"rows":g.progress.rows,"answered":g.progress.answered,"choice":g.choice}).to_string()))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         panel.number(number);
@@ -3412,8 +3028,6 @@ Replace it with:
             if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3427,8 +3041,7 @@ Replace it with:
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -3438,8 +3051,6 @@ Replace it with:
         else { panel.tool(String::new(), Vec::new()); }
         if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3453,8 +3064,7 @@ Replace it with:
         if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(action) = action {
@@ -3466,8 +3076,6 @@ Replace it with:
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
             if closing_action(&action) {publication_control.cancel();}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3482,8 +3090,7 @@ Replace it with:
             if closing_action(&action) {publication_control.cancel();}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Some(Action::Touch(actions))=> {
@@ -3494,8 +3101,6 @@ Replace it with:
                 }}Some(Action::Touch(applied))
             },
 ```
-
-</details>
 
 Replace it with:
 
@@ -3509,8 +3114,7 @@ Replace it with:
             },
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 None => None,
@@ -3521,8 +3125,6 @@ Replace it with:
                 Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3536,8 +3138,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match renderer.take_pick(editor.camera.uniform()) {
@@ -3548,8 +3149,6 @@ Replace it with:
                     else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3563,8 +3162,7 @@ Replace it with:
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -4404,99 +4002,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-03.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-04.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-05.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-06-selection-refresh.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-07.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-08.rs"
-```
-
-```text
---8<-- "journey/code/82f-register-split-and-route-mouse-touch-and-confirmation-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"></a>
 
 ### Step 8 of 8 · Exercise curve pieces source inheritance and one-step Undo (`82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (82g-exercise-curve-pieces-source-inheritance-and-one-step-undo): Exercise curve pieces source inheritance and one-step Undo</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/split_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve and cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sibling originals</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one Undo</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact Save/Open</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/split_tests.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one Undo</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact Save/Open</text>
 </svg>
-</div>
-
-- **Goal:** Exercise curve pieces source inheritance and one-step Undo.
-- **Data Flow Trace:** `original curve and cutter → sibling originals → one Undo → exact Save/Open`
-- **Files You Touch:** `src/split_tests.rs` (*Copy integrated source split, tree, placement, colour, stale, history and archive fixtures.*) · `src/lib.rs` (*Register the source-splitting component.*)
 
 Copy integrated original split fixtures and display the selected first piece beside its sibling and retained cutter.
 
-> **Self-Check Question:** *What proves the whole split is one change?*  
-> **Answer:** One Undo restores the original allocation and removes every added sibling. Redo restores all named pieces while keeping the cutter.
+> **Check:** *What proves the whole split is one change?* — One Undo restores the original allocation and removes every added sibling. Redo restores all named pieces while keeping the cutter.
 
-- **What You Should See:** The selected first split piece is yellow beside its original sibling and retained cutter. The split preserves source placement, layer parent and identity and undoes as one operation.
-- **Hands-On Lab Experiment:** Type Close, Line w-2,0,0 w2,0,0 and Line w0,-2,0 w0,2,0. Type View Isometric, Select None and Fit. Click the horizontal target away from the crossing, type Split, then click the vertical cutter away from the crossing. Press Enter or tap Split. Inspect the two named original pieces; the first remains selected and the cutter remains. Try Undo, Redo, empty confirmation, toggling the cutter, Escape and Save/Open.
-
-<details>
-<summary>Implementation 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo: Exercise curve pieces source inheritance and one-step Undo</summary>
-
-Exercise curve pieces source inheritance and one-step Undo.
-
-Data flow: original curve and cutter → sibling originals → one Undo → exact Save/Open.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4510,10 +4049,7 @@ Copy this supplied file:
 --8<-- "journey/code/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4521,47 +4057,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source-splitting component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod split_draft;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-02.rs" skip=22
 ```
 
-</details>
-
-</details>
+**Result after `82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`:** The selected first split piece is yellow beside its original sibling and retained cutter. The split preserves source placement, layer parent and identity and undoes as one operation.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo
-npm --prefix ../session_tests run course -- check 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo
-npm --prefix ../session_tests run course -- save 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo
+npm --prefix ../session_tests run course -- dependencies 16.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 16.2
+npm --prefix ../session_tests run course -- save 16.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The selected first split piece is yellow beside its original sibling and retained cutter. The split preserves source placement, layer parent and identity and undoes as one operation.
-
-- **Final Lesson Experiment:** Type Close, Line w-2,0,0 w2,0,0 and Line w0,-2,0 w0,2,0. Type View Isometric, Select None and Fit. Click the horizontal target away from the crossing, type Split, then click the vertical cutter away from the crossing. Press Enter or tap Split. Inspect the two named original pieces; the first remains selected and the cutter remains. Try Undo, Redo, empty confirmation, toggling the cutter, Escape and Save/Open.
-
-Continue with [Joined-face topology and exact surface measures](../../consolidation/83-split-original-faces-without-separating-the-solid.md).
+Continue with [16.3 · Joined-face topology and exact surface measures](../../consolidation/83-split-original-faces-without-separating-the-solid.md).

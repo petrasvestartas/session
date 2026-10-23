@@ -1,219 +1,90 @@
 # 9.1 · Original surfaces, analytic normals and trim boundaries
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 9.1** (Redraft `6.1`) · **11 checkpoints (`55-validation` → `55zc-follow-original-constrained-trim-labels`)** · **Study time: 5.5–11 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `55-validation` → `55zc-follow-original-constrained-trim-labels` (11 steps) · **Production source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs)
 
-> **What You Will Learn & Build:** Validate original surface control storage. By the final checkpoint (`55zc-follow-original-constrained-trim-labels`), you will read ordered edge-use and interval labels from mesh vertices.
+> **Goal:** Read ordered edge-use and interval labels from mesh vertices.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
-    <!-- Outer CCW loop square -->
-    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Inner CW hole loop circle (white cutout!) -->
-    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
-    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
-    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
-    <!-- Curved 3D patch shape -->
-    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Elliptical 3D bore hole cutout in white -->
-    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
-    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
-    <!-- Smooth curve on left -->
-    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
-    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
-    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
-    <!-- Sharp crease corner on right -->
-    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
-    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
-    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
-    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
-    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 9.1 Pipeline Schematic: Original surfaces, analytic normals and trim boundaries</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (11 Checkpoints: 55-validation → 55zc-follow-original-constrained-trim-labels)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original NURBS</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">storage bounds</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">weights and knots</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">finite domains</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original edge use</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 9.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/surface.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/part_preview.rs  ·  src/pick_sources.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">11 Checkpoints: 55-validation → 55zc-follow-original-constrained-trim-labels — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Trimmed B-Rep (u,v)</text>
+  <rect x="55" y="60" width="160" height="96" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="135" cy="108" r="24" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="112" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Hole</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Outer + Inner Loops</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Crease Split</text>
+  <polyline points="338,144 419,98 500,144" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="419" cy="98" r="4.5" fill="#111111"/>
+  <line x1="419" y1="98" x2="386" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <line x1="419" y1="98" x2="452" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="372" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N1</text>
+  <text x="458" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N2</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Sharp Edge Normals</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Sub-ID Pick</text>
+  <polygon points="650,74 758,74 780,138 628,138" fill="url(#hatch)" stroke="#111111" stroke-width="2.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[brep, face_2]</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Face &amp; Edge IDs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (`session_rust`)** | `BRep` Faces, Outer/Inner Trim Loops & Edge Adjacency | Validates topological loop closure and manifold edges so trimmed CAD surfaces and analytical boundary curves stay synchronized. |
-| **Rust / WGSL** | Crease-Split Vertex Normals vs. Smooth `G1` Normals | Averages vertex normals across smooth surface patches (`angle < crease_threshold`) and splits vertices along sharp mechanical creases for crisp shading. |
-| **WebGPU (`Rg32Uint`)** | Unified `[brep_owner_id, face_or_edge_sub_id]` Picking | Both shaded B-Rep face triangles and boundary ribbon wires write the same B-Rep owner ID plus sub-element index for whole-solid or sub-face/edge selection. |
+| **Rust (`session_rust`)** | `BRep` Outer & Inner Trim Loops | Validates closed `(u,v)` trim loops and holes on curved CAD faces. |
+| **Rust / WGSL** | Smooth `G1` vs. Crease Normals | Averages smooth normals and splits vertices across sharp creases. |
+| **WebGPU (`Rg32Uint`)** | `[brep_id, face_or_edge_id]` | Unified whole-solid or sub-face/edge selection. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/brep.rs](../../../src/app/walk/brep.rs), [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs), [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`55-validation`](#checkpoint-55-validation) | Validate original surface control storage. | `src/surface.rs`, `src/lib.rs` | `original NURBS → storage bounds → weights and knots → finite domains` |
-| **2** | [`55a-grid`](#checkpoint-55a-grid) | Keep UV coordinates beside original world samples. | `src/surface.rs` | `parameter domain → exact UV → f64 point and normal → grid and original borders` |
-| **3** | [`55b-normals`](#checkpoint-55b-normals) | Use analytic normals and finite singular-point fallbacks. | `src/surface.rs` | `analytic normal → finite unit vector → neighbouring cell fallback → display normal` |
-| **4** | [`55c-display`](#checkpoint-55c-display) | Prepare derived surface display without losing its source. | `src/surface.rs` | `shared original NURBS → UV grid → derived mesh display → one face and four borders` |
-| **5** | [`55d-source-row`](#checkpoint-55d-source-row) | Attach original surface ownership to existing scene rows. | `src/scene.rs`, `src/document.rs`, `src/part_preview.rs` | `original surface owner → existing scene identity → current layer → shared placement history` |
-| **6** | [`55e-identities`](#checkpoint-55e-identities) | Resolve original surface face and domain edges. | `src/pick_sources.rs`, `src/selection.rs`, `src/highlight.rs` | `display segment → compact GPU address → original domain edge → complete border highlight` |
-| **7** | [`55f-ownership`](#checkpoint-55f-ownership) | Account for shared source and UV cache owners. | `src/memory.rs`, `src/browser.rs` | `live and history rows → shared source identities → cached UV allocations → inspectable diagnostics` |
-| **8** | [`55g-surface`](#checkpoint-55g-surface) | Draw and pick the original parametric roof. | `src/editor.rs`, `src/commands.rs`, `src/surface_tests.rs`, `src/lib.rs` | `Example Surface → shared source row → analytic-normal drawing → original integer pick → one Undo` |
-| **9** | [`55za-read-original-edge-use-samples`](#checkpoint-55za-read-original-edge-use-samples) | Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints. | `src/cad_edges.rs`, `src/lib.rs` | `original edge use → face-mesh samples → ordered CAD boundary chain` |
-| **10** | [`55zb-follow-original-isoparametric-boundaries`](#checkpoint-55zb-follow-original-isoparametric-boundaries) | Follow an exact constant-u or constant-v boundary through the existing face mesh. | `src/cad_edges.rs` | `original edge use → face-mesh samples → ordered CAD boundary chain` |
-| **11** | [`55zc-follow-original-constrained-trim-labels`](#checkpoint-55zc-follow-original-constrained-trim-labels) | Read ordered edge-use and interval labels from mesh vertices. | `src/cad_edges.rs` | `original edge use → face-mesh samples → ordered CAD boundary chain` |
+![Recorded visual output for Lesson 9.1 (55zc-follow-original-constrained-trim-labels)](../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-55-validation"></a>
 
 ### Step 1 of 11 · Validate original surface control storage (`55-validation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/11 Visual Trace (55-validation): Validate original surface control storage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surface.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original NURBS</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">storage bounds</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">weights and knots</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite domains</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surface.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">weights and knots</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite domains</text>
 </svg>
-</div>
-
-- **Goal:** Validate original surface control storage.
-- **Data Flow Trace:** `original NURBS → storage bounds → weights and knots → finite domains`
-- **Files You Touch:** `src/surface.rs` (*Validate the original NURBS layout, parameter domains and bounded display input.*) · `src/lib.rs` (*Register the source component.*)
 
 Check bounded control counts, nonoverlapping row or column strides, positive rational weights, knot order and finite parameter domains before evaluating a source.
 
-> **Self-Check Question:** *Why validate strides before reading a control point?*  
-> **Answer:** The kernel control accessor expects complete storage. Invalid strides or missing values could index past the source buffer; rejecting them before evaluation preserves the scene.
-
-- **What You Should See:** Continue the navigation and blue Posts exercise. This preparation connects one surface component; draw and select the original parametric roof at the end of 55.
-- **Hands-On Lab Experiment:** Compare packed, transposed and padded valid control storage. Try overlapping strides, a zero weight and reversed knots; each must be refused before drawing.
-
-<details>
-<summary>Implementation 55-validation: Validate original surface control storage</summary>
-
-Validate original surface control storage.
-
-Data flow: original NURBS → storage bounds → weights and knots → finite domains.
+> **Check:** *Why validate strides before reading a control point?* — The kernel control accessor expects complete storage. Invalid strides or missing values could index past the source buffer; rejecting them before evaluation preserves the scene.
 
 ### 1. `src/surface.rs`
 
@@ -229,87 +100,50 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod shortcut_focus_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/55-validation-02.rs" skip=39
 ```
 
-</details>
+**Result after `55-validation`:** Continue the navigation and blue Posts exercise. This preparation connects one surface component; draw and select the original parametric roof at the end of 55.
+
+---
 
 <a id="checkpoint-55a-grid"></a>
 
 ### Step 2 of 11 · Keep UV coordinates beside original world samples (`55a-grid`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/11 Visual Trace (55a-grid): Keep UV coordinates beside original world samples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surface.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parameter domain</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact UV</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">f64 point and normal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">grid and original borders</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surface.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">f64 point and normal</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">grid and original borde…</text>
 </svg>
-</div>
-
-- **Goal:** Keep UV coordinates beside original world samples.
-- **Data Flow Trace:** `parameter domain → exact UV → f64 point and normal → grid and original borders`
-- **Files You Touch:** `src/surface.rs` (*Build the current 16–96-step UV grid and open domain border segment ranges.*)
 
 Sample the original source in f64, retain each UV address, use the current bounded grid sizes and record four original domain boundaries.
 
-> **Self-Check Question:** *Are grid triangles new CAD faces?*  
-> **Answer:** No. They are derived display triangles for one original surface. UV addresses retain the connection to the source; its four domain borders keep their own identities.
-
-- **Hands-On Lab Experiment:** Evaluate a nonunit domain and compare every cached sample with the original surface at its UV. Count boundary segments separately from interior grid edges.
-
-<details>
-<summary>Implementation 55a-grid: Keep UV coordinates beside original world samples</summary>
-
-Keep UV coordinates beside original world samples.
-
-Data flow: parameter domain → exact UV → f64 point and normal → grid and original borders.
+> **Check:** *Are grid triangles new CAD faces?* — No. They are derived display triangles for one original surface. UV addresses retain the connection to the source; its four domain borders keep their own identities.
 
 ### 1. `src/surface.rs`
 
 Build the current 16–96-step UV grid and open domain border segment ranges.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -317,73 +151,42 @@ After that block, type:
 --8<-- "journey/code/55a-grid-01.rs" skip=3
 ```
 
-</details>
+---
 
 <a id="checkpoint-55b-normals"></a>
 
 ### Step 3 of 11 · Use analytic normals and finite singular-point fallbacks (`55b-normals`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/11 Visual Trace (55b-normals): Use analytic normals and finite singular-point fallbacks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surface.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">analytic normal</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite unit vector</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">neighbouring cell fallback</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">display normal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surface.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">neighbouring cell fallb…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">display normal</text>
 </svg>
-</div>
-
-- **Goal:** Use analytic normals and finite singular-point fallbacks.
-- **Data Flow Trace:** `analytic normal → finite unit vector → neighbouring cell fallback → display normal`
-- **Files You Touch:** `src/surface.rs` (*Normalise analytic normals and safely handle singular sample positions.*)
 
 Keep the kernel normal when valid and recover a missing singular-point normal from a neighbouring grid cell without changing the source.
 
-> **Self-Check Question:** *Should a degenerate normal become a NaN vertex attribute?*  
-> **Answer:** No. A neighbouring nondegenerate cell can provide the direction. If the entire local patch collapses, its zero-area triangles receive a finite fallback normal.
-
-- **Hands-On Lab Experiment:** Compare a planar patch and a curved roof. Transpose its control layout and verify that sampling follows the transposed source rather than rewriting it.
-
-<details>
-<summary>Implementation 55b-normals: Use analytic normals and finite singular-point fallbacks</summary>
-
-Use analytic normals and finite singular-point fallbacks.
-
-Data flow: analytic normal → finite unit vector → neighbouring cell fallback → display normal.
+> **Check:** *Should a degenerate normal become a NaN vertex attribute?* — No. A neighbouring nondegenerate cell can provide the direction. If the entire local patch collapses, its zero-area triangles receive a finite fallback normal.
 
 ### 1. `src/surface.rs`
 
 Normalise analytic normals and safely handle singular sample positions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -391,72 +194,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/55b-normals-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-55c-display"></a>
 
 ### Step 4 of 11 · Prepare derived surface display without losing its source (`55c-display`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/11 Visual Trace (55c-display): Prepare derived surface display without losing its source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surface.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original NURBS</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">UV grid</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived mesh display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one face and four borders</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surface.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived mesh display</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one face and four borde…</text>
 </svg>
-</div>
-
-- **Goal:** Prepare derived surface display without losing its source.
-- **Data Flow Trace:** `shared original NURBS → UV grid → derived mesh display → one face and four borders`
-- **Files You Touch:** `src/surface.rs` (*Keep the original surface and its UV cache beside the derived display; provide the parametric-roof example.*)
 
 Keep the original NURBS in a shared owner. Build display positions, normals, triangles and only original domain boundary ink; all triangles resolve to one face.
 
-> **Self-Check Question:** *Why keep the original NURBS after making display triangles?*  
-> **Answer:** The triangles approximate its display. They cannot replace original control values, rational weights or parameter domains. Presentation and placements continue sharing the source.
-
-- **Hands-On Lab Experiment:** Inspect the original surface before and after preparation. Compare its weights, knots, GUID and colours; count one face and four boundary identities.
-
-<details>
-<summary>Implementation 55c-display: Prepare derived surface display without losing its source</summary>
-
-Prepare derived surface display without losing its source.
-
-Data flow: shared original NURBS → UV grid → derived mesh display → one face and four borders.
+> **Check:** *Why keep the original NURBS after making display triangles?* — The triangles approximate its display. They cannot replace original control values, rational weights or parameter domains. Presentation and placements continue sharing the source.
 
 ### 1. `src/surface.rs`
 
 Keep the original surface and its UV cache beside the derived display; provide the parametric-roof example.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -464,58 +237,38 @@ After that block, type:
 --8<-- "journey/code/55c-display-01.rs" skip=9
 ```
 
-</details>
+---
 
 <a id="checkpoint-55d-source-row"></a>
 
 ### Step 5 of 11 · Attach original surface ownership to existing scene rows (`55d-source-row`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/11 Visual Trace (55d-source-row): Attach original surface ownership to existing scene rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/document.rs, src/part_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original surface owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing scene identity</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current layer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared placement history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/documen…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current layer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared placement history</text>
 </svg>
-</div>
-
-- **Goal:** Attach original surface ownership to existing scene rows.
-- **Data Flow Trace:** `original surface owner → existing scene identity → current layer → shared placement history`
-- **Files You Touch:** `src/scene.rs` (*Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.*) · `src/document.rs` (*Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.*) · `src/part_preview.rs` (*Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.*)
 
 Route a generated surface through the current layer while preserving original metadata and one whole-object history boundary. Guard saving and CAD part edits until their later subjects.
 
-> **Self-Check Question:** *Can this checkpoint silently save the tessellated proxy as a mesh?*  
-> **Answer:** No. Saving a CAD surface is explicitly guarded until mixed saving is implemented. Original NURBS geometry remains owned and unchanged while whole-object placements are edited.
-
-- **Hands-On Lab Experiment:** Add a surface on the current layer, move it and undo once. Close the document while retaining metadata and display data; the original surface should be released.
-
-<details>
-<summary>Implementation 55d-source-row: Attach original surface ownership to existing scene rows</summary>
-
-Attach original surface ownership to existing scene rows.
-
-Data flow: original surface owner → existing scene identity → current layer → shared placement history.
+> **Check:** *Can this checkpoint silently save the tessellated proxy as a mesh?* — No. Saving a CAD surface is explicitly guarded until mixed saving is implemented. Original NURBS geometry remains owned and unchanged while whole-object placements are edited.
 
 ### 1. `src/scene.rs`
 
@@ -523,8 +276,7 @@ Attach and share original NURBS ownership while preventing proxy saving or prema
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let model=self.placement(target.owner).ok_or("Part owner is missing")?;
@@ -534,8 +286,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             for key in crate::part_preview::keys(&source,target.part)? {
                 let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
 ```
-
-</details>
 
 Replace it with:
 
@@ -549,8 +299,7 @@ Replace it with:
                 let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let generated=prepared.source.is_none();
@@ -565,8 +314,6 @@ Replace it with:
         if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
         if !self.contains(id) {return Err("Object is gone");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -589,8 +336,7 @@ Replace it with:
         if !self.contains(id) {return Err("Object is gone");}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -600,8 +346,6 @@ pub struct Object {
     pub guid: String,
     pub metadata: Rc<crate::row_metadata::RowMetadata>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -615,8 +359,7 @@ pub struct Object {
     pub metadata: Rc<crate::row_metadata::RowMetadata>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -721,7 +464,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1206,42 +948,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/55d-source-row-01.rs"
-```
-
-```text
---8<-- "journey/code/55d-source-row-02.rs"
-```
-
-```text
---8<-- "journey/code/55d-source-row-03.rs"
-```
-
-</details>
-
 ### 2. `src/document.rs`
 
 Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1253,76 +962,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let model=scene.placement(target.owner).ok_or("Part owner is missing")?;
-    let points=if let Some(row)=scene.objects().iter().find(|r|r.id==target.owner) {
-        let mesh=row.geometry().ok_or("Reload editable sources before editing a part")?;
-        keys(mesh,target.part)?.into_iter().map(|key|mesh.vertex_point(key).ok_or("Missing source vertex")).collect::<Result<Vec<_>,_>>()?
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/55d-source-row-05.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-55e-identities"></a>
 
 ### Step 6 of 11 · Resolve original surface face and domain edges (`55e-identities`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/11 Visual Trace (55e-identities): Resolve original surface face and domain edges</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs, src/selection.rs, src/highlight.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display segment</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">compact GPU address</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original domain edge</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete border highlight</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_sources.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original domain edge</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete border highlig…</text>
 </svg>
-</div>
-
-- **Goal:** Resolve original surface face and domain edges.
-- **Data Flow Trace:** `display segment → compact GPU address → original domain edge → complete border highlight`
-- **Files You Touch:** `src/pick_sources.rs` (*Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.*) · `src/selection.rs` (*Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.*) · `src/highlight.rs` (*Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.*)
 
 Give the shaded patch one source face and retain four domain edge identities across all their display segments. Highlight the chosen complete original border.
 
-> **Self-Check Question:** *Do sixteen display segments make sixteen separate domain edges?*  
-> **Answer:** No. They are samples along one original border. Each segment resolves to the same domain edge identity, and highlighting that edge follows its whole sampled curve.
-
-- **Hands-On Lab Experiment:** Pick the four roof borders at several locations. Confirm identities 0–3, one face 0 and no internal tessellation diagonals in the edge pass.
-
-<details>
-<summary>Implementation 55e-identities: Resolve original surface face and domain edges</summary>
-
-Resolve original surface face and domain edges.
-
-Data flow: display segment → compact GPU address → original domain edge → complete border highlight.
+> **Check:** *Do sixteen display segments make sixteen separate domain edges?* — No. They are samples along one original border. Each segment resolves to the same domain edge identity, and highlighting that edge follows its whole sampled curve.
 
 ### 1. `src/pick_sources.rs`
 
@@ -1330,8 +1007,7 @@ Resolve and highlight one original CAD face and four domain edges without exposi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for row in scene.objects().iter().filter(|row| scene.visible(row.id)) {
@@ -1343,8 +1019,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 sources.mesh_ink.push(crate::stroke::Stroke { start: ends[0], end: ends[1], colour: scene.view.edges.get(&row.id).map_or([0.,0.,0.,1.],|rgb|[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]), width: 1. });
                 sources.mesh_ids.push(id(row.id, ids[1]));
 ```
-
-</details>
 
 Replace it with:
 
@@ -1361,8 +1035,7 @@ Replace it with:
                 sources.mesh_ids.push(id(row.id, ids[1]));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -1373,8 +1046,6 @@ pub enum Part { Object, Face(usize), MeshEdge(usize, usize), PathEdge(usize), Cu
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Target { pub owner: ObjectId, pub part: Part }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1388,8 +1059,7 @@ pub enum Part { Object, Face(usize), SurfaceEdge(usize), MeshEdge(usize, usize),
 pub struct Target { pub owner: ObjectId, pub part: Part }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -1479,62 +1149,9 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/55e-identities-01.rs"
-```
-
-```text
---8<-- "journey/code/55e-identities-02.rs"
-```
-
-</details>
-
 ### 2. `src/selection.rs`
 
 Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{pick_sources::{Part, Target}, scene::Scene};
-
-impl Target {
-    pub fn valid(self, scene: &Scene) -> bool {
-        if scene.pick_id(self.owner.value()).is_none() { return false; }
-        match self.part {
-            Part::Object => true,
-            Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
-            Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
-            Part::PathEdge(index) => scene.paths().iter().any(|r| r.id == self.owner && matches!(&r.prepared.source,
-                crate::chain::Source::Polyline(line) if line.get_points().windows(2).nth(index).is_some_and(|pair| pair[0].to_f32() != pair[1].to_f32()))),
-            Part::Curve => scene.lines().iter().any(|r| r.id == self.owner) || scene.paths().iter().any(|r| r.id == self.owner && !matches!(r.prepared.source, crate::chain::Source::Polyline(_))),
-            Part::Control(index) => scene.paths().iter().any(|r| r.id == self.owner && r.controls_visible && matches!(&r.prepared.source,
-                crate::chain::Source::Curve(curve, _) if crate::controls::Control::new(std::rc::Rc::clone(curve), index).is_ok())),
-        }
-    }
-
-    pub fn describe(self) -> String {
-        match self.part {
-            Part::Object => format!("Object {}", self.owner.value()),
-            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
-            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),
-            Part::PathEdge(index) => format!("Object {} · source segment {index}", self.owner.value()),
-            Part::Curve => format!("Object {} · original curve", self.owner.value()),
-            Part::Control(index) => format!("Object {} · original control {index}", self.owner.value()),
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1571,36 +1188,9 @@ impl Target {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/55e-identities-03.rs"
-```
-
-```text
---8<-- "journey/code/55e-identities-04.rs"
-```
-
-</details>
-
 ### 3. `src/highlight.rs`
 
 Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                let mut object = row.clone(); object.mesh = Rc::new(display);
-                self.mesh = Some(GpuMesh::upload(device, layout, &object, true));
-            }
-            Part::MeshEdge(a, b) => {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1608,72 +1198,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/55e-identities-05.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-55f-ownership"></a>
 
 ### Step 7 of 11 · Account for shared source and UV cache owners (`55f-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/11 Visual Trace (55f-ownership): Account for shared source and UV cache owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">live and history rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source identities</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached UV allocations</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inspectable diagnostics</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/memory.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached UV allocations</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">inspectable diagnostics</text>
 </svg>
-</div>
-
-- **Goal:** Account for shared source and UV cache owners.
-- **Data Flow Trace:** `live and history rows → shared source identities → cached UV allocations → inspectable diagnostics`
-- **Files You Touch:** `src/memory.rs` (*Count source control/metadata bytes and cached UV/triangle/boundary allocations by unique owner.*) · `src/browser.rs` (*Expose actual surface source, grid, face and edge identities and unique-owner accounting.*)
 
 Count original NURBS and sampled preparation owners once across live and history scenes. Expose their source and grid identities for acceptance checks.
 
-> **Self-Check Question:** *Does a history snapshot need another complete surface grid?*  
-> **Answer:** No. Unchanged snapshots share the original NURBS and prepared UV grid. Closing releases those source owners; a retained display mesh can survive independently.
-
-- **Hands-On Lab Experiment:** Compare one scene with its history snapshots, then close. Verify source and preparation counts deduplicate shared owners and return to zero after Close.
-
-<details>
-<summary>Implementation 55f-ownership: Account for shared source and UV cache owners</summary>
-
-Account for shared source and UV cache owners.
-
-Data flow: live and history rows → shared source identities → cached UV allocations → inspectable diagnostics.
+> **Check:** *Does a history snapshot need another complete surface grid?* — No. Unchanged snapshots share the original NURBS and prepared UV grid. Closing releases those source owners; a retained display mesh can survive independently.
 
 ### 1. `src/memory.rs`
 
 Count source control/metadata bytes and cached UV/triangle/boundary allocations by unique owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1685,83 +1245,44 @@ After that block, type:
 
 Expose actual surface source, grid, face and edge identities and unique-owner accounting.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/55f-ownership-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-55g-surface"></a>
 
 ### Step 8 of 11 · Draw and pick the original parametric roof (`55g-surface`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/11 Visual Trace (55g-surface): Draw and pick the original parametric roof</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/surface_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Example Surface</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source row</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">analytic-normal</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drawing</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original integer</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pick</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one Undo</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">analytic-normal drawing</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one Undo</text>
 </svg>
-</div>
-
-- **Goal:** Draw and pick the original parametric roof.
-- **Data Flow Trace:** `Example Surface → shared source row → analytic-normal drawing → original integer pick → one Undo`
-- **Files You Touch:** `src/editor.rs` (*Create the parametric roof through the existing checked document transaction.*) · `src/commands.rs` (*Create the parametric roof through the existing checked document transaction.*) · `src/surface_tests.rs` (*Copy malformed-input, exact UV/normal/boundary, rational, storage layout, source lifetime and placement-history checks.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual one-face and four-original-domain-edge GPU readbacks with unchanged source and geometry allocations.*)
 
 Connect the parametric surface example and copy all source, sampling, ownership and actual GPU checks. Preserve the original NURBS while editing whole placements.
 
-> **Self-Check Question:** *What establishes correct surface picking?*  
-> **Answer:** Actual integer readback must resolve the patch to original face 0 and every boundary sample to its original edges 0–3. Source serialization and GPU geometry allocations remain unchanged.
-
-- **What You Should See:** Type Close, Example Surface, Fit and View Isometric. The blue parametric roof draws with analytic normals and black original borders. Select All, Move 0.123456789012345 0 0, then Undo once; original surface data remains shared. Use Select Face and Select Edge to inspect one original face and four domain borders. Return to Select Object before whole-placement editing.
-- **Hands-On Lab Experiment:** Type Close, Example Surface, Fit and View Isometric. Select the whole roof, move it and Undo. Select its face and domain edges; verify black border ink and no internal grid diagonals.
-
-<details>
-<summary>Implementation 55g-surface: Draw and pick the original parametric roof</summary>
-
-Draw and pick the original parametric roof.
-
-Data flow: Example Surface → shared source row → analytic-normal drawing → original integer pick → one Undo.
+> **Check:** *What establishes correct surface picking?* — Actual integer readback must resolve the patch to original face 0 and every boundary sample to its original edges 0–3. Source serialization and GPU geometry allocations remain unchanged.
 
 ### 1. `src/editor.rs`
 
@@ -1769,8 +1290,7 @@ Create the parametric roof through the existing checked document transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.clear();
@@ -1780,8 +1300,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Replace(bytes) => {
                 let loaded = crate::document::load(&bytes)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1795,8 +1313,7 @@ Replace it with:
                 let loaded = crate::document::load(&bytes)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Show,
@@ -1806,8 +1323,6 @@ Replace it with:
     AddPoint,
     AddCurve,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1821,8 +1336,7 @@ Replace it with:
     AddCurve,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2558,38 +2072,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/55g-surface-01.rs"
-```
-
-```text
---8<-- "journey/code/55g-surface-02.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Create the parametric roof through the existing checked document transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Show",||Action::Show),
-    ("Example Box", || Action::AddBox),
-    ("Example Nested",||Action::AddNested),
-    ("Example Line", || Action::AddLine),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2597,8 +2082,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/55g-surface-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2612,10 +2096,7 @@ Copy this supplied file:
 --8<-- "journey/code/55g-surface-04.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2623,26 +2104,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod surface;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/55g-surface-05.rs" skip=18
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2650,73 +2118,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual one-face and four-original-domain-edge GPU readbacks with unchanged source and geometry allocations.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.set_scene(&e.scene,e.selected);assert_eq!(&renderer.stats()[..2],&gpu[..2]);e.apply(Action::Undo).unwrap();assert_eq!(e.scene.placement(id).unwrap().m,original);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/55g-surface-06.rs" skip=177
 ```
 
-</details>
+**Result after `55g-surface`:** Type Close, Example Surface, Fit and View Isometric. The blue parametric roof draws with analytic normals and black original borders. Select All, Move 0.123456789012345 0 0, then Undo once; original surface data remains shared. Use Select Face and Select Edge to inspect one original face and four domain borders. Return to Select Object before whole-placement editing.
 
-</details>
+---
 
 <a id="checkpoint-55za-read-original-edge-use-samples"></a>
 
 ### Step 9 of 11 · Read original edge-use samples (`55za-read-original-edge-use-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/11 Visual Trace (55za-read-original-edge-use-samples): Read original edge-use samples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cad_edges.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original edge use</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face-mesh samples</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordered CAD boundary chain</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cad_edges.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face-mesh samples</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered CAD boundary ch…</text>
 </svg>
-</div>
-
-- **Goal:** Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints.
-- **Data Flow Trace:** `original edge use → face-mesh samples → ordered CAD boundary chain`
-- **Files You Touch:** `src/cad_edges.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original CAD edge records and lookup helpers.*)
 
 Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints. Collect unique face-mesh samples and locate the matching periodic sample.
 
-> **Self-Check Question:** *Why retain the face use orientation?*  
-> **Answer:** A surface seam may have two parameter curves on the same face. Its oriented use selects the boundary being followed.
-
-- **What You Should See:** Boundary lookup can read an original edge-use sample without changing the displayed roof.
-- **Hands-On Lab Experiment:** Trace the pcurve checks and a periodic endpoint. Compare ordinary parameter ordering with the total order used for constrained labels.
-
-<details>
-<summary>Implementation 55za-read-original-edge-use-samples: Read original edge-use samples</summary>
-
-Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints.
-
-Data flow: original edge use → face-mesh samples → ordered CAD boundary chain.
+> **Check:** *Why retain the face use orientation?* — A surface seam may have two parameter curves on the same face. Its oriented use selects the boundary being followed.
 
 ### 1. `src/cad_edges.rs`
 
@@ -2732,95 +2173,50 @@ Create the file and type:
 
 Register the original CAD edge records and lookup helpers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod surface_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/55za-read-original-edge-use-samples-2.rs" skip=32
 ```
 
-</details>
+**Result after `55za-read-original-edge-use-samples`:** Boundary lookup can read an original edge-use sample without changing the displayed roof.
+
+---
 
 <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>
 
 ### Step 10 of 11 · Follow original isoparametric boundaries (`55zb-follow-original-isoparametric-boundaries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/11 Visual Trace (55zb-follow-original-isoparametric-boundaries): Follow original isoparametric boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cad_edges.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original edge use</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face-mesh samples</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordered CAD boundary chain</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cad_edges.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face-mesh samples</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered CAD boundary ch…</text>
 </svg>
-</div>
-
-- **Goal:** Follow an exact constant-u or constant-v boundary through the existing face mesh.
-- **Data Flow Trace:** `original edge use → face-mesh samples → ordered CAD boundary chain`
-- **Files You Touch:** `src/cad_edges.rs` (*Extend this original owner with today’s complete helper.*)
 
 Follow an exact constant-u or constant-v boundary through the existing face mesh. Refuse unsupported pcurves and preserve the closing vertex of an original closed edge.
 
-> **Self-Check Question:** *Why require the exact parameter sample?*  
-> **Answer:** The chain must follow triangles already drawn at that boundary. A nearby independent curve sample would describe a different edge path.
-
-- **What You Should See:** Original isoparametric boundaries can be followed; BRep display connection remains preparatory.
-- **Hands-On Lab Experiment:** Trace fixed and free parameters along a cylindrical rim. Identify the periodic start match and closing vertex.
-
-<details>
-<summary>Implementation 55zb-follow-original-isoparametric-boundaries: Follow original isoparametric boundaries</summary>
-
-Follow an exact constant-u or constant-v boundary through the existing face mesh.
-
-Data flow: original edge use → face-mesh samples → ordered CAD boundary chain.
+> **Check:** *Why require the exact parameter sample?* — The chain must follow triangles already drawn at that boundary. A nearby independent curve sample would describe a different edge path.
 
 ### 1. `src/cad_edges.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-
-        if match best {
-            Some((bd, _)) => d < bd,
-            None => true,
-        } {
-            best = Some((d, v));
-        }
-    }
-
-    Some(best?.1)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2901,91 +2297,44 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `55zb-follow-original-isoparametric-boundaries`:** Original isoparametric boundaries can be followed; BRep display connection remains preparatory.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/55zb-follow-original-isoparametric-boundaries-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>
 
 ### Step 11 of 11 · Follow original constrained trim labels (`55zc-follow-original-constrained-trim-labels`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/11 Visual Trace (55zc-follow-original-constrained-trim-labels): Follow original constrained trim labels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cad_edges.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original edge use</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face-mesh samples</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordered CAD boundary chain</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cad_edges.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face-mesh samples</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered CAD boundary ch…</text>
 </svg>
-</div>
-
-- **Goal:** Read ordered edge-use and interval labels from mesh vertices.
-- **Data Flow Trace:** `original edge use → face-mesh samples → ordered CAD boundary chain`
-- **Files You Touch:** `src/cad_edges.rs` (*Extend this original owner with today’s complete helper.*)
 
 Read ordered edge-use and interval labels from mesh vertices. Keep unique sample keys, reject gaps and insert finite interior trim samples in total parameter order.
 
-> **Self-Check Question:** *Why reject a missing integer sample?*  
-> **Answer:** The labels describe one continuous ordered boundary. A gap would join vertices across an unrepresented segment.
-
-- **What You Should See:** Constrained trim labels can resolve their original boundaries before coherent BRep drawing is connected.
-- **Hands-On Lab Experiment:** Trace duplicate vertex candidates, a missing sample and an interior interval point through the original lookup.
-
-<details>
-<summary>Implementation 55zc-follow-original-constrained-trim-labels: Follow original constrained trim labels</summary>
-
-Read ordered edge-use and interval labels from mesh vertices.
-
-Data flow: original edge use → face-mesh samples → ordered CAD boundary chain.
+> **Check:** *Why reject a missing integer sample?* — The labels describe one continuous ordered boundary. A gap would join vertices across an unrepresented segment.
 
 ### 1. `src/cad_edges.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if e.start_vertex == e.end_vertex {
-        keys.push(keys[0]);
-    }
-
-    Some(keys)
-}
-
-pub struct EdgeChain {
-    pub edge: usize,
-    pub face: usize,
-    pub keys: Vec<usize>,
-    pub other: Option<usize>,
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3065,42 +2414,21 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/55zc-follow-original-constrained-trim-labels-1.rs"
-```
-
-</details>
-
-</details>
+**Result after `55zc-follow-original-constrained-trim-labels`:** Constrained trim labels can resolve their original boundaries before coherent BRep drawing is connected.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 55zc-follow-original-constrained-trim-labels
-npm --prefix ../session_tests run course -- check 55zc-follow-original-constrained-trim-labels
-npm --prefix ../session_tests run course -- save 55zc-follow-original-constrained-trim-labels
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 9.1
+npm --prefix ../session_tests run course -- save 9.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 9.1 (55zc-follow-original-constrained-trim-labels)](../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
-
-Constrained trim labels can resolve their original boundaries before coherent BRep drawing is connected.
-
-- **Final Lesson Experiment:** Trace duplicate vertex candidates, a missing sample and an interior interval point through the original lookup.
-
-Continue with [Shared CAD boundaries across incident faces](56-chains.md).
+Continue with [9.2 · Shared CAD boundaries across incident faces](56-chains.md).

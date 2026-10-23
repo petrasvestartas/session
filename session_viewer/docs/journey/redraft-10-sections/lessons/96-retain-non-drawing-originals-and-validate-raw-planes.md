@@ -1,191 +1,94 @@
 # 19.1 · Complete source metadata and the actual command contract
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.1** (Redraft `10.1`) · **9 checkpoints (`96-retain-non-drawing-originals-and-validate-raw-planes` → `96h-prove-current-source-grammar-and-explicit-differences`)** · **Study time: 4.5–9 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96-retain-non-drawing-originals-and-validate-raw-planes` → `96h-prove-current-source-grammar-and-explicit-differences` (9 steps) · **Production source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [app/deform.rs](../../../../src/app/deform.rs) · [app/walk/mod.rs](../../../../src/app/walk/mod.rs)
 
-> **What You Will Learn & Build:** Retain non drawing originals and validate raw planes. By the final checkpoint (`96h-prove-current-source-grammar-and-explicit-differences`), you will prove current source grammar and explicit differences.
+> **Goal:** Prove current source grammar and explicit differences.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 19.1 Pipeline Schematic: Complete source metadata and the actual command contract</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (9 Checkpoints: 96-retain-non-drawing-originals-and-validate-raw-planes → 96h-prove-current-source-grammar-and-explicit-differences)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">audit original records and current</text>
-    <text x="144" y="124" text-anchor="middle" font-size="11" fill="#111111">source</text>
-    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">preserve exact metadata</text>
-    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">verify real registry outcomes</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 19.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/source_metadata.rs  ·  src/lib.rs  ·  src/definition_merge.rs  ·  src/origin.rs  ·  src/document_source.rs  ·  src/source_validate.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">9 Checkpoints: 96-retain-non-drawing-originals-and-validate-raw-planes → 96h-prove-current-source-grammar-and-explicit-differences — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96-retain-non-drawing-originals-and-validate-raw-planes`](#checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes) | Retain non drawing originals and validate raw planes. | `src/source_metadata.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **2** | [`96a-merge-unused-definitions-with-displayed-instances`](#checkpoint-96a-merge-unused-definitions-with-displayed-instances) | Merge unused definitions with displayed instances. | `src/definition_merge.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **3** | [`96b-preserve-component-and-interaction-metadata-in-archives`](#checkpoint-96b-preserve-component-and-interaction-metadata-in-archives) | Preserve component and interaction metadata in archives. | `src/origin.rs`, `src/document_source.rs`, `src/source_validate.rs`, `src/archive_document.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **4** | [`96c-keep-current-element-and-frame-definition-families`](#checkpoint-96c-keep-current-element-and-frame-definition-families) | Keep current Element and frame definition families. | `src/instance_plan.rs`, `src/instance_definition.rs`, `src/instance_snapshot.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **5** | [`96d-observe-the-real-current-registry-and-parser`](#checkpoint-96d-observe-the-real-current-registry-and-parser) | Observe the real current registry and parser. | `src/registry_audit.rs`, `src/lib.rs`, `src/inventory_example.rs`, `Cargo.toml` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **6** | [`96e-verify-the-complete-declared-current-source-closure`](#checkpoint-96e-verify-the-complete-declared-current-source-closure) | Verify the complete declared current source closure. | `src/current_inventory.json`, `src/source_audit.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **7** | [`96f-report-retained-original-metadata-in-the-real-viewer`](#checkpoint-96f-report-retained-original-metadata-in-the-real-viewer) | Report retained original metadata in the real viewer. | `src/browser.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **8** | [`96g-prove-exact-metadata-and-definition-round-trips`](#checkpoint-96g-prove-exact-metadata-and-definition-round-trips) | Prove exact metadata and definition round trips. | `src/metadata_tests.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-| **9** | [`96h-prove-current-source-grammar-and-explicit-differences`](#checkpoint-96h-prove-current-source-grammar-and-explicit-differences) | Prove current source grammar and explicit differences. | `src/current_registry.json`, `src/inventory_tests.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes"></a>
 
 ### Step 1 of 9 · Retain non drawing originals and validate raw planes (`96-retain-non-drawing-originals-and-validate-raw-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/9 Visual Trace (96-retain-non-drawing-originals-and-validate-raw-planes): Retain non drawing originals and validate raw planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_metadata.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_metadata.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Retain non drawing originals and validate raw planes.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/source_metadata.rs` (*Own exact non drawing source metadata and pre-kernel plane validation.*) · `src/lib.rs` (*Register the completed audit owner.*)
 
 Retain non drawing originals and validate raw planes.
 
-> **Self-Check Question:** *Can a non drawing record be discarded during Save?*  
-> **Answer:** Its component JSON, unknown interaction state and unused definitions still belong to the document. Retain their exact original records. Validate all twelve raw plane doubles before kernel defaults can replace malformed data.
-
-- **Hands-On Lab Experiment:** Inspect the component-only header and unused-definition selection. Compare retained serialized metadata size with actual heap/GPU memory; they are different measurements.
-
-<details>
-<summary>Implementation 96-retain-non-drawing-originals-and-validate-raw-planes: Retain non drawing originals and validate raw planes</summary>
-
-Retain non drawing originals and validate raw planes.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
+> **Check:** *Can a non drawing record be discarded during Save?* — Its component JSON, unknown interaction state and unused definitions still belong to the document. Retain their exact original records. Validate all twelve raw plane doubles before kernel defaults can replace malformed data.
 
 ### 1. `src/source_metadata.rs`
 
@@ -201,71 +104,44 @@ Create the file and type:
 
 Register the completed audit owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod bench_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/96-retain-non-drawing-originals-and-validate-raw-planes-02.rs" skip=30
 ```
 
-</details>
+---
 
 <a id="checkpoint-96a-merge-unused-definitions-with-displayed-instances"></a>
 
 ### Step 2 of 9 · Merge unused definitions with displayed instances (`96a-merge-unused-definitions-with-displayed-instances`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/9 Visual Trace (96a-merge-unused-definitions-with-displayed-instances): Merge unused definitions with displayed instances</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/definition_merge.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/definition_merge.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Merge unused definitions with displayed instances.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/definition_merge.rs` (*Merge exact retained definitions without losing unused originals.*) · `src/lib.rs` (*Register the completed audit owner.*)
 
 Merge unused definitions with displayed instances.
 
-> **Self-Check Question:** *Does saving only displayed instance definitions preserve the whole document?*  
-> **Answer:** Keep the unused originals too. Merge by original family and GUID, sort deterministically and reject conflicting payloads instead of choosing one silently.
-
-- **Hands-On Lab Experiment:** Compare a used definition, an unused definition and two different originals sharing one GUID.
-
-<details>
-<summary>Implementation 96a-merge-unused-definitions-with-displayed-instances: Merge unused definitions with displayed instances</summary>
-
-Merge unused definitions with displayed instances.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
+> **Check:** *Does saving only displayed instance definitions preserve the whole document?* — Keep the unused originals too. Merge by original family and GUID, sort deterministically and reject conflicting payloads instead of choosing one silently.
 
 ### 1. `src/definition_merge.rs`
 
@@ -281,87 +157,48 @@ Create the file and type:
 
 Register the completed audit owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_metadata;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/96a-merge-unused-definitions-with-displayed-instances-02.rs" skip=26
 ```
 
-</details>
+---
 
 <a id="checkpoint-96b-preserve-component-and-interaction-metadata-in-archives"></a>
 
 ### Step 3 of 9 · Preserve component and interaction metadata in archives (`96b-preserve-component-and-interaction-metadata-in-archives`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/9 Visual Trace (96b-preserve-component-and-interaction-metadata-in-archives): Preserve component and interaction metadata in archives</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/origin.rs, src/document_source.rs, src/source_validate.rs, src/archive_document.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/origin.rs, src/docume…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Preserve component and interaction metadata in archives.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/origin.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*) · `src/document_source.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*) · `src/source_validate.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*) · `src/archive_document.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*)
 
 Preserve component and interaction metadata in archives.
 
-> **Self-Check Question:** *Must component metadata become a selectable mesh?*  
-> **Answer:** Keep it as original document metadata. Preserve its exact JSON text and interaction bytes in retained headers, then restore them beside the current drawable originals when saving.
-
-- **Hands-On Lab Experiment:** Import the supplied four-solid/component/unknown-interaction fixture, Save/Open twice and compare original metadata. Original header accounting includes the serialized retained records.
-
-<details>
-<summary>Implementation 96b-preserve-component-and-interaction-metadata-in-archives: Preserve component and interaction metadata in archives</summary>
-
-Preserve component and interaction metadata in archives.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
+> **Check:** *Must component metadata become a selectable mesh?* — Keep it as original document metadata. Preserve its exact JSON text and interaction bytes in retained headers, then restore them beside the current drawable originals when saving.
 
 ### 1. `src/origin.rs`
 
 Connect exact metadata retention, raw validation and complete archive reconstruction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let header = proto::Session { name: message.name.clone(), guid: message.guid.clone(),
-            tree: message.tree.clone(), graph: message.graph.clone(),
-            bvh_boxes: message.bvh_boxes.clone(), xforms: message.xforms.clone(), ..Default::default() };
-        Self { id: uuid::Uuid::new_v4(), header, version: FileVersion::of(bytes), location: None }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -372,45 +209,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/document_source.rs`
 
 Connect exact metadata retention, raw validation and complete archive reconstruction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>,pub sheets:Vec<Rc<crate::sheet_source::Prepared>>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(elements);identity!(planes);identity!(bboxes);identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);identity!(sheets);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let sheets=objects.sheets.iter().cloned().map(|sheet|crate::sheet_source::Prepared::new(Rc::new(sheet)).map(Rc::new).map_err(str::to_owned)).collect::<Result<Vec<_>,_>>()?;
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world,sheets})
-}
-
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    if !source.interactions.is_empty() {return Err("Interactions arrive with element features".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.components.is_empty() {return Err("This subject cannot open assemblies yet".into());}
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -445,29 +243,13 @@ fn supported(source:&proto::Session)->Result<(),String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96b-preserve-component-and-interaction-metadata-in-archives-02.rs"
-```
-
-```text
---8<-- "journey/code/96b-preserve-component-and-interaction-metadata-in-archives-03.rs"
-```
-
-</details>
-
 ### 3. `src/source_validate.rs`
 
 Connect exact metadata retention, raw validation and complete archive reconstruction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             + objects.nurbscurves.len()
@@ -484,8 +266,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         for item in &objects.points {
             point(item)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -505,8 +285,7 @@ Replace it with:
             point(item)?;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use prost::Message;
@@ -1192,53 +971,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96b-preserve-component-and-interaction-metadata-in-archives-04.rs"
-```
-
-```text
---8<-- "journey/code/96b-preserve-component-and-interaction-metadata-in-archives-05.rs"
-```
-
-</details>
-
 ### 4. `src/archive_document.rs`
 
 Connect exact metadata retention, raw validation and complete archive reconstruction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{scene::Scene,scene_archive::Namespace};
-use session_rust::proto;
-use std::collections::{HashMap,HashSet};
-
-pub(crate) fn prepare(scene:&Scene,namespace:&Namespace)->Result<(proto::Session,HashMap<String,String>,f32),String> {
-    let names=crate::archive_identity::aliases(scene,namespace)?;let mut objects=crate::geometry_snapshot::objects(scene,&namespace.ids)?;crate::archive_identity::objects(&mut objects,&names);
-    let mut xforms=Vec::new();let (mut roots,placed)=if let Some(doc)=namespace.doc.as_ref() {let mut forest=crate::hierarchy::Forest::default();forest.documents.push(doc.clone());forest.snapshot(scene,&mut xforms).map_err(str::to_owned)?} else {(vec![],HashSet::new())};
-    for id in namespace.ordered() {
-        let current=scene.row_guid(id).ok_or("Saved source owner is missing")?;let guid=names.get(current).cloned().unwrap_or_else(||current.into());
-        if !placed.contains(&id) {roots.push(proto::TreeNode {name:guid.clone(),..Default::default()});let model=scene.placement(id).ok_or("Saved source placement is missing")?;if model.m!=session_rust::Xform::identity().m {xforms.push(proto::XformEntry {guid,xform:Some(model.to_proto())});}}
-    }
-    for root in &mut roots {crate::archive_identity::tree(root,&names);}for entry in &mut xforms {if let Some(guid)=names.get(&entry.guid) {entry.guid=guid.clone();}}
-    let mut source=namespace.doc.as_ref().and_then(|doc|doc.header.as_ref()).map_or_else(proto::Session::default,|header|header.header.clone());if source.name.is_empty() {source.name=namespace.name.clone();}
-    if let Some(doc)=namespace.doc.as_ref(){source.graph=crate::graph_edit::saved(scene,doc,&names);}
-    let root=if namespace.doc.is_some()&&roots.len()==1 {roots.pop().unwrap()} else {proto::TreeNode {name:source.name.clone(),children:roots,..Default::default()}};
-    source.definitions=crate::instance_snapshot::definitions(scene,&namespace.ids)?;source.objects=Some(objects);source.tree=Some(proto::Tree {root:Some(root),..Default::default()});source.xforms=xforms;source.bvh_boxes.clear();
-    let mut clouds=scene.clouds().iter().filter(|row|namespace.ids.contains(&row.id));let point_px=clouds.next().map_or(0.,|row|row.point_px);
-    if clouds.any(|row|row.point_px!=point_px) {return Err("Cloud placements in one saved document need the same point size override".into());}Ok((source,names,point_px))
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1265,130 +1000,42 @@ pub(crate) fn prepare(scene:&Scene,namespace:&Namespace)->Result<(proto::Session
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96b-preserve-component-and-interaction-metadata-in-archives-06.rs"
-```
-
-```text
---8<-- "journey/code/96b-preserve-component-and-interaction-metadata-in-archives-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96c-keep-current-element-and-frame-definition-families"></a>
 
 ### Step 4 of 9 · Keep current Element and frame definition families (`96c-keep-current-element-and-frame-definition-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/9 Visual Trace (96c-keep-current-element-and-frame-definition-families): Keep current Element and frame definition families</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_plan.rs, src/instance_definition.rs, src/instance_snapshot.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/instance_plan.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Keep current Element and frame definition families.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/instance_plan.rs` (*Retain supported original definition families and per-instance feature records.*) · `src/instance_definition.rs` (*Retain supported original definition families and per-instance feature records.*) · `src/instance_snapshot.rs` (*Retain supported original definition families and per-instance feature records.*)
 
 Keep current Element and frame definition families.
 
-> **Self-Check Question:** *Can an instance of an Element be flattened into a mesh for Save?*  
-> **Answer:** Retain its typed Element definition and its own instance-feature records. Plane and box definitions retain their original families too. Derived display does not replace those records.
-
-- **Hands-On Lab Experiment:** Inspect current instance originals, shared templates, exact definition payloads and feature records. Use the maintained destination for its complete derived instance-feature display.
-
-<details>
-<summary>Implementation 96c-keep-current-element-and-frame-definition-families: Keep current Element and frame definition families</summary>
-
-Keep current Element and frame definition families.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
+> **Check:** *Can an instance of an Element be flattened into a mesh for Save?* — Retain its typed Element definition and its own instance-feature records. Plane and box definitions retain their original families too. Derived display does not replace those records.
 
 ### 1. `src/instance_plan.rs`
 
 Retain supported original definition families and per-instance feature records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Geometry,InstanceRef,Session};
-use std::{collections::HashSet,rc::Rc};
-
-pub fn validate(message:&proto::Session)->Result<(),String> {
-    let instances=message.objects.as_ref().map_or(&[][..],|objects|objects.instances.as_slice());
-    let Some(definitions)=message.definitions.as_ref() else {return if instances.is_empty() {Ok(())} else {Err("Instances have no original definitions".into())};};
-    crate::source_validate::definitions(definitions,instances.len())?;
-    if !definitions.planes.is_empty()||!definitions.bboxes.is_empty()||!definitions.elements.is_empty()||!definitions.components.is_empty()||!definitions.sheets.is_empty()||!definitions.instances.is_empty() {return Err("Unsupported original definition family".into());}
-    let mut guids=HashSet::new();
-    macro_rules! identity {($field:ident)=>{for object in &definitions.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Definition GUIDs must be distinct".into());}}};}
-    identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);
-    let mut refs=HashSet::new();
-    for instance in instances {
-        if instance.guid.is_empty()||!refs.insert(instance.guid.as_str())||!guids.contains(instance.definition_guid.as_str()) {return Err("Invalid original instance reference".into());}
-        if instance.flags&InstanceRef::FLAG_COLOR!=0 {
-            let color=instance.color.as_ref().ok_or("Instance colour flag has no original colour")?;
-            if [color.r,color.g,color.b,color.a].iter().any(|value|!value.is_finite()||!(0.0..=1.0).contains(value)) {return Err("Invalid original instance colour".into());}
-        }
-        if !instance.features.is_empty() {return Err("Instance features connect with element features".into());}
-    }
-    Ok(())
-}
-
-#[derive(Clone)]
-pub struct Owner {pub document:Rc<Session>,pub instance:Rc<InstanceRef>,pub definition:Geometry}
-impl Owner {
-    pub fn new(document:Rc<Session>,instance:Rc<InstanceRef>)->Result<Self,&'static str> {
-        let definition=document.definition_lookup.get(&instance.definition_guid).ok_or("Missing original instance definition")?.clone();
-        Ok(Self {document,instance,definition})
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    pub fn message()->proto::Session {
-        let mesh=crate::prepared::PreparedMesh::triangle([[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]],[0.1,0.3,0.8]).unwrap().geometry;
-        proto::Session {objects:Some(proto::Objects {instances:vec![proto::InstanceRef {guid:"first".into(),name:"First".into(),definition_guid:mesh.guid().into(),..Default::default()},proto::InstanceRef {guid:"second".into(),name:"Second".into(),definition_guid:mesh.guid().into(),..Default::default()}],..Default::default()}),definitions:Some(proto::Objects {meshes:vec![mesh.to_proto()],..Default::default()}),..Default::default()}
-    }
-    #[test]
-    fn checked_original_references_share_definition_identity_without_copying_geometry() {
-        let message=message();validate(&message).unwrap();let document=Rc::new(Session::from_proto(message).unwrap());let first=Owner::new(document.clone(),document.objects.instances[0].clone()).unwrap();let second=Owner::new(document.clone(),document.objects.instances[1].clone()).unwrap();let (Geometry::Mesh(a),Geometry::Mesh(b))=(&first.definition,&second.definition) else {panic!("Original mesh definition")};assert!(Rc::ptr_eq(a,b));assert_eq!(first.instance.guid(),"first");assert_eq!(second.instance.guid(),"second");let weak=Rc::downgrade(a);drop(document);drop(first);assert!(weak.upgrade().is_some());drop(second);assert!(weak.upgrade().is_none());
-    }
-    #[test]
-    fn missing_duplicate_and_unsupported_original_definitions_are_refused() {
-        let mut source=message();source.definitions=None;assert!(validate(&source).is_err());let mut source=message();source.objects.as_mut().unwrap().instances[0].definition_guid="missing".into();assert!(validate(&source).is_err());let mut source=message();let duplicate=source.definitions.as_ref().unwrap().meshes[0].clone();source.definitions.as_mut().unwrap().meshes.push(duplicate);assert!(validate(&source).is_err());let mut source=message();source.definitions.as_mut().unwrap().instances.push(Default::default());assert!(validate(&source).is_err());
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1442,36 +1089,9 @@ mod tests {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96c-keep-current-element-and-frame-definition-families-01.rs"
-```
-
-```text
---8<-- "journey/code/96c-keep-current-element-and-frame-definition-families-02.rs"
-```
-
-</details>
-
 ### 2. `src/instance_definition.rs`
 
 Retain supported original definition families and per-instance feature records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut scene=Scene::empty();
-    match &owner.definition {
-        Geometry::Mesh(source)=>{scene.insert(crate::prepared::PreparedMesh::from_shared(source.clone())?)?;},
-        Geometry::BRep(source)=>{scene.insert_prepared_cad(shapes.prepare(source.clone())?)?;},
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1483,78 +1103,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Retain supported original definition families and per-instance feature records.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for (_,owner) in scene.instances.iter().filter(|(id,_)|ids.contains(id)) {
-        match &owner.definition {
-            Geometry::Mesh(source)=>keep!(meshes,source),Geometry::BRep(source)=>keep!(breps,source),Geometry::NurbsSurface(source)=>keep!(nurbssurfaces,source),Geometry::NurbsCurve(source)=>keep!(nurbscurves,source),Geometry::Polyline(source)=>keep!(polylines,source),Geometry::Line(source)=>keep!(lines,source),Geometry::Point(source)=>keep!(points,source),Geometry::PointCloud(source)=>keep!(pointclouds,source),_=>return Err("Unsupported saved original definition".into()),
-        }
-    }
-    macro_rules! order {($field:ident)=>{out.$field.sort_by(|a,b|a.guid.cmp(&b.guid));};}
-    order!(meshes);order!(breps);order!(nurbssurfaces);order!(nurbscurves);order!(polylines);order!(lines);order!(points);order!(pointclouds);
-    Ok((!records.is_empty()).then_some(out))
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/96c-keep-current-element-and-frame-definition-families-04.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-96d-observe-the-real-current-registry-and-parser"></a>
 
 ### Step 5 of 9 · Observe the real current registry and parser (`96d-observe-the-real-current-registry-and-parser`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/9 Visual Trace (96d-observe-the-real-current-registry-and-parser): Observe the real current registry and parser</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/registry_audit.rs, src/lib.rs, src/inventory_example.rs, Cargo.toml</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/registry_audit.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Observe the real current registry and parser.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/registry_audit.rs` (*Observe the compiled maintained command registry directly.*) · `src/lib.rs` (*Register the completed audit owner.*) · `src/inventory_example.rs` (*Copy the supplied native registry observation example.*) · `Cargo.toml` (*Expose the maintained registry observation as a native example.*)
 
 Observe the real current registry and parser.
 
-> **Self-Check Question:** *Does a literal search find the complete runtime option list?*  
-> **Answer:** Read every real Spec and call its parser for names, static options and aliases. Record canonical spelling, prompts, arity, selection/draft flags and actual errors. A parsed action still needs a real execution context.
-
-- **Hands-On Lab Experiment:** Read the supplied runtime registry and grammar observations. Compare its 115 recorded static options with the earlier 149 literal strings, then inspect pending bare forms and Controls/Opacity differences. The authoring inventory helper is optional.
-
-<details>
-<summary>Implementation 96d-observe-the-real-current-registry-and-parser: Observe the real current registry and parser</summary>
-
-Observe the real current registry and parser.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
+> **Check:** *Does a literal search find the complete runtime option list?* — Read every real Spec and call its parser for names, static options and aliases. Record canonical spelling, prompts, arity, selection/draft flags and actual errors. A parsed action still needs a real execution context.
 
 ### 1. `src/registry_audit.rs`
 
@@ -1570,24 +1156,13 @@ Create the file and type:
 
 Register the completed audit owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod definition_merge;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/96d-observe-the-real-current-registry-and-parser-02.rs" skip=27
 ```
 
-<details>
-<summary>Optional authoring helper</summary>
+**Optional authoring helper:**
 
 Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
 
@@ -1601,21 +1176,9 @@ Copy this supplied file:
 --8<-- "journey/code/96d-observe-the-real-current-registry-and-parser-03.rs"
 ```
 
-</details>
-
 ### 4. `Cargo.toml`
 
 Expose the maintained registry observation as a native example.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-name = "reference"
-path = "src/reference_example.rs"
-```
-
-</details>
 
 After that block, type:
 
@@ -1623,58 +1186,40 @@ After that block, type:
 --8<-- "journey/code/96d-observe-the-real-current-registry-and-parser-04.rs" skip=53
 ```
 
-</details>
+---
 
 <a id="checkpoint-96e-verify-the-complete-declared-current-source-closure"></a>
 
 ### Step 6 of 9 · Verify the complete declared current source closure (`96e-verify-the-complete-declared-current-source-closure`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/9 Visual Trace (96e-verify-the-complete-declared-current-source-closure): Verify the complete declared current source closure</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/current_inventory.json, src/source_audit.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/current_inventory.jso…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Verify the complete declared current source closure.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/current_inventory.json` (*Copy the supplied full current Rust source/build closure and ownership snapshot.*) · `src/source_audit.rs` (*Verify actual source bytes and the complete declared file set.*) · `src/lib.rs` (*Register the completed audit owner.*)
 
 Verify the complete declared current source closure.
 
-> **Self-Check Question:** *Can a matching Git commit prove matching source contents?*  
-> **Answer:** Hash the actual files, including uncommitted edits, and require the complete declared file set. Record the scope and local heads; do not imply that excluded C++/assets or remote commits were checked.
+> **Check:** *Can a matching Git commit prove matching source contents?* — Hash the actual files, including uncommitted edits, and require the complete declared file set. Record the scope and local heads; do not imply that excluded C++/assets or remote commits were checked.
 
-- **Hands-On Lab Experiment:** Read the supplied 428-file inventory, follow its lesson ownership and change one scratch record hash to see the audit fail.
-
-<details>
-<summary>Implementation 96e-verify-the-complete-declared-current-source-closure: Verify the complete declared current source closure</summary>
-
-Verify the complete declared current source closure.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
-
-<details>
-<summary>Supplied data</summary>
+**Supplied data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -1687,8 +1232,6 @@ Copy this supplied file:
 ```text
 --8<-- "journey/code/96e-verify-the-complete-declared-current-source-closure-01.rs"
 ```
-
-</details>
 
 ### 2. `src/source_audit.rs`
 
@@ -1704,87 +1247,48 @@ Create the file and type:
 
 Register the completed audit owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod registry_audit;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/96e-verify-the-complete-declared-current-source-closure-03.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-96f-report-retained-original-metadata-in-the-real-viewer"></a>
 
 ### Step 7 of 9 · Report retained original metadata in the real viewer (`96f-report-retained-original-metadata-in-the-real-viewer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/9 Visual Trace (96f-report-retained-original-metadata-in-the-real-viewer): Report retained original metadata in the real viewer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Report retained original metadata in the real viewer.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/browser.rs` (*Expose truthful serialized original metadata accounting in the teaching inspector.*)
 
 Report retained original metadata in the real viewer.
 
-> **Self-Check Question:** *Does a byte counter measure driver memory?*  
-> **Answer:** This counter reports unique retained origins and their serialized header size. Keep it distinct from allocated CPU/GPU bytes and process/driver memory.
-
-- **Hands-On Lab Experiment:** Import and Close the metadata fixture and inspect the actual canvas report. Compare shared source origins across snapshots without counting them twice.
-
-<details>
-<summary>Implementation 96f-report-retained-original-metadata-in-the-real-viewer: Report retained original metadata in the real viewer</summary>
-
-Report retained original metadata in the real viewer.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
+> **Check:** *Does a byte counter measure driver memory?* — This counter reports unique retained origins and their serialized header size. Keep it distinct from allocated CPU/GPU bytes and process/driver memory.
 
 ### 1. `src/browser.rs`
 
 Expose truthful serialized original metadata accounting in the teaching inspector.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-    canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
-    canvas.set_attribute("data-groups",&serde_json::json!(editor.scene.groups.iter().collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-graph",&serde_json::json!(crate::graph_edit::rows(&editor.scene)).to_string())?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1792,59 +1296,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/96f-report-retained-original-metadata-in-the-real-viewer-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-96g-prove-exact-metadata-and-definition-round-trips"></a>
 
 ### Step 8 of 9 · Prove exact metadata and definition round trips (`96g-prove-exact-metadata-and-definition-round-trips`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/9 Visual Trace (96g-prove-exact-metadata-and-definition-round-trips): Prove exact metadata and definition round trips</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/metadata_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/metadata_tests.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
-
-- **Goal:** Prove exact metadata and definition round trips.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/metadata_tests.rs` (*Copy supplied exact archive, original-family and malformed-input fixtures.*) · `src/lib.rs` (*Register supplied metadata fixtures.*)
 
 Prove exact metadata and definition round trips.
 
-> **Self-Check Question:** *What catches an apparently successful but incomplete Save?*  
-> **Answer:** Compare the original records after reopening. Include raw JSON formatting, opaque interaction bytes, unused typed definitions, instance-feature records and invalid planes.
+> **Check:** *What catches an apparently successful but incomplete Save?* — Compare the original records after reopening. Include raw JSON formatting, opaque interaction bytes, unused typed definitions, instance-feature records and invalid planes.
 
-- **What You Should See:** The archive implementation is unchanged. Optional cases cover retained custom metadata, unknown interactions and unused original definitions.
-- **Hands-On Lab Experiment:** Save an imported original document, reopen it and compare its editable source families. Read the supplied archive cases to identify metadata that has no visible drawing. Do not infer preservation of invisible fields from the screenshot alone.
-
-<details>
-<summary>Implementation 96g-prove-exact-metadata-and-definition-round-trips: Prove exact metadata and definition round trips</summary>
-
-Prove exact metadata and definition round trips.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1858,10 +1343,7 @@ Copy this supplied file:
 --8<-- "journey/code/96g-prove-exact-metadata-and-definition-round-trips-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1869,77 +1351,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register supplied metadata fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod source_audit;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96g-prove-exact-metadata-and-definition-round-trips-02.rs" skip=23
 ```
 
-</details>
+**Result after `96g-prove-exact-metadata-and-definition-round-trips`:** The archive implementation is unchanged. Optional cases cover retained custom metadata, unknown interactions and unused original definitions.
 
-</details>
+---
 
 <a id="checkpoint-96h-prove-current-source-grammar-and-explicit-differences"></a>
 
 ### Step 9 of 9 · Prove current source grammar and explicit differences (`96h-prove-current-source-grammar-and-explicit-differences`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/9 Visual Trace (96h-prove-current-source-grammar-and-explicit-differences): Prove current source grammar and explicit differences</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/current_registry.json, src/inventory_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">audit original records and current</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserve exact metadata</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">verify real registry outcomes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/current_registry.json…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserve exact metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">verify real registry ou…</text>
 </svg>
-</div>
 
-- **Goal:** Prove current source grammar and explicit differences.
-- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
-- **Files You Touch:** `src/current_registry.json` (*Copy real observed current parser outcomes, prompts, aliases and action flags.*) · `src/inventory_tests.rs` (*Copy supplied complete source/registry and explicit grammar/shortcut fixtures.*) · `src/lib.rs` (*Register supplied complete source and registry fixtures.*)
+Check the dated source inventory and actual command registry. Normalize text line endings for portable source hashes while retaining exact binary bytes and explicit grammar differences.
 
-Prove current source grammar and explicit differences.
+> **Check:** *Does one green parser test cover the current viewer?* — Check every recorded name, static option and alias against the compiled registry, every source hash/file against this checkout, and selected deliberate differences explicitly. Runtime browser actions remain separate acceptance.
 
-> **Self-Check Question:** *Does one green parser test cover the current viewer?*  
-> **Answer:** Check every recorded name, static option and alias against the compiled registry, every source hash/file against this checkout, and selected deliberate differences explicitly. Runtime browser actions remain separate acceptance.
-
-- **What You Should See:** The original comparison scene remains intact while source and registry fixtures verify the complete declared maintained Rust inventory.
-- **Hands-On Lab Experiment:** Read the dated source inventory and grammar observations beside the explicit implementation differences. Choose one listed command and execute it on an original selection in the browser. Distinguish that observed action from the optional source-hash and parser fixtures; complete viewer parity remains open.
-
-<details>
-<summary>Implementation 96h-prove-current-source-grammar-and-explicit-differences: Prove current source grammar and explicit differences</summary>
-
-Prove current source grammar and explicit differences.
-
-Data flow: audit original records and current source → preserve exact metadata → verify real registry outcomes.
-
-<details>
-<summary>Supplied data</summary>
+**Supplied data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -1953,10 +1406,7 @@ Copy this supplied file:
 --8<-- "journey/code/96h-prove-current-source-grammar-and-explicit-differences-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1970,10 +1420,7 @@ Copy this supplied file:
 --8<-- "journey/code/96h-prove-current-source-grammar-and-explicit-differences-02.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1981,47 +1428,56 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register supplied complete source and registry fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod metadata_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96h-prove-current-source-grammar-and-explicit-differences-03.rs" skip=33
 ```
 
-</details>
+**Supplied data:**
 
-</details>
+Copy this supplied data once; it is excluded from the typing estimate.
+
+### 4. `src/current_inventory.json`
+
+Copy the October 23 source inventory: 312 viewer, 109 kernel and 12 Wood source/build entries. Repository heads identify baselines; exact file hashes identify the recorded working tree.
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```text
+--8<-- "journey/code/96h-prove-current-source-grammar-and-explicit-differences-04-current_inventory.json"
+```
+
+**Supplied validation fixture:**
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 5. `src/source_audit.rs`
+
+Verify valid UTF-8 source text with CRLF normalized to LF. Hash invalid UTF-8 as raw bytes; preserve exact file-set and SHA comparisons.
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```text
+--8<-- "journey/code/96h-prove-current-source-grammar-and-explicit-differences-05-source-audit.rs"
+```
+
+**Result after `96h-prove-current-source-grammar-and-explicit-differences`:** The original comparison scene remains intact while source and registry fixtures verify the complete declared maintained Rust inventory.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96h-prove-current-source-grammar-and-explicit-differences
-npm --prefix ../session_tests run course -- check 96h-prove-current-source-grammar-and-explicit-differences
-npm --prefix ../session_tests run course -- save 96h-prove-current-source-grammar-and-explicit-differences
+npm --prefix ../session_tests run course -- dependencies 19.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 19.1
+npm --prefix ../session_tests run course -- save 19.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The original comparison scene remains intact while source and registry fixtures verify the complete declared maintained Rust inventory.
-
-- **Final Lesson Experiment:** Read the dated source inventory and grammar observations beside the explicit implementation differences. Choose one listed command and execute it on an original selection in the browser. Distinguish that observed action from the optional source-hash and parser fixtures; complete viewer parity remains open.
-
-Continue with [Original Element ancestry and derived feature trees](../../consolidation/96i-separate-own-and-hosted-element-features.md).
+Continue with [19.2 · Original Element ancestry and derived feature trees](../../consolidation/96i-separate-own-and-hosted-element-features.md).

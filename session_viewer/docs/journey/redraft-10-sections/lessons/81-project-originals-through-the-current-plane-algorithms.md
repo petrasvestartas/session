@@ -1,223 +1,97 @@
 # 16.1 · Projection, extension and stable edit targets
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.1** (Redraft `8.11`) · **31 checkpoints (`81-project-originals-through-the-current-plane-algorithms` → `81za-validate-original-split-inputs-and-name-pieces`)** · **Study time: 15.5–31 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `81-project-originals-through-the-current-plane-algorithms` → `81za-validate-original-split-inputs-and-name-pieces` (31 steps) · **Production source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs)
 
-> **What You Will Learn & Build:** Conjugate the world projection through the original placement transform. By the final checkpoint (`81za-validate-original-split-inputs-and-name-pieces`), you will accept original cutter curves and a valid selected BRep face.
+> **Goal:** Accept original cutter curves and a valid selected BRep face.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 16.1 Pipeline Schematic: Projection, extension and stable edit targets</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (31 Checkpoints: 81-project-originals-through-the-current-plane-algorithms → 81za-validate-original-split-inputs-and-name-pieces)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
-    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
-    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">result or refusal</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 16.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/project_geometry.rs  ·  src/source_cut.rs  ·  src/lib.rs  ·  src/extend_reach.rs  ·  src/interval_geometry.rs  ·  src/source_edit.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">31 Checkpoints: 81-project-originals-through-the-current-plane-algorithms → 81za-validate-original-split-inputs-and-name-pieces — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`81-project-originals-through-the-current-plane-algorithms`](#checkpoint-81-project-originals-through-the-current-plane-algorithms) | Conjugate the world projection through the original placement transform. | `src/project_geometry.rs` | `original family → pure calculation → result or refusal` |
-| **2** | [`81zza-read-original-cutters-in-object-frames`](#checkpoint-81zza-read-original-cutters-in-object-frames) | Write the cutter records and convert supported originals to curves or planar boundaries. | `src/source_cut.rs`, `src/lib.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **3** | [`81zzb-find-original-cutters-near-the-pointer`](#checkpoint-81zzb-find-original-cutters-near-the-pointer) | Build fence planes and unit rays in the original object frame. | `src/source_cut.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **4** | [`81zzc-grow-original-domains-and-extract-the-tail`](#checkpoint-81zzc-grow-original-domains-and-extract-the-tail) | Define end and reach records. | `src/extend_reach.rs`, `src/lib.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **5** | [`81zzd-find-original-end-directions-and-length-reach`](#checkpoint-81zzd-find-original-end-directions-and-length-reach) | Find outward directions for supported original curve families. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **6** | [`81zze-stop-straight-growth-at-the-first-boundary`](#checkpoint-81zze-stop-straight-growth-at-the-first-boundary) | Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end.. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **7** | [`81zzf-stop-curved-growth-at-an-original-boundary`](#checkpoint-81zzf-stop-curved-growth-at-an-original-boundary) | Grow the original NURBS domain and inspect curve or plane crossings beyond its old end. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **8** | [`81zzg-dispatch-original-extension-families`](#checkpoint-81zzg-dispatch-original-extension-families) | Connect the existing reach helpers for lines, polylines and NURBS curves. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **9** | [`81a-find-source-cutters-and-current-extension-reach`](#checkpoint-81a-find-source-cutters-and-current-extension-reach) | Trim or extend supported original curves by a normalized physical-length interval. | `src/interval_geometry.rs`, `src/lib.rs` | `original cutter → object frame → physical reach → edited curve` |
-| **10** | [`81b-capture-eligible-original-identity-and-placement`](#checkpoint-81b-capture-eligible-original-identity-and-placement) | Capture eligible original identity and placement. | `src/source_edit.rs`, `src/lib.rs` | `eligible row → original allocation and placement → later freshness check` |
-| **11** | [`81c-replace-an-original-without-replacing-its-row`](#checkpoint-81c-replace-an-original-without-replacing-its-row) | Replace an original without replacing its row. | `src/scene.rs` | `checked original → prepared replacement → unchanged row identity` |
-| **12** | [`81d-own-the-originals-selected-for-projection`](#checkpoint-81d-own-the-originals-selected-for-projection) | Own the originals selected for projection. | `src/project_draft.rs`, `src/lib.rs` | `selected rows → original owners → pending plane questions` |
-| **13** | [`81e-validate-candidate-plane-answers-before-accepting-them`](#checkpoint-81e-validate-candidate-plane-answers-before-accepting-them) | Validate candidate plane answers before accepting them. | `src/project_draft.rs` | `candidate points → finite and plane checks → accepted answers` |
-| **14** | [`81f-prepare-projection-results-as-one-transaction`](#checkpoint-81f-prepare-projection-results-as-one-transaction) | Prepare projection results as one transaction. | `src/project_draft.rs` | `fresh captured originals → prepared edits → one transaction` |
-| **15** | [`81g-own-extension-candidates-and-screen-bounds`](#checkpoint-81g-own-extension-candidates-and-screen-bounds) | Own extension candidates and screen bounds. | `src/extend_draft.rs`, `src/lib.rs` | `temporary owner → world bounds → bounded cursor search` |
-| **16** | [`81h-gather-boundaries-and-sample-eligible-curve-owners`](#checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners) | Gather boundaries and sample eligible curve owners. | `src/extend_draft.rs` | `eligible boundary picks → cached original curve samples → world bounds` |
-| **17** | [`81i-cache-current-boundary-meshes-and-start-the-end-phase`](#checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase) | Cache current boundary meshes and start the end phase. | `src/extend_draft.rs` | `boundary originals → cached cutters and meshes → endpoint phase` |
-| **18** | [`81j-resolve-distance-and-boundary-reach-in-source-coordinates`](#checkpoint-81j-resolve-distance-and-boundary-reach-in-source-coordinates) | Resolve distance and boundary reach in source coordinates. | `src/extend_draft.rs` | `world distance or cutters → inverse placement → local endpoint reach` |
-| **19** | [`81k-find-the-nearest-visible-curve-end-in-css-pixels`](#checkpoint-81k-find-the-nearest-visible-curve-end-in-css-pixels) | Find the nearest visible curve end in CSS pixels. | `src/extend_draft.rs` | `cursor → conservative bounds → projected segments → start or end` |
-| **20** | [`81l-preview-extension-and-refresh-only-changed-originals`](#checkpoint-81l-preview-extension-and-refresh-only-changed-originals) | Preview extension and refresh only changed originals. | `src/extend_draft.rs` | `fresh endpoint → grown original and temporary tail → click → refreshed candidate` |
-| **21** | [`81m-keep-projection-and-extension-in-the-pending-tool-owner`](#checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner) | Keep projection and extension in the pending tool owner. | `src/tool.rs` | `pending editor owner → current prompt → temporary guide` |
-| **22** | [`81n-connect-checked-projection-to-one-editor-transaction`](#checkpoint-81n-connect-checked-projection-to-one-editor-transaction) | Connect checked projection to one editor transaction. | `src/editor.rs` | `current editor plane → checked draft → prepared replacements → one history entry` |
-| **23** | [`81o-connect-boundary-picks-repeated-end-clicks-and-cancellation`](#checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation) | Connect boundary picks repeated end clicks and cancellation. | `src/editor.rs` | `temporary picks → fresh hover → one replacement → repeated click` |
-| **24** | [`81p-expose-editing-actions-and-normalized-interval-extension`](#checkpoint-81p-expose-editing-actions-and-normalized-interval-extension) | Expose editing actions and normalized interval extension. | `src/editor.rs` | `registered editor action → source handler → normalized interval or pending edit` |
-| **25** | [`81q-route-accepted-editing-input-and-owner-lifecycle-1`](#checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1) | Dispatch typed answers and world points to the current draft. | `src/editor.rs` | `route answers to the active editing owner` |
-| **26** | [`81r-route-accepted-editing-input-and-owner-lifecycle-2`](#checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2) | Keep navigation available while an edit is pending, then finish through its owner. | `src/editor.rs` | `finish a pending edit through one commit path` |
-| **27** | [`81s-route-accepted-editing-input-and-owner-lifecycle-3`](#checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3) | Discard temporary previews and restore the captured selection on cancellation. | `src/editor.rs` | `restore source selection when an edit is cancelled` |
-| **28** | [`81t-register-current-projection-and-extension-commands`](#checkpoint-81t-register-current-projection-and-extension-commands) | Register current projection and extension commands. | `src/editing_commands.rs`, `src/lib.rs`, `src/commands.rs` | `command name and arguments → validated action → pending editor owner` |
-| **29** | [`81u-route-whole-boundary-picks-and-observe-pending-edits`](#checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits) | Route whole boundary picks and observe pending edits. | `src/browser.rs` | `whole owner integer pick → temporary boundary → pending edit diagnostics` |
-| **30** | [`81v-exercise-original-projection-retry-and-repeated-extension`](#checkpoint-81v-exercise-original-projection-retry-and-repeated-extension) | Exercise original projection retry and repeated extension. | `src/editing_tests.rs`, `src/lib.rs` | `originals → projection or endpoint reach → one transaction → exact archive` |
-| **31** | [`81za-validate-original-split-inputs-and-name-pieces`](#checkpoint-81za-validate-original-split-inputs-and-name-pieces) | Accept original cutter curves and a valid selected BRep face. | `src/split_geometry.rs`, `src/lib.rs` | `original family → pure calculation → result or refusal` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-81-project-originals-through-the-current-plane-algorithms"></a>
 
 ### Step 1 of 31 · Project originals in their placed frame (`81-project-originals-through-the-current-plane-algorithms`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/31 Visual Trace (81-project-originals-through-the-current-plane-algorithms): Project originals in their placed frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/project_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/project_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Conjugate the world projection through the original placement transform.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/project_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Conjugate the world projection through the original placement transform. Preserve source types, remove obsolete mesh normals and refuse unsupported or fully collapsed results.
 
-> **Self-Check Question:** *Why project through the placement transform?*  
-> **Answer:** The plane is defined in world coordinates, but the source geometry belongs to its local frame. The inverse placement brings the projected result back into that frame.
-
-- **What You Should See:** The preceding original network and four-corner patch remain visible while checked source editing connects.
-- **Hands-On Lab Experiment:** Inspect the original rational-curve and mesh fixtures. Compare a valid flattened line with a line that collapses to one point.
-
-<details>
-<summary>Implementation 81-project-originals-through-the-current-plane-algorithms: Project originals in their placed frame</summary>
-
-Conjugate the world projection through the original placement transform.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why project through the placement transform?* — The plane is defined in world coordinates, but the source geometry belongs to its local frame. The inverse placement brings the projected result back into that frame.
 
 ### 1. `src/project_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if x.cross(&y).magnitude() <= 1e-9 * x.magnitude() * y.magnitude() || x.magnitude() <= 1e-12 {
-        return Err("The three points lie on one line; pick a point off the line".into());
-    }
-
-    Ok(Plane::from_points(vec![a.clone(), b.clone(), c.clone()]))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -300,19 +174,7 @@ fn extent(points: &[Point]) -> f64 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81-project-originals-through-the-current-plane-algorithms-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -320,205 +182,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::drawing_coords as coords;
-use session_rust::{Geometry,Plane,Point,Vector,Xform};
-use std::rc::Rc;
-/// A plane word, or 3Point with none or three typed points.
-pub fn parse(_verb: &str, rest: &[&str]) -> Result<Project, String> {
-    let usage = "try Project To Plane XY, CPlane, YZ, ZX or 3Point 0,0,0 1,0,0 0,1,0";
-    let word = rest
-        .first()
-        .map_or("cplane".into(), |word| word.to_ascii_lowercase());
-    let plane = match word.as_str() {
-        "cplane" => "CPlane",
-        "xy" => "XY",
-        "yz" => "YZ",
-        "zx" | "xz" => "ZX",
-        "3point" | "3points" => "3Point",
-        _ => return Err(usage.into()),
-    };
-    let points = rest
-        .iter()
-        .skip(1)
-        .map(|word| match coords::absolute(word) {
-            Some(point) => Ok(point),
-            None => Err(format!("`{word}` is not a point; use x,y,z")),
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-
-    match (plane, points.len()) {
-        ("3Point", 0 | 3) => {}
-        ("3Point", _) => return Err("3Point takes three x,y,z points, or none to pick them".into()),
-        (_, 0) => {}
-        _ => return Err(usage.into()),
-    }
-
-    Ok(Project { plane, points })
-}
-
-/// Project the selection onto a named plane, or onto three points.
-#[derive(Debug)]
-pub struct Project {
-    pub plane: &'static str,   // CPlane, XY, YZ, ZX or 3Point
-    pub points: Vec<[f64; 3]>, // the three typed points of 3Point
-}
-
-/// The plane through three points, x toward the second; refused when they are in a line.
-pub fn plane_of(a: &Point, b: &Point, c: &Point) -> Result<Plane, String> {
-    let (x, y) = (b - a, c - a);
-
-    if x.cross(&y).magnitude() <= 1e-9 * x.magnitude() * y.magnitude() || x.magnitude() <= 1e-12 {
-        return Err("The three points lie on one line; pick a point off the line".into());
-    }
-
-    Ok(Plane::from_points(vec![a.clone(), b.clone(), c.clone()]))
-}
-
-/// Why an object is left as it is.
-#[derive(Debug, PartialEq)]
-pub enum Skip {
-    Collapsed,   // every point would land on one
-    Unsupported, // not a point, line, polyline, curve or mesh
-}
-
-/// The object's geometry projected onto a world plane, in its own frame under `place`.
-pub fn projected(geometry: &Geometry, place: &Xform, plane: &Plane) -> Result<Geometry, Skip> {
-    let back = place.inverse().ok_or(Skip::Unsupported)?;
-    let local = &(&back * &Xform::project_to_plane(plane)) * place; // the projection in the object's frame
-    let (before, after, geometry) = match geometry {
-        Geometry::Point(point) => return Ok(Geometry::Point(Rc::new(point.transformed(&local)))),
-        Geometry::Line(line) => {
-            let out = line.transformed(&local);
-            (
-                vec![line.start(), line.end()],
-                vec![out.start(), out.end()],
-                Geometry::Line(Rc::new(out)),
-            )
-        }
-        Geometry::Polyline(polyline) => {
-            let out = polyline.transformed(&local);
-            (
-                polyline.get_points(),
-                out.get_points(),
-                Geometry::Polyline(Rc::new(out)),
-            )
-        }
-        Geometry::NurbsCurve(curve) => {
-            let out = curve.transformed(&local);
-            let cvs = |curve: &session_rust::NurbsCurve| {
-                (0..curve.cv_count())
-                    .filter_map(|i| curve.get_cv(i))
-                    .collect()
-            };
-            (cvs(curve), cvs(&out), Geometry::NurbsCurve(Rc::new(out)))
-        }
-        Geometry::Mesh(mesh) => {
-            let mut out = mesh.transformed(&local);
-
-            // the old normals no longer fit the flat faces
-            for vertex in out.vertex.values_mut() {
-                for key in ["nx", "ny", "nz"] {
-                    vertex.attributes.remove(key);
-                }
-            }
-
-            let points = |mesh: &session_rust::Mesh| {
-                mesh.vertex
-                    .values()
-                    .map(|vertex| vertex.position())
-                    .collect()
-            };
-            (points(mesh), points(&out), Geometry::Mesh(Rc::new(out)))
-        }
-        _ => return Err(Skip::Unsupported),
-    };
-
-    if extent(&after) <= 1e-9 * extent(&before) {
-        return Err(Skip::Collapsed);
-    }
-
-    Ok(geometry)
-}
-
-/// The largest distance from the first point to any other.
-fn extent(points: &[Point]) -> f64 {
-    let Some(first) = points.first() else {
-        return 0.0;
-    };
-    points
-        .iter()
-        .map(|point| first.distance(point, None))
-        .fold(0.0, f64::max)
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/81-project-originals-through-the-current-plane-algorithms-2.rs" skip=4553
 ```
 
-</details>
+**Result after `81-project-originals-through-the-current-plane-algorithms`:** The preceding original network and four-corner patch remain visible while checked source editing connects.
 
-</details>
+---
 
 <a id="checkpoint-81zza-read-original-cutters-in-object-frames"></a>
 
 ### Step 2 of 31 · Read original cutters in object frames (`81zza-read-original-cutters-in-object-frames`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/31 Visual Trace (81zza-read-original-cutters-in-object-frames): Read original cutters in object frames</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_cut.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_cut.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Write the cutter records and convert supported originals to curves or planar boundaries.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/source_cut.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original curve-editing owner.*)
 
 Write the cutter records and convert supported originals to curves or planar boundaries. Rebuild a moved plane from three transformed points.
 
-> **Self-Check Question:** *Why rebuild a plane after a stretch?*  
-> **Answer:** Its transformed axes may cease to be orthogonal. Three transformed points define the actual transformed plane.
-
-- **What You Should See:** Original cutters can be read in an object's frame before extension input is connected.
-- **Hands-On Lab Experiment:** Trace a nonuniform stretch and a curved surface through plane conversion.
-
-<details>
-<summary>Implementation 81zza-read-original-cutters-in-object-frames: Read original cutters in object frames</summary>
-
-Write the cutter records and convert supported originals to curves or planar boundaries.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why rebuild a plane after a stretch?* — Its transformed axes may cease to be orthogonal. Three transformed points define the actual transformed plane.
 
 ### 1. `src/source_cut.rs`
 
@@ -534,95 +237,50 @@ Create the file and type:
 
 Register this original curve-editing owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod project_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81zza-read-original-cutters-in-object-frames-2.rs" skip=27
 ```
 
-</details>
+**Result after `81zza-read-original-cutters-in-object-frames`:** Original cutters can be read in an object's frame before extension input is connected.
+
+---
 
 <a id="checkpoint-81zzb-find-original-cutters-near-the-pointer"></a>
 
 ### Step 3 of 31 · Find original cutters near the pointer (`81zzb-find-original-cutters-near-the-pointer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/31 Visual Trace (81zzb-find-original-cutters-near-the-pointer): Find original cutters near the pointer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_cut.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_cut.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Build fence planes and unit rays in the original object frame.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/source_cut.rs` (*Extend this original owner with today’s complete helper.*)
 
 Build fence planes and unit rays in the original object frame. Sample curve spans and find the nearest projected polyline within the pixel aperture.
 
-> **Self-Check Question:** *Why normalize a ray after changing its frame?*  
-> **Answer:** Object scaling changes its length. Intersection tolerances require a unit direction in the mesh frame.
-
-- **What You Should See:** Pointer queries can identify candidate original cutters without modifying the source.
-- **Hands-On Lab Experiment:** Compare a scaled ray and two nearby projected polylines.
-
-<details>
-<summary>Implementation 81zzb-find-original-cutters-near-the-pointer: Find original cutters near the pointer</summary>
-
-Build fence planes and unit rays in the original object frame.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why normalize a ray after changing its frame?* — Object scaling changes its length. Intersection tolerances require a unit direction in the mesh frame.
 
 ### 1. `src/source_cut.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// `plane` moved by `xform`, rebuilt from three moved points so a stretch keeps it true.
-pub fn plane_moved(plane: &Plane, xform: &Xform) -> Option<Plane> {
-    let origin = plane.origin();
-    let a = origin.transformed(xform);
-    let b = (&origin + &plane.x_axis()).transformed(xform);
-    let c = (&origin + &plane.y_axis()).transformed(xform);
-    let normal = (&b - &a).cross(&(&c - &a));
-    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, None))
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -630,8 +288,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81zzb-find-original-cutters-near-the-pointer-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -639,210 +296,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use session_rust::{Geometry, Line, NurbsCurve, NurbsSurface, Plane, Point, Vector, Xform};
-
-/// A cutting or bounding object, in the frame of the object it acts on.
-#[derive(Clone, Debug)]
-pub enum Cutter {
-    Curve(NurbsCurve), // cuts where it crosses
-    Plane(Plane),      // cuts where the object passes through it
-}
-
-impl Cutter {
-    /// The cutter moved by `xform`; a plane is rebuilt from three moved points.
-    pub fn moved(&self, xform: &Xform) -> Option<Cutter> {
-        match self {
-            Cutter::Curve(curve) => Some(Cutter::Curve(curve.transformed(xform))),
-            Cutter::Plane(plane) => plane_moved(plane, xform).map(Cutter::Plane),
-        }
-    }
-}
-
-/// A line, polyline or NURBS curve as a NURBS curve.
-pub fn as_curve(geometry: &Geometry) -> Option<NurbsCurve> {
-    match geometry {
-        Geometry::Line(line) => Some(NurbsCurve::create(false, 1, &[line.start(), line.end()])),
-        Geometry::Polyline(polyline) if polyline.point_count() >= 2 => {
-            Some(NurbsCurve::create(false, 1, &polyline.get_points()))
-        }
-        Geometry::NurbsCurve(curve) => Some((**curve).clone()),
-        _ => None,
-    }
-}
-
-/// A Plane object, a planar surface or a one-face planar BRep as a plane.
-pub fn as_plane(geometry: &Geometry) -> Option<Plane> {
-    match geometry {
-        Geometry::Plane(plane) => Some((**plane).clone()),
-        Geometry::NurbsSurface(surface) => planar(surface),
-        Geometry::BRep(brep) if brep.face_count() == 1 => planar(
-            brep.m_surfaces
-                .get(brep.m_faces[0].surface_index as usize)?,
-        ),
-        _ => None,
-    }
-}
-
-/// The plane of a flat surface, within a millionth of its size.
-pub fn planar(surface: &NurbsSurface) -> Option<Plane> {
-    let mut size: f64 = 1.0;
-
-    for i in 0..surface.m_cv_count[0] {
-        for j in 0..surface.m_cv_count[1] {
-            let p = surface.get_cv(i, j)?;
-            size = size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs());
-        }
-    }
-
-    let mut plane = Plane::invalid();
-    (surface.is_planar(Some(&mut plane), 1e-6 * size) && plane.is_valid()).then_some(plane)
-}
-
-/// The plane through `line` that holds `normal`: a vertical cut when `normal` is the view's up.
-pub fn fence_plane(line: &Line, normal: &Vector) -> Result<Plane, String> {
-    let across = line.to_vector().cross(normal);
-
-    if across.magnitude() <= 1e-12 * line.length().max(1.0) {
-        return Err("The cutting line runs along the view direction".into());
-    }
-
-    Ok(Plane::from_point_normal(line.start(), across, None))
-}
-
-/// `plane` moved by `xform`, rebuilt from three moved points so a stretch keeps it true.
-pub fn plane_moved(plane: &Plane, xform: &Xform) -> Option<Plane> {
-    let origin = plane.origin();
-    let a = origin.transformed(xform);
-    let b = (&origin + &plane.x_axis()).transformed(xform);
-    let c = (&origin + &plane.y_axis()).transformed(xform);
-    let normal = (&b - &a).cross(&(&c - &a));
-    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, None))
-}
-
-/// A ray moved by `xform` with a unit direction, so a scaled object's triangles are not taken for parallel.
-pub fn unit_ray(origin: &Point, direction: &Vector, xform: &Xform) -> Line {
-    let start = origin.transformed(xform);
-    let along = (&(origin + direction).transformed(xform) - &start).normalized();
-    Line::from_points(&start, &(&start + &along))
-}
-
-/// Points along a curve: its corners when straight, else `count` even steps.
-pub fn samples(curve: &NurbsCurve, count: usize) -> Vec<Point> {
-    if curve.degree() == 1 {
-        return curve
-            .get_span_vector()
-            .iter()
-            .map(|t| curve.point_at(*t))
-            .collect();
-    }
-
-    let (t0, t1) = curve.domain();
-    (0..=count)
-        .map(|i| curve.point_at(t0 + (t1 - t0) * i as f64 / count as f64))
-        .collect()
-}
-
-/// Pixel distance from `at` to the segment a-b.
-pub fn segment_px(a: (f64, f64), b: (f64, f64), at: (f64, f64)) -> f64 {
-    let (dx, dy) = (b.0 - a.0, b.1 - a.1);
-    let length = dx * dx + dy * dy;
-    let t = if length > 0.0 {
-        (((at.0 - a.0) * dx + (at.1 - a.1) * dy) / length).clamp(0.0, 1.0)
-    } else {
-        0.0
-    };
-    (a.0 + t * dx - at.0).hypot(a.1 + t * dy - at.1)
-}
-
-/// The polyline nearest `at` on screen within `aperture` pixels, and its distance.
-pub fn nearest_px(polylines: &[Vec<(f64, f64)>], at: (f64, f64), aperture: f64) -> Option<usize> {
-    let mut best: Option<(usize, f64)> = None;
-
-    for (index, polyline) in polylines.iter().enumerate() {
-        let distance = match polyline.as_slice() {
-            [single] => segment_px(*single, *single, at),
-            _ => polyline
-                .windows(2)
-                .map(|pair| segment_px(pair[0], pair[1], at))
-                .fold(f64::INFINITY, f64::min),
-        };
-
-        if distance <= aperture && best.is_none_or(|(_, near)| distance < near) {
-            best = Some((index, distance));
-        }
-    }
-
-    best.map(|(index, _)| index)
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/81zzb-find-original-cutters-near-the-pointer-2.rs" skip=5024
 ```
 
-</details>
+**Result after `81zzb-find-original-cutters-near-the-pointer`:** Pointer queries can identify candidate original cutters without modifying the source.
 
-</details>
+---
 
 <a id="checkpoint-81zzc-grow-original-domains-and-extract-the-tail"></a>
 
 ### Step 4 of 31 · Grow original domains and extract the tail (`81zzc-grow-original-domains-and-extract-the-tail`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/31 Visual Trace (81zzc-grow-original-domains-and-extract-the-tail): Grow original domains and extract the tail</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_reach.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_reach.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Define end and reach records.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/extend_reach.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original curve-editing owner.*)
 
 Define end and reach records. Extend a cloned curve domain, trim out its gained piece and sample that tail from the old end.
 
-> **Self-Check Question:** *Why keep the gained piece?*  
-> **Answer:** The editing preview needs the new segment while the original stays available for cancellation.
-
-- **What You Should See:** Original-domain growth and tail extraction are prepared for extension previews.
-- **Hands-On Lab Experiment:** Compare Start and End tail ordering and mismatched control colours.
-
-<details>
-<summary>Implementation 81zzc-grow-original-domains-and-extract-the-tail: Grow original domains and extract the tail</summary>
-
-Define end and reach records.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why keep the gained piece?* — The editing preview needs the new segment while the original stays available for cancellation.
 
 ### 1. `src/extend_reach.rs`
 
@@ -858,122 +351,50 @@ Create the file and type:
 
 Register this original curve-editing owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_cut;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81zzc-grow-original-domains-and-extract-the-tail-2.rs" skip=21
 ```
 
-</details>
+**Result after `81zzc-grow-original-domains-and-extract-the-tail`:** Original-domain growth and tail extraction are prepared for extension previews.
+
+---
 
 <a id="checkpoint-81zzd-find-original-end-directions-and-length-reach"></a>
 
 ### Step 5 of 31 · Find original end directions and length reach (`81zzd-find-original-end-directions-and-length-reach`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/31 Visual Trace (81zzd-find-original-end-directions-and-length-reach): Find original end directions and length reach</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_reach.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_reach.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Find outward directions for supported original curve families.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
 
 Find outward directions for supported original curve families. Search domain growth until the gained curve has the requested physical length.
 
-> **Self-Check Question:** *Why search by physical length?*  
-> **Answer:** A NURBS parameter step does not represent a fixed distance. Evaluate the gained curve length instead.
-
-- **What You Should See:** Extension helpers can derive original endpoint directions and length reach.
-- **Hands-On Lab Experiment:** Trace a curved end with changing parameter speed and a zero tangent.
-
-<details>
-<summary>Implementation 81zzd-find-original-end-directions-and-length-reach: Find original end directions and length reach</summary>
-
-Find outward directions for supported original curve families.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why search by physical length?* — A NURBS parameter step does not represent a fixed distance. Evaluate the gained curve length instead.
 
 ### 1. `src/extend_reach.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// The curve with its domain grown by `s` at `end`.
-fn grow(curve: &NurbsCurve, end: End, s: f64) -> Option<NurbsCurve> {
-    let (d0, d1) = curve.domain();
-    let mut grown = curve.clone();
-    let done = match end {
-        End::Start => grown.extend(d0 - s, d1),
-        End::End => grown.extend(d0, d1 + s),
-    };
-    done.then_some(grown)
-}
-
-/// The part of `grown` beyond the old domain.
-fn beyond(curve: &NurbsCurve, grown: &NurbsCurve, end: End) -> Option<NurbsCurve> {
-    let (d0, d1) = curve.domain();
-    let (g0, g1) = grown.domain();
-    let mut piece = grown.clone();
-    let done = match end {
-        End::Start => piece.trim(g0, d0),
-        End::End => piece.trim(d1, g1),
-    };
-    done.then_some(piece)
-}
-
-/// The added piece as points, from the old end.
-fn tail(curve: &NurbsCurve, grown: &NurbsCurve, end: End) -> Vec<Point> {
-    let Some(piece) = beyond(curve, grown, end) else {
-        return Vec::new();
-    };
-    let mut points = crate::source_cut::samples(&piece, 24);
-
-    if end == End::Start {
-        points.reverse();
-    }
-
-    points
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -981,79 +402,44 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81zzd-find-original-end-directions-and-length-reach-1.rs"
 ```
 
-</details>
+**Result after `81zzd-find-original-end-directions-and-length-reach`:** Extension helpers can derive original endpoint directions and length reach.
+
+---
 
 <a id="checkpoint-81zze-stop-straight-growth-at-the-first-boundary"></a>
 
 ### Step 6 of 31 · Stop straight growth at the first boundary (`81zze-stop-straight-growth-at-the-first-boundary`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/31 Visual Trace (81zze-stop-straight-growth-at-the-first-boundary): Stop straight growth at the first boundary</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_reach.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_reach.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end..
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
 
 Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end.
 
-> **Self-Check Question:** *Why ignore a crossing at the old end?*  
-> **Answer:** It does not add a segment. Only a crossing ahead beyond the tolerance can bound growth.
-
-- **What You Should See:** Straight extension can stop at the first original boundary before editing input is connected.
-- **Hands-On Lab Experiment:** Compare crossings behind, at and ahead of the old end.
-
-<details>
-<summary>Implementation 81zze-stop-straight-growth-at-the-first-boundary: Stop straight growth at the first boundary</summary>
-
-Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end..
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why ignore a crossing at the old end?* — It does not add a segment. Only a crossing ahead beyond the tolerance can bound growth.
 
 ### 1. `src/extend_reach.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            return Some((curve.point_at(t), direction));
-        }
-        _ => return None,
-    };
-    let mut direction = &tip - &inward;
-    direction.normalize_self().then_some(())?;
-    Some((tip, direction))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1117,90 +503,44 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `81zze-stop-straight-growth-at-the-first-boundary`:** Straight extension can stop at the first original boundary before editing input is connected.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81zze-stop-straight-growth-at-the-first-boundary-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81zzf-stop-curved-growth-at-an-original-boundary"></a>
 
 ### Step 7 of 31 · Stop curved growth at an original boundary (`81zzf-stop-curved-growth-at-an-original-boundary`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/31 Visual Trace (81zzf-stop-curved-growth-at-an-original-boundary): Stop curved growth at an original boundary</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_reach.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_reach.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Grow the original NURBS domain and inspect curve or plane crossings beyond its old end.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
 
 Grow the original NURBS domain and inspect curve or plane crossings beyond its old end. Trim the extension at the first accepted boundary.
 
-> **Self-Check Question:** *Why test the gained domain?*  
-> **Answer:** Crossings inside the original curve do not bound the new segment.
-
-- **What You Should See:** Curved extension can stop at an original boundary while retaining its source geometry.
-- **Hands-On Lab Experiment:** Trace both end directions through increasing domain growth.
-
-<details>
-<summary>Implementation 81zzf-stop-curved-growth-at-an-original-boundary: Stop curved growth at an original boundary</summary>
-
-Grow the original NURBS domain and inspect curve or plane crossings beyond its old end.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why test the gained domain?* — Crossings inside the original curve do not bound the new segment.
 
 ### 1. `src/extend_reach.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let s2 = (s1 - f1 * (s1 - s0) / (f1 - f0)).max(s1 * 0.1);
-        (s0, f0) = (s1, f1);
-        s1 = s2;
-        f1 = added(s1)? - distance;
-    }
-
-    grow(curve, end, s1).ok_or_else(|| "Cannot extend this curve".into())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1289,90 +629,44 @@ fn to_boundary(curve: &NurbsCurve, end: End, cutters: &[Cutter]) -> Result<Nurbs
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `81zzf-stop-curved-growth-at-an-original-boundary`:** Curved extension can stop at an original boundary while retaining its source geometry.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81zzf-stop-curved-growth-at-an-original-boundary-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81zzg-dispatch-original-extension-families"></a>
 
 ### Step 8 of 31 · Dispatch original extension families (`81zzg-dispatch-original-extension-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/31 Visual Trace (81zzg-dispatch-original-extension-families): Dispatch original extension families</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_reach.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_reach.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Connect the existing reach helpers for lines, polylines and NURBS curves.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
 
 Connect the existing reach helpers for lines, polylines and NURBS curves. Return the grown original and its preview tail while rejecting closed curves.
 
-> **Self-Check Question:** *Why reject a closed curve?*  
-> **Answer:** It has no free end to extend. A refusal preserves the existing original.
-
-- **What You Should See:** The prepared extension families share one dispatcher; preview and acceptance connect later.
-- **Hands-On Lab Experiment:** Trace a line, an open polyline, a NURBS curve and a closed curve through dispatch.
-
-<details>
-<summary>Implementation 81zzg-dispatch-original-extension-families: Dispatch original extension families</summary>
-
-Connect the existing reach helpers for lines, polylines and NURBS curves.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why reject a closed curve?* — It has no free end to extend. A refusal preserves the existing original.
 
 ### 1. `src/extend_reach.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            return Some((curve.point_at(t), direction));
-        }
-        _ => return None,
-    };
-    let mut direction = &tip - &inward;
-    direction.normalize_self().then_some(())?;
-    Some((tip, direction))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1433,19 +727,7 @@ pub fn extended(geometry: &Geometry, end: End, reach: &Reach) -> Result<Grown, S
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81zzg-dispatch-original-extension-families-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1453,423 +735,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::source_cut::{Cutter, unit_ray};
-use session_rust::{
-    Geometry, Line, Mesh, NurbsCurve, Point, Polyline, Vector, Xform, intersection, split,
-};
-use std::rc::Rc;
-
-const NEAR: f64 = 1e-6; // a crossing this close to the end is the end itself
-
-/// Which end of a curve grows.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum End {
-    Start,
-    End,
-}
-
-/// How far an end grows, in the curve's own frame.
-pub enum Reach {
-    Distance(f64),
-    Boundaries {
-        cutters: Vec<Cutter>,           // curves and planes
-        meshes: Vec<(Rc<Mesh>, Xform)>, // meshes, each with the map from the curve's frame into its own
-    },
-}
-
-/// A grown curve and the piece it gained.
-pub struct Grown {
-    pub geometry: Geometry, // the whole curve
-    pub tail: Vec<Point>,   // the piece added, from the old end
-}
-
-/// The end point of a curve and the direction it leaves in.
-pub fn tip(geometry: &Geometry, end: End) -> Option<(Point, Vector)> {
-    let (tip, inward) = match geometry {
-        Geometry::Line(line) => match end {
-            End::Start => (line.start(), line.end()),
-            End::End => (line.end(), line.start()),
-        },
-        Geometry::Polyline(polyline) => {
-            let count = polyline.point_count();
-
-            if count < 2 {
-                return None;
-            }
-
-            match end {
-                End::Start => (polyline.get_point(0)?, polyline.get_point(1)?),
-                End::End => (
-                    polyline.get_point(count - 1)?,
-                    polyline.get_point(count - 2)?,
-                ),
-            }
-        }
-        Geometry::NurbsCurve(curve) => {
-            let (d0, d1) = curve.domain();
-            let (t, sign) = match end {
-                End::Start => (d0, -1.0),
-                End::End => (d1, 1.0),
-            };
-            let mut direction = &curve.tangent_at(t) * sign;
-            direction.normalize_self().then_some(())?;
-            return Some((curve.point_at(t), direction));
-        }
-        _ => return None,
-    };
-    let mut direction = &tip - &inward;
-    direction.normalize_self().then_some(())?;
-    Some((tip, direction))
-}
-
-/// `geometry` grown at `end` by a distance or to the first boundary ahead.
-pub fn extended(geometry: &Geometry, end: End, reach: &Reach) -> Result<Grown, String> {
-    match geometry {
-        Geometry::Line(line) => {
-            let (from, direction) = tip(geometry, end).ok_or("This line has no length")?;
-            let to = straight(&from, &direction, reach)?;
-            let grow = from.distance(&to, None);
-            let mut next = (**line).clone();
-
-            match end {
-                End::Start => next.extend(grow, 0.0),
-                End::End => next.extend(0.0, grow),
-            }
-
-            Ok(Grown {
-                geometry: Geometry::Line(Rc::new(next)),
-                tail: vec![from, to],
-            })
-        }
-        Geometry::Polyline(polyline) => {
-            if polyline.is_closed() {
-                return Err("no free end".into());
-            }
-
-            let (from, direction) = tip(geometry, end).ok_or("This polyline has no length")?;
-            let to = straight(&from, &direction, reach)?;
-            let last = polyline.point_count() - 1;
-            let mut next: Polyline = (**polyline).clone();
-            next.set_point(if end == End::Start { 0 } else { last }, &to);
-            Ok(Grown {
-                geometry: Geometry::Polyline(Rc::new(next)),
-                tail: vec![from, to],
-            })
-        }
-        Geometry::NurbsCurve(curve) => {
-            if curve.is_closed() {
-                return Err("no free end".into());
-            }
-
-            let grown = match reach {
-                Reach::Distance(distance) => by_length(curve, end, *distance)?,
-                Reach::Boundaries { cutters, .. } => to_boundary(curve, end, cutters)?,
-            };
-            let tail = tail(curve, &grown, end);
-            let mut grown = grown;
-            fit_colors(&mut grown);
-            Ok(Grown {
-                geometry: Geometry::NurbsCurve(Rc::new(grown)),
-                tail,
-            })
-        }
-        _ => Err("Extend grows lines, polylines and NURBS curves".into()),
-    }
-}
-
-/// Where a straight end lands: a distance on, or the first boundary ahead.
-fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, String> {
-    let (cutters, meshes) = match reach {
-        Reach::Distance(distance) => return Ok(from + &(direction * *distance)),
-        Reach::Boundaries { cutters, meshes } => (cutters, meshes),
-    };
-    let mut best: Option<f64> = None; // distance ahead of the nearest boundary
-    let mut take = |t: f64| {
-        if t > NEAR && best.is_none_or(|near| t < near) {
-            best = Some(t);
-        }
-    };
-
-    for cutter in cutters {
-        match cutter {
-            Cutter::Plane(plane) => {
-                let ray = Line::from_points(from, &(from + direction));
-
-                if let Some(hit) = intersection::line_plane(&ray, plane, false) {
-                    take((&hit - from).dot(direction));
-                }
-            }
-            Cutter::Curve(curve) => {
-                // a probe reaching past every control point of the boundary
-                let reach = (0..curve.m_cv_count)
-                    .filter_map(|i| curve.get_cv(i))
-                    .map(|p| p.distance(from, None))
-                    .fold(1.0, f64::max)
-                    * 2.0;
-                let probe =
-                    NurbsCurve::create(false, 1, &[from.clone(), from + &(direction * reach)]);
-
-                if let Ok(pieces) =
-                    split::split_curve_by_curves(&probe, std::slice::from_ref(curve), NEAR)
-                {
-                    for piece in pieces.iter().take(pieces.len().saturating_sub(1)) {
-                        take((&piece.point_at_end() - from).dot(direction));
-                    }
-                }
-            }
-        }
-    }
-
-    for (mesh, into) in meshes {
-        let Some(back) = into.inverse() else {
-            continue;
-        };
-        let ray = unit_ray(from, direction, into);
-
-        for hit in intersection::ray_mesh(&ray, mesh, 1e-12, true).unwrap_or_default() {
-            take((&hit.transformed(&back) - from).dot(direction));
-        }
-    }
-
-    best.map(|t| from + &(direction * t))
-        .ok_or_else(|| "no boundary ahead".into())
-}
-
-/// The curve with its domain grown by `s` at `end`.
-fn grow(curve: &NurbsCurve, end: End, s: f64) -> Option<NurbsCurve> {
-    let (d0, d1) = curve.domain();
-    let mut grown = curve.clone();
-    let done = match end {
-        End::Start => grown.extend(d0 - s, d1),
-        End::End => grown.extend(d0, d1 + s),
-    };
-    done.then_some(grown)
-}
-
-/// The part of `grown` beyond the old domain.
-fn beyond(curve: &NurbsCurve, grown: &NurbsCurve, end: End) -> Option<NurbsCurve> {
-    let (d0, d1) = curve.domain();
-    let (g0, g1) = grown.domain();
-    let mut piece = grown.clone();
-    let done = match end {
-        End::Start => piece.trim(g0, d0),
-        End::End => piece.trim(d1, g1),
-    };
-    done.then_some(piece)
-}
-
-/// The added piece as points, from the old end.
-fn tail(curve: &NurbsCurve, grown: &NurbsCurve, end: End) -> Vec<Point> {
-    let Some(piece) = beyond(curve, grown, end) else {
-        return Vec::new();
-    };
-    let mut points = crate::source_cut::samples(&piece, 24);
-
-    if end == End::Start {
-        points.reverse();
-    }
-
-    points
-}
-
-/// A curve grown along its own shape until the added length is `distance`.
-fn by_length(curve: &NurbsCurve, end: End, distance: f64) -> Result<NurbsCurve, String> {
-    let (d0, d1) = curve.domain();
-    let at = if end == End::Start { d0 } else { d1 };
-    let speed = curve.evaluate(at, 1)[1].magnitude();
-
-    if speed <= 1e-12 {
-        return Err("This curve has no direction at its end".into());
-    }
-
-    // the added length for a growth of `s`
-    let added = |s: f64| -> Result<f64, String> {
-        let grown = grow(curve, end, s).ok_or("Cannot extend this curve")?;
-        Ok(beyond(curve, &grown, end)
-            .ok_or("Cannot extend this curve")?
-            .length(None))
-    };
-    let (mut s0, mut f0) = (0.0, -distance);
-    let mut s1 = distance / speed;
-    let mut f1 = added(s1)? - distance;
-
-    // secant steps on the added length
-    for _ in 0..8 {
-        if f1.abs() <= 1e-9 * distance || (f1 - f0).abs() <= f64::MIN_POSITIVE {
-            break;
-        }
-
-        let s2 = (s1 - f1 * (s1 - s0) / (f1 - f0)).max(s1 * 0.1);
-        (s0, f0) = (s1, f1);
-        s1 = s2;
-        f1 = added(s1)? - distance;
-    }
-
-    grow(curve, end, s1).ok_or_else(|| "Cannot extend this curve".into())
-}
-
-/// A curve grown along its own shape to the first boundary curve or plane it meets.
-fn to_boundary(curve: &NurbsCurve, end: End, cutters: &[Cutter]) -> Result<NurbsCurve, String> {
-    if cutters.is_empty() {
-        return Err(
-            "Meshes and BReps stop lines and polylines; pick a curve or plane for a curve".into(),
-        );
-    }
-
-    let (d0, d1) = curve.domain();
-    let at = if end == End::Start { d0 } else { d1 };
-    let from = curve.point_at(at);
-    let speed = curve.evaluate(at, 1)[1].magnitude().max(1e-12);
-    // how far the nearest boundary is, as a first guess
-    let away = cutters
-        .iter()
-        .map(|cutter| match cutter {
-            Cutter::Plane(plane) => (&from - &plane.origin()).dot(&plane.z_axis()).abs(),
-            Cutter::Curve(boundary) => boundary.closest_point(&from).distance(&from, None),
-        })
-        .fold(f64::INFINITY, f64::min)
-        .max(curve.length(None) * 0.05);
-    let mut s = away / speed;
-
-    for _ in 0..7 {
-        let grown = grow(curve, end, s).ok_or("Cannot extend this curve")?;
-        let piece = beyond(curve, &grown, end).ok_or("Cannot extend this curve")?;
-        let (p0, p1) = piece.domain();
-        let near = (p1 - p0) * 1e-9;
-        let mut crossings = Vec::new();
-
-        for cutter in cutters {
-            match cutter {
-                Cutter::Plane(plane) => {
-                    crossings.extend(intersection::curve_plane(&piece, plane, Some(NEAR)))
-                }
-                Cutter::Curve(boundary) => {
-                    let pieces = split::split_curve_by_curves(
-                        &piece,
-                        std::slice::from_ref(boundary),
-                        NEAR,
-                    )
-                    .unwrap_or_default();
-
-                    for part in pieces.iter().take(pieces.len().saturating_sub(1)) {
-                        crossings.push(
-                            intersection::curve_closest_point(&piece, &part.point_at_end(), p0, p1)
-                                .0,
-                        );
-                    }
-                }
-            }
-        }
-
-        // the crossing nearest the old end
-        let first = match end {
-            End::End => crossings
-                .into_iter()
-                .filter(|t| *t > p0 + near)
-                .min_by(f64::total_cmp),
-            End::Start => crossings
-                .into_iter()
-                .filter(|t| *t < p1 - near)
-                .max_by(f64::total_cmp),
-        };
-
-        if let Some(t) = first {
-            let (g0, g1) = grown.domain();
-            let mut cut = grown;
-            let done = match end {
-                End::End => cut.trim(g0, t),
-                End::Start => cut.trim(t, g1),
-            };
-            return done
-                .then_some(cut)
-                .ok_or_else(|| "Cannot cut the curve at the boundary".into());
-        }
-
-        s *= 2.0;
-    }
-
-    Err("does not reach the boundary".into())
-}
-
-/// Per-control colours only fit the control count they were made for.
-fn fit_colors(curve: &mut NurbsCurve) {
-    if curve.pointcolors.len() != curve.m_cv_count {
-        curve.pointcolors.clear();
-    }
-
-    if curve.linecolors.len() + 1 != curve.m_cv_count {
-        curve.linecolors.clear();
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/81zzg-dispatch-original-extension-families-2.rs" skip=12007
 ```
 
-</details>
+**Result after `81zzg-dispatch-original-extension-families`:** The prepared extension families share one dispatcher; preview and acceptance connect later.
 
-</details>
+---
 
 <a id="checkpoint-81a-find-source-cutters-and-current-extension-reach"></a>
 
 ### Step 9 of 31 · Edit original curve intervals (`81a-find-source-cutters-and-current-extension-reach`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/31 Visual Trace (81a-find-source-cutters-and-current-extension-reach): Edit original curve intervals</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/interval_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cutter</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edited curve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/interval_geometry.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edited curve</text>
 </svg>
-</div>
-
-- **Goal:** Trim or extend supported original curves by a normalized physical-length interval.
-- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
-- **Files You Touch:** `src/interval_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original curve-editing owner.*)
 
 Trim or extend supported original curves by a normalized physical-length interval. Reuse the cutter and extension helpers already written.
 
-> **Self-Check Question:** *Why use physical-length fractions?*  
-> **Answer:** The requested interval is measured along the curve rather than through nonuniform parameters.
-
-- **What You Should See:** The complete cutter/reach helpers compile before the pending edit uses them.
-- **Hands-On Lab Experiment:** Compare a trim, an extension and an unsupported family.
-
-<details>
-<summary>Implementation 81a-find-source-cutters-and-current-extension-reach: Edit original curve intervals</summary>
-
-Trim or extend supported original curves by a normalized physical-length interval.
-
-Data flow: original cutter → object frame → physical reach → edited curve.
+> **Check:** *Why use physical-length fractions?* — The requested interval is measured along the curve rather than through nonuniform parameters.
 
 ### 1. `src/interval_geometry.rs`
 
@@ -1885,24 +790,13 @@ Create the file and type:
 
 Register this original curve-editing owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod extend_reach;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81a-find-source-cutters-and-current-extension-reach-2.rs" skip=23
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1910,129 +804,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use session_rust::{Geometry,Line};
-use std::rc::Rc;
-pub const MAX_POINTS:usize=4096;
-/// A part of the selected curve over 0..1 of its length.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Interval {
-    Trim(f64, f64),   // keep this part
-    Extend(f64, f64), // grow to this range
-}
-
-/// The source trimmed or extended to `a..b` of its length.
-pub fn edited(source: &Geometry, interval: Interval) -> Result<Geometry, String> {
-    let (a, b, trim) = match interval {
-        Interval::Trim(a, b) => (a, b, true),
-        Interval::Extend(a, b) => (a, b, false),
-    };
-
-    if !a.is_finite() || !b.is_finite() || a >= b || a.abs() > 1e6 || b.abs() > 1e6 {
-        return Err("parameters must be finite, increasing, and within ±1e6".into());
-    }
-
-    if (trim && (a < 0.0 || b > 1.0)) || (!trim && (a > 0.0 || b < 1.0)) {
-        return Err("trim keeps 0 <= a < b <= 1; extend needs a <= 0 and b >= 1".into());
-    }
-
-    match source {
-        Geometry::Line(line) => {
-            let mut next = Line::from_points(&line.point_at(a), &line.point_at(b));
-            next.name = line.name.clone();
-            next.linecolor = line.linecolor.clone();
-            next.width = line.width;
-            next.dash = line.dash.clone();
-            next.arrowhead = line.arrowhead;
-            Ok(Geometry::Line(Rc::new(next)))
-        }
-        Geometry::NurbsCurve(curve) => {
-            if curve.m_cv_count > MAX_POINTS {
-                return Err(format!("curve edits are limited to {MAX_POINTS} controls"));
-            }
-
-            let mut next = (**curve).clone();
-            let (lo, hi) = next.domain();
-            let a = lo + a * (hi - lo); // 0..1 into the curve domain
-            let b = lo + b * (hi - lo);
-            let ok = if trim {
-                next.trim(a, b)
-            } else {
-                next.extend(a, b)
-            };
-
-            if !ok {
-                return Err("kernel refused this curve interval".into());
-            }
-
-            Ok(Geometry::NurbsCurve(Rc::new(next)))
-        }
-        _ => Err("trim and extend currently accept lines and NURBS curves".into()),
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/81a-find-source-cutters-and-current-extension-reach-3.rs" skip=2129
 ```
 
-</details>
+**Result after `81a-find-source-cutters-and-current-extension-reach`:** The complete cutter/reach helpers compile before the pending edit uses them.
 
-</details>
+---
 
 <a id="checkpoint-81b-capture-eligible-original-identity-and-placement"></a>
 
 ### Step 10 of 31 · Capture eligible original identity and placement (`81b-capture-eligible-original-identity-and-placement`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/31 Visual Trace (81b-capture-eligible-original-identity-and-placement): Capture eligible original identity and placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_edit.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible row</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original allocation and placement</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later freshness check</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_edit.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original allocation and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later freshness check</text>
 </svg>
-</div>
-
-- **Goal:** Capture eligible original identity and placement.
-- **Data Flow Trace:** `eligible row → original allocation and placement → later freshness check`
-- **Files You Touch:** `src/source_edit.rs` (*Capture and validate original allocation, placement and editing eligibility.*) · `src/lib.rs` (*Register the editing component.*)
 
 Capture immutable original allocation and f64 placement together. Refuse hidden, locked, released or replaced owners before editing.
 
-> **Self-Check Question:** *Can a display mesh stand in for its original BRep?*  
-> **Answer:** No. Original family lookup checks CAD and surfaces before their derived mesh. Editing a proxy would lose the actual geometry.
-
-- **Hands-On Lab Experiment:** Capture a placed rational curve, replace its source, and inspect the stale-owner rejection without changing the captured allocation.
-
-<details>
-<summary>Implementation 81b-capture-eligible-original-identity-and-placement: Capture eligible original identity and placement</summary>
-
-Capture eligible original identity and placement.
-
-Data flow: eligible row → original allocation and placement → later freshness check.
+> **Check:** *Can a display mesh stand in for its original BRep?* — No. Original family lookup checks CAD and surfaces before their derived mesh. Editing a proxy would lose the actual geometry.
 
 ### 1. `src/source_edit.rs`
 
@@ -2048,86 +859,48 @@ Create the file and type:
 
 Register the editing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod interval_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81b-capture-eligible-original-identity-and-placement-02.rs" skip=28
 ```
 
-</details>
+---
 
 <a id="checkpoint-81c-replace-an-original-without-replacing-its-row"></a>
 
 ### Step 11 of 31 · Replace an original without replacing its row (`81c-replace-an-original-without-replacing-its-row`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/31 Visual Trace (81c-replace-an-original-without-replacing-its-row): Replace an original without replacing its row</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked original</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared replacement</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged row identity</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared replacement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged row identity</text>
 </svg>
-</div>
-
-- **Goal:** Replace an original without replacing its row.
-- **Data Flow Trace:** `checked original → prepared replacement → unchanged row identity`
-- **Files You Touch:** `src/scene.rs` (*Prepare replacement originals before adopting them on the same source row.*)
 
 Prepare and range-check the complete replacement before changing the matching row. Keep the original GUID and placement.
 
-> **Self-Check Question:** *Does replacing an original allocate another viewer ID?*  
-> **Answer:** No. The existing row survives. Its new display is derived from the replacement original; shared old owners remain unchanged.
-
-- **Hands-On Lab Experiment:** Inspect the point, line, path, mesh, surface and BRep branches. Every display coordinate is checked before the row adopts its replacement.
-
-<details>
-<summary>Implementation 81c-replace-an-original-without-replacing-its-row: Replace an original without replacing its row</summary>
-
-Replace an original without replacing its row.
-
-Data flow: checked original → prepared replacement → unchanged row identity.
+> **Check:** *Does replacing an original allocate another viewer ID?* — No. The existing row survives. Its new display is derived from the replacement original; shared old owners remain unchanged.
 
 ### 1. `src/scene.rs`
 
 Prepare replacement originals before adopting them on the same source row.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-impl Scene {
-    pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
-        use crate::pick_sources::Part;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2135,54 +908,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81c-replace-an-original-without-replacing-its-row-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81d-own-the-originals-selected-for-projection"></a>
 
 ### Step 12 of 31 · Own the originals selected for projection (`81d-own-the-originals-selected-for-projection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/31 Visual Trace (81d-own-the-originals-selected-for-projection): Own the originals selected for projection</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/project_draft.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected rows</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original owners</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending plane questions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/project_draft.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending plane questions</text>
 </svg>
-</div>
-
-- **Goal:** Own the originals selected for projection.
-- **Data Flow Trace:** `selected rows → original owners → pending plane questions`
-- **Files You Touch:** `src/project_draft.rs` (*Capture selected original projection owners.*) · `src/lib.rs` (*Register the editing component.*)
 
 Capture selected eligible originals and count unsupported lanes without copying derived proxies.
 
-> **Self-Check Question:** *Does a pending plane edit alter the originals?*  
-> **Answer:** No. It owns references and accepted questions. The transaction starts only after a valid plane and all replacement results exist.
-
-- **Hands-On Lab Experiment:** Inspect the draft’s selected row identities and unsupported count. Confirm empty selection rejects the start.
-
-<details>
-<summary>Implementation 81d-own-the-originals-selected-for-projection: Own the originals selected for projection</summary>
-
-Own the originals selected for projection.
-
-Data flow: selected rows → original owners → pending plane questions.
+> **Check:** *Does a pending plane edit alter the originals?* — No. It owns references and accepted questions. The transaction starts only after a valid plane and all replacement results exist.
 
 ### 1. `src/project_draft.rs`
 
@@ -2198,85 +955,48 @@ Create the file and type:
 
 Register the editing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_edit;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81d-own-the-originals-selected-for-projection-02.rs" skip=22
 ```
 
-</details>
+---
 
 <a id="checkpoint-81e-validate-candidate-plane-answers-before-accepting-them"></a>
 
 ### Step 13 of 31 · Validate candidate plane answers before accepting them (`81e-validate-candidate-plane-answers-before-accepting-them`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/31 Visual Trace (81e-validate-candidate-plane-answers-before-accepting-them): Validate candidate plane answers before accepting them</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/project_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">candidate points</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite and plane checks</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accepted answers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/project_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite and plane checks</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">accepted answers</text>
 </svg>
-</div>
-
-- **Goal:** Validate candidate plane answers before accepting them.
-- **Data Flow Trace:** `candidate points → finite and plane checks → accepted answers`
-- **Files You Touch:** `src/project_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Validate a cloned answer list. Reject repeated, excessive and collinear points while preserving earlier accepted answers.
 
-> **Self-Check Question:** *What survives a bad third plane point?*  
-> **Answer:** The previous two points and all original geometry. A later valid third answer can complete the same pending command.
-
-- **Hands-On Lab Experiment:** Compare zero-length axis and collinear third-point rejection. Check that the candidate list is assigned only after validation.
-
-<details>
-<summary>Implementation 81e-validate-candidate-plane-answers-before-accepting-them: Validate candidate plane answers before accepting them</summary>
-
-Validate candidate plane answers before accepting them.
-
-Data flow: candidate points → finite and plane checks → accepted answers.
+> **Check:** *What survives a bad third plane point?* — The previous two points and all original geometry. A later valid third answer can complete the same pending command.
 
 ### 1. `src/project_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        })
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2284,69 +1004,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81e-validate-candidate-plane-answers-before-accepting-them-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81f-prepare-projection-results-as-one-transaction"></a>
 
 ### Step 14 of 31 · Prepare projection results as one transaction (`81f-prepare-projection-results-as-one-transaction`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/31 Visual Trace (81f-prepare-projection-results-as-one-transaction): Prepare projection results as one transaction</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/project_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh captured originals</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared edits</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one transaction</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/project_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared edits</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one transaction</text>
 </svg>
-</div>
-
-- **Goal:** Prepare projection results as one transaction.
-- **Data Flow Trace:** `fresh captured originals → prepared edits → one transaction`
-- **Files You Touch:** `src/project_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Check captured owners and prepare every eligible replacement before reporting projected, collapsed and unsupported counts.
 
-> **Self-Check Question:** *Can a collapsed projection erase Redo?*  
-> **Answer:** No. If no replacement is usable, report the skipped counts before opening a transaction.
-
-- **Hands-On Lab Experiment:** Inspect mixed supported and unsupported inputs and all-collapsed input. Compare the pending prompt for each accepted plane point.
-
-<details>
-<summary>Implementation 81f-prepare-projection-results-as-one-transaction: Prepare projection results as one transaction</summary>
-
-Prepare projection results as one transaction.
-
-Data flow: fresh captured originals → prepared edits → one transaction.
+> **Check:** *Can a collapsed projection erase Redo?* — No. If no replacement is usable, report the skipped counts before opening a transaction.
 
 ### 1. `src/project_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(plane)
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2354,54 +1047,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81f-prepare-projection-results-as-one-transaction-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81g-own-extension-candidates-and-screen-bounds"></a>
 
 ### Step 15 of 31 · Own extension candidates and screen bounds (`81g-own-extension-candidates-and-screen-bounds`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/31 Visual Trace (81g-own-extension-candidates-and-screen-bounds): Own extension candidates and screen bounds</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_draft.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary owner</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world bounds</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded cursor search</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_draft.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded cursor search</text>
 </svg>
-</div>
-
-- **Goal:** Own extension candidates and screen bounds.
-- **Data Flow Trace:** `temporary owner → world bounds → bounded cursor search`
-- **Files You Touch:** `src/extend_draft.rs` (*Own temporary extension state and screen-search helpers.*) · `src/lib.rs` (*Register the editing component.*)
 
 Own temporary boundaries, cached candidates and one hover result. Provide conservative screen bounds for the cursor search.
 
-> **Self-Check Question:** *Are these samples the saved source curve?*  
-> **Answer:** No. They help locate an endpoint in screen space. The grown result is computed from the retained original geometry.
-
-- **Hands-On Lab Experiment:** Inspect the eight projected bounding corners. Near-plane uncertainty must allow segment checks rather than incorrectly rejecting a visible curve.
-
-<details>
-<summary>Implementation 81g-own-extension-candidates-and-screen-bounds: Own extension candidates and screen bounds</summary>
-
-Own extension candidates and screen bounds.
-
-Data flow: temporary owner → world bounds → bounded cursor search.
+> **Check:** *Are these samples the saved source curve?* — No. They help locate an endpoint in screen space. The grown result is computed from the retained original geometry.
 
 ### 1. `src/extend_draft.rs`
 
@@ -2417,86 +1094,48 @@ Create the file and type:
 
 Register the editing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod project_draft;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81g-own-extension-candidates-and-screen-bounds-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners"></a>
 
 ### Step 16 of 31 · Gather boundaries and sample eligible curve owners (`81h-gather-boundaries-and-sample-eligible-curve-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/31 Visual Trace (81h-gather-boundaries-and-sample-eligible-curve-owners): Gather boundaries and sample eligible curve owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible boundary picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached original curve samples</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached original curve s…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world bounds</text>
 </svg>
-</div>
-
-- **Goal:** Gather boundaries and sample eligible curve owners.
-- **Data Flow Trace:** `eligible boundary picks → cached original curve samples → world bounds`
-- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Toggle whole original boundary owners and build bounded world-coordinate samples once for visible unlocked curves.
 
-> **Self-Check Question:** *Should selecting a boundary change ordinary selection?*  
-> **Answer:** The tool retains its own boundary list. Ordinary selection is restored when the tool finishes or cancels.
-
-- **Hands-On Lab Experiment:** Inspect source family guards, the 200,000-sample ceiling and world placement applied exactly once.
-
-<details>
-<summary>Implementation 81h-gather-boundaries-and-sample-eligible-curve-owners: Gather boundaries and sample eligible curve owners</summary>
-
-Gather boundaries and sample eligible curve owners.
-
-Data flow: eligible boundary picks → cached original curve samples → world bounds.
+> **Check:** *Should selecting a boundary change ordinary selection?* — The tool retains its own boundary list. Ordinary selection is restored when the tool finishes or cancels.
 
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-impl Draft {
-}
-fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2504,70 +1143,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81h-gather-boundaries-and-sample-eligible-curve-owners-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase"></a>
 
 ### Step 17 of 31 · Cache current boundary meshes and start the end phase (`81i-cache-current-boundary-meshes-and-start-the-end-phase`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/31 Visual Trace (81i-cache-current-boundary-meshes-and-start-the-end-phase): Cache current boundary meshes and start the end phase</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">boundary originals</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached cutters and meshes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">endpoint phase</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached cutters and mesh…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">endpoint phase</text>
 </svg>
-</div>
-
-- **Goal:** Cache current boundary meshes and start the end phase.
-- **Data Flow Trace:** `boundary originals → cached cutters and meshes → endpoint phase`
-- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Prepare world cutters and BRep boundary meshes once. Validate boundaries before entering the repeated endpoint phase.
 
-> **Self-Check Question:** *Should every mouse move mesh the same BRep again?*  
-> **Answer:** No. Retain its current-quality boundary meshes for the pending operation and reuse them until the owner becomes stale.
-
-- **Hands-On Lab Experiment:** Compare boundary mode with Distance mode, which needs no boundary mesh. Inspect current-quality BRep face preparation.
-
-<details>
-<summary>Implementation 81i-cache-current-boundary-meshes-and-start-the-end-phase: Cache current boundary meshes and start the end phase</summary>
-
-Cache current boundary meshes and start the end phase.
-
-Data flow: boundary originals → cached cutters and meshes → endpoint phase.
+> **Check:** *Should every mouse move mesh the same BRep again?* — No. Retain its current-quality boundary meshes for the pending operation and reuse them until the owner becomes stale.
 
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        candidates
-    }
-}
-fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2575,70 +1186,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81i-cache-current-boundary-meshes-and-start-the-end-phase-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81j-resolve-distance-and-boundary-reach-in-source-coordinates"></a>
 
 ### Step 18 of 31 · Resolve distance and boundary reach in source coordinates (`81j-resolve-distance-and-boundary-reach-in-source-coordinates`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/31 Visual Trace (81j-resolve-distance-and-boundary-reach-in-source-coordinates): Resolve distance and boundary reach in source coordinates</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world distance or cutters</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inverse placement</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">local endpoint reach</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">inverse placement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local endpoint reach</text>
 </svg>
-</div>
-
-- **Goal:** Resolve distance and boundary reach in source coordinates.
-- **Data Flow Trace:** `world distance or cutters → inverse placement → local endpoint reach`
-- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Accept positive finite distance answers before updating state. Transform world reach into the original curve’s local frame.
 
-> **Self-Check Question:** *What does distance25 mean under scale1000?*  
-> **Answer:** Twenty-five world units. For a unit local tangent under uniform scale1000, extend its source parameter distance by0.025.
-
-- **Hands-On Lab Experiment:** Inspect nonuniform-scale tangent length, boundary-local mesh rays and freshness checks before the current extension solver.
-
-<details>
-<summary>Implementation 81j-resolve-distance-and-boundary-reach-in-source-coordinates: Resolve distance and boundary reach in source coordinates</summary>
-
-Resolve distance and boundary reach in source coordinates.
-
-Data flow: world distance or cutters → inverse placement → local endpoint reach.
+> **Check:** *What does distance25 mean under scale1000?* — Twenty-five world units. For a unit local tangent under uniform scale1000, extend its source parameter distance by0.025.
 
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(result)
-    }
-}
-fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2646,74 +1229,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81j-resolve-distance-and-boundary-reach-in-source-coordinates-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81k-find-the-nearest-visible-curve-end-in-css-pixels"></a>
 
 ### Step 19 of 31 · Find the nearest visible curve end in CSS pixels (`81k-find-the-nearest-visible-curve-end-in-css-pixels`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/31 Visual Trace (81k-find-the-nearest-visible-curve-end-in-css-pixels): Find the nearest visible curve end in CSS pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cursor</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">conservative bounds</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected segments</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">start or end</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">projected segments</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">start or end</text>
 </svg>
-</div>
-
-- **Goal:** Find the nearest visible curve end in CSS pixels.
-- **Data Flow Trace:** `cursor → conservative bounds → projected segments → start or end`
-- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Prune candidates by cached screen bounds, then measure projected segment distance and choose the nearer arclength half.
 
-> **Self-Check Question:** *Does a high-density screen widen the hover target?*  
-> **Answer:** The tolerance stays12 CSS pixels. Convert consistently through the current canvas projection rather than using physical pixels.
-
-- **Hands-On Lab Experiment:** Inspect missed candidates, segment projection and the midpoint choice. Compare curves outside the cursor’s bounded area.
-
-<details>
-<summary>Implementation 81k-find-the-nearest-visible-curve-end-in-css-pixels: Find the nearest visible curve end in CSS pixels</summary>
-
-Find the nearest visible curve end in CSS pixels.
-
-Data flow: cursor → conservative bounds → projected segments → start or end.
+> **Check:** *Does a high-density screen widen the hover target?* — The tolerance stays12 CSS pixels. Convert consistently through the current canvas projection rather than using physical pixels.
 
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(Reach::Boundaries { cutters, meshes })
-    }
-}
-fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2721,75 +1272,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81k-find-the-nearest-visible-curve-end-in-css-pixels-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81l-preview-extension-and-refresh-only-changed-originals"></a>
 
 ### Step 20 of 31 · Preview extension and refresh only changed originals (`81l-preview-extension-and-refresh-only-changed-originals`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/31 Visual Trace (81l-preview-extension-and-refresh-only-changed-originals): Preview extension and refresh only changed originals</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extend_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh endpoint</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">grown original and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">click</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">refreshed candidate</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extend_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">click</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">refreshed candidate</text>
 </svg>
-</div>
-
-- **Goal:** Preview extension and refresh only changed originals.
-- **Data Flow Trace:** `fresh endpoint → grown original and temporary tail → click → refreshed candidate`
-- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
 
 Solve a fresh endpoint once, retain its temporary tail and resample the changed original after a successful click.
 
-> **Self-Check Question:** *Does the hover preview make a history entry?*  
-> **Answer:** No. Only committing its checked original replacement does. Repeated hover on the same fresh endpoint reuses the result.
-
-- **Hands-On Lab Experiment:** Inspect unchanged endpoint reuse, stale boundary rejection and the per-row refresh after a successful repeated click.
-
-<details>
-<summary>Implementation 81l-preview-extension-and-refresh-only-changed-originals: Preview extension and refresh only changed originals</summary>
-
-Preview extension and refresh only changed originals.
-
-Data flow: fresh endpoint → grown original and temporary tail → click → refreshed candidate.
+> **Check:** *Does the hover preview make a history entry?* — No. Only committing its checked original replacement does. Repeated hover on the same fresh endpoint reuses the result.
 
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        best
-    }
-}
-fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2797,54 +1315,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81l-preview-extension-and-refresh-only-changed-originals-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner"></a>
 
 ### Step 21 of 31 · Keep projection and extension in the pending tool owner (`81m-keep-projection-and-extension-in-the-pending-tool-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/31 Visual Trace (81m-keep-projection-and-extension-in-the-pending-tool-owner): Keep projection and extension in the pending tool owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending editor owner</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current prompt</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary guide</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current prompt</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary guide</text>
 </svg>
-</div>
-
-- **Goal:** Keep projection and extension in the pending tool owner.
-- **Data Flow Trace:** `pending editor owner → current prompt → temporary guide`
-- **Files You Touch:** `src/tool.rs` (*Connect projection and extension to pending prompts, buttons and temporary guides.*)
 
 Register current tool names, prompts, buttons and temporary guides. Construction-plane questions take priority over nested edit guides.
 
-> **Self-Check Question:** *Does changing CPlane discard a pending editing command?*  
-> **Answer:** The nested plane question stays within the owner. Its guide has priority until the plane question finishes or cancels.
-
-- **Hands-On Lab Experiment:** Inspect Project’s accepted plane points, Extend’s temporary tail and the nested plane guide. None becomes scene geometry.
-
-<details>
-<summary>Implementation 81m-keep-projection-and-extension-in-the-pending-tool-owner: Keep projection and extension in the pending tool owner</summary>
-
-Keep projection and extension in the pending tool owner.
-
-Data flow: pending editor owner → current prompt → temporary guide.
+> **Check:** *Does changing CPlane discard a pending editing command?* — The nested plane question stays within the owner. Its guide has priority until the plane question finishes or cancels.
 
 ### 1. `src/tool.rs`
 
@@ -2852,8 +1354,7 @@ Connect projection and extension to pending prompts, buttons and temporary guide
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.tool.build_on_plane(&world,self.frame)
@@ -2863,8 +1364,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
     pub fn outline(&self)->Vec<[f64;3]> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2879,8 +1378,7 @@ Replace it with:
     pub fn outline(&self)->Vec<[f64;3]> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub const MAX_POINTS: usize = 4096;
@@ -2895,8 +1393,6 @@ impl Draft {
         if self.plane_points.is_none() {if let Some(transform)=&self.transform {return transform.prompt();}}
         if self.plane_points.is_none() {if let Some(primitive)=&self.primitive {return primitive.prompt();}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2915,8 +1411,7 @@ impl Draft {
         if self.plane_points.is_none() {if let Some(primitive)=&self.primitive {return primitive.prompt();}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Self::Polygon {sides} if points.len()==2=>crate::planar::points("polygon",plane,*sides,points).unwrap_or_default(),_=>points.to_vec()}
@@ -2926,8 +1421,6 @@ impl Draft {
         if let Self::Transform(kind)=self {return crate::transform_draft::Draft::new(*kind,crate::cplane::CPlane::Xy).buttons();}
         if let Self::Primitive(shape)=self {return shape.options.iter().map(|(label,line)|((*label).into(),(*line).into())).collect();}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2942,8 +1435,7 @@ Replace it with:
         if let Self::Primitive(shape)=self {return shape.options.iter().map(|(label,line)|((*label).into(),(*line).into())).collect();}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2958,8 +1450,6 @@ impl Tool for Shape {
     fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2977,8 +1467,7 @@ impl Tool for Shape {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -3107,99 +1596,42 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81m-keep-projection-and-extension-in-the-pending-tool-owner-01.rs"
-```
-
-```text
---8<-- "journey/code/81m-keep-projection-and-extension-in-the-pending-tool-owner-02.rs"
-```
-
-```text
---8<-- "journey/code/81m-keep-projection-and-extension-in-the-pending-tool-owner-03.rs"
-```
-
-```text
---8<-- "journey/code/81m-keep-projection-and-extension-in-the-pending-tool-owner-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81n-connect-checked-projection-to-one-editor-transaction"></a>
 
 ### Step 22 of 31 · Connect checked projection to one editor transaction (`81n-connect-checked-projection-to-one-editor-transaction`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/31 Visual Trace (81n-connect-checked-projection-to-one-editor-transaction): Connect checked projection to one editor transaction</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current editor plane</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked draft</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared replacements</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history entry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared replacements</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history entry</text>
 </svg>
-</div>
-
-- **Goal:** Connect checked projection to one editor transaction.
-- **Data Flow Trace:** `current editor plane → checked draft → prepared replacements → one history entry`
-- **Files You Touch:** `src/editor.rs` (*Connect complete source-editing methods to one checked history transaction.*)
 
 Parse initial arguments under this editor’s plane context. Adopt replacements only after the complete plane and all originals validate.
 
-> **Self-Check Question:** *Can a second editor change this projection’s input frame?*  
-> **Answer:** Resolve the command under the active editor’s own plane before parsing. Global parsing context must not leak across editors.
-
-- **Hands-On Lab Experiment:** Inspect view-normal CPlane projection, named planes, Three Point startup and one transaction over all usable selected originals.
-
-<details>
-<summary>Implementation 81n-connect-checked-projection-to-one-editor-transaction: Connect checked projection to one editor transaction</summary>
-
-Connect checked projection to one editor transaction.
-
-Data flow: current editor plane → checked draft → prepared replacements → one history entry.
+> **Check:** *Can a second editor change this projection’s input frame?* — Resolve the command under the active editor’s own plane before parsing. Global parsing context must not leak across editors.
 
 ### 1. `src/editor.rs`
 
 Connect complete source-editing methods to one checked history transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    fn gather_text(&mut self,text:&str)->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.gather.clone()).ok_or("No gathering tool is running")?;next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;let made=next.text(text,self.construction_plane).map_err(|message|self.primitive_failure(message))?;self.gather_adopt(next,made)}
-    fn gather_pick(&mut self,id:Option<ObjectId>)->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.gather.clone()).ok_or("No gathering tool is running")?;next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;let made=next.pick(&self.scene,id).map_err(|message|self.primitive_failure(message))?;self.gather_adopt(next,made)}
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3207,74 +1639,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81n-connect-checked-projection-to-one-editor-transaction-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation"></a>
 
 ### Step 23 of 31 · Connect boundary picks repeated end clicks and cancellation (`81o-connect-boundary-picks-repeated-end-clicks-and-cancellation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/31 Visual Trace (81o-connect-boundary-picks-repeated-end-clicks-and-cancellation): Connect boundary picks repeated end clicks and cancellation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh hover</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one replacement</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">repeated click</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one replacement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">repeated click</text>
 </svg>
-</div>
-
-- **Goal:** Connect boundary picks repeated end clicks and cancellation.
-- **Data Flow Trace:** `temporary picks → fresh hover → one replacement → repeated click`
-- **Files You Touch:** `src/editor.rs` (*Connect complete source-editing methods to one checked history transaction.*)
 
 Keep boundary picks outside ordinary selection. Commit each checked end click once, then refresh that source for another click.
 
-> **Self-Check Question:** *How many Undo steps do two successful end clicks make?*  
-> **Answer:** Two. Each click changes one original in its own transaction; hovering or missing the curve makes none.
-
-- **Hands-On Lab Experiment:** Inspect boundary pick, positive-distance answer, current camera screen conversion, click freshness and selection restoration at Done.
-
-<details>
-<summary>Implementation 81o-connect-boundary-picks-repeated-end-clicks-and-cancellation: Connect boundary picks repeated end clicks and cancellation</summary>
-
-Connect boundary picks repeated end clicks and cancellation.
-
-Data flow: temporary picks → fresh hover → one replacement → repeated click.
+> **Check:** *How many Undo steps do two successful end clicks make?* — Two. Each click changes one original in its own transaction; hovering or missing the curve makes none.
 
 ### 1. `src/editor.rs`
 
 Connect complete source-editing methods to one checked history transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    fn project_points(&mut self,added:&[[f64;3]])->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.project.clone()).ok_or("No projection tool is running")?;let plane=next.accept(added).map_err(|message|self.primitive_failure(message))?;if let Some(plane)=plane{return self.commit_project(next,plane)}let draft=self.draft.as_mut().unwrap();draft.points=next.points.clone();draft.project=Some(next);draft.cursor=None;draft.snapped=None;self.tool_status=draft.prompt();Ok(Change::View)}
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3282,54 +1682,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81o-connect-boundary-picks-repeated-end-clicks-and-cancellation-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81p-expose-editing-actions-and-normalized-interval-extension"></a>
 
 ### Step 24 of 31 · Expose editing actions and normalized interval extension (`81p-expose-editing-actions-and-normalized-interval-extension`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/31 Visual Trace (81p-expose-editing-actions-and-normalized-interval-extension): Expose editing actions and normalized interval extension</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">registered editor action</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source handler</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">normalized interval or pending edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source handler</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">normalized interval or…</text>
 </svg>
-</div>
-
-- **Goal:** Expose editing actions and normalized interval extension.
-- **Data Flow Trace:** `registered editor action → source handler → normalized interval or pending edit`
-- **Files You Touch:** `src/editor.rs` (*Connect complete source-editing methods to one checked history transaction.*)
 
 Expose editor actions only after their handlers exist. Interval extension requires one eligible original curve and validates before editing.
 
-> **Self-Check Question:** *Can two selected originals use one interval command?*  
-> **Answer:** This maintained interval command requires one original curve. Refuse ambiguous selection before preparing any replacement.
-
-- **Hands-On Lab Experiment:** Compare Extend -0.5 1.5 on one line with invalid intervals, multiple selection and the pending endpoint command.
-
-<details>
-<summary>Implementation 81p-expose-editing-actions-and-normalized-interval-extension: Expose editing actions and normalized interval extension</summary>
-
-Expose editing actions and normalized interval extension.
-
-Data flow: registered editor action → source handler → normalized interval or pending edit.
+> **Check:** *Can two selected originals use one interval command?* — This maintained interval command requires one original curve. Refuse ambiguous selection before preparing any replacement.
 
 ### 1. `src/editor.rs`
 
@@ -3337,8 +1721,7 @@ Connect complete source-editing methods to one checked history transaction. Disp
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3348,8 +1731,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::GatherPick(id)=>return self.gather_pick(id),
             Action::ScaleFactor(factor)=>{
 ```
-
-</details>
 
 Replace it with:
 
@@ -3366,8 +1747,7 @@ Replace it with:
             Action::ScaleFactor(factor)=>{
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut next=self.draft.as_ref().and_then(|d|d.extend.clone()).ok_or("No extension tool is running")?;let view=crate::snap_math::Screen{matrix:self.camera.view_projection().m,size};next.follow(&self.scene,&view,[(screen[0]as f64+1.)*size[0]/2.,(1.-screen[1]as f64)*size[1]/2.]).map_err(|message|self.primitive_failure(message))?;
@@ -3377,8 +1757,6 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
         if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_text(text);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3392,8 +1770,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_text(text);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3403,8 +1780,6 @@ pub enum Action {
     BeginTransformation(crate::transform_draft::Kind),
     ScaleFactor(f64),RotateWorld{axis:crate::gizmo::Axis,degrees:f64},
 ```
-
-</details>
 
 Replace it with:
 
@@ -3418,8 +1793,7 @@ pub enum Action {
     ScaleFactor(f64),RotateWorld{axis:crate::gizmo::Axis,degrees:f64},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4435,67 +2809,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81p-expose-editing-actions-and-normalized-interval-extension-01.rs"
-```
-
-```text
---8<-- "journey/code/81p-expose-editing-actions-and-normalized-interval-extension-02.rs"
-```
-
-```text
---8<-- "journey/code/81p-expose-editing-actions-and-normalized-interval-extension-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1"></a>
 
 ### Step 25 of 31 · Route answers to the active editing owner (`81q-route-accepted-editing-input-and-owner-lifecycle-1`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/31 Visual Trace (81q-route-accepted-editing-input-and-owner-lifecycle-1): Route answers to the active editing owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">route answers to the active editing owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">route answers to the ac…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">route answers to the ac…</text>
 </svg>
-</div>
-
-- **Goal:** Dispatch typed answers and world points to the current draft.
-- **Data Flow Trace:** `route answers to the active editing owner`
-- **Files You Touch:** `src/editor.rs` (*Recognize the pending owner’s typed grammar.*)
 
 The pending draft owns its input grammar. Route gather, transform, projection and extension answers to that owner; keep construction-plane choices available before dispatch. Validate the captured original before preparing an edit. Temporary boundary highlights describe the pending operation without changing the source selection.
 
-> **Self-Check Question:** *Why handle global choices before an Extend distance word?*  
-> **Answer:** Escape and CPlane control the pending owner. Treating Escape as a distance would prevent cancellation and leave temporary state active.
-
-- **Hands-On Lab Experiment:** Inspect accepted point dispatch, boundary highlighting, finish/cancel restoration and input choices in the changed routes.
-
-<details>
-<summary>Implementation 81q-route-accepted-editing-input-and-owner-lifecycle-1: Route answers to the active editing owner</summary>
-
-Dispatch typed answers and world points to the current draft.
-
-Data flow: route answers to the active editing owner.
+> **Check:** *Why handle global choices before an Extend distance word?* — Escape and CPlane control the pending owner. Treating Escape as a distance would prevent cancellation and leave temporary state active.
 
 ### 1. `src/editor.rs`
 
@@ -4503,8 +2848,7 @@ Recognize the pending owner’s typed grammar. Dispatch world points before gene
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
@@ -4516,8 +2860,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4530,8 +2872,7 @@ Replace it with:
             ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if draft.plane_points.is_some() {
@@ -4541,8 +2882,6 @@ Replace it with:
         let Some(built)=draft.submit_many(&added)? else {self.tool_status=draft.prompt();self.snap_index=None;return self.update_edit_preview();};
         self.commit_tool(built)
 ```
-
-</details>
 
 Replace it with:
 
@@ -4556,8 +2895,7 @@ Replace it with:
         self.commit_tool(built)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -4566,8 +2904,6 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
         if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_text(text);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4580,8 +2916,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_text(text);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let frame=match plan.plane{"XY"=>crate::cplane::CPlane::Xy,"YZ"=>crate::cplane::CPlane::Yz,"ZX"=>crate::cplane::CPlane::Xz,_=>crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis()))};let(x,y)=frame.axes();self.commit_project(project,session_rust::Plane::from_point_normal(session_rust::Point::new(0.,0.,0.),x.cross(&y),None))
@@ -4592,8 +2927,6 @@ Replace it with:
     fn extend_pick(&mut self,id:Option<ObjectId>)->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.extend.clone()).ok_or("No extension tool is running")?;next.pick(&self.scene,id).map_err(|message|self.primitive_failure(message))?;self.draft.as_mut().unwrap().extend=Some(next);self.tool_status=self.draft.as_ref().unwrap().prompt();Ok(Change::View)}
     fn extend_text(&mut self,text:&str)->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.extend.clone()).ok_or("No extension tool is running")?;let finished=next.text(&self.scene,text).map_err(|message|self.primitive_failure(message))?;if finished{self.select_objects(next.before,false);self.draft=None;self.tool_status="Extend done".into();return Ok(Change::View)}self.draft.as_mut().unwrap().extend=Some(next);self.tool_status=self.draft.as_ref().unwrap().prompt();Ok(Change::View)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4606,8 +2939,7 @@ Replace it with:
     fn extend_text(&mut self,text:&str)->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.extend.clone()).ok_or("No extension tool is running")?;let finished=next.text(&self.scene,text).map_err(|message|self.primitive_failure(message))?;if finished{self.select_objects(next.before,false);self.draft=None;self.tool_status="Extend done".into();return Ok(Change::View)}self.draft.as_mut().unwrap().extend=Some(next);self.tool_status=self.draft.as_ref().unwrap().prompt();Ok(Change::View)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn gather_point(&mut self,point:[f64;3])->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.gather.clone()).ok_or("No gathering tool is running")?;next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;let made=next.point(point).map_err(|message|self.primitive_failure(message))?;self.gather_adopt(next,made)}
@@ -4617,8 +2949,6 @@ Replace it with:
     fn begin_project(&mut self,words:&[String])->Result<Change,&'static str>{
         crate::drawing_coords::set_plane(self.construction_plane);let plan=crate::project_geometry::parse("Project To Plane",&words.iter().map(String::as_str).collect::<Vec<_>>()).map_err(|message|self.primitive_failure(message))?;let mut project=crate::project_draft::Draft::new(&self.scene,self.selected_objects())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4632,8 +2962,7 @@ Replace it with:
         crate::drawing_coords::set_plane(self.construction_plane);let plan=crate::project_geometry::parse("Project To Plane",&words.iter().map(String::as_str).collect::<Vec<_>>()).map_err(|message|self.primitive_failure(message))?;let mut project=crate::project_draft::Draft::new(&self.scene,self.selected_objects())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let draft=self.draft.as_ref().ok_or("No transform tool is running")?;let mut next=draft.transform.clone().ok_or("No transform tool is running")?;
@@ -4645,8 +2974,6 @@ Replace it with:
         next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4659,8 +2986,7 @@ Replace it with:
         next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -4669,8 +2995,6 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_point(point);}
         if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_point(point);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4684,8 +3008,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_point(point);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -4695,8 +3018,6 @@ Replace it with:
         if draft.plane_points.is_none(){if let Some(gather)=&draft.gather{let first=text.split_whitespace().next();if text.trim().is_empty()||first.is_some_and(|word|word.parse::<f64>().is_ok()||word.contains(',')||word.starts_with('w')||word.starts_with('W')||gather.recipe.option_in(&[word]).is_some()||gather.recipe.choices().any(|choice|crate::primitive_options::compact(choice).starts_with(&crate::primitive_options::compact(word)))||!gather.typed.is_empty()){return Some(Ok(Action::ToolText(text.into())))}return None}}
         if draft.plane_points.is_none() && draft.primitive.is_some() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4711,8 +3032,7 @@ Replace it with:
         if draft.plane_points.is_none() && draft.primitive.is_some() {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -5734,87 +4054,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-01.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-02.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-03.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-04.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-05.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-06.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-07.rs"
-```
-
-```text
---8<-- "journey/code/81q-route-accepted-editing-input-and-owner-lifecycle-1-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2"></a>
 
 ### Step 26 of 31 · Finish a pending edit through one commit path (`81r-route-accepted-editing-input-and-owner-lifecycle-2`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/31 Visual Trace (81r-route-accepted-editing-input-and-owner-lifecycle-2): Finish a pending edit through one commit path</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finish a pending edit through one commit path</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finish a pending edit t…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finish a pending edit t…</text>
 </svg>
-</div>
-
-- **Goal:** Keep navigation available while an edit is pending, then finish through its owner.
-- **Data Flow Trace:** `finish a pending edit through one commit path`
-- **Files You Touch:** `src/editor.rs` (*Retain drafts during navigation and cancel on unrelated actions.*)
 
 Navigation changes the view while the pending edit retains its captured originals. An unrelated action cancels that edit. Finish delegates to the active owner; Close requires an ordinary curve with enough points. Clicking its first endpoint invokes the same Close action as typed input.
 
-> **Self-Check Question:** *Why finish a pending edit through its existing owner?*  
-> **Answer:** That owner retains the captured originals and accepted parameters. Navigation can change the view, while Finish commits through the same validated edit path.
-
-- **Hands-On Lab Experiment:** Begin an edit, orbit the view and finish it. Verify that the pending owner survives navigation and creates one accepted document change.
-
-<details>
-<summary>Implementation 81r-route-accepted-editing-input-and-owner-lifecycle-2: Finish a pending edit through one commit path</summary>
-
-Keep navigation available while an edit is pending, then finish through its owner.
-
-Data flow: finish a pending edit through one commit path.
+> **Check:** *Why finish a pending edit through its existing owner?* — That owner retains the captured originals and accepted parameters. Navigation can change the view, while Finish commits through the same validated edit path.
 
 ### 1. `src/editor.rs`
 
@@ -5822,8 +4093,7 @@ Retain drafts during navigation and cancel on unrelated actions. Reject Close fo
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 return self.update_edit_preview();
@@ -5837,8 +4107,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 }
                 if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5856,8 +4124,7 @@ Replace it with:
                 if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::ToolText(text)=>return self.tool_text(&text),
@@ -5875,8 +4142,6 @@ Replace it with:
                 if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
                 self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
 ```
-
-</details>
 
 Replace it with:
 
@@ -5897,8 +4162,7 @@ Replace it with:
                 self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -5912,8 +4176,6 @@ Replace it with:
         if !keep_edit && self.draft.as_ref().is_some_and(|d|d.transform.is_some()){self.transform_preview=None;self.draft=None;if change==Change::View{change=Change::Preview;}}
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5931,8 +4193,7 @@ Replace it with:
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6956,88 +5217,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81r-route-accepted-editing-input-and-owner-lifecycle-2-01.rs"
-```
-
-```text
---8<-- "journey/code/81r-route-accepted-editing-input-and-owner-lifecycle-2-02.rs"
-```
-
-```text
---8<-- "journey/code/81r-route-accepted-editing-input-and-owner-lifecycle-2-03.rs"
-```
-
-```text
---8<-- "journey/code/81r-route-accepted-editing-input-and-owner-lifecycle-2-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3"></a>
 
 ### Step 27 of 31 · Restore source selection when an edit is cancelled (`81s-route-accepted-editing-input-and-owner-lifecycle-3`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/31 Visual Trace (81s-route-accepted-editing-input-and-owner-lifecycle-3): Restore source selection when an edit is cancelled</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">restore source selection when an edit is cancelled</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">restore source selectio…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">restore source selectio…</text>
 </svg>
-</div>
-
-- **Goal:** Discard temporary previews and restore the captured selection on cancellation.
-- **Data Flow Trace:** `restore source selection when an edit is cancelled`
-- **Files You Touch:** `src/editor.rs` (*Restore captured selection and release preview ownership on Cancel.*)
 
 Cancellation restores the selection captured by projection, extension or gather. Drop the draft and its previews, then report whether the GPU preview needs rebuilding. This completes the owner lifecycle established in [the input-routing lesson](../../81q-route-accepted-editing-input-and-owner-lifecycle-1.md).
 
-> **Self-Check Question:** *Which selection should cancellation restore?*  
-> **Answer:** The selection captured when projection, extension or gather began. Drop the draft and temporary previews before rebuilding their display state.
-
-- **Hands-On Lab Experiment:** Begin an edit with selected originals, create a preview and cancel. Compare the restored source selection and confirm that temporary highlights disappear.
-
-<details>
-<summary>Implementation 81s-route-accepted-editing-input-and-owner-lifecycle-3: Restore source selection when an edit is cancelled</summary>
-
-Discard temporary previews and restore the captured selection on cancellation.
-
-Data flow: restore source selection when an edit is cancelled.
+> **Check:** *Which selection should cancellation restore?* — The selection captured when projection, extension or gather began. Drop the draft and temporary previews before rebuilding their display state.
 
 ### 1. `src/editor.rs`
 
 Restore captured selection and release preview ownership on Cancel.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.snapped=None; draft.hover(point)?; } return self.update_edit_preview(); }
-            Action::CancelTool => { if let Some(before)=self.draft.as_ref().and_then(|d|d.gather.as_ref()).map(|g|g.before.clone()){self.select_objects(before,false);}let changed=self.edit_preview.take().is_some()|self.transform_preview.take().is_some(); self.draft=None;self.plane_menu=false;self.plane_only=false; self.tool_status="Tool cancelled.".into(); return Ok(if changed { Change::Preview } else { Change::View }); }
-            Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7045,54 +5260,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/81s-route-accepted-editing-input-and-owner-lifecycle-3-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-81t-register-current-projection-and-extension-commands"></a>
 
 ### Step 28 of 31 · Register current projection and extension commands (`81t-register-current-projection-and-extension-commands`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/31 Visual Trace (81t-register-current-projection-and-extension-commands): Register current projection and extension commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editing_commands.rs, src/lib.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command name and arguments</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated action</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending editor owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editing_commands.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated action</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending editor owner</text>
 </svg>
-</div>
-
-- **Goal:** Register current projection and extension commands.
-- **Data Flow Trace:** `command name and arguments → validated action → pending editor owner`
-- **Files You Touch:** `src/editing_commands.rs` (*Register current projection and extension names and initial argument guards.*) · `src/lib.rs` (*Register the editing component.*) · `src/commands.rs` (*Connect the source-editing registry to command vocabulary and parsing.*)
 
 Connect current names and arity rules to prepared handlers. Keep positive-distance validation before an active owner is replaced.
 
-> **Self-Check Question:** *Does Extend Distance0 cancel another active drawing tool?*  
-> **Answer:** No. The parser rejects it before an action is applied. Existing accepted answers and Redo survive.
-
-- **Hands-On Lab Experiment:** Compare Extend, Extend Distance, Extend Distance25 and Extend -0.5 1.5. Check Project To Plane named-plane options and initial Three Point arity.
-
-<details>
-<summary>Implementation 81t-register-current-projection-and-extension-commands: Register current projection and extension commands</summary>
-
-Register current projection and extension commands.
-
-Data flow: command name and arguments → validated action → pending editor owner.
+> **Check:** *Does Extend Distance0 cancel another active drawing tool?* — No. The parser rejects it before an action is applied. Existing accepted answers and Redo survive.
 
 ### 1. `src/editing_commands.rs`
 
@@ -7108,16 +5307,6 @@ Create the file and type:
 
 Register the editing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod extend_draft;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -7130,8 +5319,7 @@ Connect the source-editing registry to command vocabulary and parsing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let alias=crate::transform_commands::alias(&line);let line=alias.as_str();
@@ -7141,8 +5329,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
     if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
 ```
-
-</details>
 
 Replace it with:
 
@@ -7156,8 +5342,7 @@ Replace it with:
     if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 ];
@@ -7168,8 +5353,6 @@ pub fn names() -> Vec<&'static str> {
 
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
-
-</details>
 
 Replace it with:
 
@@ -7183,8 +5366,7 @@ pub fn names() -> Vec<&'static str> {
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -7351,71 +5533,38 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81t-register-current-projection-and-extension-commands-03.rs"
-```
-
-```text
---8<-- "journey/code/81t-register-current-projection-and-extension-commands-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits"></a>
 
 ### Step 29 of 31 · Route whole boundary picks and observe pending edits (`81u-route-whole-boundary-picks-and-observe-pending-edits`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/31 Visual Trace (81u-route-whole-boundary-picks-and-observe-pending-edits): Route whole boundary picks and observe pending edits</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole owner integer pick</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary boundary</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending edit diagnostics</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary boundary</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending edit diagnostics</text>
 </svg>
-</div>
-
-- **Goal:** Route whole boundary picks and observe pending edits.
-- **Data Flow Trace:** `whole owner integer pick → temporary boundary → pending edit diagnostics`
-- **Files You Touch:** `src/browser.rs` (*Route editing pointer picks and expose pending-owner facts for browser acceptance.*)
 
 Route mouse/touch boundary selection through whole-owner integer picks. Keep active owner facts observable for the browser exercises.
 
-> **Self-Check Question:** *Should a previous edge-picking mode split a boundary owner?*  
-> **Answer:** No. Boundary gathering temporarily requests the whole original owner without rewriting the user’s saved picking mode.
-
-- **Hands-On Lab Experiment:** Inspect whole-owner routing, current canvas projection and pending Project/Extend diagnostics. Browser execution is still required.
-
-<details>
-<summary>Implementation 81u-route-whole-boundary-picks-and-observe-pending-edits: Route whole boundary picks and observe pending edits</summary>
-
-Route whole boundary picks and observe pending edits.
-
-Data flow: whole owner integer pick → temporary boundary → pending edit diagnostics.
+> **Check:** *Should a previous edge-picking mode split a boundary owner?* — No. Boundary gathering temporarily requests the whole original owner without rewriting the user’s saved picking mode.
 
 ### 1. `src/browser.rs`
 
@@ -7423,8 +5572,7 @@ Route editing pointer picks and expose pending-owner facts for browser acceptanc
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
@@ -7434,8 +5582,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
     canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -7450,8 +5596,7 @@ Replace it with:
     canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         panel.number(number);
@@ -7462,8 +5607,6 @@ Replace it with:
             if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7477,8 +5620,7 @@ Replace it with:
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(action) = action {
@@ -7489,8 +5631,6 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7504,8 +5644,7 @@ Replace it with:
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Some(Action::Touch(actions))=> {
@@ -7516,8 +5655,6 @@ Replace it with:
                 }}Some(Action::Touch(applied))
             },
 ```
-
-</details>
 
 Replace it with:
 
@@ -7531,8 +5668,7 @@ Replace it with:
             },
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 None => None,
@@ -7543,8 +5679,6 @@ Replace it with:
                 Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7558,8 +5692,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match renderer.take_pick(editor.camera.uniform()) {
@@ -7570,8 +5703,6 @@ Replace it with:
                     else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
 ```
-
-</details>
 
 Replace it with:
 
@@ -7585,8 +5716,7 @@ Replace it with:
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -8424,96 +6554,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/81u-route-whole-boundary-picks-and-observe-pending-edits-01.rs"
-```
-
-```text
---8<-- "journey/code/81u-route-whole-boundary-picks-and-observe-pending-edits-02.rs"
-```
-
-```text
---8<-- "journey/code/81u-route-whole-boundary-picks-and-observe-pending-edits-03.rs"
-```
-
-```text
---8<-- "journey/code/81u-route-whole-boundary-picks-and-observe-pending-edits-04-selection-refresh.rs"
-```
-
-```text
---8<-- "journey/code/81u-route-whole-boundary-picks-and-observe-pending-edits-05.rs"
-```
-
-```text
---8<-- "journey/code/81u-route-whole-boundary-picks-and-observe-pending-edits-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-81v-exercise-original-projection-retry-and-repeated-extension"></a>
 
 ### Step 30 of 31 · Exercise original projection retry and repeated extension (`81v-exercise-original-projection-retry-and-repeated-extension`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/31 Visual Trace (81v-exercise-original-projection-retry-and-repeated-extension): Exercise original projection retry and repeated extension</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editing_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">originals</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projection or endpoint</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reach</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one transaction</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact archive</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editing_tests.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact archive</text>
 </svg>
-</div>
-
-- **Goal:** Exercise original projection retry and repeated extension.
-- **Data Flow Trace:** `originals → projection or endpoint reach → one transaction → exact archive`
-- **Files You Touch:** `src/editing_tests.rs` (*Copy integrated original-edit, retry, stale-owner, history and archive fixtures.*) · `src/lib.rs` (*Register the editing component.*)
 
 Copy integrated editing/history/archive fixtures and render projected originals with a repeatedly extended line.
 
-> **Self-Check Question:** *What proves an original edit instead of a proxy edit?*  
-> **Answer:** Check original coordinates, rational weights and GUIDs, unchanged placements and old shared allocations, plus Save/Open and Undo/Redo.
+> **Check:** *What proves an original edit instead of a proxy edit?* — Check original coordinates, rational weights and GUIDs, unchanged placements and old shared allocations, plus Save/Open and Undo/Redo.
 
-- **What You Should See:** An extended original line and a projected original curve lie on the XY plane. Mixed-family projection, plane retry, endpoint reach, stale owners, history and exact original archives are checked.
-- **Hands-On Lab Experiment:** Type Close, Line w0,0,1 w1,0,1, Select All, Project To Plane XY and Extend -0.5 1.5. Type Curve w2,0,1 w2.5,1,2 w3,0,1, Select All and Project To Plane XY. Type View Isometric, Select None and Fit. Try Project To Plane 3Point with a repeated or collinear answer, then a valid answer. Try Extend Distance1, click near a line end twice, Escape and Undo twice; the supplied tests also check scaled-world distances and nearest boundaries.
-
-<details>
-<summary>Implementation 81v-exercise-original-projection-retry-and-repeated-extension: Exercise original projection retry and repeated extension</summary>
-
-Exercise original projection retry and repeated extension.
-
-Data flow: originals → projection or endpoint reach → one transaction → exact archive.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8527,10 +6601,7 @@ Copy this supplied file:
 --8<-- "journey/code/81v-exercise-original-projection-retry-and-repeated-extension-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8538,73 +6609,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the editing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod editing_commands;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/81v-exercise-original-projection-retry-and-repeated-extension-02.rs" skip=27
 ```
 
-</details>
+**Result after `81v-exercise-original-projection-retry-and-repeated-extension`:** An extended original line and a projected original curve lie on the XY plane. Mixed-family projection, plane retry, endpoint reach, stale owners, history and exact original archives are checked.
 
-</details>
+---
 
 <a id="checkpoint-81za-validate-original-split-inputs-and-name-pieces"></a>
 
 ### Step 31 of 31 · Validate original Split inputs and name pieces (`81za-validate-original-split-inputs-and-name-pieces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/31 Visual Trace (81za-validate-original-split-inputs-and-name-pieces): Validate original Split inputs and name pieces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/split_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/split_geometry.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Accept original cutter curves and a valid selected BRep face.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/split_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original source-splitting owner.*)
 
 Accept original cutter curves and a valid selected BRep face. Convert cutters through the Session kernel and assign distinct names only when a curve produces sibling objects.
 
-> **Self-Check Question:** *Why keep a selected solid face inside its BRep?*  
-> **Answer:** Splitting that face changes the BRep topology while the solid remains one joined object. It does not explode the solid into face objects.
-
-- **What You Should See:** Split input validation and original piece naming compile before their editing connection.
-- **Hands-On Lab Experiment:** Trace a multi-face BRep with no selected face. Compare a line cutter with an unsupported geometry kind.
-
-<details>
-<summary>Implementation 81za-validate-original-split-inputs-and-name-pieces: Validate original Split inputs and name pieces</summary>
-
-Accept original cutter curves and a valid selected BRep face.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why keep a selected solid face inside its BRep?* — Splitting that face changes the BRep topology while the solid remains one joined object. It does not explode the solid into face objects.
 
 ### 1. `src/split_geometry.rs`
 
@@ -8620,45 +6664,28 @@ Create the file and type:
 
 Register this original source-splitting owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod editing_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/81za-validate-original-split-inputs-and-name-pieces-2.rs" skip=32
 ```
 
-</details>
+**Result after `81za-validate-original-split-inputs-and-name-pieces`:** Split input validation and original piece naming compile before their editing connection.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 81za-validate-original-split-inputs-and-name-pieces
-npm --prefix ../session_tests run course -- check 81za-validate-original-split-inputs-and-name-pieces
-npm --prefix ../session_tests run course -- save 81za-validate-original-split-inputs-and-name-pieces
+npm --prefix ../session_tests run course -- dependencies 16.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 16.1
+npm --prefix ../session_tests run course -- save 16.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Split input validation and original piece naming compile before their editing connection.
-
-- **Final Lesson Experiment:** Trace a multi-face BRep with no selected face. Compare a line cutter with an unsupported geometry kind.
-
-Continue with [Split original curves and joined faces](../../consolidation/82-divide-current-original-curve-families.md).
+Continue with [16.2 · Split original curves and joined faces](../../consolidation/82-divide-current-original-curve-families.md).

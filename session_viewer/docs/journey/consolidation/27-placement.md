@@ -1,227 +1,99 @@
 # 3.4 · Local sources, world placement and display caches
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.4** (Redraft `3.4`) · **9 checkpoints (`27-placement` → `28c-ownership`)** · **Study time: 9–18 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `27-placement` → `28c-ownership` (9 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Keep local mesh coordinates and an independent object placement. By the final checkpoint (`28c-ownership`), you will connect local source geometry, display caches, provenance and document history.
+> **Goal:** Connect local source geometry, display caches, provenance and document history.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 3 Visual Explanation: Local Kernel Mesh → 4x4 World Placement, AABB Fit & Incremental GPU Sync</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Local f64 mesh placed in world space by 4x4 matrix M. Center: Transactional .pb decode gate. Right: Dirty-flag GPU sync.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Local Space -> World Placement & AABB -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Local Source → World Placement</text>
-    <!-- Local mesh box at (0,0) -->
-    <rect x="38" y="128" width="54" height="44" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="38" y1="172" x2="98" y2="172" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <line x1="38" y1="172" x2="38" y2="115" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <text x="65" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Local</text>
-    <text x="65" y="186" text-anchor="middle" font-size="9" fill="#111111">(0,0,0) f64</text>
-    <!-- Transform arrow -->
-    <line x1="102" y1="145" x2="152" y2="132" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="127" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">M (4x4)</text>
-    <!-- Placed rotated box inside dashed World AABB -->
-    <rect x="164" y="96" width="108" height="86" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="4,3"/>
-    <polygon points="196,104 260,126 240,174 176,152" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="218" y="194" text-anchor="middle" font-size="9" font-weight="600" fill="#111111">Dashed: World AABB (Fit)</text>
-    <rect x="30" y="204" width="250" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="155" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Cold CPU source dropped after GPU upload;</text>
-    <text x="155" y="229" text-anchor="middle" font-size="9" fill="#111111">re-fetched by SHA/revision only when edited</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Transactional .pb Decode Gate -->
-    <rect x="317" y="64" width="235" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Transactional .pb Gate</text>
-    <rect x="333" y="96" width="203" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="434" y="113" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Async Fetch Ticket #N</text>
-    <text x="434" y="128" text-anchor="middle" font-size="9.5" fill="#111111">Cancels stale #N-1; checks byte cap</text>
-    <line x1="434" y1="138" x2="434" y2="154" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="333" y="156" width="203" height="78" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Atomic Validation Commit</text>
-    <text x="345" y="192" font-size="9.5" fill="#111111">• Valid topology -&gt; Replace Scene</text>
-    <text x="345" y="208" font-size="9.5" fill="#111111">• Corrupt bytes -&gt; Reject cleanly</text>
-    <text x="345" y="223" font-size="9.5" font-weight="600" fill="#111111">  (Zero partial scene corruption!)</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Incremental GPU Sync -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Incremental GPU Sync</text>
-    <rect x="590" y="96" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 1: Camera Orbit / Pan / Fit</text>
-    <text x="602" y="131" font-size="9.5" fill="#111111">• sync_scene = false, redraw = true</text>
-    <text x="602" y="147" font-size="9.5" font-weight="600" fill="#111111">• Writes 64-byte camera uniform ONLY</text>
-    <rect x="590" y="170" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="188" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 2: Mesh / Placement Edit</text>
-    <text x="602" y="205" font-size="9.5" fill="#111111">• sync_scene = true, redraw = true</text>
-    <text x="602" y="221" font-size="9.5" font-weight="600" fill="#111111">• Re-uploads dirty object buffers only</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 3.4 Pipeline Schematic: Local sources, world placement and display caches</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (9 Checkpoints: 27-placement → 28c-ownership)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Local vertex</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">Object::world_point</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">placement matrix</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">world point</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Source mesh plus</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 3.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/scene.rs  ·  src/lib.rs  ·  src/placement_tests.rs  ·  src/picking.rs  ·  src/triangle.wgsl  ·  src/gpu_mesh.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">9 Checkpoints: 27-placement → 28c-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Protobuf (.pb)</text>
+  <rect x="46" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <rect x="108" y="64" width="54" height="36" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="170" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="73" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Hdr</text>
+  <text x="135" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Mesh</text>
+  <text x="197" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Xform</text>
+  <rect x="46" y="116" width="178" height="34" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="137" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Guardrail Check ✓</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Binary Decode</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Placed Mesh</text>
+  <polygon points="355,145 415,68 480,145" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="355" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="480" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="415" y1="68" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">session_rust + Mat4</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Incremental Sync</text>
+  <rect x="612" y="62" width="184" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="81" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = false</text>
+  <text x="704" y="96" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Camera Orbit Only (64 B)</text>
+  <rect x="612" y="116" width="184" height="42" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = true</text>
+  <text x="704" y="150" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Upload Dirty Geometry</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Change { sync, redraw }</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
-| **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
-| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
+| **Protobuf** | `session_proto` (`.pb`) | Validated binary `Session` stream with byte/count guardrails. |
+| **Rust (`session_rust`)** | Kernel `Mesh` + `Mat4` Placement | Exact `f64` kernel mesh paired with a `4×4` world placement matrix. |
+| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Camera orbit updates 64B uniform (`sync=false`); edits upload dirty buffers (`sync=true`). |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`27-placement`](#checkpoint-27-placement) | Keep local mesh coordinates and an independent object placement. | `src/scene.rs`, `src/lib.rs`, `src/placement_tests.rs` | `Local vertex → Object::world_point → placement matrix → world point` |
-| **2** | [`27a-world`](#checkpoint-27a-world) | Use placement for scene bounds, selected bounds and ray picking. | `src/scene.rs`, `src/picking.rs`, `src/placement_tests.rs` | `Object placement → world vertices → bounds or ray/triangle query` |
-| **3** | [`27b-model`](#checkpoint-27b-model) | Send a separate model matrix for each draw while retaining local vertex buffers. | `src/triangle.wgsl`, `src/gpu_mesh.rs`, `src/renderer.rs`, `src/scene.rs` | `Local vertex → model uniform → world point → camera uniform → clip position` |
-| **4** | [`27c-move`](#checkpoint-27c-move) | Translate selected geometry through the existing command and history route. | `src/lib.rs`, `src/offset.rs`, `src/editor.rs`, `src/browser.rs` | `Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload` |
-| **5** | [`27d-history`](#checkpoint-27d-history) | Check that Move changes world placement, preserves local geometry, and remains one reversible transaction. | `src/lib.rs`, `src/move_tests.rs` | `Parsed offset → world translation → shared mesh → Undo/Redo → identical placement` |
-| **6** | [`28-record`](#checkpoint-28-record) | Give source geometry a shared owner and prepare its display before committing an object. | `src/prepared.rs`, `src/lib.rs`, `src/prepared_tests.rs` | `Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays` |
-| **7** | [`28a-imported`](#checkpoint-28a-imported) | Insert imported source geometry and its prepared display together. | `src/document.rs`, `src/scene.rs`, `src/imported_source_tests.rs`, `src/lib.rs` | `Decoded session → prepared source/display pair → Object source geometry → history snapshot` |
-| **8** | [`28b-generated`](#checkpoint-28b-generated) | Build demo triangles and Example Box from kernel geometry; derive all displays on insertion. | `src/prepared.rs`, `src/scene.rs`, `src/imported_source_tests.rs` | `Kernel triangle or box → PreparedMesh → source-owning Object → derived display` |
-| **9** | [`28c-ownership`](#checkpoint-28c-ownership) | Connect local source geometry, display caches, provenance and document history. | `src/source_tests.rs`, `src/lib.rs` | `Source mesh plus placement → Move → Undo/Redo → same source allocation and identity` |
+![Recorded visual output for Lesson 3.4 (28c-ownership)](../../screenshots/journey/28c-ownership-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-27-placement"></a>
 
 ### Step 1 of 9 · Give each object a placement (`27-placement`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/9 Visual Trace (27-placement): Give each object a placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/lib.rs, src/placement_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Local vertex</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Object::world_point</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement matrix</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world point</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placement matrix</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world point</text>
 </svg>
-</div>
-
-- **Goal:** Keep local mesh coordinates and an independent object placement.
-- **Data Flow Trace:** `Local vertex → Object::world_point → placement matrix → world point`
-- **Files You Touch:** `src/scene.rs` (*Store one placement beside the shared local mesh.*) · `src/lib.rs` (*Register the placement checks.*) · `src/placement_tests.rs` (*Optional authoring fixture. Prove mesh identity and local coordinates survive placement, and failed updates leave it unchanged.*)
 
 A mesh describes a shape. A placement describes where one use of that shape belongs. Keeping both in Object lets history retain the same shared mesh while remembering a different placement.
 
 Add an identity matrix to every newly inserted object. Identity leaves coordinates unchanged, so this checkpoint preserves the working picture. Object::world_point borrows a six-float vertex, uses its first three values as a position, and returns a double-precision world point. Its color is not a coordinate and never enters the transform.
 
-Scene::place finds the stable ID before replacing its matrix. It rejects a non-finite matrix and a projective last row. Object placements are affine: they can translate, rotate, scale or shear a shape, but perspective belongs to Camera. Returning Result makes a missing object or invalid placement visible to the caller.
-
-The two checks deliberately use the same Rc<Mesh> before and after a placement. Clone on Rc creates another owner of the allocation. It does not duplicate or rewrite the vertex array. Bounds, picking and GPU presentation will adopt this placement in the next two small lessons; no Move command is exposed yet.
-
-> **Self-Check Question:** *Which value changes when an object moves without changing shape?*  
-> **Answer:** Its placement matrix changes. The shared mesh keeps local coordinates. Multiplying a local point by the placement produces its world position; multiplying that world point by the camera later produces its screen position.
-
-- **What You Should See:** Run the Rust checks below. A translation changes the tested world point while retaining its local vertex. Placement is not connected to drawing yet, so the browser picture stays unchanged.
-- **Hands-On Lab Experiment:** In the state check, change translation from (2, −1, 0.5) to (−3, 4, 0). Predict the resulting world point before running the check, then restore it. Explain why the local vertex and Rc allocation stay unchanged.
-
-<details>
-<summary>Implementation 27-placement: Give each object a placement</summary>
-
-Keep local mesh coordinates and an independent object placement.
-
-Data flow: Local vertex → Object::world_point → placement matrix → world point.
+> **Check:** *Which value changes when an object moves without changing shape?* — Its placement matrix changes. The shared mesh keeps local coordinates. Multiplying a local point by the placement produces its world position; multiplying that world point by the camera later produces its screen position.
 
 ### 1. `src/scene.rs`
 
@@ -229,8 +101,7 @@ Store one placement beside the shared local mesh. Transform position only; retur
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Ok(())
@@ -240,8 +111,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };
         self.objects.remove(index);
 ```
-
-</details>
 
 Replace it with:
 
@@ -265,8 +134,7 @@ Replace it with:
         self.objects.remove(index);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
@@ -276,8 +144,6 @@ Replace it with:
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -290,8 +156,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Object {
@@ -304,8 +169,6 @@ pub struct Object {
 pub struct Scene {
     objects: Vec<Object>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -330,8 +193,7 @@ pub struct Scene {
     objects: Vec<Object>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -520,44 +382,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27-placement-01.rs"
-```
-
-```text
---8<-- "journey/code/27-placement-02.rs"
-```
-
-```text
---8<-- "journey/code/27-placement-03.rs"
-```
-
-```text
---8<-- "journey/code/27-placement-04.rs"
-```
-
-</details>
-
 ### 2. `src/lib.rs`
 
 Register the placement checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod selected_fit_tests;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -565,8 +392,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/27-placement-05.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -580,63 +406,42 @@ Copy this supplied file:
 --8<-- "journey/code/27-placement-06.rs"
 ```
 
-</details>
+**Result after `27-placement`:** Run the Rust checks below. A translation changes the tested world point while retaining its local vertex. Placement is not connected to drawing yet, so the browser picture stays unchanged.
 
-</details>
+---
 
 <a id="checkpoint-27a-world"></a>
 
 ### Step 2 of 9 · Ask geometry questions in world coordinates (`27a-world`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/9 Visual Trace (27a-world): Ask geometry questions in world coordinates</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/picking.rs, src/placement_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Object placement</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world vertices</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounds or ray/triangle query</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/picking…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world vertices</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounds or ray/triangle…</text>
 </svg>
-</div>
-
-- **Goal:** Use placement for scene bounds, selected bounds and ray picking.
-- **Data Flow Trace:** `Object placement → world vertices → bounds or ray/triangle query`
-- **Files You Touch:** `src/scene.rs` (*Whole-scene bounds include placed points.*) · `src/picking.rs` (*Ask whether the world ray hits the placed triangle.*) · `src/placement_tests.rs` (*Optional authoring fixture. Connect placement, both bounds and camera-ray picking in one state check.*)
 
 A local vertex is useful for sharing a shape, but the camera does not live in every object’s local coordinate system. Bounds and ray tests must agree on where that object is.
 
 Reuse world_point in the whole-scene bounds loop, the selected-object bounds loop and the picking loop. Each loop borrows the original mesh. The returned points are temporary query values, not replacement geometry.
 
-Picking now receives three doubles per position. Colors are irrelevant to intersection. Keep the triangle calculation in doubles instead of subtracting floats and converting only the already-rounded result.
-
-The new state check places a triangle, asks for its bounds, projects its centroid and casts the camera ray back through that pixel. These are connected observations: the same stable ID must be found at its new world location. The live commands still use identity placements until the next lesson connects model matrices to the GPU.
-
-> **Self-Check Question:** *Why must picking and fitting use the same placement as drawing?*  
-> **Answer:** A camera ray and a fitted camera target are expressed in world coordinates. Comparing them with unplaced local vertices asks about a different location. Apply Object::world_point at each query boundary so both questions refer to the placed object.
-
-- **What You Should See:** Run the Rust checks below. Bounds and ray picking must use placed world coordinates, while the stored local mesh remains unchanged. GPU placement follows next.
-- **Hands-On Lab Experiment:** Change the world-query test’s translation to (4, 2, −0.25). Predict the new bounds and camera target, then restore it. Explain why querying colors would not help identify the triangle’s position.
-
-<details>
-<summary>Implementation 27a-world: Ask geometry questions in world coordinates</summary>
-
-Use placement for scene bounds, selected bounds and ray picking.
-
-Data flow: Object placement → world vertices → bounds or ray/triangle query.
+> **Check:** *Why must picking and fitting use the same placement as drawing?* — A camera ray and a fitted camera target are expressed in world coordinates. Comparing them with unplaced local vertices asks about a different location. Apply Object::world_point at each query boundary so both questions refer to the placed object.
 
 ### 1. `src/scene.rs`
 
@@ -644,8 +449,7 @@ Whole-scene bounds include placed points. Use the same placed coordinates for fi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let object = self.objects.iter().find(|object| object.id == id)?;
@@ -661,8 +465,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -677,8 +479,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut bounds: Option<crate::bounds::Bounds> = None;
@@ -689,8 +490,6 @@ Replace it with:
                     Some(bounds) => bounds.include(point),
                     None => bounds = Some(crate::bounds::Bounds::point(point)),
 ```
-
-</details>
 
 Replace it with:
 
@@ -704,8 +503,7 @@ Replace it with:
                     None => bounds = Some(crate::bounds::Bounds::point(point)),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -892,31 +690,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27a-world-01.rs"
-```
-
-```text
---8<-- "journey/code/27a-world-02.rs"
-```
-
-</details>
-
 ### 2. `src/picking.rs`
 
 Ask whether the world ray hits the placed triangle. Compute differences in the double-precision coordinates supplied by placement. Build the triangle origin from the same world point.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     hit
@@ -935,8 +715,6 @@ fn triangle_distance(ray: &Ray, a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option
     let q = origin.cross(&edge1);
     let v = ray.direction.dot(&q) / determinant;
 ```
-
-</details>
 
 Replace it with:
 
@@ -958,8 +736,7 @@ fn triangle_distance(ray: &Ray, a: [f64; 3], b: [f64; 3], c: [f64; 3]) -> Option
     let v = ray.direction.dot(&q) / determinant;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     for object in scene.objects() {
@@ -972,8 +749,6 @@ fn triangle_distance(ray: &Ray, a: [f64; 3], b: [f64; 3], c: [f64; 3]) -> Option
                 if distance >= 0.0 && distance < nearest {
                     nearest = distance;
 ```
-
-</details>
 
 Replace it with:
 
@@ -989,8 +764,7 @@ Replace it with:
                     nearest = distance;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{camera::Ray, scene::{ObjectId, Scene}};
@@ -1070,29 +844,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27a-world-03.rs"
-```
-
-```text
---8<-- "journey/code/27a-world-04.rs"
-```
-
-```text
---8<-- "journey/code/27a-world-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1100,124 +852,52 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Connect placement, both bounds and camera-ray picking in one state check.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use session_rust::Xform;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/27a-world-06.rs" skip=25
 ```
 
-</details>
+**Result after `27a-world`:** Run the Rust checks below. Bounds and ray picking must use placed world coordinates, while the stored local mesh remains unchanged. GPU placement follows next.
 
-</details>
+---
 
 <a id="checkpoint-27b-model"></a>
 
 ### Step 3 of 9 · Apply object placement on the GPU (`27b-model`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/9 Visual Trace (27b-model): Apply object placement on the GPU</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/gpu_mesh.rs, src/renderer.rs, src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Local vertex</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">model uniform</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world point</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera uniform</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">clip position</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle.wgsl, src/gp…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world point</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">clip position</text>
 </svg>
-</div>
-
-- **Goal:** Send a separate model matrix for each draw while retaining local vertex buffers.
-- **Data Flow Trace:** `Local vertex → model uniform → world point → camera uniform → clip position`
-- **Files You Touch:** `src/triangle.wgsl` (*Keep camera and object placement in separate uniform groups.*) · `src/gpu_mesh.rs` (*Upload an object’s mesh and placement together.*) · `src/renderer.rs` (*Remove the upload that ran before the pipeline layout was available.*) · `src/scene.rs` (*Keep the generated box centred in its local coordinates.*)
 
 Bounds and picking now understand placement. Drawing must apply that same matrix, or the visible object and the selectable object would disagree.
 
 Add a second uniform binding to the shader. Group 0 remains the shared camera transform. Group 1 contains one object’s model matrix. The vertex shader first produces a world position, then applies the camera. The fragment shader receives that world position so its derivative-based lighting follows the placed surface too.
 
-GpuMesh uploads the original local vertices, encodes the sixteen model values as floats, and creates the object bind group from the pipeline’s group-1 layout. The bind group retains its referenced buffer. Bind it immediately before drawing that object’s indices.
-
-Finally change Example Box: create its shape around the local origin, then give the Object the translation that used to be baked into its vertices. Its world appearance stays consistent. Its local box coordinates are now reusable. The current renderer still rebuilds uploads on scene changes; later shared-storage lessons will update changed ranges.
-
-> **Self-Check Question:** *Why do model and camera matrices need separate owners?*  
-> **Answer:** The object owns where its shape belongs; the camera owns how the scene is viewed. Binding the object model before each draw lets local mesh data stay unchanged while the same camera draws many placements.
-
-- **What You Should See:** Type `Example Box`, then `View Isometric`. The box now draws at its placed position. Click a visible face: picking must agree with the GPU placement, while local vertices stay unchanged.
-- **Hands-On Lab Experiment:** Change Example Box’s placement translation from (0.9, 0, 0.4) to (1.4, 0, 0.4). Predict where Fit Selected will aim and verify the visible box and its pick agree. Restore the original value. Do not move the box by rewriting its mesh.
-
-<details>
-<summary>Implementation 27b-model: Apply object placement on the GPU</summary>
-
-Send a separate model matrix for each draw while retaining local vertex buffers.
-
-Data flow: Local vertex → model uniform → world point → camera uniform → clip position.
+> **Check:** *Why do model and camera matrices need separate owners?* — The object owns where its shape belongs; the camera owns how the scene is viewed. Binding the object model before each draw lets local mesh data stay unchanged while the same camera draws many placements.
 
 ### 1. `src/triangle.wgsl`
 
 Keep camera and object placement in separate uniform groups. Place the vertex before projecting it; use world position for lighting.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    output.position = transform * vec4<f32>(position, 1.0);
-    output.colour = colour;
-    output.world = position;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
-    // Neighbouring fragments give two directions along this triangle's surface.
-    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1252,73 +932,9 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27b-model-01.wgsl"
-```
-
-```text
---8<-- "journey/code/27b-model-02.wgsl"
-```
-
-</details>
-
 ### 2. `src/gpu_mesh.rs`
 
 Upload an object’s mesh and placement together. Retain the object bind group alongside its vertex/index buffers. Borrow local mesh coordinates and the model from the same Object. Encode the model’s column-major values and bind the uniform buffer. Choose this object’s placement before its indexed draw.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-use wgpu::util::DeviceExt;
-
-pub struct GpuMesh {
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-}
-
-impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, mesh: &Mesh, selected: bool) -> Self {
-        let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
-        for vertex in mesh.vertices() {
-            let mut display = *vertex;
-            if selected {
-                display[3..].copy_from_slice(&[1.0, 0.75, 0.05]);
-            }
-            for value in display {
-                bytes.extend_from_slice(&value.to_ne_bytes());
-            }
-        }
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh vertices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh indices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        Self { vertices, indices, index_count: mesh.indices().len() as u32 }
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1381,41 +997,13 @@ impl GpuMesh {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27b-model-03.rs"
-```
-
-```text
---8<-- "journey/code/27b-model-04.rs"
-```
-
-```text
---8<-- "journey/code/27b-model-05.rs"
-```
-
-```text
---8<-- "journey/code/27b-model-06.rs"
-```
-
-```text
---8<-- "journey/code/27b-model-07.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Remove the upload that ran before the pipeline layout was available. Upload objects using the model layout inferred from the shader. Include each placement when a scene update rebuilds the current uploads.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1426,8 +1014,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }).collect();
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1442,8 +1028,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             multiview_mask: None,
@@ -1453,8 +1038,6 @@ Replace it with:
             label: Some("view transform"),
             size: 64,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1470,8 +1053,7 @@ Replace it with:
             size: 64,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         format: wgpu::TextureFormat,
@@ -1482,8 +1064,6 @@ Replace it with:
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1496,8 +1076,7 @@ Replace it with:
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1646,31 +1225,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27b-model-09.rs"
-```
-
-```text
---8<-- "journey/code/27b-model-10.rs"
-```
-
-</details>
-
 ### 4. `src/scene.rs`
 
 Keep the generated box centred in its local coordinates. Assign its world placement after inserting the local mesh.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1683,8 +1244,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn toggle_extra(&mut self) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1701,8 +1260,7 @@ Replace it with:
     pub fn toggle_extra(&mut self) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -1890,95 +1448,46 @@ mod tests {
 }
 ```
 
-</details>
+**Result after `27b-model`:** Type `Example Box`, then `View Isometric`. The box now draws at its placed position. Click a visible face: picking must agree with the GPU placement, while local vertices stay unchanged.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27b-model-12.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-27c-move"></a>
 
 ### Step 4 of 9 · Move a placed object with a typed offset (`27c-move`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/9 Visual Trace (27c-move): Move a placed object with a typed offset</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/lib.rs, src/offset.rs, src/editor.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Move x,y,z</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite offset</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">history transaction</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">new placement</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">GPU upload</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/lib.rs, src/offset.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">history transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">GPU upload</text>
 </svg>
-</div>
-
-- **Goal:** Translate selected geometry through the existing command and history route.
-- **Data Flow Trace:** `Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload`
-- **Files You Touch:** `src/lib.rs` (*Register the small numeric parser.*) · `src/offset.rs` (*Validate a complete numeric offset before it reaches the document.*) · `src/editor.rs` (*Carry the offset as data in the existing Action enum.*) · `src/browser.rs` (*Offer the named command in the dock vocabulary.*) · `src/panel.rs` (*Recognize Move followed by arguments; the parser validates those arguments.*)
 
 The complete path is ready for a real command: local vertices, world queries and a GPU model matrix. Add Move x,y,z without adding a second editing owner.
 
 The offset parser accepts exactly three comma-separated finite numbers. Spaces around those numbers are harmless. A missing coordinate, extra coordinate, NaN or infinity is an error. Result separates a valid offset from a useful explanation.
 
-Editor asks for the selected stable ID, composes a world translation with its existing model, and submits Scene::place through History::try_edit. The local mesh is still shared. A zero offset changes nothing and does not create an undo entry.
-
-The dock recognizes Move with arguments. It records the submitted line once; result replaces that line’s preliminary answer when parsing or editing fails. The browser still redraws the dock on an error, so an explanation is visible immediately. Later tool lessons will add Move with picked base/target points and command repetition. Today Move needs its complete offset on the line.
-
-> **Self-Check Question:** *Why is a world translation multiplied on the left of the existing placement?*  
-> **Answer:** The existing placement first takes a local point into world coordinates. The new translation then shifts that world point. Translation times existing placement moves along world axes; reversing their order can move along scaled or rotated local axes instead.
-
-- **What You Should See:** Type `Select Next`, `Move 0.5,0,0`, then `Undo`. The selected object moves along world X and returns in one Undo step.
-- **Hands-On Lab Experiment:** Run Move 0,0,0 followed by Undo. Explain why the zero offset creates no history entry. Try Move 1,2 and Move NaN,0,0: both must report an error without moving geometry. Restore the checkpoint before saving.
-
-<details>
-<summary>Implementation 27c-move: Move a placed object with a typed offset</summary>
-
-Translate selected geometry through the existing command and history route.
-
-Data flow: Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload.
+> **Check:** *Why is a world translation multiplied on the left of the existing placement?* — The existing placement first takes a local point into world coordinates. The new translation then shifts that world point. Translation times existing placement moves along world axes; reversing their order can move along scaled or rotated local axes instead.
 
 ### 1. `src/lib.rs`
 
 Register the small numeric parser.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod editor;
-```
-
-</details>
 
 After that block, type:
 
@@ -2002,8 +1511,7 @@ Carry the offset as data in the existing Action enum. Move along world axes and 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::AddBox => {
@@ -2013,8 +1521,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::SelectNext => self.selected = self.scene.next(self.selected),
             Action::Delete => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2035,8 +1541,7 @@ Replace it with:
             Action::Delete => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Pick([f32; 2]),
@@ -2046,8 +1551,6 @@ Replace it with:
     SelectNext,
     Delete,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2061,8 +1564,7 @@ Replace it with:
     Delete,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2234,35 +1736,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27c-move-03.rs"
-```
-
-```text
---8<-- "journey/code/27c-move-04.rs"
-```
-
-</details>
-
 ### 4. `src/browser.rs`
 
 Offer the named command in the dock vocabulary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            "Fit Selected",
-```
-
-</details>
 
 After that block, type:
 
@@ -2276,8 +1752,7 @@ Recognize Move followed by arguments; the parser validates those arguments. Repl
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return Ok(None);
@@ -2288,8 +1763,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.answer(&line, "Unknown command. Type Help.");
             return Ok(None);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2304,8 +1777,7 @@ Replace it with:
             return Ok(None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.model.status = message.into();
@@ -2315,8 +1787,6 @@ Replace it with:
         &mut self,
         event: Option<&web_sys::Event>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2339,8 +1809,7 @@ Replace it with:
         event: Option<&web_sys::Event>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -2595,31 +2064,13 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27c-move-06.rs"
-```
-
-```text
---8<-- "journey/code/27c-move-07.rs"
-```
-
-</details>
-
 ### 6. `src/browser.rs`
 
 A valid offset becomes an Action; a parse error becomes a dock answer and still redraws. Display editing failures in the command dock and continue to its normal redraw.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 Ok(Change::View) => {}
@@ -2630,8 +2081,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             }
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2645,8 +2094,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     input.click();
@@ -2656,8 +2104,6 @@ Replace it with:
                 let action = match line.as_str() {
                     "example box" => Action::AddBox,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2675,8 +2121,7 @@ Replace it with:
                     "example box" => Action::AddBox,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -3082,100 +2527,46 @@ fn present(
 }
 ```
 
-</details>
+**Result after `27c-move`:** Type `Select Next`, `Move 0.5,0,0`, then `Undo`. The selected object moves along world X and returns in one Undo step.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/27c-move-08.rs"
-```
-
-```text
---8<-- "journey/code/27c-move-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-27d-history"></a>
 
 ### Step 5 of 9 · Prove placement and history agree (`27d-history`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/9 Visual Trace (27d-history): Prove placement and history agree</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/lib.rs, src/move_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Parsed offset</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world translation</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared mesh</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Undo/Redo</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">identical placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/lib.rs, src/move_test…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared mesh</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">identical placement</text>
 </svg>
-</div>
-
-- **Goal:** Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
-- **Data Flow Trace:** `Parsed offset → world translation → shared mesh → Undo/Redo → identical placement`
-- **Files You Touch:** `src/lib.rs` (*Register the direct Move and history checks.*) · `src/move_tests.rs` (*Optional authoring fixture. Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection.*)
 
 The visible result is useful evidence, but a moved picture alone does not prove which data changed. These checks follow the values that future editing tools must preserve.
 
 First parse valid and invalid lines. Then start with a scaled placement. A world-axis Move must shift its world point by the exact requested offset, regardless of that existing scale. Retain an Rc handle and compare local vertices as well as world coordinates.
 
-Scene::place takes ownership of its Xform. Save the sixteen-value array before that call when a later assertion needs it. The array is Copy; the kernel Xform is not.
-
-Undo must restore the complete old placement, and Redo must restore the moved placement. Insert invalid and zero moves between Undo and Redo: neither may discard the redo record. This is why a history transaction belongs in Editor rather than in a browser key handler.
-
-> **Self-Check Question:** *What evidence distinguishes moving a placement from rewriting a mesh?*  
-> **Answer:** The world point shifts by the requested offset, the Rc allocation and local vertices stay identical, and Undo/Redo restore the placement while leaving the camera alone. Invalid input and zero movement must not consume the document’s redo or undo history.
-
-- **What You Should See:** Run the placement/history checks below. Move and Undo must change only placement, preserve shared local geometry, and treat a zero offset as no document edit.
-- **Hands-On Lab Experiment:** Change the existing x scale in the world-axis test from 2 to 3. Predict the local-axis error you would see if the multiplication order were reversed. Confirm the existing implementation still shifts the world point by the same amount, then restore the test.
-
-<details>
-<summary>Implementation 27d-history: Prove placement and history agree</summary>
-
-Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
-
-Data flow: Parsed offset → world translation → shared mesh → Undo/Redo → identical placement.
+> **Check:** *What evidence distinguishes moving a placement from rewriting a mesh?* — The world point shifts by the requested offset, the Rc allocation and local vertices stay identical, and Undo/Redo restore the placement while leaving the camera alone. Invalid input and zero movement must not consume the document’s redo or undo history.
 
 ### 1. `src/lib.rs`
 
 Register the direct Move and history checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod placement_tests;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3183,8 +2574,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/27d-history-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3198,64 +2588,42 @@ Copy this supplied file:
 --8<-- "journey/code/27d-history-02.rs"
 ```
 
-</details>
+**Result after `27d-history`:** Run the placement/history checks below. Move and Undo must change only placement, preserve shared local geometry, and treat a zero offset as no document edit.
 
-</details>
+---
 
 <a id="checkpoint-28-record"></a>
 
 ### Step 6 of 9 · Prepare a display from an owned source mesh (`28-record`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/9 Visual Trace (28-record): Prepare a display from an owned source mesh</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/prepared.rs, src/lib.rs, src/prepared_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Kernel mesh</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">PreparedMesh</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared source geometry plus</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">validated…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/prepared.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">PreparedMesh</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source geometry…</text>
 </svg>
-</div>
-
-- **Goal:** Give source geometry a shared owner and prepare its display before committing an object.
-- **Data Flow Trace:** `Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays`
-- **Files You Touch:** `src/prepared.rs` (*Create the transit owner. Keep original kernel data beside the display prepared from it.*) · `src/lib.rs` (*Expose the preparation boundary without changing the running browser adapter.*) · `src/prepared_tests.rs` (*Optional authoring fixture. Compare original doubles with the display, and retain name, flags and GUID through preparation.*)
 
 Introduce `PreparedMesh` between source construction and scene insertion. It retains the kernel mesh and a validated derived display. The live scene still uses its earlier insertion path; the next lessons connect this boundary.
 
 `Rc` shares immutable kernel geometry. Optional `Source` records imported-session provenance; generated geometry still has a source mesh without an imported file.
 
-Initialise the kernel mesh's lazy GUID before sharing it, then run the display adapter. `?` rejects invalid display data before consuming an object ID or history entry.
-
-Tests preserve a double coordinate that rounds in the float display, along with name and visibility/locking flags. A finite double too large for a float must fail preparation. Retaining flags does not yet implement their interaction policies.
-
-> **Self-Check Question:** *Why must a save read the source mesh instead of the displayed vertex array?*  
-> **Answer:** The display array uses floats, triangle indices and draw colours. The kernel mesh keeps double coordinates, original topology, names, visibility and locking. PreparedMesh owns the kernel mesh and derives the display from it, so failure happens before the scene takes ownership.
-
-- **What You Should See:** Run the source-record checks below. The original double coordinate remains exact while the display uses floats. This preparation type does not change the browser picture yet.
-- **Hands-On Lab Experiment:** Change the precision check’s coordinate to 123456789.125 and predict the source and float values. Restore it. Explain why a clone of Rc keeps one source allocation while a float display still needs its own arrays.
-
-<details>
-<summary>Implementation 28-record: Prepare a display from an owned source mesh</summary>
-
-Give source geometry a shared owner and prepare its display before committing an object.
-
-Data flow: Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays.
+> **Check:** *Why must a save read the source mesh instead of the displayed vertex array?* — The display array uses floats, triangle indices and draw colours. The kernel mesh keeps double coordinates, original topology, names, visibility and locking. PreparedMesh owns the kernel mesh and derives the display from it, so failure happens before the scene takes ownership.
 
 ### 1. `src/prepared.rs`
 
@@ -3271,23 +2639,13 @@ Create the file and type:
 
 Expose the preparation boundary without changing the running browser adapter.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/28-record-02.rs" skip=14
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3301,21 +2659,9 @@ Copy this supplied file:
 --8<-- "journey/code/28-record-03.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Compile the source checks in the native test build.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod move_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -3323,66 +2669,42 @@ After that block, type:
 --8<-- "journey/code/28-record-04.rs" skip=29
 ```
 
-</details>
+**Result after `28-record`:** Run the source-record checks below. The original double coordinate remains exact while the display uses floats. This preparation type does not change the browser picture yet.
+
+---
 
 <a id="checkpoint-28a-imported"></a>
 
 ### Step 7 of 9 · Retain the imported mesh behind each row (`28a-imported`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/9 Visual Trace (28a-imported): Retain the imported mesh behind each row</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/scene.rs, src/imported_source_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Decoded session</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared source/display</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pair</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Object source geometry</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">history snapshot</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/document.rs, src/scen…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Object source geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">history snapshot</text>
 </svg>
-</div>
-
-- **Goal:** Insert imported source geometry and its prepared display together.
-- **Data Flow Trace:** `Decoded session → prepared source/display pair → Object source geometry → history snapshot`
-- **Files You Touch:** `src/document.rs` (*Load source/display pairs rather than display arrays alone.*) · `src/scene.rs` (*During migration, distinguish rows with source geometry from older demo rows.*) · `src/imported_source_tests.rs` (*Optional authoring fixture. Prove import shares the session’s existing source allocation even when earlier display rows disappear.*) · `src/lib.rs` (*Run the source allocation check at this intermediate checkpoint.*)
 
 Make `Loaded` carry `PreparedMesh` values and retain the source geometry behind each imported row. Preparation still finishes before the scene changes.
 
 The kernel session already owns meshes through `Rc`; clone those handles rather than copying geometry. Keep the session too, because it owns file context such as tree and document name.
 
-During insertion, moving `prepared.display` transfers that field while leaving the other fields available for transfer. History wraps the whole import in one transaction.
-
-Imported rows now have `Some` source geometry. Older demos and generated boxes temporarily have `None`; the next lesson closes that migration gap.
-
-> **Self-Check Question:** *If rows move after deletion, how can the object still find its source?*  
-> **Answer:** Source identity uses a retained session and GUID, not the row index. The object also directly owns the original kernel mesh through Rc. Its display can move to another row without changing either source owner.
-
-- **What You Should See:** Open `sample.pb`. Run the import checks below: every imported row must retain both its original source mesh and its prepared display. Failed preparation must add no rows.
-- **Hands-On Lab Experiment:** In the import test, remove both original demo IDs before inspecting the imported object. Its row number changes while its ObjectId, source GUID and geometry allocation remain stable. Restore the test before checking your files.
-
-<details>
-<summary>Implementation 28a-imported: Retain the imported mesh behind each row</summary>
-
-Insert imported source geometry and its prepared display together.
-
-Data flow: Decoded session → prepared source/display pair → Object source geometry → history snapshot.
+> **Check:** *If rows move after deletion, how can the object still find its source?* — Source identity uses a retained session and GUID, not the row index. The object also directly owns the original kernel mesh through Rc. Its display can move to another row without changing either source owner.
 
 ### 1. `src/document.rs`
 
@@ -3390,8 +2712,7 @@ Load source/display pairs rather than display arrays alone. Retain the prepared 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
@@ -3402,8 +2723,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(Loaded { document, meshes })
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3421,8 +2740,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3433,8 +2751,6 @@ pub struct Loaded {
 
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3448,8 +2764,7 @@ pub struct Loaded {
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -3457,8 +2772,6 @@ use prost::Message;
 use session_rust::{proto, Session};
 use std::{collections::HashSet, rc::Rc};
 ```
-
-</details>
 
 Replace it with:
 
@@ -3469,8 +2782,7 @@ use session_rust::{proto, Session};
 use std::{collections::HashSet, rc::Rc};
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::prepared::PreparedMesh;
@@ -3562,35 +2874,13 @@ fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/28a-imported-01.rs"
-```
-
-```text
---8<-- "journey/code/28a-imported-02.rs"
-```
-
-```text
---8<-- "journey/code/28a-imported-03.rs"
-```
-
-</details>
-
 ### 2. `src/scene.rs`
 
 During migration, distinguish rows with source geometry from older demo rows. Keep the existing insertion path while imported rows begin retaining source geometry. Keep each prepared display and source on the same stable object record.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
@@ -3611,8 +2901,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3634,8 +2922,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Object {
@@ -3645,8 +2932,6 @@ pub struct Object {
     pub source: Option<crate::document::Source>,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3660,8 +2945,7 @@ pub struct Object {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -3850,29 +3134,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/28a-imported-04.rs"
-```
-
-```text
---8<-- "journey/code/28a-imported-05.rs"
-```
-
-```text
---8<-- "journey/code/28a-imported-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3886,21 +3148,9 @@ Copy this supplied file:
 --8<-- "journey/code/28a-imported-07.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Run the source allocation check at this intermediate checkpoint.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod prepared_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -3908,78 +3158,46 @@ After that block, type:
 --8<-- "journey/code/28a-imported-08.rs" skip=33
 ```
 
-</details>
+**Result after `28a-imported`:** Open `sample.pb`. Run the import checks below: every imported row must retain both its original source mesh and its prepared display. Failed preparation must add no rows.
+
+---
 
 <a id="checkpoint-28b-generated"></a>
 
 ### Step 8 of 9 · Give generated objects the same source owner (`28b-generated`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/9 Visual Trace (28b-generated): Give generated objects the same source owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/prepared.rs, src/scene.rs, src/imported_source_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Kernel triangle or box</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">PreparedMesh</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source-owning Object</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/prepared.rs, src/scen…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source-owning Object</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived display</text>
 </svg>
-</div>
-
-- **Goal:** Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
-- **Data Flow Trace:** `Kernel triangle or box → PreparedMesh → source-owning Object → derived display`
-- **Files You Touch:** `src/prepared.rs` (*Create demo source geometry before deriving the drawing representation.*) · `src/scene.rs` (*All insertion callers now supply prepared source geometry.*) · `src/imported_source_tests.rs` (*Optional authoring fixture. The source is now required, so remove the temporary Option unwrap in the check.*)
 
 Close the migration. Demo triangles and the optional extra triangle are small kernel meshes; Example Box retains the kernel mesh it already creates. All enter through PreparedMesh. Every Object can now keep its source geometry, placement and optional file provenance independently of the drawing cache.
 
 PreparedMesh::triangle creates three kernel Points and one triangular face. Color is an object attribute. The kernel stores its colour channels in bytes, so these demo colours are quantized before the display adapter reads them; a slight shade change is expected. This does not change the source/drawing ownership rule.
 
-Change Scene::insert to consume a prepared value. The geometry goes to Object::geometry, display goes into the Rc drawing cache, and provenance goes to Object::source. Remove Option from geometry because every call now supplies it. Identity still initializes placement.
-
-Example Box stops discarding its kernel mesh after conversion. Imported objects use the same insertion function, so import no longer patches source fields on the last inserted row. Bounds, picking, GPU matrices and Move keep the ownership conventions already established.
-
-> **Self-Check Question:** *What does None provenance mean after every object owns kernel geometry?*  
-> **Answer:** It means the object was made here instead of imported from a file. It no longer means geometry is missing: Object::geometry is now a required shared source mesh. The display is derived from that source on the same insertion path.
-
-- **What You Should See:** Type `Example Box`, then `Undo`. The generated box now uses the same source/display ownership as imported geometry and remains one reversible object.
-- **Hands-On Lab Experiment:** Change PreparedMesh::triangle’s object colour, then compare its kernel colour with the uploaded display colour. Explain why the conversion may quantize channels and why changing the camera does not rewrite either geometry representation. Restore the original code.
-
-<details>
-<summary>Implementation 28b-generated: Give generated objects the same source owner</summary>
-
-Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
-
-Data flow: Kernel triangle or box → PreparedMesh → source-owning Object → derived display.
+> **Check:** *What does None provenance mean after every object owns kernel geometry?* — It means the object was made here instead of imported from a file. It no longer means geometry is missing: Object::geometry is now a required shared source mesh. The display is derived from that source on the same insertion path.
 
 ### 1. `src/prepared.rs`
 
 Create demo source geometry before deriving the drawing representation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl PreparedMesh {
-```
-
-</details>
 
 After that block, type:
 
@@ -3993,8 +3211,7 @@ All insertion callers now supply prepared source geometry. Every current object 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(id) = self.extra.take() {
@@ -4010,8 +3227,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4026,8 +3241,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
@@ -4038,8 +3252,6 @@ Replace it with:
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4053,8 +3265,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &self.objects
@@ -4079,8 +3290,6 @@ Replace it with:
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4104,8 +3313,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4126,8 +3334,6 @@ impl Scene {
         scene.insert(turquoise).expect("ID available");
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4145,8 +3351,7 @@ impl Scene {
         scene.insert(turquoise).expect("ID available");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Object {
@@ -4157,8 +3362,6 @@ pub struct Object {
     pub source: Option<crate::document::Source>,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4172,8 +3375,7 @@ pub struct Object {
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -4181,8 +3383,6 @@ use std::rc::Rc;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 ```
-
-</details>
 
 Replace it with:
 
@@ -4193,8 +3393,7 @@ use std::rc::Rc;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -4375,45 +3574,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/28b-generated-02.rs"
-```
-
-```text
---8<-- "journey/code/28b-generated-03.rs"
-```
-
-```text
---8<-- "journey/code/28b-generated-04.rs"
-```
-
-```text
---8<-- "journey/code/28b-generated-05.rs"
-```
-
-```text
---8<-- "journey/code/28b-generated-06.rs"
-```
-
-```text
---8<-- "journey/code/28b-generated-07.rs"
-```
-
-```text
---8<-- "journey/code/28b-generated-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4421,25 +3582,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. The source is now required, so remove the temporary Option unwrap in the check.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let geometry = Rc::clone(imported.geometry.as_ref().unwrap());
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/28b-generated-09.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4447,86 +3596,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Compare the required shared owner after its display row changes.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(Rc::ptr_eq(moved_row.geometry.as_ref().unwrap(), &geometry));
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/28b-generated-10.rs"
 ```
 
-</details>
+**Result after `28b-generated`:** Type `Example Box`, then `Undo`. The generated box now uses the same source/display ownership as imported geometry and remains one reversible object.
 
-</details>
+---
 
 <a id="checkpoint-28c-ownership"></a>
 
 ### Step 9 of 9 · Prove source ownership survives editing (`28c-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/9 Visual Trace (28c-ownership): Prove source ownership survives editing</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Source mesh plus placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Move</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Undo/Redo</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">same source allocation and</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">identity</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_tests.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Undo/Redo</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">same source allocation…</text>
 </svg>
-</div>
-
-- **Goal:** Connect local source geometry, display caches, provenance and document history.
-- **Data Flow Trace:** `Source mesh plus placement → Move → Undo/Redo → same source allocation and identity`
-- **Files You Touch:** `src/source_tests.rs` (*Optional authoring fixture. Check source and display allocations, original vertices, placement history and retained file provenance.*) · `src/lib.rs` (*Compile the connected ownership checks with the current scene.*)
 
 Now test the complete boundary rather than only the constructor. A moved object is still the same source shape. Its placement changes, but editing must not bake that placement into either the kernel vertices or drawing arrays.
 
 The first check uses a generated box. It clones the Rc owners, records a source vertex and GUID, moves the box, then travels through history. Pointer equality proves we did not silently replace a source allocation with an equivalent copy.
 
-The second check imports a file, removes the two original demo rows and asks again about the imported object by stable ID. The display row changes, but the owned source mesh still matches the source GUID and retained session.
+> **Check:** *Which data must stay unchanged when Move edits only placement?* — The original kernel vertices and attributes, the Rc source allocation, source GUID, imported session and local display arrays must remain unchanged. Undo and Redo change the placement stored in the document, while the camera stays where the user put it.
 
-Together with the preparation and import checks, these checks cover generated and imported source owners. Generated objects have geometry even without file provenance. Imported objects have both. These are the owners Save can use next; it must never rebuild source geometry from the float drawing cache.
-
-> **Self-Check Question:** *Which data must stay unchanged when Move edits only placement?*  
-> **Answer:** The original kernel vertices and attributes, the Rc source allocation, source GUID, imported session and local display arrays must remain unchanged. Undo and Redo change the placement stored in the document, while the camera stays where the user put it.
-
-- **What You Should See:** Run the ownership checks below. Move, Undo and Redo must retain the same source and display allocations; only placement and history change.
-- **Hands-On Lab Experiment:** In the generated-box check, add a second Move with a different offset and another Undo. Predict which placement is restored and why both Rc pointers stay identical. Restore the original checks afterward.
-
-<details>
-<summary>Implementation 28c-ownership: Prove source ownership survives editing</summary>
-
-Connect local source geometry, display caches, provenance and document history.
-
-Data flow: Source mesh plus placement → Move → Undo/Redo → same source allocation and identity.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4540,21 +3653,9 @@ Copy this supplied file:
 --8<-- "journey/code/28c-ownership-01.rs"
 ```
 
-</details>
-
 ### 2. `src/lib.rs`
 
 Compile the connected ownership checks with the current scene.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod prepared_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -4562,31 +3663,21 @@ After that block, type:
 --8<-- "journey/code/28c-ownership-02.rs" skip=33
 ```
 
-</details>
+**Result after `28c-ownership`:** Run the ownership checks below. Move, Undo and Redo must retain the same source and display allocations; only placement and history change.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 28c-ownership
-npm --prefix ../session_tests run course -- check 28c-ownership
-npm --prefix ../session_tests run course -- save 28c-ownership
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 3.4
+npm --prefix ../session_tests run course -- save 3.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 3.4 (28c-ownership)](../../screenshots/journey/28c-ownership-browser.png)
-
-Run the ownership checks below. Move, Undo and Redo must retain the same source and display allocations; only placement and history change.
-
-- **Final Lesson Experiment:** In the generated-box check, add a second Move with a different offset and another Undo. Predict which placement is restored and why both Rc pointers stay identical. Restore the original checks afterward.
-
-Continue with [Save, replace and asynchronous transaction results](29-identity.md).
+Continue with [3.5 · Save, replace and asynchronous transaction results](29-identity.md).

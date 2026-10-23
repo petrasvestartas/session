@@ -1,238 +1,101 @@
 # 8.2 · Tree presentation with explicit input ownership
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.2** (Redraft `5.8`) · **5 checkpoints (`52g-rows` → `52k-tree`)** · **Study time: 2.5–5 h**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Checkpoints:** `52g-rows` → `52k-tree` (5 steps) · **Production source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../src/state/drag.rs) · [state/box_select.rs](../../../src/state/box_select.rs)
 
-> **What You Will Learn & Build:** Expose stable tree rows across geometry lanes. By the final checkpoint (`52k-tree`), you will exercise nested source ownership and exact undo.
+> **Goal:** Exercise nested source ownership and exact undo.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 8 Visual Explanation: Scene Tree Transform Hierarchy, Layer Lamp Restoration & Inspector UI</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Parent-to-child matrix composition M_world = M_parent * M_local. Center: Lamp visibility inheritance. Right: Focus lock.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Visual Scene Tree Graph -->
-    <rect x="18" y="64" width="270" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="153" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Scene Tree Matrix Hierarchy</text>
-    <!-- Root node -->
-    <rect x="103" y="94" width="100" height="28" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="153" y="112" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Root Assembly</text>
-    <!-- Branches to Child A and Child B -->
-    <line x1="133" y1="122" x2="83" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="173" y1="122" x2="223" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="33" y="148" width="100" height="32" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="83" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Child Frame A</text>
-    <text x="83" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_A</text>
-    <rect x="173" y="148" width="100" height="32" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="223" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Leaf Mesh B</text>
-    <text x="223" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_B</text>
-    <text x="153" y="206" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">M_world = M_parent * M_local</text>
-    <text x="153" y="222" text-anchor="middle" font-size="9" fill="#111111">Full path IDs disambiguate same names</text>
-
-    <line x1="288" y1="154" x2="310" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Lamp Visibility Inheritance & Restoration -->
-    <rect x="312" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="444" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Lamp Visibility Gate (Non-Destructive)</text>
-    <!-- 3 input switches feeding effective visibility -->
-    <rect x="328" y="98" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="114" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Layer Lamp</text>
-    <rect x="328" y="130" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="146" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parent Lamp</text>
-    <rect x="328" y="162" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="178" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Own Lamp</text>
-    <!-- AND gate box -->
-    <line x1="424" y1="110" x2="462" y2="134" stroke="#111111" stroke-width="1.2"/>
-    <line x1="424" y1="142" x2="462" y2="142" stroke="#111111" stroke-width="1.2"/>
-    <line x1="424" y1="174" x2="462" y2="150" stroke="#111111" stroke-width="1.2"/>
-    <rect x="462" y="122" width="98" height="40" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="511" y="140" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">AND Gate</text>
-    <text x="511" y="154" text-anchor="middle" font-size="9" fill="#111111">Drawn &amp; Pickable</text>
-    <text x="444" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Toggling Parent OFF hides child without</text>
-    <text x="444" y="223" text-anchor="middle" font-size="9" fill="#111111">overwriting stored Own Lamp state!</text>
-
-    <line x1="577" y1="154" x2="599" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Inspector Focus Adapter -->
-    <rect x="601" y="64" width="221" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="711" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Inspector &amp; Focus Adapter</text>
-    <rect x="617" y="98" width="189" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="627" y="115" font-size="9.5" font-weight="700" fill="#111111">[o] [L] Layer_01 (Renaming...)</text>
-    <text x="627" y="131" font-size="9" fill="#111111">Active egui text input has focus</text>
-    <line x1="711" y1="140" x2="711" y2="162" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="617" y="164" width="189" height="62" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="711" y="182" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">src/command_dock/mod.rs</text>
-    <text x="627" y="198" font-size="9" fill="#111111">Focus adapter pauses Command:</text>
-    <text x="627" y="212" font-size="9" fill="#111111">auto-capture until Enter/Escape</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 8.2 Pipeline Schematic: Tree presentation with explicit input ownership</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (5 Checkpoints: 52g-rows → 52k-tree)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">immutable node</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">metadata</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">current source</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">ownership</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">visible flat tree</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">rows</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">generated rows</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">nested example</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 8.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/hierarchy.rs  ·  src/chain.rs  ·  src/tree_panel.rs  ·  src/lib.rs  ·  src/panel.rs  ·  src/commands.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">5 Checkpoints: 52g-rows → 52k-tree — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Scene Tree</text>
+  <rect x="85" y="58" width="100" height="28" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Group (Mp)</text>
+  <line x1="115" y1="86" x2="80" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="155" y1="86" x2="190" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="38" y="122" width="84" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="80" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part A</text>
+  <rect x="148" y="122" width="84" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="190" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part B</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Mw = Mp * Ml</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Layer Lamps</text>
+  <rect x="330" y="66" width="178" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="350" cy="84" r="6" fill="#111111"/>
+  <text x="428" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Layer ON</text>
+  <rect x="330" y="114" width="178" height="36" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="350" cy="132" r="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="428" y="136" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Parent OFF (Masked)</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Preserves Child State</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Focus Adapter</text>
+  <rect x="614" y="66" width="180" height="36" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[Rename Layer_01|]</text>
+  <rect x="614" y="114" width="180" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="704" y="136" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Dock Shortcut Yielded</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">command_dock/mod.rs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
-| **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
-| **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
+| **Rust (`session_rust`)** | `M_world = M_parent * M_local` | Hierarchical scene-tree transforms with full tree-path identity. |
+| **Rust (Layers)** | `layer && parents && own_lamp` | Hiding a parent or layer masks children without losing child lamp state. |
+| **Rust (`command_dock`)** | Focus Yield Adapter | Yields Command Dock shortcuts while renaming a layer in the UI. |
 
-**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`52g-rows`](#checkpoint-52g-rows) | Expose stable tree rows across geometry lanes. | `src/hierarchy.rs`, `src/chain.rs` | `immutable node metadata → current source ownership → visible flat tree rows → independent generated rows` |
-| **2** | [`52h-expansion`](#checkpoint-52h-expansion) | Keep expansion and paging as presentation state. | `src/tree_panel.rs`, `src/lib.rs` | `stable tree keys → expansion set → visible subtree traversal → bounded panel page` |
-| **3** | [`52i-panel`](#checkpoint-52i-panel) | Draw indented original-source tree controls. | `src/tree_panel.rs` | `flat visible rows → indented controls → protected attribute buttons → pending selection action` |
-| **4** | [`52j-input`](#checkpoint-52j-input) | Connect tree controls before canvas picking. | `src/panel.rs`, `src/commands.rs`, `src/browser.rs` | `command or measured panel hit → tree action → checked source selection → canvas ownership resumes outside` |
-| **5** | [`52k-tree`](#checkpoint-52k-tree) | Exercise nested source ownership and exact undo. | `src/tree_specimen.rs`, `src/lib.rs`, `src/editor.rs`, `src/commands.rs` | `nested example → real tree controls → parent transform → save and reopen → complete deletion undo` |
+![Recorded visual output for Lesson 8.2 (52k-tree)](../../screenshots/journey/52k-tree.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-52g-rows"></a>
 
 ### Step 1 of 5 · Expose stable tree rows across geometry lanes (`52g-rows`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/5 Visual Trace (52g-rows): Expose stable tree rows across geometry lanes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/hierarchy.rs, src/chain.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">immutable node metadata</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current source ownership</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible flat tree rows</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent generated rows</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/hierarchy.rs, src/cha…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible flat tree rows</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent generated r…</text>
 </svg>
-</div>
-
-- **Goal:** Expose stable tree rows across geometry lanes.
-- **Data Flow Trace:** `immutable node metadata → current source ownership → visible flat tree rows → independent generated rows`
-- **Files You Touch:** `src/hierarchy.rs` (*Resolve current nested rows without reviving deleted object subtrees.*) · `src/chain.rs` (*Expose original line, polyline and curve names for their tree rows.*)
 
 Resolve each lightweight node to current viewer rows. Removed object subtrees disappear; generated meshes, curves, lines and points remain independent rows with stable keys.
 
-> **Self-Check Question:** *Can an old array position be a tree identity after Undo?*  
-> **Answer:** No. Rows may be removed or restored. The panel uses stable document/node keys and source-owned object IDs rather than current vector positions.
-
-- **Hands-On Lab Experiment:** Compare the panel row keys before Delete and after Undo. Restored nodes should regain the same keys and source owners.
-
-<details>
-<summary>Implementation 52g-rows: Expose stable tree rows across geometry lanes</summary>
-
-Expose stable tree rows across geometry lanes.
-
-Data flow: immutable node metadata → current source ownership → visible flat tree rows → independent generated rows.
+> **Check:** *Can an old array position be a tree identity after Undo?* — No. Rows may be removed or restored. The panel uses stable document/node keys and source-owned object IDs rather than current vector positions.
 
 ### 1. `src/hierarchy.rs`
 
 Resolve current nested rows without reviving deleted object subtrees.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Ok(Some(node))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -244,78 +107,44 @@ After that block, type:
 
 Expose original line, polyline and curve names for their tree rows.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct PreparedChain { pub source: Source, pub points: Rc<Vec<[f32; 3]>>, pub colour: [f32; 4], pub width: f32, pub heads: u32 }
-
-impl Source {
-    pub fn locked(&self) -> bool {
-        match self { Self::Line(r) => r.is_locked, Self::Polyline(r) => r.is_locked, Self::Curve(r, _) => r.is_locked }
-    }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/52g-rows-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-52h-expansion"></a>
 
 ### Step 2 of 5 · Keep expansion and paging as presentation state (`52h-expansion`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/5 Visual Trace (52h-expansion): Keep expansion and paging as presentation state</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable tree keys</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">expansion set</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible subtree traversal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded panel page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible subtree travers…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded panel page</text>
 </svg>
-</div>
-
-- **Goal:** Keep expansion and paging as presentation state.
-- **Data Flow Trace:** `stable tree keys → expansion set → visible subtree traversal → bounded panel page`
-- **Files You Touch:** `src/tree_panel.rs` (*Keep stable expansion keys, bounded pages and pending row selection outside saved geometry.*) · `src/lib.rs` (*Register the new source component.*)
 
 Expanded node keys survive source rebuilds and Undo. Present at most128 visible rows per page; collapsing a subtree changes only the panel, without editing document history.
 
-> **Self-Check Question:** *Does expanding a tree node belong in Undo history?*  
-> **Answer:** No. Expansion changes presentation. Geometry, source records and saved placements remain untouched, so ordinary Undo stays focused on document edits.
-
-- **Hands-On Lab Experiment:** Expand a group, delete it, undo, and compare its key. The expansion can return because the restored node retains its earlier stable identity.
-
-<details>
-<summary>Implementation 52h-expansion: Keep expansion and paging as presentation state</summary>
-
-Keep expansion and paging as presentation state.
-
-Data flow: stable tree keys → expansion set → visible subtree traversal → bounded panel page.
+> **Check:** *Does expanding a tree node belong in Undo history?* — No. Expansion changes presentation. Geometry, source records and saved placements remain untouched, so ordinary Undo stays focused on document edits.
 
 ### 1. `src/tree_panel.rs`
 
@@ -331,90 +160,48 @@ Create the file and type:
 
 Register the new source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod number_box_tests;
-
-pub mod hierarchy;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/52h-expansion-02.rs" skip=42
 ```
 
-</details>
+---
 
 <a id="checkpoint-52i-panel"></a>
 
 ### Step 3 of 5 · Draw indented original-source tree controls (`52i-panel`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/5 Visual Trace (52i-panel): Draw indented original-source tree controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">flat visible rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">indented controls</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">protected attribute</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">buttons</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending selection action</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">protected attribute but…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending selection action</text>
 </svg>
-</div>
-
-- **Goal:** Draw indented original-source tree controls.
-- **Data Flow Trace:** `flat visible rows → indented controls → protected attribute buttons → pending selection action`
-- **Files You Touch:** `src/tree_panel.rs` (*Draw bounded source rows with actual measured control rectangles and read-only explanations.*)
 
 Draw a bounded, scrollable tree at the right using real egui controls. Attribute buttons stay disabled with a reason, while group selection and expansion own their measured pointer rectangles.
 
-> **Self-Check Question:** *Why disable an attribute’s button instead of hiding its row?*  
-> **Answer:** The learner still needs to understand which source geometry follows a parent. A visible read-only row explains that ownership without allowing an independent edit.
-
-- **Hands-On Lab Experiment:** Open Layers All and locate a nested attribute. Its indentation and disabled button should explain its parent ownership; closing the panel releases its pointer rectangle.
-
-<details>
-<summary>Implementation 52i-panel: Draw indented original-source tree controls</summary>
-
-Draw indented original-source tree controls.
-
-Data flow: flat visible rows → indented controls → protected attribute buttons → pending selection action.
+> **Check:** *Why disable an attribute’s button instead of hiding its row?* — The learner still needs to understand which source geometry follows a parent. A visible read-only row explains that ownership without allowing an independent edit.
 
 ### 1. `src/tree_panel.rs`
 
 Draw bounded source rows with actual measured control rectangles and read-only explanations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -422,60 +209,38 @@ After that block, type:
 --8<-- "journey/code/52i-panel-01.rs" skip=9
 ```
 
-</details>
+---
 
 <a id="checkpoint-52j-input"></a>
 
 ### Step 4 of 5 · Connect tree controls before canvas picking (`52j-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/5 Visual Trace (52j-input): Connect tree controls before canvas picking</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs, src/commands.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command or measured panel</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">hit</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">tree action</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source selection</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">canvas ownership resumes</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">outside</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs, src/command…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked source selection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">canvas ownership resume…</text>
 </svg>
-</div>
-
-- **Goal:** Connect tree controls before canvas picking.
-- **Data Flow Trace:** `command or measured panel hit → tree action → checked source selection → canvas ownership resumes outside`
-- **Files You Touch:** `src/panel.rs` (*Lay out tree controls and consume pointer or wheel input in the actual panel rectangle.*) · `src/commands.rs` (*Register the maintained Layers On, Off and All host commands.*) · `src/browser.rs` (*Refresh source-backed rows, route their actions first and report their current identities.*)
 
 Layers On, Off and All control the panel. Route tree clicks before handles or asynchronous canvas picks; the panel owns pointer and wheel events inside its measured rectangle.
 
-> **Self-Check Question:** *Should clicking a tree row also submit a canvas pick?*  
-> **Answer:** No. The measured panel rectangle owns that event. Its selection action cancels older pick work before the viewer redraws the selected source rows.
-
-- **Hands-On Lab Experiment:** Click a group, collapse it, then navigate outside the panel. Group selection must affect its eligible descendants, while panel scrolling must leave the camera still.
-
-<details>
-<summary>Implementation 52j-input: Connect tree controls before canvas picking</summary>
-
-Connect tree controls before canvas picking.
-
-Data flow: command or measured panel hit → tree action → checked source selection → canvas ownership resumes outside.
+> **Check:** *Should clicking a tree row also submit a canvas pick?* — No. The measured panel rectangle owns that event. Its selection action cancels older pick work before the viewer redraws the selected source rows.
 
 ### 1. `src/panel.rs`
 
@@ -483,8 +248,7 @@ Lay out tree controls and consume pointer or wheel input in the actual panel rec
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.controls = Some(Vec::new());
@@ -494,8 +258,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             command_dock::draw(root, &mut self.model, &mut self.controls, &mut line, &self.commands, true);
         });
 ```
-
-</details>
 
 Replace it with:
 
@@ -509,8 +271,7 @@ Replace it with:
         });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             unit: match event.delta_mode() { 1 => egui::MouseWheelUnit::Line, 2 => egui::MouseWheelUnit::Page, _ => egui::MouseWheelUnit::Point },
@@ -527,8 +288,6 @@ Replace it with:
             "top": self.top, "focused": self.context.egui_wants_keyboard_input(),
             "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y]),
 ```
-
-</details>
 
 Replace it with:
 
@@ -548,8 +307,7 @@ Replace it with:
             "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y]),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn pointer(&mut self, event: &web_sys::PointerEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {
@@ -560,8 +318,6 @@ Replace it with:
         if event.type_() == "pointerdown" {
             self.pointer_owned = over;
 ```
-
-</details>
 
 Replace it with:
 
@@ -575,8 +331,7 @@ Replace it with:
             self.pointer_owned = over;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -587,8 +342,6 @@ Replace it with:
             focus_command: true,
             ..Default::default()
 ```
-
-</details>
 
 Replace it with:
 
@@ -602,8 +355,7 @@ Replace it with:
             ..Default::default()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -613,8 +365,6 @@ pub struct Panel {
     commands: Commands,
     pub consumed: bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -628,8 +378,7 @@ pub struct Panel {
     pub consumed: bool,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -902,43 +651,13 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/52j-input-01.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-02.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-03.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-04.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-05.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Register the maintained Layers On, Off and All host commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 ];
@@ -948,8 +667,6 @@ pub const HOSTS: &[(&str, Host)] = &[
     ("Open", Host::Open),
     ("Open Replace", Host::Replace),
 ```
-
-</details>
 
 Replace it with:
 
@@ -963,8 +680,7 @@ pub const HOSTS: &[(&str, Host)] = &[
     ("Open Replace", Host::Replace),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::editor::Action;
@@ -974,8 +690,6 @@ pub enum Host { Help, Open, Replace, CancelOpen, Reload, CancelReload, Save, Rep
 
 pub enum Command { Editor(Action), Host(Host) }
 ```
-
-</details>
 
 Replace it with:
 
@@ -988,8 +702,7 @@ pub enum Host { Help, Open, Replace, CancelOpen, Reload, CancelReload, Save, Rep
 pub enum Command { Editor(Action), Host(Host) }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -1120,31 +833,13 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/52j-input-06.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-07.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Refresh source-backed rows, route their actions first and report their current identities.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .get_element_by_id("canvas")
@@ -1154,8 +849,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1169,8 +862,7 @@ Replace it with:
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             editor.hover_gizmo(hover);
@@ -1183,8 +875,6 @@ Replace it with:
                 &surface,
                 &renderer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1200,8 +890,7 @@ Replace it with:
                 &renderer,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
@@ -1211,8 +900,6 @@ Replace it with:
         renderer.set_pick_mode(editor.pick_mode);
         if highlight_changed {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1226,8 +913,7 @@ Replace it with:
         if highlight_changed {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             None
@@ -1238,8 +924,6 @@ Replace it with:
         } else if event.type_() == "viewer-pick" {
             match renderer.take_pick(editor.camera.uniform()) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1255,8 +939,7 @@ Replace it with:
             match renderer.take_pick(editor.camera.uniform()) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 panel.result(&result);
@@ -1266,8 +949,6 @@ Replace it with:
                 let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
                     &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
 ```
-
-</details>
 
 Replace it with:
 
@@ -1283,8 +964,7 @@ Replace it with:
                     &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -1991,96 +1671,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/52j-input-08.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-09.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-10.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-11.rs"
-```
-
-```text
---8<-- "journey/code/52j-input-12.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-52k-tree"></a>
 
 ### Step 5 of 5 · Exercise nested source ownership and exact undo (`52k-tree`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/5 Visual Trace (52k-tree): Exercise nested source ownership and exact undo</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_specimen.rs, src/lib.rs, src/editor.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">nested example</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">real tree controls</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parent transform</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">save and reopen</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete deletion</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">undo</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_specimen.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">parent transform</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete deletion undo</text>
 </svg>
-</div>
-
-- **Goal:** Exercise nested source ownership and exact undo.
-- **Data Flow Trace:** `nested example → real tree controls → parent transform → save and reopen → complete deletion undo`
-- **Files You Touch:** `src/tree_specimen.rs` (*Copy the source-built nested example used by both exercises and ownership checks.*) · `src/lib.rs` (*Register the new source component.*) · `src/editor.rs` (*Import the supplied nested example as one ordinary document transaction.*) · `src/commands.rs` (*Register the supplied Example Nested exercise.*) · `src/hierarchy_tests.rs` (*Copy the exact nested-source, undo, save and actual egui regressions.*)
 
 Load the supplied nested frame and inspect its actual source rows. Move its parent, verify the following attribute, save and reopen, then delete and undo the complete parent-owned subtree.
 
-> **Self-Check Question:** *Which parts of the document must remain unchanged while expanding the tree?*  
-> **Answer:** Every original source record, geometry placement and history entry. Only panel expansion and paging change until an explicit document edit is accepted.
+> **Check:** *Which parts of the document must remain unchanged while expanding the tree?* — Every original source record, geometry placement and history entry. Only panel expansion and paging change until an explicit document edit is accepted.
 
-- **What You Should See:** Type Close, Example Nested, Fit, View Isometric, then Layers All. Select Posts in the tree and type Move 0.5,0,0. The parent and its read-only attribute follow once; unrelated geometry stays still. Undo restores both. Save and Open Replace preserve their nested source paths. Delete and Undo operate on the whole parent-owned subtree.
-- **Hands-On Lab Experiment:** Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
-
-<details>
-<summary>Implementation 52k-tree: Exercise nested source ownership and exact undo</summary>
-
-Exercise nested source ownership and exact undo.
-
-Data flow: nested example → real tree controls → parent transform → save and reopen → complete deletion undo.
-
-<details>
-<summary>Supplied example data</summary>
+**Supplied example data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -2094,22 +1718,9 @@ Copy this supplied file:
 --8<-- "journey/code/52k-tree-01.rs"
 ```
 
-</details>
-
 ### 2. `src/lib.rs`
 
 Register the new source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod hierarchy;
-
-pub mod tree_panel;
-```
-
-</details>
 
 After that block, type:
 
@@ -2123,8 +1734,7 @@ Import the supplied nested example as one ordinary document transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.clear();
@@ -2134,8 +1744,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let loaded = crate::document::load(&bytes)?;
                 self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2149,8 +1757,7 @@ Replace it with:
                 self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Close,
@@ -2160,8 +1767,6 @@ Replace it with:
     AddPoint,
     AddCurve,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2175,8 +1780,7 @@ Replace it with:
     AddCurve,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2852,40 +2456,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/52k-tree-03.rs"
-```
-
-```text
---8<-- "journey/code/52k-tree-04.rs"
-```
-
-</details>
-
 ### 4. `src/commands.rs`
 
 Register the supplied Example Nested exercise.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
-    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
-    ("Example Box", || Action::AddBox),
-    ("Example Line", || Action::AddLine),
-    ("Example Point", || Action::AddPoint),
-    ("Example Curve", || Action::AddCurve),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2893,8 +2466,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/52k-tree-05.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2908,22 +2480,9 @@ Copy this supplied file:
 --8<-- "journey/code/52k-tree-06.rs"
 ```
 
-</details>
-
 ### 6. `src/lib.rs`
 
 Register the new source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod tree_panel;
-
-pub mod tree_specimen;
-```
-
-</details>
 
 After that block, type:
 
@@ -2931,31 +2490,21 @@ After that block, type:
 --8<-- "journey/code/52k-tree-07.rs" skip=44
 ```
 
-</details>
+**Result after `52k-tree`:** Type Close, Example Nested, Fit, View Isometric, then Layers All. Select Posts in the tree and type Move 0.5,0,0. The parent and its read-only attribute follow once; unrelated geometry stays still. Undo restores both. Save and Open Replace preserve their nested source paths. Delete and Undo operate on the whole parent-owned subtree.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 52k-tree
-npm --prefix ../session_tests run course -- check 52k-tree
-npm --prefix ../session_tests run course -- save 52k-tree
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 8.2
+npm --prefix ../session_tests run course -- save 8.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 8.2 (52k-tree)](../../screenshots/journey/52k-tree.png)
-
-Type Close, Example Nested, Fit, View Isometric, then Layers All. Select Posts in the tree and type Move 0.5,0,0. The parent and its read-only attribute follow once; unrelated geometry stays still. Undo restores both. Save and Open Replace preserve their nested source paths. Delete and Undo operate on the whole parent-owned subtree.
-
-- **Final Lesson Experiment:** Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
-
-Continue with [Layers, visibility and source-preserving properties](53-flags.md).
+Continue with [8.3 · Layers, visibility and source-preserving properties](53-flags.md).

@@ -1,236 +1,98 @@
 # 5.2 · Joined paths and headed ends
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.2** (Redraft `4.2`) · **10 checkpoints (`36-chain` → `36e-input`)** · **Study time: 7.5–12.5 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `36-chain` → `36e-input` (10 steps) · **Production source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-> **What You Will Learn & Build:** Retain exact line or polyline owners while preparing checked shared display points. By the final checkpoint (`36e-input`), you will insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels.
+> **Goal:** Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 5 Visual Explanation: Homogeneous Near-Clip, Screen-Space Ribbon Quad Extrusion & Point Discs</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Clipping to w > near before perspective divide. Center: Extruding segment pA→pB along normal n. Right: SDF point disc.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Homogeneous Near-Plane Clip -->
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Homogeneous Clip (w &gt; near)</text>
-    <!-- Near plane vertical line at x=115 -->
-    <line x1="115" y1="96" x2="115" y2="196" stroke="#111111" stroke-width="1.75"/>
-    <text x="115" y="92" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">w = near plane</text>
-    <!-- Eye at (65, 148) -->
-    <circle cx="65" cy="148" r="4" fill="#111111"/>
-    <text x="65" y="164" text-anchor="middle" font-size="9" fill="#111111">Camera</text>
-    <!-- Segment from behind camera B(45, 180) through B'(115, 152) to A(225, 108) -->
-    <line x1="45" y1="180" x2="115" y2="152" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3"/>
-    <line x1="115" y1="152" x2="225" y2="108" stroke="#111111" stroke-width="2.5"/>
-    <circle cx="45" cy="180" r="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <circle cx="115" cy="152" r="4" fill="#111111"/>
-    <circle cx="225" cy="108" r="4" fill="#111111"/>
-    <text x="58" y="192" font-size="9" fill="#111111">B (w &lt; 0)</text>
-    <text x="142" y="164" font-size="9.5" font-weight="700" fill="#111111">Clipped B'</text>
-    <text x="225" y="102" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">A (w &gt; near)</text>
-    <text x="140" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Clip in 4D BEFORE xyz / w divide</text>
-    <text x="140" y="232" text-anchor="middle" font-size="9" fill="#111111">so behind-camera endpoints never flip!</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Screen-Space Ribbon Quad Extrusion -->
-    <rect x="287" y="64" width="295" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Screen-Space Ribbon Quad (6 Verts)</text>
-    <!-- Outer AA feather quad (dashed) -->
-    <polygon points="316,120 516,92 528,162 328,190" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <!-- Core stroke quad -->
-    <polygon points="319,130 519,102 525,152 325,180" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Center line pA -> pB -->
-    <line x1="322" y1="155" x2="522" y2="127" stroke="#111111" stroke-width="2"/>
-    <circle cx="322" cy="155" r="4" fill="#111111"/>
-    <circle cx="522" cy="127" r="4" fill="#111111"/>
-    <!-- Normal vector n = (-dir.y, dir.x) -->
-    <line x1="422" y1="141" x2="416" y2="104" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="458" y="114" font-size="9.5" font-weight="700" fill="#111111">n = (-dir.y, dir.x)</text>
-    <text x="315" y="172" font-size="9.5" font-weight="700" fill="#111111">pA</text>
-    <text x="532" y="130" font-size="9.5" font-weight="700" fill="#111111">pB</text>
-    <text x="434" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">offset = n * (half_width_px + 1px_AA)</text>
-    <text x="434" y="223" text-anchor="middle" font-size="9" fill="#111111">Constant CSS pixel width at any 3D zoom</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Point Marker SDF Disc (glyph.wgsl) -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Point Marker Disc (SDF)</text>
-    <!-- Bounding 2D screen quad -->
-    <rect x="664" y="96" width="100" height="100" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
-    <!-- Outer AA circle and Inner solid circle -->
-    <circle cx="714" cy="146" r="42" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <circle cx="714" cy="146" r="34" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="714" cy="146" r="3" fill="#111111"/>
-    <line x1="714" y1="146" x2="748" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="731" y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">r</text>
-    <text x="714" y="213" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">d = length(uv); discard d &gt; r+1</text>
-    <text x="714" y="227" text-anchor="middle" font-size="9" fill="#111111">smoothstep feathers 1px rim</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 5.2 Pipeline Schematic: Joined paths and headed ends</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (10 Checkpoints: 36-chain → 36e-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original owner</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked display</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">points</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">repeated-point</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">removal</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">shared display</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">cache</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted dock</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">command</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 5.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/chain.rs  ·  src/lib.rs  ·  src/chain_tests.rs  ·  src/chain_link_tests.rs  ·  src/chain.wgsl  ·  src/stroke_gpu.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">10 Checkpoints: 36-chain → 36e-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Near Clip (w &gt; 0)</text>
+  <line x1="115" y1="58" x2="115" y2="162" stroke="#111111" stroke-width="2"/>
+  <text x="115" y="176" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">w = near</text>
+  <line x1="55" y1="142" x2="115" y2="110" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 4"/>
+  <line x1="115" y1="110" x2="210" y2="68" stroke="#111111" stroke-width="3"/>
+  <circle cx="55" cy="142" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="115" cy="110" r="4.5" fill="#111111"/>
+  <circle cx="210" cy="68" r="4" fill="#111111"/>
+  <text x="68" y="156" font-family="monospace" font-size="9" fill="#111111">Clipped</text>
+  <text x="180" y="95" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Kept</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Ribbon Quad</text>
+  <polygon points="338,120 480,68 498,108 356,160" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="347" y1="140" x2="489" y2="88" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="347" cy="140" r="4" fill="#111111"/>
+  <circle cx="489" cy="88" r="4" fill="#111111"/>
+  <line x1="418" y1="114" x2="407" y2="88" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="385" y="84" font-family="monospace" font-size="10" font-weight="700" fill="#111111">+n</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">6-Vert Extrusion</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. SDF Anti-Alias</text>
+  <line x1="620" y1="148" x2="788" y2="148" stroke="#111111" stroke-width="1.5"/>
+  <path d="M 628 148 L 656 76 L 752 76 L 780 148" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="704" y="68" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">alpha = 1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">smoothstep() Edge</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
-| **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
-| **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
+| **WGSL (`ribbon.wgsl`)** | Near-Plane Clip (`w > near`) | Clips 3D segments in 4D before dividing by `w`. |
+| **WGSL (`ribbon.wgsl`)** | 6-Vertex Screen Quad (`±n`) | Extrudes each 3D line along screen normal `(-dir.y, dir.x)`. |
+| **WGSL (`glyph.wgsl`)** | `smoothstep()` SDF Coverage | Anti-aliases stroke edges and round point markers in `@fragment`. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`36-chain`](#checkpoint-36-chain) | Retain exact line or polyline owners while preparing checked shared display points. | `src/chain.rs`, `src/lib.rs`, `src/chain_tests.rs` | `original owner → checked display points → repeated-point removal → shared display cache` |
-| **2** | [`36a-links`](#checkpoint-36a-links) | Link every nonzero span to its neighbours and identify free ends carrying arrowheads. | `src/chain.rs`, `src/chain_link_tests.rs`, `src/lib.rs` | `shared display points → previous/current/next → closed wraparound → headed free spans → 72-byte payload` |
-| **3** | [`36b-join`](#checkpoint-36b-join) | Calculate a shared bounded cross-section from projected neighbour directions. | `src/chain.wgsl`, `src/chain.rs` | `project adjacent points → reject hidden or zero spans → bisector → bounded cross-section` |
-| **4** | [`36ba-body`](#checkpoint-36ba-body) | Build joined stroke vertices and analytic coverage from the prepared projected cross-sections. | `src/chain.wgsl` | `clip endpoint → bounded join offset → clip w scaling → shared raster edge → analytic coverage` |
-| **5** | [`36bb-heads`](#checkpoint-36bb-heads) | Draw flagged arrowheads with stable screen dimensions and limit their share of short spans. | `src/chain.wgsl` | `free-end head flags → projected shaft → bounded head length → split shaft/head seam → triangular coverage` |
-| **6** | [`36c-lane`](#checkpoint-36c-lane) | Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout. | `src/stroke_gpu.rs` | `checked connected records → one changed-data buffer → same view uniform → 18 vertices → complete release` |
-| **7** | [`36d-document`](#checkpoint-36d-document) | Retain exact connected source owners as independent document rows and history values. | `src/chain.rs`, `src/scene.rs`, `src/document.rs`, `src/lib.rs` | `prepared source → checked row ID and saved GUID → shared history owners → complete Close` |
-| **8** | [`36db-placement`](#checkpoint-36db-placement) | Place original path coordinates before display conversion and count shared source/display owners once. | `src/chain.rs`, `src/scene.rs`, `src/memory.rs`, `src/path_placement_tests.rs` | `source doubles → checked model → placed double bounds → final f32 records → distinct allocation ledgers` |
-| **9** | [`36da-render`](#checkpoint-36da-render) | Synchronize placed connected paths into one shared lane and release every instance on Close. | `src/renderer.rs`, `src/browser.rs` | `accepted document paths → placed connected records → changed-data lane → shared depth pass → complete resource release` |
-| **10** | [`36e-input`](#checkpoint-36e-input) | Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/path_input_tests.rs` | `accepted dock command → original source → one history transaction → connected lane → pixel and release checks` |
+![Recorded visual output for Lesson 5.2 (36e-input)](../../../screenshots/journey/36e-input-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-36-chain"></a>
 
 ### Step 1 of 10 · Retain connected source geometry (`36-chain`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/10 Visual Trace (36-chain): Retain connected source geometry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.rs, src/lib.rs, src/chain_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked display points</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">repeated-point removal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared display cache</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">repeated-point removal</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared display cache</text>
 </svg>
-</div>
-
-- **Goal:** Retain exact line or polyline owners while preparing checked shared display points.
-- **Data Flow Trace:** `original owner → checked display points → repeated-point removal → shared display cache`
-- **Files You Touch:** `src/chain.rs` (*Retain exact source geometry while deriving finite neighbour and head records.*) · `src/lib.rs` (*Register connected geometry and its checks.*) · `src/chain_tests.rs` (*Copy source precision, links, degeneracy and packed-head checks.*)
 
 Retain an Rc owner for a line or polyline, then prepare checked display points. Consecutive repeated points add no span; the original coordinates remain intact.
 
 Keep a shared display-point cache beside the exact source. Cloning document history can share both values without rounding coordinates in the kernel object. Neighbour and head records follow next.
 
-> **Self-Check Question:** *Why are repeated display points removed without changing the source polyline?*  
-> **Answer:** A zero-length projected span has no direction for extrusion. Display preparation can omit it while saving and editing retain the original coordinates.
-
-- **What You Should See:** Run the exact-source checks. Display conversion retains the original kernel coordinates and owner.
-- **Hands-On Lab Experiment:** Prepare a polyline with repeated points and clone its prepared value. The display points are shared, and the original coordinates remain unchanged.
-
-<details>
-<summary>Implementation 36-chain: Retain connected source geometry</summary>
-
-Retain exact line or polyline owners while preparing checked shared display points.
-
-Data flow: original owner → checked display points → repeated-point removal → shared display cache.
+> **Check:** *Why are repeated display points removed without changing the source polyline?* — A zero-length projected span has no direction for extrusion. Display preparation can omit it while saving and editing retain the original coordinates.
 
 ### 1. `src/chain.rs`
 
@@ -246,15 +108,6 @@ Create the file and type:
 
 Register connected geometry and its checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod stroke;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -263,19 +116,7 @@ pub mod chain;
 mod chain_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36-chain-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -289,84 +130,46 @@ Copy this supplied file:
 --8<-- "journey/code/36-chain-03.rs"
 ```
 
-</details>
+**Result after `36-chain`:** Run the exact-source checks. Display conversion retains the original kernel coordinates and owner.
 
-</details>
+---
 
 <a id="checkpoint-36a-links"></a>
 
 ### Step 2 of 10 · Link adjacent spans and headed ends (`36a-links`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/10 Visual Trace (36a-links): Link adjacent spans and headed ends</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.rs, src/chain_link_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared display</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">points</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">previous/current/next</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">closed wraparound</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">headed free spans</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">72-byte payload</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.rs, src/chain_l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">closed wraparound</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">72-byte payload</text>
 </svg>
-</div>
-
-- **Goal:** Link every nonzero span to its neighbours and identify free ends carrying arrowheads.
-- **Data Flow Trace:** `shared display points → previous/current/next → closed wraparound → headed free spans → 72-byte payload`
-- **Files You Touch:** `src/chain.rs` (*Describe neighbours and heads without modifying the original source.*) · `src/chain_link_tests.rs` (*Copy closed-neighbour and headed-span checks.*) · `src/lib.rs` (*Register the connected span checks.*)
 
 Turn adjacent display points into connected span records. Repeated display points already have no span; the source still retains them.
 
 Closed paths wrap their neighbour references and suppress free-end arrows. Open paths carry head flags only at their first and last nonzero spans. Pack each record into an explicit 72-byte instance layout.
 
-> **Self-Check Question:** *Which original does a prepared path link belong to?*  
-> **Answer:** Its source polyline and original span address. Reuse the [display filtering rule](../../36-chain.md); do not turn sampled or omitted points into new editable originals.
-
-- **What You Should See:** Run neighbour checks. A closed chain wraps both ends and suppresses free arrowheads; an open chain uses its first and last nonzero spans.
-- **Hands-On Lab Experiment:** Inspect a closed triangle and an open headed chain. Verify their source coordinates survive repeated-point removal exactly.
-
-<details>
-<summary>Implementation 36a-links: Link adjacent spans and headed ends</summary>
-
-Link every nonzero span to its neighbours and identify free ends carrying arrowheads.
-
-Data flow: shared display points → previous/current/next → closed wraparound → headed free spans → 72-byte payload.
+> **Check:** *Which original does a prepared path link belong to?* — Its source polyline and original span address. Reuse the [display filtering rule](../../36-chain.md); do not turn sampled or omitted points into new editable originals.
 
 ### 1. `src/chain.rs`
 
 Describe neighbours and heads without modifying the original source.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(Self { source, points: Rc::new(points), colour, width, heads })
-    }
-
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -374,8 +177,7 @@ After that block, type:
 --8<-- "journey/code/36a-links-01.rs" skip=84
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -389,20 +191,9 @@ Copy this supplied file:
 --8<-- "journey/code/36a-links-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the connected span checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod chain;
-```
-
-</details>
 
 After that block, type:
 
@@ -411,73 +202,42 @@ After that block, type:
 mod chain_link_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `36a-links`:** Run neighbour checks. A closed chain wraps both ends and suppresses free arrowheads; an open chain uses its first and last nonzero spans.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36a-links-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-36b-join"></a>
 
 ### Step 3 of 10 · Project neighbours for bounded stroke joins (`36b-join`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/10 Visual Trace (36b-join): Project neighbours for bounded stroke joins</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.wgsl, src/chain.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">project adjacent points</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reject hidden or zero</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">spans</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bisector</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded cross-section</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.wgsl, src/chain…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bisector</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded cross-section</text>
 </svg>
-</div>
-
-- **Goal:** Calculate a shared bounded cross-section from projected neighbour directions.
-- **Data Flow Trace:** `project adjacent points → reject hidden or zero spans → bisector → bounded cross-section`
-- **Files You Touch:** `src/chain.wgsl` (*Share bounded projected joins while retaining near clipping and edge coverage.*) · `src/chain.rs` (*Expose the actual connected shader source.*)
 
 Project adjacent points before calculating their shared joint cross-section. Bound near-reversal joins so an unstable bisector cannot create an unbounded spike.
 
 A hidden neighbour or zero-length projected span falls back to the current segment normal. Vertex extrusion and analytic fragment coverage follow next.
 
-> **Self-Check Question:** *Why bound the join when two projected spans nearly reverse?*  
-> **Answer:** Their bisector becomes unstable as the directions oppose. A bounded cross-section avoids unbounded spikes; later visibility checks still use the original source spans.
-
-- **What You Should See:** The actual drawing device validates the WGSL helper module. Vertex drawing follows next.
-- **Hands-On Lab Experiment:** Compare previous/current and current/next directions at a shared endpoint. Both segments must agree on the cross-section.
-
-<details>
-<summary>Implementation 36b-join: Project neighbours for bounded stroke joins</summary>
-
-Calculate a shared bounded cross-section from projected neighbour directions.
-
-Data flow: project adjacent points → reject hidden or zero spans → bisector → bounded cross-section.
+> **Check:** *Why bound the join when two projected spans nearly reverse?* — Their bisector becomes unstable as the directions oppose. A bounded cross-section avoids unbounded spikes; later visibility checks still use the original source spans.
 
 ### 1. `src/chain.wgsl`
 
@@ -493,15 +253,6 @@ Create the file and type:
 
 Expose the actual connected shader source.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::rc::Rc;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -509,90 +260,46 @@ pub const SHADER: &str = include_str!("chain.wgsl");
 use std::rc::Rc;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `36b-join`:** The actual drawing device validates the WGSL helper module. Vertex drawing follows next.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36b-join-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-36ba-body"></a>
 
 ### Step 4 of 10 · Extrude the joined stroke body (`36ba-body`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/10 Visual Trace (36ba-body): Extrude the joined stroke body</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clip endpoint</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded join offset</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clip w scaling</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared raster edge</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">analytic coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">clip w scaling</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">analytic coverage</text>
 </svg>
-</div>
-
-- **Goal:** Build joined stroke vertices and analytic coverage from the prepared projected cross-sections.
-- **Data Flow Trace:** `clip endpoint → bounded join offset → clip w scaling → shared raster edge → analytic coverage`
-- **Files You Touch:** `src/chain.wgsl` (*Clip before projection, meet bounded endpoint sections and cover the stroke analytically.*)
 
 Clip each span before dividing by w, then offset its ends along their shared bounded cross-sections. Convert physical-pixel offsets back into clip coordinates using w.
 
 The triangles of adjacent spans meet along their common endpoint section. Fragment coverage measures distance from the span in screen pixels, retaining constant width under camera changes.
 
-> **Self-Check Question:** *Why do both ribbon segments use the same end cross-section?*  
-> **Answer:** Their two triangles must meet along one boundary. Reuse the [bounded join](../../36b-join.md) rather than widening each span independently.
-
-- **What You Should See:** The actual drawing device validates the complete joined-body shader. Real connected instance drawing follows after arrowhead extrusion.
-- **Hands-On Lab Experiment:** Trace both triangles meeting at a shared path point. Their end cross-section comes from the same projected neighbours.
-
-<details>
-<summary>Implementation 36ba-body: Extrude the joined stroke body</summary>
-
-Build joined stroke vertices and analytic coverage from the prepared projected cross-sections.
-
-Data flow: clip endpoint → bounded join offset → clip w scaling → shared raster edge → analytic coverage.
+> **Check:** *Why do both ribbon segments use the same end cross-section?* — Their two triangles must meet along one boundary. Reuse the [bounded join](../../36b-join.md) rather than widening each span independently.
 
 ### 1. `src/chain.wgsl`
 
 Clip before projection, meet bounded endpoint sections and cover the stroke analytically.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    return bisector / max(dot(bisector, normal), 0.25);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -600,134 +307,46 @@ After that block, type:
 --8<-- "journey/code/36ba-body-01.wgsl" skip=58
 ```
 
-</details>
+**Result after `36ba-body`:** The actual drawing device validates the complete joined-body shader. Real connected instance drawing follows after arrowhead extrusion.
+
+---
 
 <a id="checkpoint-36bb-heads"></a>
 
 ### Step 5 of 10 · Extrude free-end arrowheads (`36bb-heads`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/10 Visual Trace (36bb-heads): Extrude free-end arrowheads</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">free-end head flags</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected shaft</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded head length</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">split shaft/head</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">seam</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">triangular coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded head length</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">triangular coverage</text>
 </svg>
-</div>
-
-- **Goal:** Draw flagged arrowheads with stable screen dimensions and limit their share of short spans.
-- **Data Flow Trace:** `free-end head flags → projected shaft → bounded head length → split shaft/head seam → triangular coverage`
-- **Files You Touch:** `src/chain.wgsl` (*Carry head shape separately from body coverage.*)
 
 Use the source head flags at free endpoints and suppress a head when clipping removes its tip. Limit the head length so short arrows retain a shaft.
 
 Draw the body and each head as separate six-vertex parts. Cut the shaft at the head base, and use triangular fragment coverage without blending the same interior twice.
 
-> **Self-Check Question:** *Why must a clipped end lose its arrowhead?*  
-> **Answer:** The clipped endpoint is a new display boundary rather than the original source tip. A head there would claim a direction and endpoint the document never contained.
-
-- **What You Should See:** The actual drawing device validates the headed stroke shader. Connected instance rendering follows next.
-- **Hands-On Lab Experiment:** Follow Start and End flags through the three six-vertex parts. A closed chain or a near-clipped end must not produce a free arrowhead.
-
-<details>
-<summary>Implementation 36bb-heads: Extrude free-end arrowheads</summary>
-
-Draw flagged arrowheads with stable screen dimensions and limit their share of short spans.
-
-Data flow: free-end head flags → projected shaft → bounded head length → split shaft/head seam → triangular coverage.
+> **Check:** *Why must a clipped end lose its arrowhead?* — The clipped endpoint is a new display boundary rather than the original source tip. A head there would claim a direction and endpoint the document never contained.
 
 ### 1. `src/chain.wgsl`
 
 Carry head shape separately from body coverage. Shape real free-end heads and partition their shaft at the base. Identify body fragments independently of head triangles. Cover triangle edges while preserving a continuous, singly blended shaft seam.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) pixel: vec2<f32>,
-    @location(2) @interpolate(flat) origin: vec2<f32>,
-    @location(3) @interpolate(flat) direction: vec2<f32>,
-    @location(4) @interpolate(flat) half_width: f32,
-}
-fn screen(p: vec4<f32>) -> vec2<f32> { return p.xy / p.w * view.size * 0.5; }
-fn perpendicular(d: vec2<f32>) -> vec2<f32> { return vec2<f32>(-d.y, d.x); }
-fn joint(neighbour: vec4<f32>, endpoint: vec4<f32>, d: vec2<f32>, before: bool) -> vec2<f32> {
-    let normal = perpendicular(d);
-    if (neighbour.z < 0.0 || neighbour.w <= 0.0) { return normal; }
-    let span = select(screen(neighbour) - screen(endpoint), screen(endpoint) - screen(neighbour), before);
-    if (dot(span, span) < 0.000001) { return normal; }
-    let other = normalize(span); let sum = normal + perpendicular(other);
-    if (dot(sum, sum) < 0.000001) { return normal; }
-    let bisector = normalize(sum);
-    return bisector / max(dot(bisector, normal), 0.25);
-}
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
-    @location(6) heads: u32, @builtin(vertex_index) index: u32) -> Output {
-    var hidden: Output; hidden.position = vec4<f32>(2.0, 2.0, 2.0, 1.0);
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    let clipped_a = a.z < 0.0; let clipped_b = b.z < 0.0;
-    if (clipped_a && clipped_b) { return hidden; }
-    if (clipped_a) { a = mix(a, b, -a.z / (b.z - a.z)); }
-    if (clipped_b) { b = mix(b, a, -b.z / (a.z - b.z)); }
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden; }
-    let delta = screen(b) - screen(a);
-    if (dot(delta, delta) < 0.000001) { return hidden; }
-    let direction = normalize(delta); let normal = perpendicular(direction);
-    let back = view.transform * vec4<f32>(previous, 1.0);
-    let front = view.transform * vec4<f32>(next, 1.0);
-    let left = select(joint(back, a, direction, true), normal, clipped_a);
-    let right = select(joint(front, b, direction, false), normal, clipped_b);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(0.0, 1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index]; let half_width = width * view.density * 0.5;
-    var position = select(a, b, corner.x > 0.5);
-    let offset = select(left, right, corner.x > 0.5) * (half_width + 0.70711) * corner.y;
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, screen(position), screen(a), direction, half_width);
-}
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {
-    let distance = dot(input.pixel - input.origin, perpendicular(input.direction));
-    let coverage = clamp(input.half_width + 0.5 - abs(distance), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -818,182 +437,46 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `36bb-heads`:** The actual drawing device validates the headed stroke shader. Connected instance rendering follows next.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36bb-heads-01.wgsl"
-```
-
-```text
---8<-- "journey/code/36bb-heads-02.wgsl"
-```
-
-```text
---8<-- "journey/code/36bb-heads-03.wgsl"
-```
-
-```text
---8<-- "journey/code/36bb-heads-04.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-36c-lane"></a>
 
 ### Step 6 of 10 · Share instance drawing with connected strokes (`36c-lane`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/10 Visual Trace (36c-lane): Share instance drawing with connected strokes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked connected</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">records</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one changed-data</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">buffer</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same view uniform</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">18 vertices</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">same view uniform</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete release</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout.
-- **Data Flow Trace:** `checked connected records → one changed-data buffer → same view uniform → 18 vertices → complete release`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Keep format-specific layout beside the shared lane resources.*)
 
 Parameterize the existing lane by shader, attributes, byte stride and vertex count. Keep its view uniform, changed-data reuse and release policy shared.
 
 Validate connected endpoints, neighbours and head flags before changing buffers. Real GPU checks draw turns and all arrowhead options, inspect alpha at the join and retain original line width checks.
 
-> **Self-Check Question:** *Why reuse the same lane rather than copying its upload and lifetime code?*  
-> **Answer:** Both formats need identical changed-data reuse, queue writes and Close release. Their shader, attributes, stride and vertex count are the differences.
-
-- **What You Should See:** Build and open the viewer. Existing source lines still draw, and the connected-stroke pipeline is ready. The following document and input checkpoints add path rows and polyline/arrow commands.
-- **Hands-On Lab Experiment:** The reference GPU fixture checks actual connected turns and arrowheads, constant density and reuse when only the camera changes.
-
-From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 36c-lane` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 36c-lane` and run your project separately.
-
-<details>
-<summary>Implementation 36c-lane: Share instance drawing with connected strokes</summary>
-
-Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout.
-
-Data flow: checked connected records → one changed-data buffer → same view uniform → 18 vertices → complete release.
+> **Check:** *Why reuse the same lane rather than copying its upload and lifetime code?* — Both formats need identical changed-data reuse, queue writes and Close release. Their shader, attributes, stride and vertex count are the differences.
 
 ### 1. `src/stroke_gpu.rs`
 
 Keep format-specific layout beside the shared lane resources. Validate each connected record, then reuse the same changed-byte transaction. Draw the correct number of vertices for either instance format. Count actual instances from their format-specific stride. Construct either layout using one pipeline and view implementation. Use the actual shader belonging to this instance layout. Bind the exact attributes and byte stride. Retain both layout parameters for synchronized draw and accounting. Keep the buffer initialization trait at the method that uses it.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Lane {
-    pipeline: wgpu::RenderPipeline,
-    uniform: wgpu::Buffer,
-    group: wgpu::BindGroup,
-    vertices: Option<wgpu::Buffer>,
-    data: Vec<u8>,
-    pub uploads: u64,
-    pub uploaded_bytes: u64,
-}
-
-impl Lane {
-    pub fn set(&mut self, device: &wgpu::Device, strokes: impl IntoIterator<Item = crate::stroke::Stroke>) -> Result<(), &'static str> {
-        use wgpu::util::DeviceExt;
-        let mut data = Vec::new();
-        for stroke in strokes {
-            if stroke.width <= 0.0 || stroke.values().iter().any(|value| !value.is_finite()) {
-                return Err("Invalid stroke display data");
-            }
-            data.extend(stroke.bytes());
-        }
-        u32::try_from(data.len() / 44).map_err(|_| "Too many stroke instances")?;
-        if data == self.data { return Ok(()); }
-        self.vertices = if data.is_empty() { None } else {
-            self.uploads += 1; self.uploaded_bytes += data.len() as u64;
-            Some(device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("stroke instances"), contents: &data, usage: wgpu::BufferUsages::VERTEX,
-            }))
-        };
-        self.data = data; Ok(())
-    }
-
-    pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
-        if self.vertices.is_none() { return; }
-        let bytes: Vec<u8> = transform.iter().copied().chain([size[0] as f32, size[1] as f32, density, 0.0])
-            .flat_map(f32::to_ne_bytes).collect();
-        queue.write_buffer(&self.uniform, 0, &bytes);
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        let Some(vertices) = &self.vertices else { return; };
-        pass.set_pipeline(&self.pipeline); pass.set_bind_group(0, &self.group, &[]);
-        pass.set_vertex_buffer(0, vertices.slice(..)); pass.draw(0..6, 0..(self.data.len() / 44) as u32);
-    }
-
-    pub fn usage(&self) -> [u64; 2] {
-        [self.data.len() as u64 / 44, self.vertices.as_ref().map_or(0, wgpu::Buffer::size)]
-    }
-
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(crate::stroke::SHADER.into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("stroke"), layout: None,
-            vertex: wgpu::VertexState { module: &shader, entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout { array_stride: 44, step_mode: wgpu::VertexStepMode::Instance,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32] }],
-            },
-            fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState { format, blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-                    write_mask: wgpu::ColorWrites::ALL })],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float,
-                depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::LessEqual),
-                stencil: Default::default(), bias: Default::default() }),
-            multisample: Default::default(), multiview_mask: None, cache: None,
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor { label: Some("stroke view"), size: 80,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: uniform.as_entire_binding() }] });
-        Self { pipeline, uniform, group, vertices: None, data: Vec::new(), uploads: 0, uploaded_bytes: 0 }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1110,119 +593,46 @@ impl Lane {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `36c-lane`:** Build and open the viewer. Existing source lines still draw, and the connected-stroke pipeline is ready. The following document and input checkpoints add path rows and polyline/arrow commands.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36c-lane-01.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-02.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-03.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-04.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-05.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-06.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-07.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-08.rs"
-```
-
-```text
---8<-- "journey/code/36c-lane-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-36d-document"></a>
 
 ### Step 7 of 10 · Retain connected paths in document history (`36d-document`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/10 Visual Trace (36d-document): Retain connected paths in document history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.rs, src/scene.rs, src/document.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked row ID and saved</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">GUID</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared history owners</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete Close</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.rs, src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared history owners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete Close</text>
 </svg>
-</div>
-
-- **Goal:** Retain exact connected source owners as independent document rows and history values.
-- **Data Flow Trace:** `prepared source → checked row ID and saved GUID → shared history owners → complete Close`
-- **Files You Touch:** `src/chain.rs` (*Expose the original identity and allocation for document ownership accounting.*) · `src/scene.rs` (*Place original source points before producing connected world display spans.*) · `src/document.rs` (*Refuse unsupported mixed saving rather than silently omitting connected geometry.*) · `src/lib.rs` (*Register the precise path-document checks.*) · `src/path_document_tests.rs` (*Copy precise placement, original identity, sharing and release checks.*)
 
 Give each connected path a checked object identity and saved GUID beside its exact source. Keep connected rows independent of mesh and single-line tables.
 
 History shares immutable source and display owners. Close drops both active and history roots; saving connected rows remains an explicit error until mixed-geometry serialization.
 
-> **Self-Check Question:** *Why transform original coordinates before converting placed endpoints to f32?*  
-> **Answer:** The model can magnify rounding error. Bounds and editing use original doubles; the display conversion belongs after the world placement.
-
-- **What You Should See:** Connected path rows retain their original source coordinates. The supplied identity/history fixture documents their lifetime; browser command delivery connects in the next lesson.
-- **Hands-On Lab Experiment:** Insert the same prepared source twice. The document rows need distinct saved GUIDs while both retain the same immutable kernel source.
-
-<details>
-<summary>Implementation 36d-document: Retain connected paths in document history</summary>
-
-Retain exact connected source owners as independent document rows and history values.
-
-Data flow: prepared source → checked row ID and saved GUID → shared history owners → complete Close.
+> **Check:** *Why transform original coordinates before converting placed endpoints to f32?* — The model can magnify rounding error. Bounds and editing use original doubles; the display conversion belongs after the world placement.
 
 ### 1. `src/chain.rs`
 
 Expose the original identity and allocation for document ownership accounting.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Source {
-    pub fn coordinates(&self) -> Vec<[f64; 3]> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1233,25 +643,13 @@ impl Source {
     pub fn coordinates(&self) -> Vec<[f64; 3]> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36d-document-01.rs"
-```
-
-</details>
-
 ### 2. `src/scene.rs`
 
 Place original source points before producing connected world display spans. Initialize the connected row table independently of mesh and line tables. Include all original placed path points in world bounds. Allocate distinct saved identities and validate complete placement before changing a row. Drop connected row capacity along with the rest of the document.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1261,8 +659,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.objects = Vec::new();
         self.extra = None;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1276,8 +672,7 @@ Replace it with:
         self.extra = None;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1287,8 +682,6 @@ Replace it with:
 
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1314,8 +707,7 @@ Replace it with:
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -1324,8 +716,6 @@ Replace it with:
         bounds
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1343,8 +733,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -1355,8 +744,6 @@ Replace it with:
         scene.insert(turquoise).expect("ID available");
         scene
 ```
-
-</details>
 
 Replace it with:
 
@@ -1370,8 +757,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1382,8 +768,6 @@ pub struct Scene {
     objects: Vec<Object>,
     next_id: u32,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1398,7 +782,6 @@ impl PathObject {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
 
-
 }
 
 #[derive(Clone)]
@@ -1409,8 +792,7 @@ pub struct Scene {
     next_id: u32,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -1492,7 +874,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1773,47 +1154,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36d-document-02.rs"
-```
-
-```text
---8<-- "journey/code/36d-document-03.rs"
-```
-
-```text
---8<-- "journey/code/36d-document-04.rs"
-```
-
-```text
---8<-- "journey/code/36d-document-05.rs"
-```
-
-```text
---8<-- "journey/code/36d-document-06.rs"
-```
-
-</details>
-
 ### 3. `src/document.rs`
 
 Refuse unsupported mixed saving rather than silently omitting connected geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if !scene.lines().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1821,29 +1164,9 @@ Edit the existing block to match this code; keep unchanged lines:
     if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36d-document-07.rs"
-```
-
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the precise path-document checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod chain;
-```
-
-</details>
 
 After that block, type:
 
@@ -1852,19 +1175,7 @@ After that block, type:
 mod path_document_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36d-document-09.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1878,81 +1189,46 @@ Copy this supplied file:
 --8<-- "journey/code/36d-document-10.rs"
 ```
 
-</details>
+**Result after `36d-document`:** Connected path rows retain their original source coordinates. The supplied identity/history fixture documents their lifetime; browser command delivery connects in the next lesson.
 
-</details>
+---
 
 <a id="checkpoint-36db-placement"></a>
 
 ### Step 8 of 10 · Place original connected coordinates and count shared owners (`36db-placement`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/10 Visual Trace (36db-placement): Place original connected coordinates and count shared owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.rs, src/scene.rs, src/memory.rs, src/path_placement_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source doubles</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked model</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed double bounds</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">final f32 records</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">distinct allocation</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ledgers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.rs, src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed double bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">distinct allocation led…</text>
 </svg>
-</div>
-
-- **Goal:** Place original path coordinates before display conversion and count shared source/display owners once.
-- **Data Flow Trace:** `source doubles → checked model → placed double bounds → final f32 records → distinct allocation ledgers`
-- **Files You Touch:** `src/chain.rs` (*Identify source allocations separately for each kernel type.*) · `src/scene.rs` (*Convert placed original doubles to display records only at the drawing boundary.*) · `src/memory.rs` (*Count row capacity and shared display buffers once across active and history roots.*) · `src/path_placement_tests.rs` (*Copy precise world placement, sharing, atomic refusal and release checks.*) · `src/lib.rs` (*Register precise placement and accounting checks.*)
 
 Transform original path coordinates before preparing final display spans. Validate every placed point before changing the row model.
 
 Count row capacity and distinct shared display buffers across the active scene and both history branches. These ledgers cover path rows and display coordinates; full kernel payload and driver overhead remain outside their scope.
 
-> **Self-Check Question:** *Which placement transforms a collected path endpoint?*  
-> **Answer:** Apply that original row's model once, in double precision, before narrowing the display vertex. The [collector](../../36d-document.md) retains original coordinates and ownership.
-
-- **What You Should See:** Run precise placement and accounting checks. Invalid models leave the row unchanged and Close clears every ledger.
-- **Hands-On Lab Experiment:** Apply a large translation to the precise source. Its world bounds use the original double coordinates, and Undo/Redo retain the same owner.
-
-<details>
-<summary>Implementation 36db-placement: Place original connected coordinates and count shared owners</summary>
-
-Place original path coordinates before display conversion and count shared source/display owners once.
-
-Data flow: source doubles → checked model → placed double bounds → final f32 records → distinct allocation ledgers.
+> **Check:** *Which placement transforms a collected path endpoint?* — Apply that original row's model once, in double precision, before narrowing the display vertex. The [collector](../../36d-document.md) retains original coordinates and ownership.
 
 ### 1. `src/chain.rs`
 
 Identify source allocations separately for each kernel type.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn coordinates(&self) -> Vec<[f64; 3]> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1964,25 +1240,13 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn coordinates(&self) -> Vec<[f64; 3]> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36db-placement-01.rs"
-```
-
-</details>
-
 ### 2. `src/scene.rs`
 
 Convert placed original doubles to display records only at the drawing boundary. Validate every placed point before committing the row model.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.paths.push(PathObject { id, guid, prepared, model: session_rust::Xform::identity() }); Ok(id)
@@ -1992,8 +1256,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2016,8 +1278,7 @@ Replace it with:
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct PathObject { pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
@@ -2027,8 +1288,6 @@ impl PathObject {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2050,8 +1309,7 @@ impl PathObject {
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2142,7 +1400,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2433,35 +1690,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36db-placement-02.rs"
-```
-
-```text
---8<-- "journey/code/36db-placement-03.rs"
-```
-
-</details>
-
 ### 3. `src/memory.rs`
 
 Count row capacity and shared display buffers once across active and history roots.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn lines<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 3] {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2481,19 +1712,7 @@ pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 pub fn lines<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 3] {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36db-placement-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2507,20 +1726,9 @@ Copy this supplied file:
 --8<-- "journey/code/36db-placement-05.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register precise placement and accounting checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod chain;
-```
-
-</details>
 
 After that block, type:
 
@@ -2529,79 +1737,42 @@ After that block, type:
 mod path_placement_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `36db-placement`:** Run precise placement and accounting checks. Invalid models leave the row unchanged and Close clears every ledger.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36db-placement-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-36da-render"></a>
 
 ### Step 9 of 10 · Draw connected document rows (`36da-render`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/10 Visual Trace (36da-render): Draw connected document rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted document</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">paths</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed connected</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">records</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">changed-data lane</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared depth pass</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete resource</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/brow…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">changed-data lane</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete resource relea…</text>
 </svg>
-</div>
-
-- **Goal:** Synchronize placed connected paths into one shared lane and release every instance on Close.
-- **Data Flow Trace:** `accepted document paths → placed connected records → changed-data lane → shared depth pass → complete resource release`
-- **Files You Touch:** `src/renderer.rs` (*Retain one connected lane beside the independent stroke batch.*) · `src/browser.rs` (*Inspect real path resources without changing the earlier mesh and line counter meanings.*)
 
 Prepare world connected records when accepted document state changes. Draw them through the same depth pass as meshes and independent single strokes.
 
 Keep camera and density in the shared view uniform, count actual connected payloads separately, and discard empty buffers on Close. GPU values retain no kernel path owner.
 
-> **Self-Check Question:** *Why does a camera change leave connected vertex uploads unchanged?*  
-> **Answer:** The accepted world endpoints and styles have not changed. Projection, viewport and display density live in the shared view uniform.
-
-- **What You Should See:** Inspect mixed-document GPU checks. Connected paths draw beside meshes and lines; Close clears all live path and instance resources.
-- **Hands-On Lab Experiment:** Synchronize unchanged paths and then zoom. The connected upload count must stay unchanged; closing drops its buffer.
-
-<details>
-<summary>Implementation 36da-render: Draw connected document rows</summary>
-
-Synchronize placed connected paths into one shared lane and release every instance on Close.
-
-Data flow: accepted document paths → placed connected records → changed-data lane → shared depth pass → complete resource release.
+> **Check:** *Why does a camera change leave connected vertex uploads unchanged?* — The accepted world endpoints and styles have not changed. Projection, viewport and display density live in the shared view uniform.
 
 ### 1. `src/renderer.rs`
 
@@ -2609,8 +1780,7 @@ Retain one connected lane beside the independent stroke batch. Create the connec
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 mesh.draw(&mut pass);
@@ -2620,8 +1790,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2635,8 +1803,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
@@ -2646,8 +1813,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2661,8 +1826,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2673,8 +1837,6 @@ Replace it with:
 
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2688,8 +1850,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
@@ -2700,8 +1861,6 @@ Replace it with:
             .expect("Prepared line placement fits the display range");
         let layout = self.pipeline.get_bind_group_layout(1);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2722,8 +1881,7 @@ Replace it with:
         let layout = self.pipeline.get_bind_group_layout(1);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         });
@@ -2736,8 +1894,6 @@ Replace it with:
         renderer
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2754,8 +1910,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     view_group: wgpu::BindGroup,
@@ -2765,8 +1920,6 @@ Replace it with:
     density: f32,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2780,8 +1933,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2996,55 +2148,9 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36da-render-01.rs"
-```
-
-```text
---8<-- "journey/code/36da-render-02.rs"
-```
-
-```text
---8<-- "journey/code/36da-render-03.rs"
-```
-
-```text
---8<-- "journey/code/36da-render-04.rs"
-```
-
-```text
---8<-- "journey/code/36da-render-05.rs"
-```
-
-```text
---8<-- "journey/code/36da-render-06.rs"
-```
-
-```text
---8<-- "journey/code/36da-render-07.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Inspect real path resources without changing the earlier mesh and line counter meanings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3054,79 +2160,42 @@ Edit the existing block to match this code; keep unchanged lines:
     canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `36da-render`:** Inspect mixed-document GPU checks. Connected paths draw beside meshes and lines; Close clears all live path and instance resources.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36da-render-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-36e-input"></a>
 
 ### Step 10 of 10 · Insert connected paths and arrow examples (`36e-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/10 Visual Trace (36e-input): Insert connected paths and arrow examples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/lib.rs, src/path_input_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted dock</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">transaction</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">connected lane</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pixel and release</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pixel and release checks</text>
 </svg>
-</div>
-
-- **Goal:** Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels.
-- **Data Flow Trace:** `accepted dock command → original source → one history transaction → connected lane → pixel and release checks`
-- **Files You Touch:** `src/editor.rs` (*Expose connected examples as document actions.*) · `src/browser.rs` (*Expose the two source-backed examples in actual dock completion and Help.*) · `src/lib.rs` (*Register the undoable source-kind checks.*) · `src/path_input_tests.rs` (*Copy source-kind, one-step Undo/Redo, identity and Close checks.*)
 
 Register Example Polyline and Example Arrow in the existing command dock. Prepare the original geometry before accepting one undoable insertion.
 
 Chrome checks actual join alpha, headed area, camera-only buffer reuse, high-DPI rendering, Undo/Redo and complete Close. The examples remain source-backed paths, ready for later visibility, picking and editing.
 
-> **Self-Check Question:** *Why are connected examples inserted as original geometry rather than disconnected display spans?*  
-> **Answer:** Their source retains identity, original coordinates and arrowhead policy. Display spans can be rebuilt while Undo and future editing still operate on one document object.
-
-- **What You Should See:** Close, type Example Polyline, then zoom. Type Example Arrow to add a source line with heads at both original endpoints.
-- **Hands-On Lab Experiment:** Undo and Redo each example. Camera changes reuse vertex uploads, and Close clears both the connected GPU buffer and document owners.
-
-<details>
-<summary>Implementation 36e-input: Insert connected paths and arrow examples</summary>
-
-Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels.
-
-Data flow: accepted dock command → original source → one history transaction → connected lane → pixel and release checks.
+> **Check:** *Why are connected examples inserted as original geometry rather than disconnected display spans?* — Their source retains identity, original coordinates and arrowhead policy. Display spans can be rebuilt while Undo and future editing still operate on one document object.
 
 ### 1. `src/editor.rs`
 
@@ -3134,8 +2203,7 @@ Expose connected examples as document actions. Prepare the original path or head
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let loaded = crate::document::load_at(&bytes, Some(location))?;
@@ -3145,8 +2213,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
                 line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3173,8 +2239,7 @@ Replace it with:
                 line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     UnloadSources,
@@ -3184,8 +2249,6 @@ Replace it with:
     ToggleExtra,
     SelectNext,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3200,8 +2263,7 @@ Replace it with:
     SelectNext,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3579,31 +2641,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36e-input-01.rs"
-```
-
-```text
---8<-- "journey/code/36e-input-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Expose the two source-backed examples in actual dock completion and Help. Dispatch accepted input through the editor.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let action = match line.as_str() {
@@ -3613,8 +2657,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     "select next" => Action::SelectNext,
                     "delete" => Action::Delete,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3629,8 +2671,7 @@ Replace it with:
                     "delete" => Action::Delete,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Report Previous",
@@ -3640,8 +2681,6 @@ Replace it with:
             "Select Next",
             "Delete",
 ```
-
-</details>
 
 Replace it with:
 
@@ -3656,8 +2695,7 @@ Replace it with:
             "Delete",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -4286,35 +3324,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36e-input-03.rs"
-```
-
-```text
---8<-- "journey/code/36e-input-04.rs"
-```
-
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the undoable source-kind checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod chain;
-```
-
-</details>
 
 After that block, type:
 
@@ -4323,19 +3335,7 @@ After that block, type:
 mod path_input_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/36e-input-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4349,33 +3349,21 @@ Copy this supplied file:
 --8<-- "journey/code/36e-input-06.rs"
 ```
 
-</details>
-
-</details>
+**Result after `36e-input`:** Close, type Example Polyline, then zoom. Type Example Arrow to add a source line with heads at both original endpoints.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 36e-input
-npm --prefix ../session_tests run course -- check 36e-input
-npm --prefix ../session_tests run course -- save 36e-input
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 5.2
+npm --prefix ../session_tests run course -- save 5.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 5.2 (36e-input)](../../../screenshots/journey/36e-input-browser.png)
-
-Close, type Example Polyline, then zoom. Type Example Arrow to add a source line with heads at both original endpoints.
-
-- **Final Lesson Experiment:** Undo and Redo each example. Camera changes reuse vertex uploads, and Close clears both the connected GPU buffer and document owners.
-
-Continue with [Original point markers and curve control identities](../../consolidation/37-point.md).
+Continue with [5.3 · Original point markers and curve control identities](../../consolidation/37-point.md).

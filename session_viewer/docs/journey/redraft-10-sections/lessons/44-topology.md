@@ -1,235 +1,95 @@
 # 6.3 · Pick original faces, edges and controls
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.3** (Redraft `4.10`) · **14 checkpoints (`44-topology` → `44l-input`)** · **Study time: 7–14 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `44-topology` → `44l-input` (14 steps) · **Production source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
-> **What You Will Learn & Build:** Preserve source faces and edges. By the final checkpoint (`44l-input`), you will select and inspect original faces, edges and controls.
+> **Goal:** Select and inspect original faces, edges and controls.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 6 Visual Explanation: Offscreen Rg32Uint Integer Pick Grid, Spiral Search & 256-Byte Staging Copy</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Cropped Rg32Uint pixel window around cursor with spiral search. Center: 256-byte row alignment. Right: Priority & view ticket.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 5x5 Pixel Grid with Spiral Halo Search -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Rg32Uint Crop &amp; Spiral Search</text>
-    <!-- 5x5 grid at x=75..225, y=94..194 (cell = 30x20) -->
-    <rect x="75" y="94" width="150" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="105" y1="94" x2="105" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="135" y1="94" x2="135" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="165" y1="94" x2="165" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="195" y1="94" x2="195" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="114" x2="225" y2="114" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="134" x2="225" y2="134" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="154" x2="225" y2="154" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="174" x2="225" y2="174" stroke="#111111" stroke-width="0.75"/>
-    <!-- Highlighted hit cell at (165, 114) -->
-    <rect x="165" y="114" width="30" height="20" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Spiral path from center (150, 144) outward -->
-    <polyline points="150,144 180,144 180,124" fill="none" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <circle cx="150" cy="144" r="3" fill="#111111"/>
-    <text x="155" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Each pixel = vec2&lt;u32&gt;(owner_id, sub_id)</text>
-    <text x="155" y="225" text-anchor="middle" font-size="9" fill="#111111">Priority: Point Glyph &gt; Wire Edge &gt; Face</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 256-Byte Aligned Staging Copy -->
-    <rect x="317" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="449" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 256-Byte Staging Row Alignment</text>
-    <!-- Row 0 -->
-    <rect x="335" y="102" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="102" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 0 (W×8 B)</text>
-    <text x="510" y="119" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Row 1 -->
-    <rect x="335" y="136" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="136" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 1 (W×8 B)</text>
-    <text x="510" y="153" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Dimension line 0..256 -->
-    <line x1="335" y1="176" x2="565" y2="176" stroke="#111111" stroke-width="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-    <text x="450" y="191" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">bytes_per_row = align_to(W * 8, 256)</text>
-    <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#111111">copy_texture_to_buffer -&gt; map_async(Read)</text>
-    <text x="450" y="226" text-anchor="middle" font-size="9" fill="#111111">Single in-flight readback coalesces bursts</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: View-Revision Ticket & Sub-Selection -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Revision Ticket &amp; Sub-ID</text>
-    <rect x="620" y="98" width="188" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="714" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">PickTicket Verification</text>
-    <text x="630" y="131" font-size="9.5" fill="#111111">ticket.view_rev == current_rev?</text>
-    <text x="630" y="145" font-size="9" font-weight="600" fill="#111111">Mismatch -&gt; Discard stale hit!</text>
-    <rect x="620" y="162" width="188" height="66" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Decoded Sub-Element</text>
-    <text x="630" y="195" font-size="9.5" fill="#111111">• R = Object ID (1-based)</text>
-    <text x="630" y="209" font-size="9.5" fill="#111111">• G = Face / Edge / Control Pt</text>
-    <text x="630" y="222" font-size="9" fill="#111111">• Shift+Click preserves order</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 6.3 Pipeline Schematic: Pick original faces, edges and controls</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (14 Checkpoints: 44-topology → 44l-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source polygon</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">cached or fan</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">triangles</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original face table</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original edge</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">endpoints</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">mode command</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 6.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/mesh_parts.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/mesh_parts_tests.rs  ·  src/sub_id.rs  ·  src/pick_sources.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">14 Checkpoints: 44-topology → 44l-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
-| **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
-| **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
+| **WebGPU** | `Rg32Uint` (`[owner_id, sub_id]`) | Exact 2-channel 32-bit integer ID target (zero color quantization). |
+| **WebGPU** | 256-Byte Aligned Crop Readback | Copies cursor window to staging buffer for async `map_async(Read)`. |
+| **Rust (Picker)** | `Point > Wire > Face` + Ticket | Spiral search prioritizes points/wires and drops stale camera revisions. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`44-topology`](#checkpoint-44-topology) | Preserve source faces and edges. | `src/mesh_parts.rs`, `src/lib.rs`, `src/mesh.rs`, `src/mesh_parts_tests.rs` | `source polygon → cached or fan triangles → original face table → original edge endpoints` |
-| **2** | [`44a-tags`](#checkpoint-44a-tags) | Tag the kind of a picked part. | `src/sub_id.rs`, `src/pick_sources.rs`, `src/lib.rs`, `src/mesh_parts_tests.rs` | `zero reservation → kind tag → bounded address → checked decoder` |
-| **3** | [`44b-sources`](#checkpoint-44b-sources) | Map visible ink back to original sources. | `src/pick_sources.rs` | `visible rows → original source keys → ordered instance addresses → locked-owner zero` |
-| **4** | [`44c-resolve`](#checkpoint-44c-resolve) | Validate a part against the current source. | `src/selection.rs`, `src/lib.rs`, `src/pick_sources.rs`, `src/pick_sources_tests.rs` | `typed pixel → current owner → bounded table lookup → original part validation` |
-| **5** | [`44d-pulling`](#checkpoint-44d-pulling) | Reuse visible geometry for face identities. | `src/pick_crop.wgsl`, `src/face_pick.wgsl`, `src/gpu_geometry.rs`, `src/gpu_mesh.rs` | `shared position and index buffers → vertex pulling → source polygon address → integer face pixel` |
-| **6** | [`44e-pipeline`](#checkpoint-44e-pipeline) | Create the integer source-face pipeline. | `src/face_pick.rs`, `src/lib.rs` | `view and model settings → source storage bindings → cropped integer face pipeline` |
-| **7** | [`44f-metadata`](#checkpoint-44f-metadata) | Upload only original-face metadata. | `src/face_pick.rs` | `existing geometry → per-triangle face stream → original face base → source-face draw` |
-| **8** | [`44g-edge-ink`](#checkpoint-44g-edge-ink) | Draw original boundary edges consistently. | `src/renderer.rs`, `src/pick_window.rs` | `source edge endpoints → placed CSS-width ink → shared coverage → original source addresses` |
-| **9** | [`44h-mode-gpu`](#checkpoint-44h-mode-gpu) | Pick source parts with visible coverage. | `src/pick_gpu.rs`, `src/pick_encode.rs`, `src/pick_pipeline.rs`, `src/stroke_gpu.rs` | `mode admission → shared crop settings → depth occluders → typed face or ink IDs → original target` |
-| **10** | [`44i-ink-highlight`](#checkpoint-44i-ink-highlight) | Highlight original edges and controls. | `src/highlight.rs`, `src/lib.rs` | `original target → derived display overlay → yellow fringe → unchanged source and history` |
-| **11** | [`44ia-original-ink`](#checkpoint-44ia-original-ink) | Build highlights from original ink targets. | `src/highlight.rs` | `original edge or control → placed source positions → wider yellow overlay → unchanged original ink` |
-| **12** | [`44j-face-highlight`](#checkpoint-44j-face-highlight) | Highlight one original face without recolouring its parent. | `src/highlight.rs`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `source face key → matching display triangles → read-only selected overlay → black boundary ink` |
-| **13** | [`44k-selection`](#checkpoint-44k-selection) | Keep part selection outside document history. | `src/selection.rs`, `src/editor.rs`, `src/selection_tests.rs`, `src/lib.rs` | `current original target → part selection → whole-object command guard → history-independent presentation` |
-| **14** | [`44l-input`](#checkpoint-44l-input) | Select and inspect original faces, edges and controls. | `src/browser.rs` | `mode command → actual cursor readback → current original source target → visible highlight and Selection result` |
+![Recorded visual output for Lesson 6.3 (44l-input)](../../../screenshots/journey/44l-input.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-44-topology"></a>
 
 ### Step 1 of 14 · Preserve source faces and edges (`44-topology`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/14 Visual Trace (44-topology): Preserve source faces and edges</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh_parts.rs, src/lib.rs, src/mesh.rs, src/mesh_parts_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source polygon</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached or fan triangles</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original face table</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original edge endpoints</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/mesh_parts.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original face table</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original edge endpoints</text>
 </svg>
-</div>
-
-- **Goal:** Preserve source faces and edges.
-- **Data Flow Trace:** `source polygon → cached or fan triangles → original face table → original edge endpoints`
-- **Files You Touch:** `src/mesh_parts.rs` (*Retain source keys, triangle ownership and original edge endpoints.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/mesh.rs` (*Attach original topology to prepared display meshes and count its capacity.*) · `src/mesh_parts_tests.rs` (*Copy original face and diagonal checks.*)
 
 A rendered polygon may become several triangles. Retain the original face keys and boundary edges alongside display data.
 
-> **Self-Check Question:** *Is a triangulation diagonal a source edge?*  
-> **Answer:** No. Only the kernel’s original topology supplies editable boundary edges.
-
-- **What You Should See:** Run the source polygon checks; the drawing remains unchanged.
-- **Hands-On Lab Experiment:** Compare cached triangulation with the fan fallback and verify the same original face key.
-
-<details>
-<summary>Implementation 44-topology: Preserve source faces and edges</summary>
-
-Preserve source faces and edges.
-
-Data flow: source polygon → cached or fan triangles → original face table → original edge endpoints.
+> **Check:** *Is a triangulation diagonal a source edge?* — No. Only the kernel’s original topology supplies editable boundary edges.
 
 ### 1. `src/mesh_parts.rs`
 
@@ -245,17 +105,6 @@ Create the file and type:
 
 Register the component and copied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod pick_view;
-#[cfg(test)]
-mod pick_view_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -268,8 +117,7 @@ Attach original topology to prepared display meshes and count its capacity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn payload_bytes(&self) -> usize {
@@ -280,8 +128,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -295,8 +141,7 @@ Replace it with:
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             [x, y, z, r, g, b]
@@ -307,8 +152,6 @@ Replace it with:
 
     pub fn with_normals(mut self, normals: Vec<[f32; 3]>) -> Result<Self, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -324,8 +167,7 @@ Replace it with:
     pub fn with_normals(mut self, normals: Vec<[f32; 3]>) -> Result<Self, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return Err("Vertex values must be finite");
@@ -336,8 +178,6 @@ Replace it with:
 
     pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -351,8 +191,7 @@ Replace it with:
     pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     vertices: Vec<[f32; 6]>,
@@ -362,8 +201,6 @@ Replace it with:
 
 impl Mesh {
 ```
-
-</details>
 
 Replace it with:
 
@@ -377,8 +214,7 @@ Replace it with:
 impl Mesh {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Mesh {
@@ -460,33 +296,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44-topology-03.rs"
-```
-
-```text
---8<-- "journey/code/44-topology-04.rs"
-```
-
-```text
---8<-- "journey/code/44-topology-05.rs"
-```
-
-```text
---8<-- "journey/code/44-topology-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -500,22 +310,9 @@ Copy this supplied file:
 --8<-- "journey/code/44-topology-07.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the component and copied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod pick_view_tests;
-
-pub mod mesh_parts;
-```
-
-</details>
 
 After that block, type:
 
@@ -523,59 +320,40 @@ After that block, type:
 --8<-- "journey/code/44-topology-08.rs" skip=42
 ```
 
-</details>
+**Result after `44-topology`:** Run the source polygon checks; the drawing remains unchanged.
+
+---
 
 <a id="checkpoint-44a-tags"></a>
 
 ### Step 2 of 14 · Tag the kind of a picked part (`44a-tags`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/14 Visual Trace (44a-tags): Tag the kind of a picked part</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sub_id.rs, src/pick_sources.rs, src/lib.rs, src/mesh_parts_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">zero reservation</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kind tag</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded address</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked decoder</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sub_id.rs, src/pick_s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded address</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked decoder</text>
 </svg>
-</div>
-
-- **Goal:** Tag the kind of a picked part.
-- **Data Flow Trace:** `zero reservation → kind tag → bounded address → checked decoder`
-- **Files You Touch:** `src/sub_id.rs` (*Encode source part kinds without zero or tag collisions.*) · `src/pick_sources.rs` (*Define typed targets, modes and bounded source tables.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/mesh_parts_tests.rs` (*Copy tag boundaries and collision checks.*)
 
 Keep zero reserved and encode a bounded address with its face, edge or control kind. The address is local to one source table.
 
-> **Self-Check Question:** *Can this address replace a saved source key?*  
-> **Answer:** No. It addresses this display snapshot; the source table translates it back to the original key.
-
-- **What You Should See:** Run the boundary and collision checks; object picking stays available.
-- **Hands-On Lab Experiment:** Roundtrip address zero and the largest supported address for every kind.
-
-<details>
-<summary>Implementation 44a-tags: Tag the kind of a picked part</summary>
-
-Tag the kind of a picked part.
-
-Data flow: zero reservation → kind tag → bounded address → checked decoder.
+> **Check:** *Can this address replace a saved source key?* — No. It addresses this display snapshot; the source table translates it back to the original key.
 
 ### 1. `src/sub_id.rs`
 
@@ -601,25 +379,13 @@ Create the file and type:
 
 Register the component and copied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod mesh_parts_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/44a-tags-03.rs" skip=36
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -627,91 +393,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy tag boundaries and collision checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(Parts::new(&source, 3).is_err());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/44a-tags-04.rs" skip=49
 ```
 
-</details>
+**Result after `44a-tags`:** Run the boundary and collision checks; object picking stays available.
 
-</details>
+---
 
 <a id="checkpoint-44b-sources"></a>
 
 ### Step 3 of 14 · Map visible ink back to original sources (`44b-sources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/14 Visual Trace (44b-sources): Map visible ink back to original sources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source keys</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered instance addresses</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">locked-owner zero</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_sources.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered instance addres…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">locked-owner zero</text>
 </svg>
-</div>
-
-- **Goal:** Map visible ink back to original sources.
-- **Data Flow Trace:** `visible rows → original source keys → ordered instance addresses → locked-owner zero`
-- **Files You Touch:** `src/pick_sources.rs` (*Build ordered face, edge, control and GPU owner streams.*)
 
 Build source tables in the same order as the GPU instance lanes. A sampled curve segment still belongs to its original curve.
 
-> **Self-Check Question:** *Why keep the original polyline segment index?*  
-> **Answer:** Removing a zero-length display segment must not renumber the original source segments.
-
-- **What You Should See:** Inspect the table-building code; the inherited drawing and input still work.
-- **Hands-On Lab Experiment:** Trace a polyline with a repeated point and identify which original segment produces ink.
-
-<details>
-<summary>Implementation 44b-sources: Map visible ink back to original sources</summary>
-
-Map visible ink back to original sources.
-
-Data flow: visible rows → original source keys → ordered instance addresses → locked-owner zero.
+> **Check:** *Why keep the original polyline segment index?* — Removing a zero-length display segment must not renumber the original source segments.
 
 ### 1. `src/pick_sources.rs`
 
 Build ordered face, edge, control and GPU owner streams.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let tag = sub_id::encode(kind, rows.len())?; rows.push(target); Ok([target.owner.value(), tag])
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -719,59 +444,40 @@ After that block, type:
 --8<-- "journey/code/44b-sources-01.rs" skip=103
 ```
 
-</details>
+**Result after `44b-sources`:** Inspect the table-building code; the inherited drawing and input still work.
+
+---
 
 <a id="checkpoint-44c-resolve"></a>
 
 ### Step 4 of 14 · Validate a part against the current source (`44c-resolve`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/14 Visual Trace (44c-resolve): Validate a part against the current source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection.rs, src/lib.rs, src/pick_sources.rs, src/pick_sources_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed pixel</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current owner</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded table lookup</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original part validation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded table lookup</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original part validation</text>
 </svg>
-</div>
-
-- **Goal:** Validate a part against the current source.
-- **Data Flow Trace:** `typed pixel → current owner → bounded table lookup → original part validation`
-- **Files You Touch:** `src/selection.rs` (*Check original part ownership and visibility.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/pick_sources.rs` (*Resolve typed addresses and count source table capacities.*) · `src/pick_sources_tests.rs` (*Copy current-owner, wrong-kind and original segment checks.*)
 
 Decode the kind, check the owner and confirm that the original part still exists in the current visible, unlocked scene.
 
-> **Self-Check Question:** *Does a matching owner make any address valid?*  
-> **Answer:** No. The kind, table bounds and original face, edge or control must match too.
-
-- **What You Should See:** Run current-owner and degenerate-segment checks. Close must invalidate every old target.
-- **Hands-On Lab Experiment:** Try a maximal invalid segment index and a hidden control; both must be refused safely.
-
-<details>
-<summary>Implementation 44c-resolve: Validate a part against the current source</summary>
-
-Validate a part against the current source.
-
-Data flow: typed pixel → current owner → bounded table lookup → original part validation.
+> **Check:** *Does a matching owner make any address valid?* — No. The kind, table bounds and original face, edge or control must match too.
 
 ### 1. `src/selection.rs`
 
@@ -787,17 +493,6 @@ Create the file and type:
 
 Register the component and copied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sub_id;
-pub mod pick_sources;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -808,26 +503,13 @@ After that block, type:
 
 Resolve typed addresses and count source table capacities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(sources)
-    }
-
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/44c-resolve-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -841,22 +523,9 @@ Copy this supplied file:
 --8<-- "journey/code/44c-resolve-04.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the component and copied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod pick_sources;
-
-pub mod selection;
-```
-
-</details>
 
 After that block, type:
 
@@ -864,60 +533,40 @@ After that block, type:
 --8<-- "journey/code/44c-resolve-05.rs" skip=42
 ```
 
-</details>
+**Result after `44c-resolve`:** Run current-owner and degenerate-segment checks. Close must invalidate every old target.
+
+---
 
 <a id="checkpoint-44d-pulling"></a>
 
 ### Step 5 of 14 · Reuse visible geometry for face identities (`44d-pulling`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/14 Visual Trace (44d-pulling): Reuse visible geometry for face identities</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_crop.wgsl, src/face_pick.wgsl, src/gpu_geometry.rs, src/gpu_mesh.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared position and index</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">buffers</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">vertex pulling</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source polygon address</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">integer face pixel</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_crop.wgsl, src/f…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source polygon address</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer face pixel</text>
 </svg>
-</div>
-
-- **Goal:** Reuse visible geometry for face identities.
-- **Data Flow Trace:** `shared position and index buffers → vertex pulling → source polygon address → integer face pixel`
-- **Files You Touch:** `src/pick_crop.wgsl` (*Define the shared mode crop and original-face shader.*) · `src/face_pick.wgsl` (*Define the shared mode crop and original-face shader.*) · `src/gpu_geometry.rs` (*Expose existing geometry to source-face drawing without another position buffer.*) · `src/gpu_mesh.rs` (*Expose existing geometry to source-face drawing without another position buffer.*) · `src/triangle.wgsl` (*Expose existing geometry to source-face drawing without another position buffer.*)
 
 Read the existing vertex and index buffers in the face shader. One per-triangle metadata value identifies the original polygon.
 
-> **Self-Check Question:** *Why is the face shader non-indexed?*  
-> **Answer:** Each invocation can use its triangle position to read both the original vertex index and that triangle’s source face address.
-
-- **What You Should See:** The inherited mesh keeps the same shape and primary geometry allocation.
-- **Hands-On Lab Experiment:** Check that the shader uses the shared placement helper before applying the cursor crop.
-
-<details>
-<summary>Implementation 44d-pulling: Reuse visible geometry for face identities</summary>
-
-Reuse visible geometry for face identities.
-
-Data flow: shared position and index buffers → vertex pulling → source polygon address → integer face pixel.
+> **Check:** *Why is the face shader non-indexed?* — Each invocation can use its triangle position to read both the original vertex index and that triangle’s source face address.
 
 ### 1. `src/pick_crop.wgsl`
 
@@ -942,57 +591,6 @@ Create the file and type:
 ### 3. `src/gpu_geometry.rs`
 
 Expose existing geometry to source-face drawing without another position buffer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
-
-pub struct GpuGeometry {
-    pub source: Rc<Mesh>,
-    vertices: wgpu::Buffer,
-    normals: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-}
-
-impl GpuGeometry {
-    pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
-        let bytes: Vec<u8> = source.vertices().iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh vertices"), contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = source.normals().iter().flatten().flat_map(|value| value.to_ne_bytes()).collect();
-        let normals = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh normals"), contents: &bytes, usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = source.indices().iter()
-            .flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh indices"), contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        let index_count = source.indices().len() as u32;
-        Self { source, vertices, normals, indices, index_count }
-    }
-
-    pub fn allocated_bytes(&self) -> u64 { self.vertices.size() + self.normals.size() + self.indices.size() }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_vertex_buffer(1, self.normals.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1042,42 +640,9 @@ impl GpuGeometry {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44d-pulling-03.rs"
-```
-
-```text
---8<-- "journey/code/44d-pulling-04.rs"
-```
-
-```text
---8<-- "journey/code/44d-pulling-05.rs"
-```
-
-</details>
-
 ### 4. `src/gpu_mesh.rs`
 
 Expose existing geometry to source-face drawing without another position buffer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        writes
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_bind_group(1, &self.model_group, &[]);
-        self.geometry.draw(pass);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1088,57 +653,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 5. `src/triangle.wgsl`
 
 Expose existing geometry to source-face drawing without another position buffer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<u32>,
-    normal_matrix: mat4x4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = view.transform * world;
-    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x != 0u);
-    output.world = world.xyz;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let derivative = cross(dpdx(input.world), dpdy(input.world));
-    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
-    let face = select(derivative, -derivative, front);
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), 1.0); }
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1190,70 +704,40 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `44d-pulling`:** The inherited mesh keeps the same shape and primary geometry allocation.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44d-pulling-07.wgsl"
-```
-
-```text
---8<-- "journey/code/44d-pulling-08.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-44e-pipeline"></a>
 
 ### Step 6 of 14 · Create the integer source-face pipeline (`44e-pipeline`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/14 Visual Trace (44e-pipeline): Create the integer source-face pipeline</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/face_pick.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">view and model settings</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source storage bindings</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cropped integer face pipeline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/face_pick.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source storage bindings</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped integer face pi…</text>
 </svg>
-</div>
-
-- **Goal:** Create the integer source-face pipeline.
-- **Data Flow Trace:** `view and model settings → source storage bindings → cropped integer face pipeline`
-- **Files You Touch:** `src/face_pick.rs` (*Create the compatible source-face layout and pipeline.*) · `src/lib.rs` (*Register the component and copied checks.*)
 
 Bind existing geometry, per-triangle source addresses and a small face-base uniform. Read-only depth keeps the visible surface authoritative.
 
-> **Self-Check Question:** *Why use read-only depth for face IDs?*  
-> **Answer:** The surface pass establishes occlusion first; source-face IDs must match that depth without moving the visible surface.
-
-- **What You Should See:** The face pipeline validates on the drawing device; object input remains unchanged.
-- **Hands-On Lab Experiment:** Find the four storage-group bindings and identify which buffers contain new data.
-
-<details>
-<summary>Implementation 44e-pipeline: Create the integer source-face pipeline</summary>
-
-Create the integer source-face pipeline.
-
-Data flow: view and model settings → source storage bindings → cropped integer face pipeline.
+> **Check:** *Why use read-only depth for face IDs?* — The surface pass establishes occlusion first; source-face IDs must match that depth without moving the visible surface.
 
 ### 1. `src/face_pick.rs`
 
@@ -1269,92 +753,50 @@ Create the file and type:
 
 Register the component and copied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod pick_sources_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/44e-pipeline-02.rs" skip=38
 ```
 
-</details>
+**Result after `44e-pipeline`:** The face pipeline validates on the drawing device; object input remains unchanged.
+
+---
 
 <a id="checkpoint-44f-metadata"></a>
 
 ### Step 7 of 14 · Upload only original-face metadata (`44f-metadata`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/14 Visual Trace (44f-metadata): Upload only original-face metadata</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/face_pick.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing geometry</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">per-triangle face stream</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original face base</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source-face draw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/face_pick.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original face base</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source-face draw</text>
 </svg>
-</div>
-
-- **Goal:** Upload only original-face metadata.
-- **Data Flow Trace:** `existing geometry → per-triangle face stream → original face base → source-face draw`
-- **Files You Touch:** `src/face_pick.rs` (*Upload bounded face metadata and draw from existing geometry.*)
 
 Keep one small address stream per mesh. Draw source-face IDs from shared positions and indices, then release metadata on a changed scene.
 
-> **Self-Check Question:** *Does each face need another mesh upload?*  
-> **Answer:** No. The face-ID pass shares existing geometry and adds only triangle addresses plus the base uniform.
-
-- **What You Should See:** The copied source-key checks remain green; GPU face integration follows next.
-- **Hands-On Lab Experiment:** Count metadata bytes for a quad made from two triangles: eight address bytes plus sixteen uniform bytes.
-
-<details>
-<summary>Implementation 44f-metadata: Upload only original-face metadata</summary>
-
-Upload only original-face metadata.
-
-Data flow: existing geometry → per-triangle face stream → original face base → source-face draw.
+> **Check:** *Does each face need another mesh upload?* — No. The face-ID pass shares existing geometry and adds only triangle addresses plus the base uniform.
 
 ### 1. `src/face_pick.rs`
 
 Upload bounded face metadata and draw from existing geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Self { pipeline, rows: Vec::new() }
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1362,59 +804,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/44f-metadata-01.rs"
 ```
 
-</details>
+**Result after `44f-metadata`:** The copied source-key checks remain green; GPU face integration follows next.
+
+---
 
 <a id="checkpoint-44g-edge-ink"></a>
 
 ### Step 8 of 14 · Draw original boundary edges consistently (`44g-edge-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/14 Visual Trace (44g-edge-ink): Draw original boundary edges consistently</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_window.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source edge endpoints</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed CSS-width ink</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared coverage</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original source addresses</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/pick…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original source address…</text>
 </svg>
-</div>
-
-- **Goal:** Draw original boundary edges consistently.
-- **Data Flow Trace:** `source edge endpoints → placed CSS-width ink → shared coverage → original source addresses`
-- **Files You Touch:** `src/renderer.rs` (*Own source tables, visible original-edge ink and mode state.*) · `src/pick_window.rs` (*Rank source-face pixels as surfaces and original edge pixels as ink.*)
 
 Add original mesh boundary edges to the same CSS-width lane as other source ink. Give every visible instance its typed source address.
 
-> **Self-Check Question:** *Should a triangulation diagonal receive outline ink?*  
-> **Answer:** No. The original edge table defines outlines independently of how faces are triangulated.
-
-- **What You Should See:** The drawing now includes black original mesh boundaries. Rendering diagonals stay absent.
-- **Hands-On Lab Experiment:** Compare an original quad boundary with its unoutlined internal rendering diagonal.
-
-<details>
-<summary>Implementation 44g-edge-ink: Draw original boundary edges consistently</summary>
-
-Draw original boundary edges consistently.
-
-Data flow: source edge endpoints → placed CSS-width ink → shared coverage → original source addresses.
+> **Check:** *Should a triangulation diagonal receive outline ink?* — No. The original edge table defines outlines independently of how faces are triangulated.
 
 ### 1. `src/renderer.rs`
 
@@ -1422,8 +845,7 @@ Own source tables, visible original-edge ink and mode state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             for mesh in &self.meshes {
@@ -1433,8 +855,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.strokes.draw(&mut pass);
             self.paths.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1448,8 +868,7 @@ Replace it with:
             self.paths.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.paths.view(&self.queue, transform, self.size, self.density);
@@ -1459,8 +878,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1474,8 +891,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -1489,8 +905,6 @@ Replace it with:
             self.picker.submitted, self.picker.coalesced]
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1517,8 +931,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1530,8 +943,6 @@ Replace it with:
 
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1549,8 +960,7 @@ Replace it with:
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1576,8 +986,6 @@ Replace it with:
         for object in scene.objects().iter().filter(|row| row.visible()) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1602,8 +1010,7 @@ Replace it with:
         for object in scene.objects().iter().filter(|row| row.visible()) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
@@ -1616,8 +1023,6 @@ Replace it with:
         renderer
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1635,8 +1040,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     size: [u32; 2],
@@ -1646,8 +1050,6 @@ Replace it with:
 
 impl Renderer {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1664,8 +1066,7 @@ Replace it with:
 impl Renderer {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1975,61 +1376,9 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44g-edge-ink-01.rs"
-```
-
-```text
---8<-- "journey/code/44g-edge-ink-02.rs"
-```
-
-```text
---8<-- "journey/code/44g-edge-ink-03.rs"
-```
-
-```text
---8<-- "journey/code/44g-edge-ink-04.rs"
-```
-
-```text
---8<-- "journey/code/44g-edge-ink-05.rs"
-```
-
-```text
---8<-- "journey/code/44g-edge-ink-06.rs"
-```
-
-```text
---8<-- "journey/code/44g-edge-ink-07.rs"
-```
-
-</details>
-
 ### 2. `src/pick_window.rs`
 
 Rank source-face pixels as surfaces and original edge pixels as ink.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            let dy = i64::from(y) - i64::from(self.cursor[1]);
-            let distance = (dx * dx + dy * dy) as u64;
-            if row == 0 || distance > u64::from(self.radius).pow(2) { continue; }
-            let key = (sub == 0, distance, row, sub);
-            if best.is_none_or(|old| key < old) { best = Some(key); }
-        } }
-        Ok(best.map(|(_, _, row, sub)| [row, sub]))
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2037,180 +1386,44 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/44g-edge-ink-08.rs"
 ```
 
-</details>
+**Result after `44g-edge-ink`:** The drawing now includes black original mesh boundaries. Rendering diagonals stay absent.
+
+---
 
 <a id="checkpoint-44h-mode-gpu"></a>
 
 ### Step 9 of 14 · Pick source parts with visible coverage (`44h-mode-gpu`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/14 Visual Trace (44h-mode-gpu): Pick source parts with visible coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/pick_encode.rs, src/pick_pipeline.rs, src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mode admission</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared crop settings</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth occluders</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed face or ink</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">IDs</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original target</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gpu.rs, src/pick…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">depth occluders</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original target</text>
 </svg>
-</div>
-
-- **Goal:** Pick source parts with visible coverage.
-- **Data Flow Trace:** `mode admission → shared crop settings → depth occluders → typed face or ink IDs → original target`
-- **Files You Touch:** `src/pick_gpu.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/pick_encode.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/pick_pipeline.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/stroke_gpu.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/triangle_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/stroke_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/marker_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/chain_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/renderer.rs` (*Submit source faces and original edge ink in the current mode.*) · `src/pick_gpu_tests.rs` (*Copy actual sparse-key, diagonal and original-control GPU checks.*)
 
 Carry the selected mode through crop settings and filter ink by kind. Draw original face IDs lazily and retain surface occlusion in every mode.
 
-> **Self-Check Question:** *Can a hidden surface expose parts behind it?*  
-> **Answer:** No. All visible surfaces still write depth, even when their object IDs are excluded by the current mode.
-
-- **What You Should See:** Run actual GPU source-face, source-edge and original-control checks. Browser mode commands follow at44l.
-- **Hands-On Lab Experiment:** Pick an original polygon, its boundary and its internal diagonal; only the first two resolve.
-
-<details>
-<summary>Implementation 44h-mode-gpu: Pick source parts with visible coverage</summary>
-
-Pick source parts with visible coverage.
-
-Data flow: mode admission → shared crop settings → depth occluders → typed face or ink IDs → original target.
+> **Check:** *Can a hidden surface expose parts behind it?* — No. All visible surfaces still write depth, even when their object IDs are excluded by the current mode.
 
 ### 1. `src/pick_gpu.rs`
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
-use std::sync::{Arc, atomic::{AtomicBool, AtomicU8, Ordering}};
-
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
-
-pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
-struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
-pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
-
-pub struct Picker {
-    pipeline: wgpu::RenderPipeline,
-    view: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    crop: wgpu::Buffer,
-    crop_group: wgpu::BindGroup,
-    image: Option<crate::pick_image::Image>,
-    active: Option<Flight>,
-    pending: Option<Queued>,
-    alive: Arc<AtomicBool>,
-    gate: crate::pick_gate::Gate,
-    pub submitted: u64,
-    pub coalesced: u64,
-}
-
-impl Drop for Picker { fn drop(&mut self) { self.alive.store(false, Ordering::Release); self.gate.close(); } }
-
-impl Picker {
-    pub fn new(device: &wgpu::Device, view_layout: &wgpu::BindGroupLayout, model_layout: &wgpu::BindGroupLayout) -> Self {
-        let crop_layout = crate::gpu_layout::uniform(device, 64);
-        let pipeline = crate::pick_pipeline::mesh(device, view_layout, model_layout, &crop_layout);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(80); let crop = buffer(64);
-        let view_group = crate::gpu_layout::group(device, view_layout, &view);
-        let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
-            alive: Arc::new(AtomicBool::new(true)), gate: Default::default(), submitted: 0, coalesced: 0 }
-    }
-
-    pub fn queue(&mut self, request: Request) -> Result<(), &'static str> {
-        let view = crate::pick_view::View::new(request.transform, request.window.full, request.density)?;
-        let ticket = self.gate.issue()?;
-        if self.pending.replace(Queued { request, ticket, view }).is_some() { self.coalesced += 1; }
-        Ok(())
-    }
-
-    pub fn queued(&self) -> bool { self.pending.is_some() }
-
-    pub fn cancel(&mut self) {
-        self.gate.invalidate(); self.pending = None;
-        let mapped = self.active.take().is_some_and(|flight| flight.ready.load(Ordering::Acquire) <= 1);
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
-    }
-
-    pub(crate) fn next(&mut self, view: crate::pick_view::View) -> Option<Queued> {
-        if self.active.is_some() { return None; }
-        let queued = self.pending.take()?;
-        if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
-    }
-
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
-            self.image = Some(crate::pick_image::Image::new(device, window));
-        }
-        let image = self.image.as_mut().unwrap(); image.window = window;
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
-        queue.write_buffer(&self.view, 0, &bytes);
-        let bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect(); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
-            if alive.load(Ordering::Acquire) {
-                #[cfg(target_arch = "wasm32")] crate::browser_pick::wake();
-            }
-        });
-        self.submitted += 1;
-    }
-
-    pub fn take(&mut self, view: crate::pick_view::View) -> Option<Result<Reply, &'static str>> {
-        let status = self.active.as_ref()?.ready.load(Ordering::Acquire);
-        if status == 0 { return None; }
-        let flight = self.active.take().unwrap();
-        let current = self.gate.accept(flight.ticket) && flight.view == view;
-        let image = self.image.as_ref().unwrap();
-        if status != 1 { return Some(if current { Err("Cannot read GPU pick image") } else { Ok(Reply::Stale) }); }
-        let bytes = image.readback.slice(..).get_mapped_range();
-        let result = if current { image.window.closest(&bytes).map(Reply::Hit) } else { Ok(Reply::Stale) };
-        drop(bytes); image.readback.unmap(); Some(result)
-    }
-
-    pub fn usage(&self) -> [u64; 3] {
-        [u64::from(self.active.is_some()), u64::from(self.pending.is_some()), self.image.as_ref().map_or(0, |image|
-            image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 12) + 144]
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2224,7 +1437,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -2277,7 +1489,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
         let request = queued.request; let window = request.window;
@@ -2322,67 +1533,9 @@ impl Picker {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44h-mode-gpu-01.rs"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-02.rs"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-03.rs"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-04.rs"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-05.rs"
-```
-
-</details>
-
 ### 2. `src/pick_encode.rs`
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane]) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2413,39 +1566,9 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44h-mode-gpu-06.rs"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-07.rs"
-```
-
-</details>
-
 ### 3. `src/pick_pipeline.rs`
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor { label: Some("mesh IDs"),
-            bind_group_layouts: &[Some(view_layout), Some(model_layout), Some(crop_layout)], immediate_size: 0 });
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("mesh IDs"),
-            source: wgpu::ShaderSource::Wgsl(concat!(include_str!("triangle.wgsl"), "\n", include_str!("triangle_pick.wgsl")).into()) });
-        // An integer attachment stores exact owner IDs; opaque depth rejects hidden faces before any pixel is read back.
-        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("mesh IDs"), layout: Some(&layout),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2457,28 +1580,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute], depth: wgpu::DepthStencilState,
-    ) -> Self {
-        let view_layout = crate::gpu_layout::uniform(device, 80);
-        let crop_layout = crate::gpu_layout::uniform(device, 64);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("ink settings"), bind_group_layouts: &[Some(&view_layout)], immediate_size: 0 });
-        let pick_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("ink pick settings"), bind_group_layouts: &[Some(&view_layout), Some(&crop_layout)], immediate_size: 0 });
-        let pick_source = match stride { 44 => include_str!("stroke_pick.wgsl"), 72 => include_str!("chain_pick.wgsl"), 32 => include_str!("marker_pick.wgsl"), _ => unreachable!() };
-        let pick_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("ink IDs"),
-            source: wgpu::ShaderSource::Wgsl(format!("{source}\n{pick_source}").into()) });
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),
-        });
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -2488,21 +1589,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 5. `src/triangle_pick.wgsl`
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(2) @binding(0) var<uniform> crop: mat4x4<f32>;
-@vertex
-fn pick_vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> @builtin(position) vec4<f32> {
-    return crop * view.transform * object.model * vec4<f32>(position, 1.0);
-}
-@fragment
-fn pick_fragment() -> @location(0) vec2<u32> { return vec2<u32>(object.selection.y, 0u); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2514,40 +1600,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: mat4x4<f32>;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, index);
-    var output: PickOutput;
-    output.position = crop * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width);
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -2579,63 +1631,11 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     return input.id;
 }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44h-mode-gpu-11.wgsl"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-12.wgsl"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-13.wgsl"
-```
-
-</details>
 
 ### 7. `src/marker_pick.wgsl`
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: mat4x4<f32>;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(center, diameter, colour, index);
-    var output: PickOutput;
-    output.position = crop * source.position;
-    output.colour = source.colour;
-    output.offset = source.offset;
-    output.radius = source.radius;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.offset, input.radius);
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -2666,73 +1666,11 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     return input.id;
 }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44h-mode-gpu-14.wgsl"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-15.wgsl"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-16.wgsl"
-```
-
-</details>
 
 ### 8. `src/chain_pick.wgsl`
 
 Use mode-aware coverage and compatible eighty-byte crop settings.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: mat4x4<f32>;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) pixel: vec2<f32>,
-    @location(2) @interpolate(flat) origin: vec2<f32>,
-    @location(3) @interpolate(flat) direction: vec2<f32>,
-    @location(4) @interpolate(flat) half_width: f32,
-    @location(5) @interpolate(flat) part: u32,
-    @location(6) @interpolate(flat) head_length: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
-    @location(6) heads: u32, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, previous, next, heads, index);
-    var output: PickOutput;
-    output.position = crop * source.position;
-    output.colour = source.colour;
-    output.pixel = source.pixel;
-    output.origin = source.origin;
-    output.direction = source.direction;
-    output.half_width = source.half_width;
-    output.part = source.part;
-    output.head_length = source.head_length;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.pixel, input.origin, input.direction, input.half_width, input.part, input.head_length);
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -2773,25 +1711,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     return input.id;
 }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44h-mode-gpu-17.wgsl"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-18.wgsl"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-19.wgsl"
-```
-
-</details>
 
 ### 9. `src/renderer.rs`
 
@@ -2799,8 +1718,7 @@ Submit source faces and original edge ink in the current mode.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
@@ -2811,8 +1729,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2826,8 +1742,7 @@ Replace it with:
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2837,8 +1752,6 @@ Replace it with:
         self.pump_pick(transform); Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2851,8 +1764,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3162,25 +2074,7 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44h-mode-gpu-20.rs"
-```
-
-```text
---8<-- "journey/code/44h-mode-gpu-21.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3188,31 +2082,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual sparse-key, diagonal and original-control GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(renderer.take_pick(identity()).is_none(), "A newer cursor supersedes the first result");
-    assert_eq!(finish(&mut renderer), None);
-    assert_eq!(&renderer.pick_usage()[..2], &[0, 0]);
-    assert!(renderer.pick_usage()[2] <= 25 * 256 + 31 * 31 * 12 + 176, "Readback does not grow with the full drawing");
-}
-
-#[test]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/44h-mode-gpu-22.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3220,31 +2096,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual sparse-key, diagonal and original-control GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let mut scene = Scene::demo(); scene.clear(); let old = scene.insert(triangle(0.2)).unwrap();
-    let weak = Rc::downgrade(&scene.objects[0].mesh); let mut renderer = renderer(&scene);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); scene.clear(); renderer.set_scene(&scene, None);
-    assert!(weak.upgrade().is_none()); assert_eq!(&renderer.pick_usage()[..3], &[0, 0, 144]);
-    let new = scene.insert(triangle(0.3)).unwrap(); assert_ne!(old, new); renderer.set_scene(&scene, None);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), Some([new.value(), 0]));
-    assert!(renderer.take_pick(identity()).is_none(), "The cancelled map has no result for the replacement");
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/44h-mode-gpu-23.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3252,79 +2110,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual sparse-key, diagonal and original-control GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    assert!(renderer.take_pick(identity()).is_none(), "Density changed while the map was pending");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/44h-mode-gpu-24.rs" skip=236
 ```
 
-</details>
+**Result after `44h-mode-gpu`:** Run actual GPU source-face, source-edge and original-control checks. Browser mode commands follow at44l.
 
-</details>
+---
 
 <a id="checkpoint-44i-ink-highlight"></a>
 
 ### Step 10 of 14 · Highlight original edges and controls (`44i-ink-highlight`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/14 Visual Trace (44i-ink-highlight): Highlight original edges and controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original target</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived display overlay</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">yellow fringe</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged source and</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/highlight.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">yellow fringe</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged source and hi…</text>
 </svg>
-</div>
-
-- **Goal:** Highlight original edges and controls.
-- **Data Flow Trace:** `original target → derived display overlay → yellow fringe → unchanged source and history`
-- **Files You Touch:** `src/highlight.rs` (*Own derived overlay lanes, drawing and GPU byte accounting.*) · `src/lib.rs` (*Register the component and copied checks.*)
 
 Keep presentation overlays separate from source geometry. Wider yellow ink surrounds an original black edge or control marker.
 
-> **Self-Check Question:** *Does selecting a part modify its source?*  
-> **Answer:** No. Highlights own derived display data and belong to presentation, outside document history.
-
-- **What You Should See:** Overlay lanes are ready; mode commands and interactive highlights are connected at44l.
-- **Hands-On Lab Experiment:** Identify the original polyline endpoints or curve control used to build each overlay.
-
-<details>
-<summary>Implementation 44i-ink-highlight: Highlight original edges and controls</summary>
-
-Highlight original edges and controls.
-
-Data flow: original target → derived display overlay → yellow fringe → unchanged source and history.
+> **Check:** *Does selecting a part modify its source?* — No. Highlights own derived display data and belong to presentation, outside document history.
 
 ### 1. `src/highlight.rs`
 
@@ -3340,94 +2165,50 @@ Create the file and type:
 
 Register the component and copied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod pick_sources_tests;
-
-pub mod face_pick;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/44i-ink-highlight-02.rs" skip=44
 ```
 
-</details>
+**Result after `44i-ink-highlight`:** Overlay lanes are ready; mode commands and interactive highlights are connected at44l.
+
+---
 
 <a id="checkpoint-44ia-original-ink"></a>
 
 ### Step 11 of 14 · Build highlights from original ink targets (`44ia-original-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/14 Visual Trace (44ia-original-ink): Build highlights from original ink targets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original edge or control</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed source positions</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">wider yellow overlay</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged original ink</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/highlight.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">wider yellow overlay</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged original ink</text>
 </svg>
-</div>
-
-- **Goal:** Build highlights from original ink targets.
-- **Data Flow Trace:** `original edge or control → placed source positions → wider yellow overlay → unchanged original ink`
-- **Files You Touch:** `src/highlight.rs` (*Build original edge, curve and control overlays.*)
 
 Derive a selected edge, whole curve or original control overlay from its source target. Keep the original black ink in its own lane.
 
-> **Self-Check Question:** *Which positions define a polyline edge highlight?*  
-> **Answer:** The endpoints of the original segment, after placement; its source index is not a display-sample index.
-
-- **What You Should See:** The original-target overlay builders are ready; interactive drawing is connected at44l.
-- **Hands-On Lab Experiment:** Trace the selected control index back to its original marker and compare its halo diameter.
-
-<details>
-<summary>Implementation 44ia-original-ink: Build highlights from original ink targets</summary>
-
-Build highlights from original ink targets.
-
-Data flow: original edge or control → placed source positions → wider yellow overlay → unchanged original ink.
+> **Check:** *Which positions define a polyline edge highlight?* — The endpoints of the original segment, after placement; its source index is not a display-sample index.
 
 ### 1. `src/highlight.rs`
 
 Build original edge, curve and control overlays.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Highlight {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self { mesh: None, strokes: Lane::new(device, format), paths: Lane::joined(device, format), markers: Lane::markers(device, format) }
-    }
-
-    pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3435,77 +2216,44 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/44ia-original-ink-01.rs"
 ```
 
-</details>
+**Result after `44ia-original-ink`:** The original-target overlay builders are ready; interactive drawing is connected at44l.
+
+---
 
 <a id="checkpoint-44j-face-highlight"></a>
 
 ### Step 12 of 14 · Highlight one original face without recolouring its parent (`44j-face-highlight`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/14 Visual Trace (44j-face-highlight): Highlight one original face without recolouring its parent</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs, src/renderer.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source face key</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching display triangles</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">read-only selected overlay</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">black boundary ink</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/highlight.rs, src/ren…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">read-only selected over…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">black boundary ink</text>
 </svg>
-</div>
-
-- **Goal:** Highlight one original face without recolouring its parent.
-- **Data Flow Trace:** `source face key → matching display triangles → read-only selected overlay → black boundary ink`
-- **Files You Touch:** `src/highlight.rs` (*Build a local original-face overlay.*) · `src/renderer.rs` (*Draw read-only highlights before original black ink.*) · `src/pick_gpu_tests.rs` (*Copy actual face, edge and control highlight pixels and release checks.*)
 
 Build a derived overlay from only the triangles belonging to the selected original polygon. Keep source topology and primary geometry shared.
 
-> **Self-Check Question:** *Why is the highlight drawn before original ink?*  
-> **Answer:** The original edge or marker stays visible at the centre while the wider yellow overlay forms a fringe.
-
-- **What You Should See:** The original-face overlay is prepared. The supplied pixel fixture records its local highlight, black edge centres and control halos; browser pick-mode delivery connects in the following lessons.
-- **Hands-On Lab Experiment:** Clear selection and compare the exact pixels with the unselected drawing; Close must release overlays.
-
-<details>
-<summary>Implementation 44j-face-highlight: Highlight one original face without recolouring its parent</summary>
-
-Highlight one original face without recolouring its parent.
-
-Data flow: source face key → matching display triangles → read-only selected overlay → black boundary ink.
+> **Check:** *Why is the highlight drawn before original ink?* — The original edge or marker stays visible at the centre while the wider yellow overlay forms a fringe.
 
 ### 1. `src/highlight.rs`
 
 Build a local original-face overlay.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.mesh = None; let mut strokes = Vec::new(); let mut paths = Vec::new(); let mut markers = Vec::new();
-        let yellow = [1., 0.75, 0.05, 1.];
-        if let Some(target) = target.filter(|t| t.valid(scene)) { match target.part {
-            Part::MeshEdge(a, b) => {
-                let row = scene.objects().iter().find(|r| r.id == target.owner).unwrap();
-                let index = row.mesh.parts.edges.iter().position(|&edge| edge == (a, b)).unwrap();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3519,8 +2267,7 @@ Draw read-only highlights before original black ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             for mesh in &self.meshes {
@@ -3530,8 +2277,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.grid.draw(&mut pass);
             self.strokes.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3547,8 +2292,7 @@ Replace it with:
             self.strokes.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.markers.view(&self.queue, transform, self.size, self.density);
@@ -3558,8 +2302,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3573,8 +2315,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
@@ -3584,8 +2325,6 @@ Replace it with:
         [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3604,8 +2343,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3615,8 +2353,6 @@ Replace it with:
         self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
         self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
 ```
-
-</details>
 
 Replace it with:
 
@@ -3630,8 +2366,7 @@ Replace it with:
         self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
@@ -3642,8 +2377,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         renderer.set_scene(scene, None);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3657,8 +2390,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 targets: &[Some(format.into())],
@@ -3673,8 +2405,6 @@ Replace it with:
             label: Some("view transform and normal diagnostic"),
             size: 80,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3695,8 +2425,7 @@ Replace it with:
             size: 80,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let model_layout = crate::gpu_layout::uniform(&device, 144);
@@ -3707,8 +2436,6 @@ Replace it with:
             layout: Some(&layout),
             vertex: wgpu::VertexState {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3722,8 +2449,7 @@ Replace it with:
             vertex: wgpu::VertexState {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub device: wgpu::Device,
@@ -3733,8 +2459,6 @@ Replace it with:
     geometry: crate::geometry_cache::GeometryCache,
     settings_allocations: usize,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3749,8 +2473,7 @@ Replace it with:
     settings_allocations: usize,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4076,49 +2799,7 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44j-face-highlight-02.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-03.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-04.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-05.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-06.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-07.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-08.rs"
-```
-
-```text
---8<-- "journey/code/44j-face-highlight-09.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4126,37 +2807,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual face, edge and control highlight pixels and release checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.set_pick_mode(crate::pick_sources::Mode::Control); renderer.request_pick([0., 0.6], identity()).unwrap(); assert!(finish(&mut renderer).is_none());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/44j-face-highlight-10.rs" skip=164
 ```
 
-</details>
-
 ### 4. `src/highlight.rs`
 
 Remove the preparation-only face refusal now that original-face overlays are implemented.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Part::Face(_) => return Err("Face overlays are added in the next checkpoint"),
-            Part::Object => {}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4164,83 +2823,44 @@ Edit the existing block to match this code; keep unchanged lines:
             Part::Object => {}
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `44j-face-highlight`:** The original-face overlay is prepared. The supplied pixel fixture records its local highlight, black edge centres and control halos; browser pick-mode delivery connects in the following lessons.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-44k-selection"></a>
 
 ### Step 13 of 14 · Keep part selection outside document history (`44k-selection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/14 Visual Trace (44k-selection): Keep part selection outside document history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection.rs, src/editor.rs, src/selection_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original target</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">part selection</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole-object command guard</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">history-independent</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">presentation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection.rs, src/edi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">whole-object command gu…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">history-independent pre…</text>
 </svg>
-</div>
-
-- **Goal:** Keep part selection outside document history.
-- **Data Flow Trace:** `current original target → part selection → whole-object command guard → history-independent presentation`
-- **Files You Touch:** `src/selection.rs` (*Describe the original selected source part.*) · `src/editor.rs` (*Validate part selection and guard commands that require a whole object.*) · `src/selection_tests.rs` (*Copy selection, command refusal, history and invalid-target checks.*) · `src/lib.rs` (*Register the component and copied checks.*)
 
 Store the original target separately from whole-object selection. A selected part must not silently become a whole-parent Move or Delete.
 
-> **Self-Check Question:** *What should Delete do when only one face is selected?*  
-> **Answer:** At this checkpoint it refuses with a clear instruction to choose Select Object first. Part-edit tools are introduced with their own subjects.
-
-- **What You Should See:** Run the copied selection checks. Undo removes the source insertion rather than undoing a selection click.
-- **Hands-On Lab Experiment:** Select a control, hide controls, then Close; no hidden or closed original target may remain selected.
-
-<details>
-<summary>Implementation 44k-selection: Keep part selection outside document history</summary>
-
-Keep part selection outside document history.
-
-Data flow: current original target → part selection → whole-object command guard → history-independent presentation.
+> **Check:** *What should Delete do when only one face is selected?* — At this checkpoint it refuses with a clear instruction to choose Select Object first. Part-edit tools are introduced with their own subjects.
 
 ### 1. `src/selection.rs`
 
 Describe the original selected source part.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4254,8 +2874,7 @@ Validate part selection and guard commands that require a whole object.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -4265,8 +2884,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4283,8 +2900,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
@@ -4300,8 +2916,6 @@ Replace it with:
                     Some(id) => self.delete_object(id),
                     None => Ok(Change::View),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4321,8 +2935,7 @@ Replace it with:
                     None => Ok(Change::View),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return Err("Reload editable sources before Delete");
@@ -4340,8 +2953,6 @@ Replace it with:
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4375,8 +2986,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn default() -> Self {
@@ -4387,8 +2997,6 @@ Replace it with:
             background: Background::default(),
             normal_view: false,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4402,8 +3010,7 @@ Replace it with:
             normal_view: false,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Editor {
@@ -4413,8 +3020,6 @@ pub struct Editor {
     pub background: Background,
     pub normal_view: bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4429,8 +3034,7 @@ pub struct Editor {
     pub normal_view: bool,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub enum Action {
@@ -4440,8 +3044,6 @@ pub enum Action {
     Replace(Vec<u8>),
     ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4456,8 +3058,7 @@ pub enum Action {
     ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4897,41 +3498,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44k-selection-02.rs"
-```
-
-```text
---8<-- "journey/code/44k-selection-03.rs"
-```
-
-```text
---8<-- "journey/code/44k-selection-04.rs"
-```
-
-```text
---8<-- "journey/code/44k-selection-05.rs"
-```
-
-```text
---8<-- "journey/code/44k-selection-06.rs"
-```
-
-```text
---8<-- "journey/code/44k-selection-07.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4945,22 +3512,9 @@ Copy this supplied file:
 --8<-- "journey/code/44k-selection-08.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the component and copied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod face_pick;
-
-pub mod highlight;
-```
-
-</details>
 
 After that block, type:
 
@@ -4968,61 +3522,40 @@ After that block, type:
 --8<-- "journey/code/44k-selection-09.rs" skip=39
 ```
 
-</details>
+**Result after `44k-selection`:** Run the copied selection checks. Undo removes the source insertion rather than undoing a selection click.
+
+---
 
 <a id="checkpoint-44l-input"></a>
 
 ### Step 14 of 14 · Select and inspect original faces, edges and controls (`44l-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/14 Visual Trace (44l-input): Select and inspect original faces, edges and controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mode command</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual cursor readback</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original source</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">target</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible highlight and</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Selection…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current original source…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible highlight and S…</text>
 </svg>
-</div>
-
-- **Goal:** Select and inspect original faces, edges and controls.
-- **Data Flow Trace:** `mode command → actual cursor readback → current original source target → visible highlight and Selection result`
-- **Files You Touch:** `src/browser.rs` (*Connect typed mode commands, current hits, local overlays and source inspection.*)
 
 Connect Select Object, Select Face, Select Edge, Select Control and Selection to actual GPU hits and local highlights.
 
-> **Self-Check Question:** *How do you know the selected part belongs to the source?*  
-> **Answer:** Selection reports the original face key, endpoint keys, segment index or control index. Display triangles and curve samples never become replacement source identities.
-
-- **What You Should See:** Close; Example Box; Fit; Select Face, then click a face and type Selection. Repeat Select Edge on its boundary. Try Example Curve, Controls On and Select Control.
-- **Hands-On Lab Experiment:** Select a face and try Delete. Then choose Select Object, select the box and Delete; one Undo restores the whole box.
-
-<details>
-<summary>Implementation 44l-input: Select and inspect original faces, edges and controls</summary>
-
-Select and inspect original faces, edges and controls.
-
-Data flow: mode command → actual cursor readback → current original source target → visible highlight and Selection result.
+> **Check:** *How do you know the selected part belongs to the source?* — Selection reports the original face key, endpoint keys, segment index or control index. Display triangles and curve samples never become replacement source identities.
 
 ### 1. `src/browser.rs`
 
@@ -5030,8 +3563,7 @@ Connect typed mode commands, current hits, local overlays and source inspection.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.scenes())).unwrap())?;
@@ -5041,8 +3573,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
     canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5059,8 +3589,7 @@ Replace it with:
     canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -5070,8 +3599,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5086,8 +3613,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             });
@@ -5098,8 +3624,6 @@ Replace it with:
                         report("Editable sources unloaded; display retained.");
                         panel.result("Editable sources unloaded; display retained.");
 ```
-
-</details>
 
 Replace it with:
 
@@ -5114,8 +3638,7 @@ Replace it with:
                         panel.result("Editable sources unloaded; display retained.");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
@@ -5126,8 +3649,6 @@ Replace it with:
                     Some(intent) => crate::browser_reload::restore_for(intent, &editor,
                         std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5141,8 +3662,7 @@ Replace it with:
                         std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         };
@@ -5153,8 +3673,6 @@ Replace it with:
                 None => None,
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5168,8 +3686,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "example arrow" => Action::AddArrow,
@@ -5179,8 +3696,6 @@ Replace it with:
                     "undo" => Action::Undo,
                     "redo" => Action::Redo,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5197,8 +3712,7 @@ Replace it with:
                     "redo" => Action::Redo,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     report(&message); panel.answer("Open", &message); None }
@@ -5209,8 +3723,6 @@ Replace it with:
                 match result {
                     Ok(()) => panel.result("Reloading editable sources…"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5227,8 +3739,7 @@ Replace it with:
                     Ok(()) => panel.result("Reloading editable sources…"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
@@ -5239,8 +3750,6 @@ Replace it with:
                         let message = if command == "Reload Sources" {
                             "Editable sources restored; display retained.".to_owned()
 ```
-
-</details>
 
 Replace it with:
 
@@ -5255,8 +3764,7 @@ Replace it with:
                             "Editable sources restored; display retained.".to_owned()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -5266,8 +3774,6 @@ Replace it with:
             .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
             .is_some_and(|input| input.id() == "open")
 ```
-
-</details>
 
 Replace it with:
 
@@ -5281,8 +3787,7 @@ Replace it with:
             .is_some_and(|input| input.id() == "open")
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Example Arrow",
@@ -5292,8 +3797,6 @@ Replace it with:
             "Undo",
             "Redo",
 ```
-
-</details>
 
 Replace it with:
 
@@ -5311,8 +3814,7 @@ Replace it with:
             "Redo",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5449,7 +3951,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
 
             "Controls On",
             "Controls Off",
@@ -5671,7 +4172,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                     "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
-
 
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
@@ -6024,80 +4524,21 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/44l-input-01.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-02.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-03.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-04.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-05.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-06.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-07.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-08.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-09.rs"
-```
-
-```text
---8<-- "journey/code/44l-input-10.rs"
-```
-
-</details>
-
-</details>
+**Result after `44l-input`:** Close; Example Box; Fit; Select Face, then click a face and type Selection. Repeat Select Edge on its boundary. Try Example Curve, Controls On and Select Control.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 44l-input
-npm --prefix ../session_tests run course -- check 44l-input
-npm --prefix ../session_tests run course -- save 44l-input
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 6.3
+npm --prefix ../session_tests run course -- save 6.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 6.3 (44l-input)](../../../screenshots/journey/44l-input.png)
-
-Close; Example Box; Fit; Select Face, then click a face and type Selection. Repeat Select Edge on its boundary. Try Example Curve, Controls On and Select Control.
-
-- **Final Lesson Experiment:** Select a face and try Delete. Then choose Select Object, select the box and Delete; one Undo restores the whole box.
-
-Continue with [Ordered multi-selection and atomic edits](../../consolidation/45-order.md).
+Continue with [6.4 · Ordered multi-selection and atomic edits](../../consolidation/45-order.md).

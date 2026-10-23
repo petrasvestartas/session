@@ -1,200 +1,100 @@
 # 20.2 · Physical formats, shared section inputs and display defaults
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.2** (Redraft `10.6`) · **4 checkpoints (`96zzc-share-section-addresses-with-outlines-and-ambient` → `96zzf-start-with-current-browser-display-defaults`)** · **Study time: 2–4 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzc-share-section-addresses-with-outlines-and-ambient` → `96zzf-start-with-current-browser-display-defaults` (4 steps) · **Production source:** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs)
 
-> **What You Will Learn & Build:** Read section identity once across ink, outline and ambient passes. By the final checkpoint (`96zzf-start-with-current-browser-display-defaults`), you will apply current device and URL display defaults to browser startup and viewport sizing.
+> **Goal:** Apply current device and URL display defaults to browser startup and viewport sizing.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 20.2 Pipeline Schematic: Physical formats, shared section inputs and display defaults</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (4 Checkpoints: 96zzc-share-section-addresses-with-outlines-and-ambient → 96zzf-start-with-current-browser-display-defaults)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow the same reserved address</text>
-    <text x="144" y="124" text-anchor="middle" font-size="11" fill="#111111">into the outline mask and ambient</text>
-    <text x="144" y="140" text-anchor="middle" font-size="11" fill="#111111">preparation.</text>
-    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow pointer capability and URL</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">overrides into opacity, the grid</text>
-    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">owner…</text>
-    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">GPU Frame Output</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 20.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/physical.wgsl  ·  src/ink_plane.wgsl  ·  src/outline_caps.wgsl  ·  src/outline_caps.rs  ·  src/outline_gpu.rs  ·  src/renderer.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">4 Checkpoints: 96zzc-share-section-addresses-with-outlines-and-ambient → 96zzf-start-with-current-browser-display-defaults — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzc-share-section-addresses-with-outlines-and-ambient`](#checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient) | Read section identity once across ink, outline and ambient passes. | `src/physical.wgsl`, `src/ink_plane.wgsl`, `src/outline_caps.wgsl`, `src/outline_caps.rs` | `Follow the same reserved address into the outline mask and ambient preparation.` |
-| **2** | [`96zzd-pack-surface-position-normal-and-color`](#checkpoint-96zzd-pack-surface-position-normal-and-color) | Use one compact surface vertex buffer throughout rendering and picking. | `src/packed_vertex.rs`, `src/lib.rs`, `src/packed_vertex.wgsl`, `src/cloud_points.wgsl` | `Follow the same five words through upload, pulled color/picking, physical projection, section counts, outline masks and ambient normals.` |
-| **3** | [`96zze-retain-rgba-in-prepared-displays`](#checkpoint-96zze-retain-rgba-in-prepared-displays) | Preserve display RGBA through preparation and the compact upload. | `src/mesh.rs`, `src/packed_vertex.rs`, `src/packed_vertex_tests.rs`, `src/display_rgba_tests.rs` | `Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte.` |
-| **4** | [`96zzf-start-with-current-browser-display-defaults`](#checkpoint-96zzf-start-with-current-browser-display-defaults) | Apply current device and URL display defaults to browser startup and viewport sizing. | `src/browser_defaults.rs`, `src/lib.rs`, `Cargo.toml`, `src/browser.rs` | `Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels.` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient"></a>
 
 ### Step 1 of 4 · Share section addresses with outlines and ambient shading (`96zzc-share-section-addresses-with-outlines-and-ambient`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/4 Visual Trace (96zzc-share-section-addresses-with-outlines-and-ambient): Share section addresses with outlines and ambient shading</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/physical.wgsl, src/ink_plane.wgsl, src/outline_caps.wgsl, src/outline_caps.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow the same reserved address into the outline mask and ambient preparation.</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/physical.wgsl, src/in…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow the same reserve…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow the same reserve…</text>
 </svg>
-</div>
-
-- **Goal:** Read section identity once across ink, outline and ambient passes.
-- **Data Flow Trace:** `Follow the same reserved address into the outline mask and ambient preparation.`
-- **Files You Touch:** `src/physical.wgsl` (*Keep one lossless decoder alongside the shared encoder.*) · `src/ink_plane.wgsl` (*Reuse the shared physical address decoder.*) · `src/outline_caps.wgsl` (*Bind the existing integer surface address.*) · `src/outline_caps.rs` (*Match the integer texture binding.*) · `src/outline_gpu.rs` (*Supply current plane depth to the cap mask.*) · `src/renderer.rs` (*Use the full physical primitive image for this outline mask.*) · `src/ambient.wgsl` (*Read integer section identity during ambient preparation.*) · `src/ambient_pipeline.rs` (*Match the shared integer source binding.*) · `src/caps_gpu.rs` (*Remove the unused float section image owner.*) · `src/cap_color.wgsl` (*Move the physical address beside color after removing the float output.*) · `src/cap_pipeline.rs` (*Match the reduced fragment outputs.*) · `src/cap_pick_pipeline.rs` (*Match the reduced fragment outputs.*) · `src/cap_pick.wgsl` (*Keep exact original owner and physical address as the two integer outputs.*) · `src/cap_pick_gpu.rs` (*Retain the existing crop’s primitive attachment.*) · `src/pick_image.rs` (*Remove the unused pick-image member.*) · `src/pick_encode.rs` (*Remove the pass that only cleared the unused attachment.*) · `src/pick_gpu.rs` (*Account for eight owner bytes, four depth bytes and four primitive bytes.*) · `src/pick_gpu_tests.rs` (*Tighten the existing bounded-memory assertion to the actual resources.*) · `src/cap_gpu_tests.rs` (*Require exactly the remaining uniform and crossing-count allocation.*) · `src/global_outline_tests.rs` (*Require the reduced inactive cap allocation in the existing mask regression.*)
 
 Outlines and ambient shading can identify a section from the same physical primitive address.
 
 Decode its plane and selection bit instead of sampling the old float record. The outline reconstructs fragment depth and keeps its depth comparison, so nearer clouds still hide the section. Ambient shading uses the plane normal and its existing section radius.
 
-With all consumers converted, remove the float section outputs and allocations. Keep one shared lossless decoder. The cap resource counter now returns to its sixteen-byte frame uniform when inactive; each pick pixel retains only owner, depth and primitive data.
-
-> **Self-Check Question:** *Why does the outline still write fragment depth?*  
-> **Answer:** A cap address identifies the plane, but later geometry may be nearer. Reconstructed plane depth keeps the mask subject to the existing depth test.
-
-- **What You Should See:** Ink, outline and ambient share one section address; duplicate float section attachments are gone.
-- **Hands-On Lab Experiment:** Select a cut solid, compare global and selected outlines, and enable ambient shading at its contacts.
-
-<details>
-<summary>Implementation 96zzc-share-section-addresses-with-outlines-and-ambient: Share section addresses with outlines and ambient shading</summary>
-
-Read section identity once across ink, outline and ambient passes.
-
-Data flow: Follow the same reserved address into the outline mask and ambient preparation..
+> **Check:** *Why does the outline still write fragment depth?* — A cap address identifies the plane, but later geometry may be nearer. Reconstructed plane depth keeps the mask subject to the existing depth test.
 
 ### 1. `src/physical.wgsl`
 
 Keep one lossless decoder alongside the shared encoder.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn physical_primitive(primitive:u32)->vec2<u32>{
-    return vec2<u32>(primitive&0xffffu,primitive>>16u);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -206,55 +106,15 @@ After that block, type:
 
 Reuse the shared physical address decoder.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    return halves.x|(halves.y<<16u);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
     return physical_address(halves);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-2.wgsl"
-```
-
-</details>
-
 ### 3. `src/outline_caps.wgsl`
 
 Bind the existing integer surface address. Recover cap selection and plane depth while retaining occlusion by later depth writers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var sections:texture_2d<f32>;
-@group(0) @binding(1) var<uniform> radius:vec4<f32>;
-@vertex fn vs_main(@builtin(vertex_index) i:u32)->@builtin(position) vec4<f32>{
- let p=array<vec2<f32>,3>(vec2<f32>(-1.,-1.),vec2<f32>(3.,-1.),vec2<f32>(-1.,3.));return vec4<f32>(p[i],0.,1.);
-}
-struct Coverage{@location(0) value:f32,@builtin(frag_depth) depth:f32}
-@fragment fn fs_main(@builtin(position) p:vec4<f32>)->Coverage{
- if(any(vec2<u32>(p.xy)>=textureDimensions(sections))){discard;}
- let cap=textureLoad(sections,vec2<i32>(p.xy),0).xy;
- if(cap.y<0.5 || (radius.y>0.5 && cap.y<8.5)){discard;}
- return Coverage(1.,cap.x);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -278,60 +138,9 @@ struct Coverage{@location(0) value:f32,@builtin(frag_depth) depth:f32}
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-1.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-2.wgsl"
-```
-
-</details>
-
 ### 4. `src/outline_caps.rs`
 
 Match the integer texture binding. Assemble the shared clipping helpers once. Reuse the existing clipping uniform layout. Add the shared plane group to the mask pipeline. Accept the current frame’s clipping planes. Bind the same clipping group used by the surface pass.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Caps{
- pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,
- input:Option<wgpu::TextureView>,group:Option<wgpu::BindGroup>,
-}
-impl Caps{
- pub fn new(device:&wgpu::Device)->Self{
-  use wgpu::{ShaderStages as Stages,TextureSampleType as Sample};
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("visible cap coverage"),entries:&[
-   crate::text_gpu_support::texture_entry(0,Stages::FRAGMENT,Sample::Float{filterable:false},false),
-   wgpu::BindGroupLayoutEntry{binding:1,visibility:Stages::FRAGMENT,ty:wgpu::BindingType::Buffer{ty:wgpu::BufferBindingType::Uniform,has_dynamic_offset:false,min_binding_size:wgpu::BufferSize::new(16)},count:None},
-  ]});
-  let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("visible cap coverage"),source:wgpu::ShaderSource::Wgsl(include_str!("outline_caps.wgsl").into())});
-  let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("visible cap coverage"),bind_group_layouts:&[Some(&layout)],immediate_size:0});
-  let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
-   label:Some("visible cap coverage"),layout:Some(&pipeline_layout),
-   vertex:wgpu::VertexState{module:&shader,entry_point:Some("vs_main"),buffers:&[],compilation_options:Default::default()},
-   fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some("fs_main"),targets:&[Some(wgpu::TextureFormat::R8Unorm.into())],compilation_options:Default::default()}),
-   primitive:Default::default(),depth_stencil:Some(wgpu::DepthStencilState{format:crate::depth::FORMAT,depth_write_enabled:Some(false),depth_compare:Some(wgpu::CompareFunction::LessEqual),stencil:Default::default(),bias:Default::default()}),multisample:Default::default(),multiview_mask:None,cache:None,
-  });Self{pipeline,layout,input:None,group:None}
- }
- pub fn prepare(&mut self,device:&wgpu::Device,input:&wgpu::TextureView,radius:&wgpu::Buffer){
-  if self.input.as_ref()==Some(input){return;}
-  self.group=Some(device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("visible cap coverage"),layout:&self.layout,entries:&[
-   wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(input)},wgpu::BindGroupEntry{binding:1,resource:radius.as_entire_binding()},
-  ]}));self.input=Some(input.clone());
- }
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>){if let Some(group)=&self.group{pass.set_pipeline(&self.pipeline);pass.set_bind_group(0,group,&[]);pass.draw(0..3,0..1);}}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -367,49 +176,9 @@ impl Caps{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-7.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-8.rs"
-```
-
-</details>
-
 ### 5. `src/outline_gpu.rs`
 
 Supply current plane depth to the cap mask.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if sections.is_some(){self.caps.draw(&mut pass);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -417,25 +186,13 @@ Edit the existing block to match this code; keep unchanged lines:
         if sections.is_some(){self.caps.draw(&mut pass,clipping);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-9.rs"
-```
-
-</details>
-
 ### 6. `src/renderer.rs`
 
 Use the full physical primitive image for this outline mask. Remove the unused section-resource borrow.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -450,8 +207,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }else{
             self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
 ```
-
-</details>
 
 Replace it with:
 
@@ -469,8 +224,7 @@ Replace it with:
             self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1029,35 +783,13 @@ mod global_outline_tests;
 mod opacity_gpu_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-12.rs"
-```
-
-</details>
-
 ### 7. `src/ambient.wgsl`
 
 Read integer section identity during ambient preparation. Share one bounded integer reader between ambient radius and normal lookup. Keep the established section radius without a second surface record. Decode and bound the section plane before reading its normal.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     return decode_normal(textureLoad(normals,coord,0).xy*2.0-1.0);
@@ -1077,8 +809,6 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
  let dx=select(p-b.xyz,a.xyz-p,a.w>0.&& (b.w==0.||distance(a.xyz,p)<distance(b.xyz,p)));let dy=select(p-d.xyz,c.xyz-p,c.w>0.&&(d.w==0.||distance(c.xyz,p)<distance(d.xyz,p)));let n=cross(dx,dy);let normal=n/max(length(n),1e-12);return select(-normal,normal,dot(normal,-ray_direction(pixel))>0.);
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1109,8 +839,7 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 @group(0) @binding(1) var<uniform> ambient: Ambient;
@@ -1121,8 +850,6 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
 @group(1) @binding(0) var linear: texture_2d<f32>;
 @group(1) @binding(1) var radii: texture_2d<u32>;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1136,8 +863,7 @@ Replace it with:
 @group(1) @binding(1) var radii: texture_2d<u32>;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 const MSAA: bool = false;
@@ -1545,43 +1271,9 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-13.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-14.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-15.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-16.wgsl"
-```
-
-</details>
-
 ### 8. `src/ambient_pipeline.rs`
 
 Match the shared integer source binding.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let source=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient source images and precise camera"),entries:&[texture(0,T::Depth),uniform(1),texture(2,T::Float{filterable:false}),texture(3,T::Float{filterable:false}),texture(4,T::Float{filterable:false}),uniform(5)]});
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1589,29 +1281,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let source=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient source images and precise camera"),entries:&[texture(0,T::Depth),uniform(1),texture(2,T::Float{filterable:false}),texture(3,T::Float{filterable:false}),texture(4,T::Uint),uniform(5)]});
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-17.rs"
-```
-
-</details>
-
 ### 9. `src/renderer.rs`
 
 Bind the same physical primitive image to ambient shading.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.caps.borrow().depth.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground,[self.pyramid_revision,clip_revision]);}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1619,61 +1291,9 @@ Edit the existing block to match this code; keep unchanged lines:
         if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.primitive.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground,[self.pyramid_revision,clip_revision]);}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-18.rs"
-```
-
-</details>
-
 ### 10. `src/caps_gpu.rs`
 
 Remove the unused float section image owner. Stop allocating its empty placeholder. Resize only the crossing-count image still used by cap rendering. Keep only color and physical primitive attachments. Report only allocated cap resources.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use wgpu::util::DeviceExt;
-use crate::{gpu_mesh::GpuMesh,solid_orientation::CLOSED};
-use crate::cap_image::Image;
-struct Counts{image:Image,group:wgpu::BindGroup}
-pub struct Caps{pub enabled:bool,planes:u32,pick:Option<crate::cap_pick_gpu::Pick>,pub pick_error:Option<&'static str>,bounds:crate::cap_source_bounds::Bounds,targets:std::collections::HashMap<u32,u32>,pub solids:crate::solid_cache::Solids,pipes:Option<crate::cap_pipeline::Pipelines>,counts:Option<Counts>,pub depth:Image,frame:wgpu::Buffer,frame_group:Option<wgpu::BindGroup>,pub rows:Vec<[u32;2]>,pub draws:u64,pub passes:u64}
-impl Caps{
- pub fn new(device:&wgpu::Device)->Self{let frame=device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("section canvas frame"),contents:&[0;16],usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST});Self{enabled:true,planes:0,pick:None,pick_error:None,bounds:Default::default(),targets:Default::default(),solids:Default::default(),pipes:None,counts:None,depth:Image::new(device,[1,1],wgpu::TextureFormat::Rg32Float,8),frame,frame_group:None,rows:Vec::new(),draws:0,passes:0}}
- pub fn set_scene(&mut self,queue:&wgpu::Queue,scene:&crate::scene::Scene,meshes:&mut[GpuMesh],planes:&[crate::clipping_rows::Row]){
-  self.planes=planes.len()as u32;self.rows.clear();self.targets.clear();for(mesh,object)in meshes.iter_mut().zip(scene.objects().iter().filter(|r|scene.visible(r.id))){assert_eq!(mesh.id,object.id);let flags=self.solids.flags(object);let token=if !planes.is_empty()&&flags&CLOSED!=0{self.rows.push([mesh.id.value(),u32::from(mesh.pickable())]);self.rows.len()as u32}else{0};mesh.set_caps(queue,flags,token);if token>0{if let Some(bounds)=self.bounds.placed(&object.mesh,&object.model){let mask=planes.iter().enumerate().fold(0,|mask,(i,row)|mask|if row.plane.crosses(&bounds,[0.;3]){1<<i}else{0});self.targets.insert(mesh.id.value(),mask);}}}
-  self.solids.prune();self.bounds.prune();if self.rows.is_empty(){self.rows.shrink_to_fit();self.targets.shrink_to_fit();}
- }
- pub fn prepare(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,format:wgpu::TextureFormat,size:[u32;2],active:bool){
-  let size=if active&&!self.rows.is_empty(){size}else{[1,1]};if self.depth.size!=size{self.depth=Image::new(device,size,wgpu::TextureFormat::Rg32Float,8);}
-  if size==[1,1]{self.counts=None;return;}
-  if self.pipes.is_none(){let pipes=crate::cap_pipeline::Pipelines::new(device,format);self.frame_group=Some(crate::gpu_layout::group(device,&pipes.frame,&self.frame));self.pipes=Some(pipes);}
-  let pipes=self.pipes.as_ref().unwrap();if self.counts.as_ref().is_none_or(|c|c.image.size!=size){let image=Image::new(device,size,wgpu::TextureFormat::R16Float,2);let group=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("original section crossings"),layout:&pipes.counts,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(&image.view)}]});self.counts=Some(Counts{image,group});}
-  let bytes=[size[0]as f32,size[1]as f32,0.,0.].into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>();queue.write_buffer(&self.frame,0,&bytes);
- }
- pub fn draw(&mut self,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,primitive:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,meshes:&[GpuMesh],planes:u32){
-  let(Some(pipes),Some(counts))=(&self.pipes,&self.counts)else{return};
-  for plane in 0..planes{
-   {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original closed-solid crossings"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&counts.image.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&pipes.count);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clipping,&[]);for mesh in meshes.iter().filter(|m|m.closed()&&self.targets.get(&m.id.value()).is_some_and(|mask|mask&(1<<plane)!=0)){mesh.bind_model(&mut pass);pass.set_vertex_buffer(0,mesh.geometry.vertices.slice(..));pass.set_index_buffer(mesh.geometry.indices.slice(..),wgpu::IndexFormat::Uint32);pass.draw_indexed(0..mesh.geometry.index_count,0,plane..plane+1);self.draws+=1;}}
-   {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original section color and depth"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:color,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment{view:&self.depth.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:if plane==0{wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)}else{wgpu::LoadOp::Load},store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment{view:primitive,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&pipes.color);pass.set_bind_group(0,self.frame_group.as_ref().unwrap(),&[]);pass.set_bind_group(1,clipping,&[]);pass.set_bind_group(2,&counts.group,&[]);pass.draw(0..3,plane..plane+1);self.draws+=1;}
-   self.passes+=2;
-  }
- }
- pub fn encode_pick(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,image:&crate::pick_image::Image,window:crate::pick_window::Window,view:&wgpu::BindGroup,crop:&wgpu::Buffer,clipping:&wgpu::BindGroup,meshes:&[GpuMesh],mode:crate::pick_sources::Mode){
-  if !self.enabled||self.planes==0||self.rows.is_empty(){self.pick=None;self.pick_error=None;return;}
-  let pick=self.pick.get_or_insert_with(||crate::cap_pick_gpu::Pick::new(device));if let Err(error)=pick.prepare(device,queue,window,crop,&self.rows,self.planes,mode){self.pick_error=Some(error);self.pick=None;return;}self.pick_error=None;pick.encode(encoder,image,window,view,clipping,meshes,&self.targets,self.planes);
- }
- pub fn pick_bytes(&self)->u64{self.pick.as_ref().map_or(0,crate::cap_pick_gpu::Pick::bytes)}
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.depth.bytes+self.pick_bytes()+self.counts.as_ref().map_or(0,|c|c.image.bytes),self.rows.len()as u64,self.solids.checks,self.draws,self.passes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1713,29 +1333,13 @@ impl Caps{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-7.rs"
-```
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-9.rs"
-```
-
-</details>
-
 ### 11. `src/cap_color.wgsl`
 
 Move the physical address beside color after removing the float output. Keep plane and selection only in the physical primitive marker.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     edge = max(edge, section_outline(in.pos.xy));
@@ -1744,8 +1348,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     return CapOut(vec4<f32>(color, 1.0), vec2<f32>(z,f32(i+1u)+select(0.0,8.0,selected)), physical_primitive(marker), z, mask);
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1757,8 +1359,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 // A section cap fragment: color, triangle id, the plane's depth and the samples it covers.
@@ -1770,8 +1371,6 @@ struct CapOut {
     @builtin(sample_mask) mask: u32, // samples inside a solid and kept by the other planes
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1785,8 +1384,7 @@ struct CapOut {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct CapFrame{size:vec2<f32>,origin:vec2<f32>}
@@ -1839,7 +1437,6 @@ fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
     return box_cdf(hw - d, hi, lo, m, q) + box_cdf(hw + d, hi, lo, m, q) - 1.0;
 }
 
-
 // Coverage of the nearest hatch line; `slope` is the change of `u` per pixel.
 fn hatch_ink(u: f32, slope: vec2<f32>) -> f32 {
     let rate = max(length(slope), 1e-30); // scene units per pixel across the lines
@@ -1880,7 +1477,6 @@ fn section_outline(at: vec2<f32>) -> f32 {
     }
     return edge;
 }
-
 
 @fragment
 // Where the view ray meets a plane inside a closed solid: outlined hatch or solid grey.
@@ -1934,31 +1530,9 @@ fn fs_cap(in: CapVertex) -> CapOut {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-10.wgsl"
-```
-
-</details>
-
 ### 12. `src/cap_pipeline.rs`
 
 Match the reduced fragment outputs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let color=pipeline(device,crate::clipping_gpu::source(include_str!("cap_color.wgsl"),1,0),&[&frame,&clip,&counts],"vs_cap","fs_cap",&[wgpu::ColorTargetState{format,blend:None,write_mask:wgpu::ColorWrites::ALL},wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg32Float,blend:None,write_mask:wgpu::ColorWrites::ALL},crate::primitive_image::target(true)],false);Self{count,color,counts,frame}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1966,25 +1540,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let color=pipeline(device,crate::clipping_gpu::source(include_str!("cap_color.wgsl"),1,0),&[&frame,&clip,&counts],"vs_cap","fs_cap",&[wgpu::ColorTargetState{format,blend:None,write_mask:wgpu::ColorWrites::ALL},crate::primitive_image::target(true)],false);Self{count,color,counts,frame}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 13. `src/cap_pick_pipeline.rs`
 
 Match the reduced fragment outputs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let ids=crate::cap_pipeline::pipeline(device,crate::clipping_gpu::source(include_str!("cap_pick.wgsl"),1,0),&[&frame,&clip,&owners],"vs_cap","fs_cap_id",&[wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg32Uint,blend:None,write_mask:wgpu::ColorWrites::ALL},wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg32Float,blend:None,write_mask:wgpu::ColorWrites::ALL},crate::primitive_image::target(true)],false);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1992,64 +1550,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let ids=crate::cap_pipeline::pipeline(device,crate::clipping_gpu::source(include_str!("cap_pick.wgsl"),1,0),&[&frame,&clip,&owners],"vs_cap","fs_cap_id",&[wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg32Uint,blend:None,write_mask:wgpu::ColorWrites::ALL},crate::primitive_image::target(true)],false);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 14. `src/cap_pick.wgsl`
 
 Keep exact original owner and physical address as the two integer outputs. Remove the unused float pick record.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct PickFrame{full:vec2<u32>,size:vec2<u32>,origin:vec2<u32>,mode:u32,pad:u32}
-@group(0) @binding(0) var<uniform> frame:PickFrame;
-@group(2) @binding(0) var<storage,read_write> pick_caps:array<atomic<u32>>;
-@group(2) @binding(1) var<storage,read> owners:array<vec2<u32>>;
-struct CapVertex {
-    @builtin(position) pos: vec4<f32>, // clip position
-    @location(0) @interpolate(flat) plane: u32, // clipping plane; for the masks 1 = selected caps only
-}
-
-@vertex
-// A triangle over the whole target.
-fn vs_cap(@builtin(vertex_index) vertex: u32, @builtin(instance_index) plane: u32) -> CapVertex {
-    let xy = vec2<f32>(f32((vertex << 1u) & 2u), f32(vertex & 2u));
-    var out: CapVertex;
-    out.pos = vec4<f32>(xy * 2.0 - 1.0, 0.0, 1.0);
-    out.plane = plane;
-    return out;
-}
-
-struct CapId{@location(0) id:vec2<u32>,@location(1) section_depth:vec2<f32>,@location(2) primitive:vec2<u32>,@builtin(frag_depth) depth:f32}
-@fragment
-fn fs_cap_id(in: CapVertex) -> CapId {
-    let i = in.plane;
-    let ndc = clip_ndc(in.pos.xy + vec2<f32>(frame.origin), vec2<f32>(frame.full), 0.0).xy;
-    let z = clip_plane_depth(i, ndc);
-    let word = clip_pick_word(i, in.pos.xy, frame.size);
-    let count = bitcast<i32>(atomicLoad(&pick_caps[word]));
-    let owner = select(atomicLoad(&pick_caps[word + 3u]), atomicLoad(&pick_caps[word + 1u]), count == 1);
-    var kept = true;
-
-    for (var j = 0u; j < clipping.count; j++) {
-        kept = kept && (j == i || dot(clipping.screen[j], vec4<f32>(ndc, z, 1.0)) >= 0.0);
-    }
-
-    if (count < 1 || owner == 0u || owner>arrayLength(&owners) || !kept || !(z >= 0.0 && z <= 1.0)) {
-        discard;
-    }
-
-    let marker=CAP_PRIMITIVE+i*2u;let source=owners[owner-1u];return CapId(vec2<u32>(select(0u,source.x,source.y!=0u),0u),vec2<f32>(z,f32(i+1u)),physical_primitive(marker),z);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2096,29 +1599,9 @@ fn fs_cap_id(in: CapVertex) -> CapId {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-14.wgsl"
-```
-
-</details>
-
 ### 15. `src/cap_pick_gpu.rs`
 
 Retain the existing crop’s primitive attachment.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original section integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment{view:&image.section,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment{view:&image.primitive.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&self.pipes.ids);pass.set_bind_group(0,&self.frame_group,&[]);pass.set_bind_group(1,clipping,&[]);pass.set_bind_group(2,self.owner_group.as_ref().unwrap(),&[]);pass.draw(0..3,0..planes);let _=window;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2126,55 +1609,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original section integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment{view:&image.primitive.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&self.pipes.ids);pass.set_bind_group(0,&self.frame_group,&[]);pass.set_bind_group(1,clipping,&[]);pass.set_bind_group(2,self.owner_group.as_ref().unwrap(),&[]);pass.draw(0..3,0..planes);let _=window;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 16. `src/pick_image.rs`
 
 Remove the unused pick-image member. Stop allocating a duplicate eight-byte surface record per cropped pixel. Construct the smaller cropped image.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::pick_window::Window;
-
-pub(crate) struct Image {
-    pub texture: wgpu::Texture,
-    pub colour: wgpu::TextureView,
-    pub depth: wgpu::TextureView,
-    pub primitive:crate::primitive_image::Image,
-    pub section:wgpu::TextureView,
-    pub readback: wgpu::Buffer,
-    pub window: Window,
-}
-
-impl Image {
-    pub fn new(device: &wgpu::Device, window: Window) -> Self {
-        let size = wgpu::Extent3d { width: window.draw[2], height: window.draw[3], depth_or_array_layers: 1 };
-        let texture = device.create_texture(&wgpu::TextureDescriptor { label: Some("bounded pick image"), size,
-            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rg32Uint, usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC, view_formats: &[] });
-        let colour = texture.create_view(&Default::default());
-        let depth = device.create_texture(&wgpu::TextureDescriptor { label: Some("pick depth"), size,
-            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT, usage: wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING, view_formats: &[] }).create_view(&Default::default());
-        // GPU image rows need 256-byte copy alignment; the decoder skips that padding and reads only the logical columns.
-        let readback = device.create_buffer(&wgpu::BufferDescriptor { label: Some("bounded pick readback"), size: window.bytes(),
-            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ, mapped_at_creation: false });
-        let section=device.create_texture(&wgpu::TextureDescriptor{label:Some("bounded section depth"),size,mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rg32Float,usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING,view_formats:&[]}).create_view(&Default::default());
-        let primitive=crate::primitive_image::Image::new(device,[size.width,size.height]);
-        Self { texture, colour, depth, primitive, section,readback, window }
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2210,30 +1647,9 @@ impl Image {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-19.rs"
-```
-
-</details>
-
 ### 17. `src/pick_encode.rs`
 
 Remove the pass that only cleared the unused attachment.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        {let _clear=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("clear bounded section depth"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.section,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});}
-        {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2241,25 +1657,9 @@ Edit the existing block to match this code; keep unchanged lines:
         {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 18. `src/pick_gpu.rs`
 
 Account for eight owner bytes, four depth bytes and four primitive bytes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 24) + 160+u64::from(self.legacy_clipping.is_some())*448]
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2267,19 +1667,7 @@ Edit the existing block to match this code; keep unchanged lines:
             image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 16) + 160+u64::from(self.legacy_clipping.is_some())*448]
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-21.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2287,25 +1675,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Tighten the existing bounded-memory assertion to the actual resources.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-31 * 31 * 24
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-22.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2313,25 +1689,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Require exactly the remaining uniform and crossing-count allocation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-16+320*240*10
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-23.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2339,25 +1703,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Require release down to the retained sixteen-byte frame uniform.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert_eq!(r.cap_usage()[0],24)
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-24.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2365,67 +1717,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Require the reduced inactive cap allocation in the existing mask regression.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert_eq!(r.cap_usage()[0],24)
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzc-share-section-addresses-with-outlines-and-ambient-resource-25.rs"
 ```
 
-</details>
+**Result after `96zzc-share-section-addresses-with-outlines-and-ambient`:** Ink, outline and ambient share one section address; duplicate float section attachments are gone.
 
-</details>
+---
 
 <a id="checkpoint-96zzd-pack-surface-position-normal-and-color"></a>
 
 ### Step 2 of 4 · Use compact vertices in every surface pass (`96zzd-pack-surface-position-normal-and-color`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/4 Visual Trace (96zzd-pack-surface-position-normal-and-color): Use compact vertices in every surface pass</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/packed_vertex.rs, src/lib.rs, src/packed_vertex.wgsl, src/cloud_points.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow the same five words through upload, pulled color/picking, physical projection, section counts, outline</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">masks…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/packed_vertex.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow the same five wo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow the same five wo…</text>
 </svg>
-</div>
-
-- **Goal:** Use one compact surface vertex buffer throughout rendering and picking.
-- **Data Flow Trace:** `Follow the same five words through upload, pulled color/picking, physical projection, section counts, outline masks and ambient normals.`
-- **Files You Touch:** `src/packed_vertex.rs` (*Write the compact derived GPU representation while retaining source ownership.*) · `src/lib.rs` (*Expose the pure encoder before connecting its upload.*) · `src/packed_vertex.wgsl` (*Move the oct32 decoder already taught for clouds into the shared shader source.*) · `src/cloud_points.wgsl` (*Use the shared decoder without a second implementation.*) · `src/clipping_gpu.rs` (*Make the same decoder available to current cloud and upcoming mesh shaders.*) · `src/packed_vertex_tests.rs` (*Supply independent position-bit, memory-size, quantization, sentinel and directional-error checks.*) · `src/gpu_geometry.rs` (*Remove the separate normal buffer owner.*) · `src/triangle.wgsl` (*Read packed words without numeric conversion.*) · `src/finite_project.wgsl` (*Project positions from the actual compact upload.*) · `src/finite_project_source.rs` (*Assemble physical projection with the same packed layout and position reader.*) · `src/face_pick.wgsl` (*Remove the obsolete source-face layout; use the shared twenty-byte declaration.*) · `src/cap_pipeline.rs` (*Count closed-solid crossings from the compact vertex positions.*) · `src/outline_gpu.rs` (*Use the same position stride for outline masks.*) · `src/ambient_source_pipeline.rs` (*Read position and the normal word from one twenty-byte vertex binding.*) · `src/ambient_sources.wgsl` (*Receive the integer normal word in the ambient property pass.*) · `src/global_outline_tests.rs` (*Supply actual GPU allocation, source retention, reuse and release checks alongside the existing color/primitive/pick fixtures.*) · `src/geometry_cache.rs` (*Count the compact vertex and index bytes actually uploaded; no separate float normal upload remains.*)
 
 A surface vertex needs twenty GPU bytes: position, one normal word and one color word.
 
 Pack the existing display once, preserving position bits and original ownership. Reuse the cloud normal decoder for mesh color, integer picking and ambient properties. Physical triangle projection, section crossings and outline masks read positions from the same compact buffer. Remove the separate normal upload and tighten the memory contract. The teaching display currently supplies RGB, so its packed alpha is opaque; original kernel payloads remain unchanged.
 
-> **Self-Check Question:** *Why store x, y and z as separate scalar fields in the shader record?*  
-> **Answer:** The five scalar fields have four-byte alignment and a twenty-byte array stride. A vec3<f32> position would give this record sixteen-byte alignment and a thirty-two-byte array stride. See [WGSL alignment and size](https://www.w3.org/TR/WGSL/#alignment-and-size).
-
-- **What You Should See:** All surface passes consume one compact twenty-byte vertex buffer.
-- **Hands-On Lab Experiment:** Compare normal view, selected CAD sections and first picks at both pixel densities. Copy an original, restore its display and confirm that shared uploads remain unchanged.
-
-<details>
-<summary>Implementation 96zzd-pack-surface-position-normal-and-color: Use compact vertices in every surface pass</summary>
-
-Use one compact surface vertex buffer throughout rendering and picking.
-
-Data flow: Follow the same five words through upload, pulled color/picking, physical projection, section counts, outline masks and ambient normals..
+> **Check:** *Why store x, y and z as separate scalar fields in the shader record?* — The five scalar fields have four-byte alignment and a twenty-byte array stride. A vec3<f32> position would give this record sixteen-byte alignment and a thirty-two-byte array stride. See [WGSL alignment and size](https://www.w3.org/TR/WGSL/#alignment-and-size).
 
 ### 1. `src/packed_vertex.rs`
 
@@ -2441,15 +1774,6 @@ Create the file and type:
 
 Expose the pure encoder before connecting its upload.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod gpu_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -2458,25 +1782,13 @@ pub mod packed_vertex;
 mod packed_vertex_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-2.rs"
-```
-
-</details>
-
 ### 3. `src/packed_vertex.wgsl`
 
 Move the oct32 decoder already taught for clouds into the shared shader source.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
 
@@ -2486,34 +1798,9 @@ Create the destination by moving the existing code:
 --8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-3.wgsl"
 ```
 
-</details>
-
 ### 4. `src/cloud_points.wgsl`
 
 Use the shared decoder without a second implementation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn oct32_decode(p: u32) -> vec3<f32> {
-    if (p == 0x80008000u) {
-        return vec3<f32>(0.0);
-    }
-
-    let e = unpack2x16snorm(p);
-    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
-
-    if (n.z < 0.0) {
-        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
-        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-    }
-
-    return normalize(n);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2521,25 +1808,9 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 5. `src/clipping_gpu.rs`
 
 Make the same decoder available to current cloud and upcoming mesh shaders.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn source(base:&str,group:u32,binding:u32)->String{format!("@group({group}) @binding({binding}) var<uniform> clipping:ClipUniform;\n{}\n{base}",concat!(include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2547,19 +1818,7 @@ Edit the existing block to match this code; keep unchanged lines:
 pub fn source(base:&str,group:u32,binding:u32)->String{format!("@group({group}) @binding({binding}) var<uniform> clipping:ClipUniform;\n{}\n{base}",concat!(include_str!("packed_vertex.wgsl"),"\n",include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-5.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2573,20 +1832,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-6.rs"
 ```
 
-</details>
-
 ### 7. `src/packed_vertex.wgsl`
 
 Declare one scalar-aligned twenty-byte shader layout and shared position reader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn oct32_decode(p: u32) -> vec3<f32> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2596,97 +1844,9 @@ fn packed_position(vertex:PackedVertex)->vec3<f32>{return vec3<f32>(vertex.x,ver
 fn oct32_decode(p: u32) -> vec3<f32> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-7.wgsl"
-```
-
-</details>
-
 ### 8. `src/gpu_geometry.rs`
 
 Remove the separate normal buffer owner. Keep stable vertex and index bindings; no normal storage binding remains. Require at least one complete compact vertex or one index in the storage binding. Upload position, encoded normal and color in one buffer. Remove the duplicate upload. Bind the same compact storage used by every surface pass. Retain one source and one compact vertex buffer. Report actual vertex and index allocation. Indexed passes read their normal word from the same vertex buffer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
-
-pub struct GpuGeometry {
-    pub source: Rc<Mesh>,
-    pub(crate) vertices: wgpu::Buffer,
-    normals: wgpu::Buffer,
-    pub(crate) indices: wgpu::Buffer,
-    pub(crate) index_count: u32,
-    pull_group: wgpu::BindGroup,
-}
-
-impl GpuGeometry {
-    pub fn storage_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-        let entries = [0, 1, 2].map(|binding| wgpu::BindGroupLayoutEntry {
-            binding, visibility: wgpu::ShaderStages::VERTEX,
-            ty: wgpu::BindingType::Buffer {
-                ty: wgpu::BufferBindingType::Storage { read_only: true },
-                has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(4),
-            }, count: None,
-        });
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("shared geometry storage"), entries: &entries,
-        })
-    }
-
-    pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
-        fn buffer(device: &wgpu::Device, label: &str, mut bytes: Vec<u8>, usage: wgpu::BufferUsages) -> wgpu::Buffer {
-            if bytes.is_empty() { bytes.resize(4, 0); }
-            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(label), contents: &bytes, usage: usage | wgpu::BufferUsages::STORAGE,
-            })
-        }
-        let bytes = source.vertices().iter().flatten().flat_map(|v| v.to_ne_bytes()).collect();
-        let vertices = buffer(device, "shared mesh vertices", bytes, wgpu::BufferUsages::VERTEX);
-        let bytes = source.normals().iter().flatten().flat_map(|v| v.to_ne_bytes()).collect();
-        let normals = buffer(device, "shared mesh normals", bytes, wgpu::BufferUsages::VERTEX);
-        let bytes = source.indices().iter().flat_map(|v| v.to_ne_bytes()).collect();
-        let indices = buffer(device, "shared mesh indices", bytes, wgpu::BufferUsages::INDEX);
-        let buffers = [&vertices, &normals, &indices];
-        let entries = [0, 1, 2].map(|binding| wgpu::BindGroupEntry {
-            binding, resource: buffers[binding as usize].as_entire_binding(),
-        });
-        let pull_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("shared vertex reads"), layout: &Self::storage_layout(device), entries: &entries,
-        });
-        let index_count = source.indices().len() as u32;
-        Self { source, vertices, normals, indices, index_count, pull_group }
-    }
-
-    pub fn allocated_bytes(&self) -> u64 { self.vertices.size() + self.normals.size() + self.indices.size() }
-
-    pub fn draw_pulled(&self, pass: &mut wgpu::RenderPass<'_>, count: u32) {
-        if self.index_count == 0 || count == 0 { return; }
-        pass.set_bind_group(3, &self.pull_group, &[]);
-        pass.draw(0..self.index_count, 0..count);
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {self.draw_instances(pass,1);}
-
-    pub fn draw_instances(&self, pass: &mut wgpu::RenderPass<'_>,count:u32) {
-        if self.index_count==0||count==0{return;}
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_vertex_buffer(1, self.normals.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..count);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2758,45 +1918,13 @@ impl GpuGeometry {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-9.rs"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-15.rs"
-```
-
-</details>
-
 ### 9. `src/triangle.wgsl`
 
 Read packed words without numeric conversion. Remove the second normal binding. Decode compact vertices through the already shared oct32 helper for color and pulled integer picks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     return FragmentOutput(shade(input,front),physical_primitive(input.primitive));
@@ -2820,8 +1948,6 @@ fn mesh_vertex(occurrence: u32) -> MeshInput {
 @vertex
 ```
 
-</details>
-
 Replace it with:
 
 ```wgsl
@@ -2839,8 +1965,7 @@ fn mesh_vertex(occurrence:u32)->MeshInput{
 @vertex
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
@@ -2923,31 +2048,13 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-17.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-19.wgsl"
-```
-
-</details>
-
 ### 10. `src/finite_project.wgsl`
 
 Project positions from the actual compact upload. Use the shared vertex layout rather than a separate stride calculation. Preserve position bits when fitting physical triangle planes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     depth: vec3<f32>, // screen gradient xy and depth at the viewport centre
@@ -2959,8 +2066,6 @@ fn physical_clip_corner(index:u32)->vec4<f32>{
  return vec4<f32>(clip.xy,clip.w-clip.z,clip.w);
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2974,8 +2079,7 @@ fn physical_clip_corner(index:u32)->vec4<f32>{
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 struct ObjectSettings {model:mat4x4<f32>,selected:u32,id:u32,pad:vec2<u32>,normals:mat4x4<f32>,colour:vec4<f32>}
@@ -2986,8 +2090,6 @@ struct ObjectSettings {model:mat4x4<f32>,selected:u32,id:u32,pad:vec2<u32>,norma
 @group(2) @binding(2) var<uniform> object:ObjectSettings;
 @group(2) @binding(3) var<storage,read_write> projected:array<ProjectedTriangle>;
 ```
-
-</details>
 
 Replace it with:
 
@@ -3001,8 +2103,7 @@ struct ObjectSettings {model:mat4x4<f32>,selected:u32,id:u32,pad:vec2<u32>,norma
 @group(2) @binding(3) var<storage,read_write> projected:array<ProjectedTriangle>;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct View { transform:mat4x4<f32>, size:vec2<f32>, density:f32 }
@@ -3170,35 +2271,9 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-20.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-22.wgsl"
-```
-
-</details>
-
 ### 11. `src/finite_project_source.rs`
 
 Assemble physical projection with the same packed layout and position reader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn source() -> String { expand(include_str!("finite_project.wgsl")) }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3206,51 +2281,9 @@ Edit the existing block to match this code; keep unchanged lines:
 pub fn source() -> String { format!("{}\n{}",include_str!("packed_vertex.wgsl"),expand(include_str!("finite_project.wgsl"))) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-23.rs"
-```
-
-</details>
-
 ### 12. `src/face_pick.wgsl`
 
 Remove the obsolete source-face layout; use the shared twenty-byte declaration. Read original face positions and colors through the same compact vertex layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct PackedVertex { x: f32, y: f32, z: f32, r: f32, g: f32, b: f32 }
-struct FaceSettings { base: u32, _a: u32, _b: u32, _c: u32 }
-@group(2) @binding(0) var<storage, read> positions: array<PackedVertex>;
-@group(2) @binding(1) var<storage, read> indices: array<u32>;
-@group(2) @binding(2) var<storage, read> faces: array<u32>;
-@group(2) @binding(3) var<uniform> source: FaceSettings;
-@group(3) @binding(0) var<uniform> crop: Crop;
-struct FaceOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) @interpolate(flat) face: u32,
-    @location(1) world:vec3<f32>,@location(2) @interpolate(flat) flags:u32,
-}
-@vertex
-fn face_vertex(@builtin(vertex_index) index: u32) -> FaceOutput {
-    let vertex = positions[indices[index]];
-    let placed = geometry(vec3<f32>(vertex.x, vertex.y, vertex.z), vec3<f32>(vertex.r, vertex.g, vertex.b), vec3<f32>(0.0),object_settings);
-    return FaceOutput(crop.transform * placed.position, faces[index / 3u] + source.base,placed.world,placed.clip_flags);
-}
-@fragment
-fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
-    if((input.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(input.flags,input.world)){discard;}
-    return vec2<u32>(object_settings.selection.y, (0x20000000u | input.face) + 1u);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3279,29 +2312,9 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-25.wgsl"
-```
-
-</details>
-
 ### 13. `src/cap_pipeline.rs`
 
 Count closed-solid crossings from the compact vertex positions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("original closed-solid sections"),source:wgpu::ShaderSource::Wgsl(source.into())});let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("original closed-solid sections"),bind_group_layouts:&groups.iter().map(|g|Some(*g)).collect::<Vec<_>>(),immediate_size:0});let attributes=wgpu::vertex_attr_array![0=>Float32x3];let buffers=if count{vec![wgpu::VertexBufferLayout{array_stride:24,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}]}else{Vec::new()};
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3309,29 +2322,9 @@ Edit the existing block to match this code; keep unchanged lines:
  let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("original closed-solid sections"),source:wgpu::ShaderSource::Wgsl(source.into())});let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("original closed-solid sections"),bind_group_layouts:&groups.iter().map(|g|Some(*g)).collect::<Vec<_>>(),immediate_size:0});let attributes=wgpu::vertex_attr_array![0=>Float32x3];let buffers=if count{vec![wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}]}else{Vec::new()};
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-26.rs"
-```
-
-</details>
-
 ### 14. `src/outline_gpu.rs`
 
 Use the same position stride for outline masks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        array_stride: 24,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3339,29 +2332,9 @@ Edit the existing block to match this code; keep unchanged lines:
         array_stride: 20,
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-27.rs"
-```
-
-</details>
-
 ### 15. `src/ambient_source_pipeline.rs`
 
 Read position and the normal word from one twenty-byte vertex binding.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some("vs_main"),compilation_options:Default::default(),buffers:&[wgpu::VertexBufferLayout{array_stride:24,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3]},wgpu::VertexBufferLayout{array_stride:12,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![2=>Float32x3]}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});Self{draw,radius}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3369,42 +2342,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some("vs_main"),compilation_options:Default::default(),buffers:&[wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![0=>Float32x3,2=>Uint32]}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});Self{draw,radius}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-28.rs"
-```
-
-</details>
-
 ### 16. `src/ambient_sources.wgsl`
 
 Receive the integer normal word in the ambient property pass. Use the same decoder and preserve the missing-normal derivative fallback.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View{transform:mat4x4<f32>,display:vec4<f32>}
-struct Object{model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
-@group(0) @binding(0) var<uniform> view:View;
-@group(1) @binding(0) var<uniform> object:Object;
-@group(3) @binding(0) var<uniform> ambient_radius:vec4<f32>;
-struct Vertex{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(1) normal:vec3<f32>,@location(2) @interpolate(flat) flags:u32}
-@vertex fn vs_main(@location(0) position:vec3<f32>,@location(2) normal:vec3<f32>)->Vertex{let world=object.model*vec4<f32>(position,1.);return Vertex(view.transform*world,world.xyz,(object.normal_matrix*vec4<f32>(normal,0.)).xyz,object.selection.z);}
-fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z));let folded=(1.-abs(p.yx))*select(vec2<f32>(-1.),vec2<f32>(1.),p>=vec2<f32>(0.));return select(folded,p,n.z>=0.);}
-struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
-@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
- let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
- let normal=normalize(select(select(face,-face,front),in.normal,dot(in.normal,in.normal)>0.));
- return Source(ambient_radius.x,encode_normal(normal)*0.5+0.5);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3425,23 +2365,7 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-29.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-30.wgsl"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3449,41 +2373,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply actual GPU allocation, source retention, reuse and release checks alongside the existing color/primitive/pick fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-().unwrap().unwrap()[0],owner.value());
-  let(texture,window)=gpu.picker.primitive_for_tests().unwrap();let words=primitive_pixels(&gpu,&texture);
-  let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];
-  assert_eq!(words[(y*texture.width()+x)as usize],0xfffffff0);
-  assert!(texture.width()<window.full[0]&&texture.height()<window.full[1]);
- }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-upload-31.rs" skip=400
 ```
 
-</details>
-
 ### 18. `src/geometry_cache.rs`
 
 Count the compact vertex and index bytes actually uploaded; no separate float normal upload remains.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.uploaded_bytes += (source.vertices().len() * 24 + source.normals().len() * 12 + source.indices().len() * 4) as u64;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3491,150 +2389,46 @@ Edit the existing block to match this code; keep unchanged lines:
         self.uploaded_bytes += (source.vertices().len() * 20 + source.indices().len() * 4) as u64;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzd-pack-surface-position-normal-and-color`:** All surface passes consume one compact twenty-byte vertex buffer.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzd-pack-surface-position-normal-and-color-accounting.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zze-retain-rgba-in-prepared-displays"></a>
 
 ### Step 3 of 4 · Retain RGBA in prepared displays (`96zze-retain-rgba-in-prepared-displays`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/4 Visual Trace (96zze-retain-rgba-in-prepared-displays): Retain RGBA in prepared displays</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh.rs, src/packed_vertex.rs, src/packed_vertex_tests.rs, src/display_rgba_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte.</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/mesh.rs, src/packed_v…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow ordinary or deri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow ordinary or deri…</text>
 </svg>
-</div>
-
-- **Goal:** Preserve display RGBA through preparation and the compact upload.
-- **Data Flow Trace:** `Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte.`
-- **Files You Touch:** `src/mesh.rs` (*Retain alpha beside the existing derived vertex columns.*) · `src/packed_vertex.rs` (*Encode the actual display alpha instead of an opaque constant.*) · `src/packed_vertex_tests.rs` (*Keep the existing opaque quantization contract explicit.*) · `src/display_rgba_tests.rs` (*Supply ordinary kernel and derived contact conversion, exact RGBA, unchanged source and column-validation fixtures.*) · `src/lib.rs` (*Connect the supplied alpha-retention fixtures to the authoring harness.*) · `src/memory.rs` (*Include the three retained alpha values in the exact shared-snapshot memory fixture.*)
 
 Derived display vertices can carry a contact-fill marker in their alpha byte.
 
 The kernel emits ordinary mesh vertices with opaque alpha; the viewer display walk assigns the contact marker afterward. Add one shared RenderMesh conversion so both ordinary and derived displays retain RGBA. Keep validation, original ownership and CPU memory accounting together. Ordinary shading and picks remain unchanged here; this data bridge prepares contact-fill rendering.
 
-> **Self-Check Question:** *Why retain an alpha value that ordinary surface shading does not use?*  
-> **Answer:** The current contact-fill shader recognizes a special alpha byte as a marker. Dropping it during display conversion would erase that distinction before rendering.
-
-- **What You Should See:** One shared display conversion retains ordinary and derived RGBA, including contact markers.
-- **Hands-On Lab Experiment:** Inspect an original CAD surface, toggle normal view and pick its faces. Confirm that the display remains unchanged; the supplied authoring fixture separately verifies contact-marker bytes and original payload retention.
-
-<details>
-<summary>Implementation 96zze-retain-rgba-in-prepared-displays: Retain RGBA in prepared displays</summary>
-
-Preserve display RGBA through preparation and the compact upload.
-
-Data flow: Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte..
+> **Check:** *Why retain an alpha value that ordinary surface shading does not use?* — The current contact-fill shader recognizes a special alpha byte as a marker. Dropping it during display conversion would erase that distinction before rendering.
 
 ### 1. `src/mesh.rs`
 
 Retain alpha beside the existing derived vertex columns. Keep ordinary RGB-created display vertices opaque by default. Use one validated RenderMesh conversion for ordinary kernel displays and derived feature displays. Keep length and finiteness invariants with the display owner. Account for the retained CPU alpha column.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone)]
-pub struct Mesh {
-    vertices: Vec<[f32; 6]>,
-    normals: Vec<[f32; 3]>,
-    indices: Vec<u32>,
-    pub parts: crate::mesh_parts::Parts,
-}
-
-impl Mesh {
-    pub fn new(vertices: Vec<[f32; 6]>, indices: Vec<u32>) -> Result<Self, &'static str> {
-        if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {
-            return Err("Indices must describe complete triangles within the draw limit");
-        }
-        if indices.iter().any(|&index| index as usize >= vertices.len()) {
-            return Err("A triangle refers to a missing vertex");
-        }
-        if vertices.iter().flatten().any(|value| !value.is_finite()) {
-            return Err("Vertex values must be finite");
-        }
-        let normals = vec![[0.0; 3]; vertices.len()];
-        Ok(Self { vertices, normals, indices, parts: Default::default() })
-    }
-
-    pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
-        let render = mesh.to_render();
-        let vertices = render.vertices.iter().map(|vertex| {
-            let [x, y, z] = vertex.position;
-            let [r, g, b, _] = vertex.color;
-            [x, y, z, r, g, b]
-        }).collect();
-        let normals = render.vertices.iter().map(|vertex| vertex.normal).collect();
-        let parts = crate::mesh_parts::Parts::new(mesh, render.indices.len() / 3)?;
-        let mut display = Self::new(vertices, render.indices)?.with_normals(normals)?;
-        display.parts = parts; Ok(display)
-    }
-
-    pub fn with_normals(mut self, normals: Vec<[f32; 3]>) -> Result<Self, &'static str> {
-        if normals.len() != self.vertices.len() { return Err("Each display vertex needs one normal"); }
-        self.normals = normals.into_iter().map(crate::normals::unit).collect::<Result<_, _>>()?; Ok(self)
-    }
-
-    pub fn normals(&self) -> &[[f32; 3]] { &self.normals }
-
-    pub fn payload_bytes(&self) -> usize {
-        self.vertices.capacity() * std::mem::size_of::<[f32; 6]>()
-            + self.indices.capacity() * std::mem::size_of::<u32>()
-            + self.normals.capacity() * std::mem::size_of::<[f32; 3]>() + self.parts.bytes()
-    }
-
-    pub fn vertices(&self) -> &[[f32; 6]] {
-        &self.vertices
-    }
-
-    pub fn indices(&self) -> &[u32] {
-        &self.indices
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_kernel_box_becomes_eight_vertices_and_twelve_triangles() {
-        let source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        let mesh = Mesh::from_kernel(&source).unwrap();
-        assert_eq!(mesh.vertices().len(), 8);
-        assert_eq!(mesh.indices().len(), 36);
-    }
-
-    #[test]
-    fn invalid_connections_and_nonfinite_vertices_are_rejected() {
-        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 3]).is_err());
-        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1]).is_err());
-        assert!(Mesh::new(vec![[f32::NAN; 6]; 3], vec![0, 1, 2]).is_err());
-        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 2]).is_ok());
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3734,61 +2528,9 @@ mod tests {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-1.rs"
-```
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-2.rs"
-```
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-3.rs"
-```
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-4.rs"
-```
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-5.rs"
-```
-
-</details>
-
 ### 2. `src/packed_vertex.rs`
 
 Encode the actual display alpha instead of an opaque constant. Use the same clamped RGBA quantization for all four channels. Pack the validated columns together without another encoder.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const NO_NORMAL:u32=0x8000_8000;
-pub fn oct32(normal:[f32;3])->u32{
- let length=normal.iter().map(|v|v.abs()).sum::<f32>();
- if length==0.||length.is_nan(){return NO_NORMAL;}
- let (x,y)=(normal[0]/length,normal[1]/length);
- let sign=|v:f32|if v<0.{-1.}else{1.};
- let (x,y)=if normal[2]<0.{((1.-y.abs())*sign(x),(1.-x.abs())*sign(y))}else{(x,y)};
- let half=|v:f32|u32::from((v*32767.).round().clamp(-32766.,32767.)as i16 as u16);
- half(x)|(half(y)<<16)
-}
-pub fn pack(vertex:[f32;6],normal:[f32;3])->[u32;5]{
- let color=[vertex[3],vertex[4],vertex[5],1.].map(|v|(v.clamp(0.,1.)*255.).round()as u8);
- [vertex[0].to_bits(),vertex[1].to_bits(),vertex[2].to_bits(),oct32(normal),u32::from_le_bytes(color)]
-}
-pub fn bytes(mesh:&crate::mesh::Mesh)->Vec<u8>{
- mesh.vertices().iter().zip(mesh.normals()).flat_map(|(v,n)|pack(*v,*n)).flat_map(u32::to_ne_bytes).collect()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3812,27 +2554,7 @@ pub fn bytes(mesh:&crate::mesh::Mesh)->Vec<u8>{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-6.rs"
-```
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-7.rs"
-```
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-8.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3840,25 +2562,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the existing opaque quantization contract explicit.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pack(v,[0.;3])
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-9.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3872,20 +2582,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-10.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Connect the supplied alpha-retention fixtures to the authoring harness.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod packed_vertex;
-```
-
-</details>
 
 After that block, type:
 
@@ -3894,19 +2593,7 @@ After that block, type:
 mod display_rgba_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-11.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3914,66 +2601,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Include the three retained alpha values in the exact shared-snapshot memory fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-baseline[4] + 16 * 24 + 16 * 4 + 3 * 12
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zze-retain-rgba-in-prepared-displays-memory-alpha.rs" skip=39
 ```
 
-</details>
+**Result after `96zze-retain-rgba-in-prepared-displays`:** One shared display conversion retains ordinary and derived RGBA, including contact markers.
 
-</details>
+---
 
 <a id="checkpoint-96zzf-start-with-current-browser-display-defaults"></a>
 
 ### Step 4 of 4 · Start with current browser display defaults (`96zzf-start-with-current-browser-display-defaults`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/4 Visual Trace (96zzf-start-with-current-browser-display-defaults): Start with current browser display defaults</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_defaults.rs, src/lib.rs, Cargo.toml, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels.</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_defaults.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow pointer capabili…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow pointer capabili…</text>
 </svg>
-</div>
-
-- **Goal:** Apply current device and URL display defaults to browser startup and viewport sizing.
-- **Data Flow Trace:** `Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels.`
-- **Files You Touch:** `src/browser_defaults.rs` (*Reuse existing opacity and grid state; detect pointer capability and read URL defaults once.*) · `src/lib.rs` (*Register the startup settings without a second renderer settings owner.*) · `Cargo.toml` (*Enable the browser media-query return type in the existing pinned web-sys dependency.*) · `src/browser.rs` (*Initialize a new browser document once before creating its renderer.*) · `src/browser_defaults_tests.rs` (*Supply pointer-policy, finite override, clamping and existing-owner fixtures.*)
 
 Start the browser with the current viewer’s nearly solid desktop faces and visible construction grid.
 
 Use a coarse-pointer media query to keep touch-first devices solid. Read opacity and grid overrides once before renderer creation. Cap ordinary pixel density at two and honor a valid dpr override through the existing recovery policy. Later commands change the editor; a page reload reads startup defaults again.
 
-> **Self-Check Question:** *How much more image work does density three require than density two?*  
-> **Answer:** For the same CSS viewport, the pixel count grows by 3²/2² = 2.25. The cap reduces every full-screen image pass together.
-
-- **What You Should See:** Desktop faces start at opacity 0.95, touch faces at 1, and the grid is visible. Ordinary pixel density caps at two; finite URL overrides and the reduced-recovery cap remain effective.
-- **Hands-On Lab Experiment:** Reload with ?opacity=0.5&nogrid=1, then without either override. Compare a closed CAD surface and the grid. Emulate a coarse primary pointer and reload: faces start solid. At browser density three, compare canvas dimensions without a dpr override, with ?dpr=1 and with ?dpr=3. Change Opacity and Grid, then orbit and resize: both choices persist until a page reload.
-
-<details>
-<summary>Implementation 96zzf-start-with-current-browser-display-defaults: Start with current browser display defaults</summary>
-
-Apply current device and URL display defaults to browser startup and viewport sizing.
-
-Data flow: Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels..
+> **Check:** *How much more image work does density three require than density two?* — For the same CSS viewport, the pixel count grows by 3²/2² = 2.25. The cap reduces every full-screen image pass together.
 
 ### 1. `src/browser_defaults.rs`
 
@@ -3989,44 +2658,15 @@ Create the file and type:
 
 Register the startup settings without a second renderer settings owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod packed_vertex;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 pub mod browser_defaults;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzf-start-with-current-browser-display-defaults-2.rs"
-```
-
-</details>
-
 ### 3. `Cargo.toml`
 
 Enable the browser media-query return type in the existing pinned web-sys dependency.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "ReadableWritablePair", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4034,29 +2674,9 @@ Edit the existing block to match this code; keep unchanged lines:
 web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "MediaQueryList", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "ReadableWritablePair", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzf-start-with-current-browser-display-defaults-3.rs"
-```
-
-</details>
-
 ### 4. `src/browser.rs`
 
 Initialize a new browser document once before creating its renderer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub async fn run() -> Result<(), JsValue> { run_with(crate::drawing_document::new()).await }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4068,19 +2688,7 @@ pub async fn run() -> Result<(), JsValue> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzf-start-with-current-browser-display-defaults-4.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4094,20 +2702,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zzf-start-with-current-browser-display-defaults-5.rs"
 ```
 
-</details>
-
 ### 6. `src/lib.rs`
 
 Register the supplied startup policy fixture.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod browser_defaults;
-```
-
-</details>
 
 After that block, type:
 
@@ -4116,55 +2713,9 @@ After that block, type:
 mod browser_defaults_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzf-start-with-current-browser-display-defaults-6.rs"
-```
-
-</details>
-
 ### 7. `src/browser_defaults.rs`
 
 Use one query reader for startup defaults and viewport scale. Cap requested pixels using the current finite f32 override policy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Settings { pub opacity:f32, pub grid:bool }
-
-impl Settings {
-    pub fn new(coarse:bool,opacity:Option<&str>,nogrid:Option<&str>)->Self {
-        let default=if coarse {1.} else {0.95};
-        let opacity=opacity.and_then(|s|s.parse::<f32>().ok())
-            .filter(|v|v.is_finite()).unwrap_or(default).clamp(0.,1.);
-        Self {opacity,grid:nogrid.is_none()}
-    }
-
-    pub fn apply(&self,editor:&mut crate::editor::Editor) {
-        editor.opacity=self.opacity;
-        editor.camera.grid=self.grid.then(Default::default);
-    }
-}
-
-#[cfg(target_arch="wasm32")]
-pub fn initialize(editor:&mut crate::editor::Editor) {
-    let Some(window)=web_sys::window() else {return};
-    let coarse=window.match_media("(pointer: coarse)").ok().flatten()
-        .is_some_and(|media|media.matches());
-    let search=window.location().search().unwrap_or_default();
-    let query=web_sys::UrlSearchParams::new_with_str(&search).ok();
-    let opacity=query.as_ref().and_then(|q|q.get("opacity"));
-    let nogrid=query.as_ref().and_then(|q|q.get("nogrid"));
-    Settings::new(coarse,opacity.as_deref(),nogrid.as_deref()).apply(editor);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4215,33 +2766,9 @@ pub fn initialize(editor:&mut crate::editor::Editor) {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzg-cap-browser-device-scale-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzg-cap-browser-device-scale-2.rs"
-```
-
-</details>
-
 ### 8. `src/browser.rs`
 
 Give viewport images and CSS ink the same capped scale before recovery reduction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let density = crate::browser_recovery::density(window.device_pixel_ratio());
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4249,19 +2776,7 @@ Edit the existing block to match this code; keep unchanged lines:
     let density = crate::browser_recovery::density(crate::browser_defaults::scale(window.device_pixel_ratio()));
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzg-cap-browser-device-scale-3.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4269,58 +2784,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply high-density, finite override, lower-bound and fallback policy cases.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::browser_defaults::Settings;
-#[test]
-fn pointer_defaults_and_url_overrides_share_existing_editor_state(){
- let mut editor=crate::editor::Editor::default();
- for (coarse,raw,nogrid,opacity,grid) in [
- (false,None,None,0.95,true),(true,None,None,1.,true),
- (true,Some("0.5"),Some("1"),0.5,false),
- (false,Some("NaN"),None,0.95,true),(true,Some("inf"),None,1.,true),
- (false,Some("2"),None,1.,true),(false,Some("-1"),None,0.,true)]{
-  Settings::new(coarse,raw,nogrid).apply(&mut editor);
-  assert_eq!(editor.opacity,opacity);assert_eq!(editor.camera.grid.is_some(),grid);
- }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzg-cap-browser-device-scale-4.rs" skip=584
 ```
 
-</details>
-
-</details>
+**Result after `96zzf-start-with-current-browser-display-defaults`:** Desktop faces start at opacity 0.95, touch faces at 1, and the grid is visible. Ordinary pixel density caps at two; finite URL overrides and the reduced-recovery cap remain effective.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzf-start-with-current-browser-display-defaults
-npm --prefix ../session_tests run course -- check 96zzf-start-with-current-browser-display-defaults
-npm --prefix ../session_tests run course -- save 96zzf-start-with-current-browser-display-defaults
+npm --prefix ../session_tests run course -- dependencies 20.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 20.2
+npm --prefix ../session_tests run course -- save 20.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Desktop faces start at opacity 0.95, touch faces at 1, and the grid is visible. Ordinary pixel density caps at two; finite URL overrides and the reduced-recovery cap remain effective.
-
-- **Final Lesson Experiment:** Reload with ?opacity=0.5&nogrid=1, then without either override. Compare a closed CAD surface and the grid. Emulate a coarse primary pointer and reload: faces start solid. At browser density three, compare canvas dimensions without a dpr override, with ?dpr=1 and with ?dpr=3. Change Opacity and Grid, then orbit and resize: both choices persist until a page reload.
-
-Continue with [Shared arenas, object records and source preparation](../../consolidation/96zzg-grow-buffers-without-losing-rows.md).
+Continue with [20.3 · Shared arenas, object records and source preparation](../../consolidation/96zzg-grow-buffers-without-losing-rows.md).

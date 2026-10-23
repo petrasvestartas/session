@@ -1,206 +1,103 @@
 # 18.5 · Glass, X-ray and shared visibility rules
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.5** (Redraft `9.9`) · **9 checkpoints (`93-classify-original-solids-independently-of-clipping` → `93h-prove-actual-glass-x-ray-and-source-ownership`)** · **Study time: 4.5–9 h**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Checkpoints:** `93-classify-original-solids-independently-of-clipping` → `93h-prove-actual-glass-x-ray-and-source-ownership` (9 steps) · **Production source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs)
 
-> **What You Will Learn & Build:** Classify original solids independently of clipping. By the final checkpoint (`93h-prove-actual-glass-x-ray-and-source-ownership`), you will prove actual glass x-ray and source ownership.
+> **Goal:** Prove actual glass x-ray and source ownership.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
-    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
-    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
-    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
-    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="706" cy="175" r="4" fill="#111111"/>
-    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 18.5 Pipeline Schematic: Glass, X-ray and shared visibility rules</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (9 Checkpoints: 93-classify-original-solids-independently-of-clipping → 93h-prove-actual-glass-x-ray-and-source-ownership)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original closedness</text>
-    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">face alpha and hidden ink</text>
-    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">original x-ray picks</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 18.5:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/caps_gpu.rs  ·  src/gpu_mesh.rs  ·  src/renderer.rs  ·  src/triangle.wgsl  ·  src/triangle_pick.wgsl  ·  src/face_pick.wgsl</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">9 Checkpoints: 93-classify-original-solids-independently-of-clipping → 93h-prove-actual-glass-x-ray-and-source-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`93-classify-original-solids-independently-of-clipping`](#checkpoint-93-classify-original-solids-independently-of-clipping) | Classify original solids independently of clipping. | `src/caps_gpu.rs`, `src/gpu_mesh.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **2** | [`93a-own-opacity-in-the-existing-surface-frame`](#checkpoint-93a-own-opacity-in-the-existing-surface-frame) | Own opacity in the existing surface frame. | `src/renderer.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **3** | [`93b-blend-closed-faces-and-retain-opaque-open-surfaces`](#checkpoint-93b-blend-closed-faces-and-retain-opaque-open-surfaces) | Blend closed faces and retain opaque open surfaces. | `src/triangle.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **4** | [`93c-exclude-x-ray-faces-from-original-picks-and-masks`](#checkpoint-93c-exclude-x-ray-faces-from-original-picks-and-masks) | Exclude x-ray faces from original picks and masks. | `src/triangle_pick.wgsl`, `src/face_pick.wgsl`, `src/outline_mask.wgsl`, `src/ambient_sources.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **5** | [`93d-carry-opacity-into-finite-original-ink`](#checkpoint-93d-carry-opacity-into-finite-original-ink) | Carry opacity into finite original ink. | `src/stroke_gpu.rs`, `src/highlight.rs`, `src/finite_visibility.wgsl`, `src/finite_stroke.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **6** | [`93e-fade-hidden-ink-without-showing-clipped-geometry`](#checkpoint-93e-fade-hidden-ink-without-showing-clipped-geometry) | Fade hidden ink without showing clipped geometry. | `src/finite_stroke.wgsl`, `src/finite_chain.wgsl`, `src/finite_marker.wgsl`, `src/finite_stroke_pick.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **7** | [`93f-invalidate-presentation-and-preserve-cached-geometry`](#checkpoint-93f-invalidate-presentation-and-preserve-cached-geometry) | Invalidate presentation and preserve cached geometry. | `src/renderer.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **8** | [`93g-connect-strict-opacity-presentation-commands`](#checkpoint-93g-connect-strict-opacity-presentation-commands) | Connect strict Opacity presentation commands. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-| **9** | [`93h-prove-actual-glass-x-ray-and-source-ownership`](#checkpoint-93h-prove-actual-glass-x-ray-and-source-ownership) | Prove actual glass x-ray and source ownership. | `src/opacity_gpu_tests.rs`, `src/renderer.rs`, `src/opacity_command_tests.rs`, `src/lib.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-93-classify-original-solids-independently-of-clipping"></a>
 
 ### Step 1 of 9 · Classify original solids independently of clipping (`93-classify-original-solids-independently-of-clipping`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/9 Visual Trace (93-classify-original-solids-independently-of-clipping): Classify original solids independently of clipping</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/caps_gpu.rs, src/gpu_mesh.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/caps_gpu.rs, src/gpu_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Classify original solids independently of clipping.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/caps_gpu.rs` (*Reuse original closedness for surfaces while keeping section tokens lazy.*) · `src/gpu_mesh.rs` (*Own explicit derived x-ray flags without changing original geometry.*)
 
 Classify original solids independently of clipping.
 
-> **Self-Check Question:** *Must a clipping plane exist before glass works?*  
-> **Answer:** No. Classify closedness from the original once and reuse its weak cache. Keep cap tokens inactive until a real plane is present.
-
-- **What You Should See:** Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership.
-- **Hands-On Lab Experiment:** Compare a closed mesh, an open surface and a cached original BRep before adding any clipping plane.
-
-<details>
-<summary>Implementation 93-classify-original-solids-independently-of-clipping: Classify original solids independently of clipping</summary>
-
-Classify original solids independently of clipping.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Must a clipping plane exist before glass works?* — No. Classify closedness from the original once and reuse its weak cache. Keep cap tokens inactive until a real plane is present.
 
 ### 1. `src/caps_gpu.rs`
 
 Reuse original closedness for surfaces while keeping section tokens lazy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::cap_image::Image;
-struct Counts{image:Image,group:wgpu::BindGroup}
-pub struct Caps{pub enabled:bool,planes:u32,pick:Option<crate::cap_pick_gpu::Pick>,pub pick_error:Option<&'static str>,bounds:crate::cap_source_bounds::Bounds,targets:std::collections::HashMap<u32,u32>,pub solids:crate::solid_cache::Solids,verified:bool,pipes:Option<crate::cap_pipeline::Pipelines>,counts:Option<Counts>,pub depth:Image,frame:wgpu::Buffer,frame_group:Option<wgpu::BindGroup>,pub rows:Vec<[u32;2]>,pub draws:u64,pub passes:u64}
-impl Caps{
- pub fn new(device:&wgpu::Device)->Self{let frame=device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("section canvas frame"),contents:&[0;16],usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST});Self{enabled:true,planes:0,pick:None,pick_error:None,bounds:Default::default(),targets:Default::default(),solids:Default::default(),verified:false,pipes:None,counts:None,depth:Image::new(device,[1,1],wgpu::TextureFormat::Rg32Float,8),frame,frame_group:None,rows:Vec::new(),draws:0,passes:0}}
- pub fn set_scene(&mut self,queue:&wgpu::Queue,scene:&crate::scene::Scene,meshes:&mut[GpuMesh],planes:&[crate::clipping_rows::Row]){
-  self.planes=planes.len()as u32;self.verified|=!planes.is_empty();self.rows.clear();self.targets.clear();for(mesh,object)in meshes.iter_mut().zip(scene.objects().iter().filter(|r|scene.visible(r.id))){assert_eq!(mesh.id,object.id);let flags=if self.verified{self.solids.flags(object)}else{0};let token=if flags&CLOSED!=0{self.rows.push([mesh.id.value(),u32::from(mesh.pickable())]);self.rows.len()as u32}else{0};mesh.set_caps(queue,flags,token);if token>0{if let Some(bounds)=self.bounds.placed(&object.mesh,&object.model){let mask=planes.iter().enumerate().fold(0,|mask,(i,row)|mask|if row.plane.crosses(&bounds,[0.;3]){1<<i}else{0});self.targets.insert(mesh.id.value(),mask);}}}
-  self.solids.prune();self.bounds.prune();if self.rows.is_empty(){self.rows.shrink_to_fit();self.targets.shrink_to_fit();}
- }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -214,8 +111,7 @@ Own explicit derived x-ray flags without changing original geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             layout,
@@ -241,8 +137,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         for (start, end) in [(0, 64), (64, 80), (80, 144), (144,160)] {
             if next[start..end] != self.previous[start..end] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -272,8 +166,7 @@ Replace it with:
             if next[start..end] != self.previous[start..end] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     model_group: wgpu::BindGroup,
@@ -284,8 +177,6 @@ Replace it with:
 
 #[derive(Clone,Copy)]
 ```
-
-</details>
 
 Replace it with:
 
@@ -299,8 +190,7 @@ Replace it with:
 #[derive(Clone,Copy)]
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -394,75 +284,40 @@ impl GpuMesh {
 }
 ```
 
-</details>
+**Result after `93-classify-original-solids-independently-of-clipping`:** Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93-classify-original-solids-independently-of-clipping-02.rs"
-```
-
-```text
---8<-- "journey/code/93-classify-original-solids-independently-of-clipping-03.rs"
-```
-
-```text
---8<-- "journey/code/93-classify-original-solids-independently-of-clipping-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-93a-own-opacity-in-the-existing-surface-frame"></a>
 
 ### Step 2 of 9 · Own opacity in the existing surface frame (`93a-own-opacity-in-the-existing-surface-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/9 Visual Trace (93a-own-opacity-in-the-existing-surface-frame): Own opacity in the existing surface frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Own opacity in the existing surface frame.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/renderer.rs` (*Own opaque-default presentation alpha in the existing surface frame.*)
 
 Own opacity in the existing surface frame.
 
-> **Self-Check Question:** *Does Opacity replace source face colors?*  
-> **Answer:** No. The view owns one scalar and an alpha-blending surface pipeline. Original object colors and geometry remain shared.
-
-- **Hands-On Lab Experiment:** Inspect the existing 80-byte view frame and opaque default 1.
-
-<details>
-<summary>Implementation 93a-own-opacity-in-the-existing-surface-frame: Own opacity in the existing surface frame</summary>
-
-Own opacity in the existing surface frame.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Does Opacity replace source face colors?* — No. The view owns one scalar and an alpha-blending surface pipeline. Original object colors and geometry remain shared.
 
 ### 1. `src/renderer.rs`
 
@@ -470,8 +325,7 @@ Own opaque-default presentation alpha in the existing surface frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             pass.set_bind_group(2,&clip_group,&[]);
@@ -483,8 +337,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.highlight.mesh(&mut pass);
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -499,8 +351,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
@@ -511,8 +362,6 @@ Replace it with:
         self.queue.write_buffer(&self.uniform, 0, &bytes);
         self.strokes.view(&self.queue, transform, self.size, self.density);
 ```
-
-</details>
 
 Replace it with:
 
@@ -526,8 +375,7 @@ Replace it with:
         self.strokes.view(&self.queue, transform, self.size, self.density);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -537,8 +385,6 @@ Replace it with:
         self.instance_rows=scene.instances.keys().copied().collect();
         self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
 ```
-
-</details>
 
 Replace it with:
 
@@ -552,8 +398,7 @@ Replace it with:
         self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -564,8 +409,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -579,8 +422,7 @@ Replace it with:
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 module: &shader,
@@ -591,8 +433,6 @@ Replace it with:
             primitive: Default::default(),
             depth_stencil: Some(depth),
 ```
-
-</details>
 
 Replace it with:
 
@@ -606,8 +446,7 @@ Replace it with:
             depth_stencil: Some(depth),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -617,8 +456,6 @@ pub struct Renderer {
     ambient:std::cell::RefCell<Option<crate::ambient_gpu::Ambient>>,
     ambient_rows:crate::ambient_rows::Rows,
 ```
-
-</details>
 
 Replace it with:
 
@@ -632,8 +469,7 @@ pub struct Renderer {
     ambient_rows:crate::ambient_rows::Rows,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1181,148 +1017,42 @@ mod ambient_gpu_tests;
 mod global_outline_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93a-own-opacity-in-the-existing-surface-frame-01.rs"
-```
-
-```text
---8<-- "journey/code/93a-own-opacity-in-the-existing-surface-frame-02.rs"
-```
-
-```text
---8<-- "journey/code/93a-own-opacity-in-the-existing-surface-frame-03.rs"
-```
-
-```text
---8<-- "journey/code/93a-own-opacity-in-the-existing-surface-frame-04.rs"
-```
-
-```text
---8<-- "journey/code/93a-own-opacity-in-the-existing-surface-frame-05.rs"
-```
-
-```text
---8<-- "journey/code/93a-own-opacity-in-the-existing-surface-frame-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-93b-blend-closed-faces-and-retain-opaque-open-surfaces"></a>
 
 ### Step 3 of 9 · Blend closed faces and retain opaque open surfaces (`93b-blend-closed-faces-and-retain-opaque-open-surfaces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/9 Visual Trace (93b-blend-closed-faces-and-retain-opaque-open-surfaces): Blend closed faces and retain opaque open surfaces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Blend closed faces and retain opaque open surfaces.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/triangle.wgsl` (*Adapt current closed/open alpha and mirrored-front behavior to the earlier source shader.*)
 
 Blend closed faces and retain opaque open surfaces.
 
-> **Self-Check Question:** *Should a half-transparent solid draw its back face again?*  
-> **Answer:** No. Reject closed back faces while glass is active, respecting original winding and mirrored placement. Open surfaces remain opaque.
-
-- **Hands-On Lab Experiment:** Compare one front-face blend, a mirrored solid and an open surface at 0.5.
-
-<details>
-<summary>Implementation 93b-blend-closed-faces-and-retain-opaque-open-surfaces: Blend closed faces and retain opaque open surfaces</summary>
-
-Blend closed faces and retain opaque open surfaces.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Should a half-transparent solid draw its back face again?* — No. Reject closed back faces while glass is active, respecting original winding and mirrored placement. Open surfaces remain opaque.
 
 ### 1. `src/triangle.wgsl`
 
 Adapt current closed/open alpha and mirrored-front behavior to the earlier source shader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<u32>,
-    normal_matrix: mat4x4<f32>,
-    face_colour:vec4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-    @location(3) @interpolate(flat) clip_flags:u32,
-}
-
-fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = view.transform * world;
-    let displayed=select(colour,object.face_colour.xyz,object.face_colour.w>0.5);
-    output.colour = select(displayed, vec3<f32>(1.0, 0.75, 0.05), object.selection.x != 0u);
-    output.world = world.xyz;output.clip_flags=object.selection.z;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let derivative = cross(dpdx(input.world), dpdy(input.world));
-    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
-    let face = select(derivative, -derivative, front);
-    if(clip_active()&&clip_cut(input.clip_flags,input.world)){discard;}
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), 1.0); }
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1383,88 +1113,42 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93b-blend-closed-faces-and-retain-opaque-open-surfaces-01.rs"
-```
-
-```text
---8<-- "journey/code/93b-blend-closed-faces-and-retain-opaque-open-surfaces-02.rs"
-```
-
-```text
---8<-- "journey/code/93b-blend-closed-faces-and-retain-opaque-open-surfaces-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-93c-exclude-x-ray-faces-from-original-picks-and-masks"></a>
 
 ### Step 4 of 9 · Exclude x-ray faces from original picks and masks (`93c-exclude-x-ray-faces-from-original-picks-and-masks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/9 Visual Trace (93c-exclude-x-ray-faces-from-original-picks-and-masks): Exclude x-ray faces from original picks and masks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle_pick.wgsl, src/face_pick.wgsl, src/outline_mask.wgsl, src/ambient_sources.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle_pick.wgsl, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Exclude x-ray faces from original picks and masks.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/triangle_pick.wgsl` (*Apply one derived x-ray face predicate without source mutation.*) · `src/face_pick.wgsl` (*Apply one derived x-ray face predicate without source mutation.*) · `src/outline_mask.wgsl` (*Apply one derived x-ray face predicate without source mutation.*) · `src/ambient_sources.wgsl` (*Apply one derived x-ray face predicate without source mutation.*)
 
 Exclude x-ray faces from original picks and masks.
 
-> **Self-Check Question:** *Does Opacity 0 erase the original object?*  
-> **Answer:** No. Closed faces stop drawing and taking face picks; original edge and line owners remain available. Open surfaces still draw their faces.
-
-- **Hands-On Lab Experiment:** Inspect derived x-ray flags in surface IDs, face IDs, outline coverage and ambient properties.
-
-<details>
-<summary>Implementation 93c-exclude-x-ray-faces-from-original-picks-and-masks: Exclude x-ray faces from original picks and masks</summary>
-
-Exclude x-ray faces from original picks and masks.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Does Opacity 0 erase the original object?* — No. Closed faces stop drawing and taking face picks; original edge and line owners remain available. Open surfaces still draw their faces.
 
 ### 1. `src/triangle_pick.wgsl`
 
 Apply one derived x-ray face predicate without source mutation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct MeshPickOutput{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(1) @interpolate(flat) flags:u32}
-@vertex fn pick_vertex(@location(0) position:vec3<f32>,@location(1) colour:vec3<f32>,@location(2) normal:vec3<f32>)->MeshPickOutput{let placed=geometry(position,colour,normal);return MeshPickOutput(crop.transform*placed.position,placed.world,placed.clip_flags);}
-@fragment fn pick_fragment(input:MeshPickOutput)->@location(0) vec2<u32>{if(clip_active()&&clip_cut(input.flags,input.world)){discard;}return vec2<u32>(select(0u,object.selection.y,crop.mode==0u),0u);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1476,19 +1160,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Apply one derived x-ray face predicate without source mutation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@fragment
-fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
-    if(clip_active()&&clip_cut(input.flags,input.world)){discard;}
-    return vec2<u32>(object.selection.y, (0x20000000u | input.face) + 1u);
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -1498,17 +1169,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 3. `src/outline_mask.wgsl`
 
 Apply one derived x-ray face predicate without source mutation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct Output{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(1) @interpolate(flat) flags:u32}
-@vertex fn vertex(@location(0) position:vec3<f32>)->Output{let world=object.model*vec4<f32>(position,1.0);return Output(view.transform*world,world.xyz,object.selection.z);}
-@fragment fn fragment(input:Output)->@location(0) vec4<f32>{if(clip_active()&&clip_cut(input.flags,input.world)){discard;}return vec4<f32>(1.0);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1520,73 +1180,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Apply one derived x-ray face predicate without source mutation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
-@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
- let face=cross(dpdx(in.world),dpdy(in.world));if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
- let normal=normalize(select(select(face,-face,front),in.normal,dot(in.normal,in.normal)>0.));
- return Source(ambient_radius.x,encode_normal(normal)*0.5+0.5);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/93c-exclude-x-ray-faces-from-original-picks-and-masks-04.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-93d-carry-opacity-into-finite-original-ink"></a>
 
 ### Step 5 of 9 · Carry opacity into finite original ink (`93d-carry-opacity-into-finite-original-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/9 Visual Trace (93d-carry-opacity-into-finite-original-ink): Carry opacity into finite original ink</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/highlight.rs, src/finite_visibility.wgsl, src/finite_stroke.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/hi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Carry opacity into finite original ink.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Carry view opacity through compatible finite-ink frames and alpha helpers.*) · `src/highlight.rs` (*Carry view opacity through compatible finite-ink frames and alpha helpers.*) · `src/finite_visibility.wgsl` (*Carry view opacity through compatible finite-ink frames and alpha helpers.*) · `src/finite_stroke.wgsl` (*Name the opacity scalar in the existing compatible lane frame.*) · `src/finite_chain.wgsl` (*Name the opacity scalar in the existing compatible lane frame.*) · `src/finite_marker.wgsl` (*Name the opacity scalar in the existing compatible lane frame.*)
 
 Carry opacity into finite original ink.
 
-> **Self-Check Question:** *Can hidden ink read the surface view uniform directly?*  
-> **Answer:** Its lane has a different frame. Fill its existing padding with opacity, keeping the 80-byte binding and the default 1.
-
-- **Hands-On Lab Experiment:** Trace actual lane frames, selected ink and the current hidden-alpha recipe.
-
-<details>
-<summary>Implementation 93d-carry-opacity-into-finite-original-ink: Carry opacity into finite original ink</summary>
-
-Carry opacity into finite original ink.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Can hidden ink read the surface view uniform directly?* — Its lane has a different frame. Fill its existing padding with opacity, keeping the 80-byte binding and the default 1.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -1594,8 +1225,7 @@ Carry view opacity through compatible finite-ink frames and alpha helpers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
@@ -1605,8 +1235,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1619,8 +1247,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.data = data; if self.finite.is_some(){self.set_flags(device,vec![0;self.data.len()/self.stride as usize])?;} Ok(())
@@ -1633,8 +1260,6 @@ Replace it with:
         queue.write_buffer(&self.uniform, 0, &bytes);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1651,8 +1276,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -1660,8 +1284,6 @@ pub struct Lane {
     finite:Option<crate::finite_ink::Ink>,
     strict_depth:bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1673,8 +1295,7 @@ pub struct Lane {
     strict_depth:bool,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -1876,42 +1497,9 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93d-carry-opacity-into-finite-original-ink-01.rs"
-```
-
-```text
---8<-- "journey/code/93d-carry-opacity-into-finite-original-ink-02.rs"
-```
-
-```text
---8<-- "journey/code/93d-carry-opacity-into-finite-original-ink-03.rs"
-```
-
-</details>
-
 ### 2. `src/highlight.rs`
 
 Carry view opacity through compatible finite-ink frames and alpha helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-impl Highlight {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self { mesh: None, strokes: Lane::new(device, format), paths: Lane::joined(device, format), markers: Lane::markers(device, format) }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1923,15 +1511,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Carry view opacity through compatible finite-ink frames and alpha helpers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-}
-```
-
-</details>
-
 After that block, type:
 
 ```wgsl
@@ -1941,16 +1520,6 @@ After that block, type:
 ### 4. `src/finite_stroke.wgsl`
 
 Name the opacity scalar in the existing compatible lane frame.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1962,17 +1531,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Name the opacity scalar in the existing compatible lane frame.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -1983,86 +1541,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Name the opacity scalar in the existing compatible lane frame.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/93d-carry-opacity-into-finite-original-ink-08.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-93e-fade-hidden-ink-without-showing-clipped-geometry"></a>
 
 ### Step 6 of 9 · Fade hidden ink without showing clipped geometry (`93e-fade-hidden-ink-without-showing-clipped-geometry`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/9 Visual Trace (93e-fade-hidden-ink-without-showing-clipped-geometry): Fade hidden ink without showing clipped geometry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_stroke.wgsl, src/finite_chain.wgsl, src/finite_marker.wgsl, src/finite_stroke_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_stroke.wgsl, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Fade hidden ink without showing clipped geometry.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/finite_stroke.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_chain.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_marker.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_stroke_pick.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_chain_pick.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_marker_pick.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*)
 
 Fade hidden ink without showing clipped geometry.
 
-> **Self-Check Question:** *Should clipping be treated as merely hidden glass ink?*  
-> **Answer:** No. Clipped originals stay absent. Visible ink has full alpha, hidden glass ink has 1-opacity, and x-ray exposes original ink.
-
-- **Hands-On Lab Experiment:** Compare a hidden line behind a closed face with a line cut away by a clipping plane.
-
-<details>
-<summary>Implementation 93e-fade-hidden-ink-without-showing-clipped-geometry: Fade hidden ink without showing clipped geometry</summary>
-
-Fade hidden ink without showing clipped geometry.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Should clipping be treated as merely hidden glass ink?* — No. Clipped originals stay absent. Visible ink has full alpha, hidden glass ink has 1-opacity, and x-ray exposes original ink.
 
 ### 1. `src/finite_stroke.wgsl`
 
 Use the same original ink visibility alpha for color and integer picks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(start, end, colour, width, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2074,17 +1594,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use the same original ink visibility alpha for color and integer picks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @location(6) heads: u32, @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(start, end, colour, width, previous, next, heads, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -2094,17 +1603,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 3. `src/finite_marker.wgsl`
 
 Use the same original ink visibility alpha for color and integer picks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(center, diameter, colour, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2116,19 +1614,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use the same original ink visibility alpha for color and integer picks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}
-    return input.id;
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -2138,19 +1623,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 5. `src/finite_chain_pick.wgsl`
 
 Use the same original ink visibility alpha for color and integer picks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2162,89 +1634,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use the same original ink visibility alpha for color and integer picks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}
-    return input.id;
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/93e-fade-hidden-ink-without-showing-clipped-geometry-06.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-93f-invalidate-presentation-and-preserve-cached-geometry"></a>
 
 ### Step 7 of 9 · Invalidate presentation and preserve cached geometry (`93f-invalidate-presentation-and-preserve-cached-geometry`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/9 Visual Trace (93f-invalidate-presentation-and-preserve-cached-geometry): Invalidate presentation and preserve cached geometry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Invalidate presentation and preserve cached geometry.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/renderer.rs` (*Connect opacity changes to compatible original source flags and presentation caches.*)
 
 Invalidate presentation and preserve cached geometry.
 
-> **Self-Check Question:** *Does an opacity change reupload original vertices?*  
-> **Answer:** No. Patch the derived x-ray flags, cancel obsolete picks and invalidate presentation masks. Earlier glass draws use retained per-owner geometry; opaque instance batching remains available.
-
-- **Hands-On Lab Experiment:** Change 0.5 to 0 to 1 and compare original geometry uploads and restored solid pixels.
-
-<details>
-<summary>Implementation 93f-invalidate-presentation-and-preserve-cached-geometry: Invalidate presentation and preserve cached geometry</summary>
-
-Invalidate presentation and preserve cached geometry.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Does an opacity change reupload original vertices?* — No. Patch the derived x-ray flags, cancel obsolete picks and invalidate presentation masks. Earlier glass draws use retained per-owner geometry; opaque instance batching remains available.
 
 ### 1. `src/renderer.rs`
 
 Connect opacity changes to compatible original source flags and presentation caches.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if let Some(lane)=self.clouds.borrow_mut().as_mut() {lane.set_clipping(self.clipping.borrow().writes);if let Err(error)=lane.prepare(&self.text_context(),transform,self.size,self.density,self.cloud_view.get()) {lane.failed();*self.cloud_error.borrow_mut()=Some(error.to_string());} else {self.cloud_error.borrow_mut().take();}}
-    }
-    pub fn set_outlines(&self,on:bool){self.outlines_enabled.set(on);if !on{self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();}}
-    pub fn global_outline_usage(&self)->[u64;4]{self.global_outline.borrow().as_ref().map_or([0;4],|o|o.usage())}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2252,54 +1683,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/93f-invalidate-presentation-and-preserve-cached-geometry-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-93g-connect-strict-opacity-presentation-commands"></a>
 
 ### Step 8 of 9 · Connect strict Opacity presentation commands (`93g-connect-strict-opacity-presentation-commands`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/9 Visual Trace (93g-connect-strict-opacity-presentation-commands): Connect strict Opacity presentation commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Connect strict Opacity presentation commands.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/editor.rs` (*Connect strict presentation alpha and truthful browser state.*) · `src/commands.rs` (*Connect strict presentation alpha and truthful browser state.*) · `src/browser.rs` (*Connect strict presentation alpha and truthful browser state.*)
 
 Connect strict Opacity presentation commands.
 
-> **Self-Check Question:** *Should changing Opacity discard a pending line point?*  
-> **Answer:** No. Validate a finite 0..1 scalar and return a presentation change before document/tool cleanup. History and original source stay unchanged.
-
-- **Hands-On Lab Experiment:** Try Opacity 0/0.4/0.7/1, reject NaN and excess arguments, then finish or cancel the pending line and Redo.
-
-<details>
-<summary>Implementation 93g-connect-strict-opacity-presentation-commands: Connect strict Opacity presentation commands</summary>
-
-Connect strict Opacity presentation commands.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
+> **Check:** *Should changing Opacity discard a pending line point?* — No. Validate a finite 0..1 scalar and return a presentation change before document/tool cleanup. History and original source stay unchanged.
 
 ### 1. `src/editor.rs`
 
@@ -2307,8 +1722,7 @@ Connect strict presentation alpha and truthful browser state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.tool_status=format!("Element {label} {}",if *shown{"On"}else{"Off"});
@@ -2318,8 +1732,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Arctic(_)=>unreachable!("Arctic presentation returned before editor mutation"),
             Action::Clipping(request)=>{return self.clipping_request(request)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -2333,8 +1745,7 @@ Replace it with:
             Action::Clipping(request)=>{return self.clipping_request(request)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2344,8 +1755,6 @@ Replace it with:
         if let Action::Arctic(on)=&action{self.arctic=on.unwrap_or(!self.arctic);if self.arctic{self.outlines=true;}self.tool_status=format!("Arctic {}",if self.arctic{"On"}else{"Off"});return Ok(Change::View)}
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2359,8 +1768,7 @@ Replace it with:
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -2371,8 +1779,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2386,8 +1792,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub element:Option<crate::element_draft::Draft>,
@@ -2397,8 +1802,6 @@ impl Default for Editor {
     pub outlines:bool,
     pub clipping_enabled:bool,pub clipping_solid:bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2412,8 +1815,7 @@ Replace it with:
     pub clipping_enabled:bool,pub clipping_solid:bool,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2423,8 +1825,6 @@ pub enum Action {
     ViewOutline(Option<bool>),
     Clipping(crate::clipping_input::Request),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2438,8 +1838,7 @@ pub enum Action {
     Clipping(crate::clipping_input::Request),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3641,43 +3040,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-01.rs"
-```
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-02.rs"
-```
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-03.rs"
-```
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-04.rs"
-```
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-05.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Connect strict presentation alpha and truthful browser state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let on=crate::element_input::visibility(&words[count..])?;
@@ -3687,8 +3056,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
     if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3702,8 +3069,7 @@ Replace it with:
     if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ("Element Block",||Action::ElementBegin{kind:crate::element_input::Kind::Block,text:String::new()}),
@@ -3713,8 +3079,6 @@ Replace it with:
     ("Arctic",||Action::Arctic(None)),
     ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3728,8 +3092,7 @@ Replace it with:
     ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -3960,31 +3323,13 @@ fn command_alias(line:&str)->String{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-06.rs"
-```
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-07.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Connect strict presentation alpha and truthful browser state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
@@ -3995,8 +3340,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4010,8 +3353,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
@@ -4022,8 +3364,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4037,8 +3377,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -4907,75 +4246,40 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-08.rs"
-```
-
-```text
---8<-- "journey/code/93g-connect-strict-opacity-presentation-commands-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-93h-prove-actual-glass-x-ray-and-source-ownership"></a>
 
 ### Step 9 of 9 · Prove actual glass x-ray and source ownership (`93h-prove-actual-glass-x-ray-and-source-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/9 Visual Trace (93h-prove-actual-glass-x-ray-and-source-ownership): Prove actual glass x-ray and source ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/opacity_gpu_tests.rs, src/renderer.rs, src/opacity_command_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original closedness</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face alpha and hidden ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original x-ray picks</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/opacity_gpu_tests.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">face alpha and hidden i…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original x-ray picks</text>
 </svg>
-</div>
-
-- **Goal:** Prove actual glass x-ray and source ownership.
-- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
-- **Files You Touch:** `src/opacity_gpu_tests.rs` (*Copy supplied actual alpha, hidden ink, original pick and refresh fixtures.*) · `src/renderer.rs` (*Register actual renderer-local transparency fixtures.*) · `src/opacity_command_tests.rs` (*Copy supplied strict presentation/pending-point/history fixtures.*) · `src/lib.rs` (*Register the completed transparency component.*)
 
 Prove actual glass x-ray and source ownership.
 
-> **Self-Check Question:** *What proves transparency works?*  
-> **Answer:** Actual face/ink color and integer picks. Verify open/mirrored/refreshed sources, unchanged originals, no vertex reupload and exact solid restoration.
+> **Check:** *What proves transparency works?* — Actual face/ink color and integer picks. Verify open/mirrored/refreshed sources, unchanged originals, no vertex reupload and exact solid restoration.
 
-- **What You Should See:** The original closed pedestal is translucent while its black original ink and consistent silhouette remain visible.
-- **Hands-On Lab Experiment:** Fit Example CAD in an isometric view. Compare Opacity 1, 0.4 and 0 while inspecting the closed solid and its original ink; restore 1. Select the solid, move it and Undo, then compare its restored drawing. Native fixtures separately check exact blended pixels, mirrored originals and upload reuse.
-
-<details>
-<summary>Implementation 93h-prove-actual-glass-x-ray-and-source-ownership: Prove actual glass x-ray and source ownership</summary>
-
-Prove actual glass x-ray and source ownership.
-
-Data flow: original closedness → face alpha and hidden ink → original x-ray picks.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4989,10 +4293,7 @@ Copy this supplied file:
 --8<-- "journey/code/93h-prove-actual-glass-x-ray-and-source-ownership-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5000,26 +4301,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register actual renderer-local transparency fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[path="global_outline_tests.rs"]
-mod global_outline_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/93h-prove-actual-glass-x-ray-and-source-ownership-02.rs" skip=60
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5033,10 +4321,7 @@ Copy this supplied file:
 --8<-- "journey/code/93h-prove-actual-glass-x-ray-and-source-ownership-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5044,47 +4329,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed transparency component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod element_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/93h-prove-actual-glass-x-ray-and-source-ownership-04.rs" skip=32
 ```
 
-</details>
-
-</details>
+**Result after `93h-prove-actual-glass-x-ray-and-source-ownership`:** The original closed pedestal is translucent while its black original ink and consistent silhouette remain visible.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 93h-prove-actual-glass-x-ray-and-source-ownership
-npm --prefix ../session_tests run course -- check 93h-prove-actual-glass-x-ray-and-source-ownership
-npm --prefix ../session_tests run course -- save 93h-prove-actual-glass-x-ray-and-source-ownership
+npm --prefix ../session_tests run course -- dependencies 18.5
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 18.5
+npm --prefix ../session_tests run course -- save 18.5
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The original closed pedestal is translucent while its black original ink and consistent silhouette remain visible.
-
-- **Final Lesson Experiment:** Fit Example CAD in an isometric view. Compare Opacity 1, 0.4 and 0 while inspecting the closed solid and its original ink; restore 1. Select the solid, move it and Undo, then compare its restored drawing. Native fixtures separately check exact blended pixels, mirrored originals and upload reuse.
-
-Continue with [Matched rendering comparisons from original sources](../../consolidation/94-declare-the-rendering-comparison-contract.md).
+Continue with [18.6 · Matched rendering comparisons from original sources](../../consolidation/94-declare-the-rendering-comparison-contract.md).

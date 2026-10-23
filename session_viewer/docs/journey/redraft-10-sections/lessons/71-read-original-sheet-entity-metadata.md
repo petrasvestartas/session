@@ -1,245 +1,97 @@
 # 14.1 · Original drawings, entity queries and construction frames
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.1** (Redraft `8.1`) · **42 checkpoints (`71-read-original-sheet-entity-metadata` → `71ze-resolve-original-relative-and-polar-coordinates`)** · **Study time: 21–42 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `71-read-original-sheet-entity-metadata` → `71ze-resolve-original-relative-and-polar-coordinates` (42 steps) · **Production source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs)
 
-> **What You Will Learn & Build:** Complete the original lookup owner with its query id, sheet row and entity index. By the final checkpoint (`71ze-resolve-original-relative-and-polar-coordinates`), you will recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
+> **Goal:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 14.1 Pipeline Schematic: Original drawings, entity queries and construction frames</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (42 Checkpoints: 71-read-original-sheet-entity-metadata → 71ze-resolve-original-relative-and-polar-coordinates)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original table</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">bytes</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">revision-bound</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">entity</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">cancellable lookup</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original frame</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">parsed coordinates</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 14.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/sheet_entity.rs  ·  src/sheet_example.rs  ·  src/lib.rs  ·  src/range_fetch.rs  ·  src/sheet_entity_fetch.rs  ·  src/sheet_page.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">42 Checkpoints: 71-read-original-sheet-entity-metadata → 71ze-resolve-original-relative-and-polar-coordinates — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`71-read-original-sheet-entity-metadata`](#checkpoint-71-read-original-sheet-entity-metadata) | Complete the original lookup owner with its query id, sheet row and entity index. | `src/sheet_entity.rs`, `src/sheet_example.rs`, `src/lib.rs` | `original table bytes → revision-bound entity → cancellable lookup` |
-| **2** | [`71a-bound-original-entity-records-before-reading`](#checkpoint-71a-bound-original-entity-records-before-reading) | Bound original entity records before reading. | `src/sheet_entity.rs` | `selected original ID → checked record interval → bounded blob` |
-| **3** | [`71b-give-metadata-reads-their-own-cancellation-signal`](#checkpoint-71b-give-metadata-reads-their-own-cancellation-signal) | Give metadata reads their own cancellation signal. | `src/range_fetch.rs`, `src/sheet_entity_fetch.rs`, `src/lib.rs` | `owned controller → one range request → listener cleanup` |
-| **4** | [`71c-fetch-one-revision-matched-metadata-answer`](#checkpoint-71c-fetch-one-revision-matched-metadata-answer) | Fetch one revision matched metadata answer. | `src/sheet_entity_fetch.rs` | `checked head → selected record → checked JSON answer` |
-| **5** | [`71d-decode-precise-original-sheet-columns`](#checkpoint-71d-decode-precise-original-sheet-columns) | Decode precise original sheet columns. | `src/sheet_page.rs`, `src/lib.rs` | `fixed width ranges → original columns → derived display` |
-| **6** | [`71e-measure-original-sheet-pages-and-world-pens`](#checkpoint-71e-measure-original-sheet-pages-and-world-pens) | Measure original sheet pages and world pens. | `src/sheet_page.rs` | `original endpoints → f64 bounds → authored radius → payload bytes` |
-| **7** | [`71f-retain-charged-pages-beside-resident-pages`](#checkpoint-71f-retain-charged-pages-beside-resident-pages) | Retain charged pages beside resident pages. | `src/sheet_stream.rs`, `src/lib.rs` | `resident source page → charged streamed page → retained display owner` |
-| **8** | [`71g-own-the-complete-original-drawing-source`](#checkpoint-71g-own-the-complete-original-drawing-source) | Own the complete original drawing source. | `src/sheet_source.rs`, `src/lib.rs` | `original Sheet → checked source count → shared derived page` |
-| **9** | [`71h-place-drawing-rows-without-changing-endpoints`](#checkpoint-71h-place-drawing-rows-without-changing-endpoints) | Place drawing rows without changing endpoints. | `src/sheet_source.rs` | `shared original drawing → row model → precise placed bounds` |
-| **10** | [`71i-register-original-drawing-rows-on-the-current-layer`](#checkpoint-71i-register-original-drawing-rows-on-the-current-layer) | Register original drawing rows on the current layer. | `src/scene.rs` | `validated source → stable row → current layer` |
-| **11** | [`71j-carry-drawing-identity-through-scene-operations`](#checkpoint-71j-carry-drawing-identity-through-scene-operations) | Carry drawing identity through scene operations. | `src/scene.rs`, `src/rect_select.rs` | `source row → generic owner operations → reversible history` |
-| **12** | [`71k-save-and-reopen-complete-original-sheets`](#checkpoint-71k-save-and-reopen-complete-original-sheets) | Save and reopen complete original sheets. | `src/document_source.rs`, `src/document_geometry.rs`, `src/archive_identity.rs`, `src/scene_archive.rs` | `mixed original document → original sheet snapshot → checked archive reopening` |
-| **13** | [`71l-locate-original-drawing-identity-and-fixed-ranges`](#checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges) | Locate original drawing identity and fixed ranges. | `src/sheet_range.rs`, `src/lib.rs` | `single sheet envelope → source GUID → fixed column interval` |
-| **14** | [`71m-validate-the-bounded-drawing-envelope-tail`](#checkpoint-71m-validate-the-bounded-drawing-envelope-tail) | Validate the bounded drawing envelope tail. | `src/sheet_range.rs`, `src/stream.rs` | `checked drawing end → bounded tail → original envelope validation` |
-| **15** | [`71n-scan-drawing-columns-under-one-revision`](#checkpoint-71n-scan-drawing-columns-under-one-revision) | Scan drawing columns under one revision. | `src/sheet_range.rs` | `source probe → checked metadata windows → original drawing layout` |
-| **16** | [`71o-read-drawing-page-columns-through-the-shared-queue`](#checkpoint-71o-read-drawing-page-columns-through-the-shared-queue) | Read drawing page columns through the shared queue. | `src/sheet_range.rs` | `checked row interval → four fixed column reads → original page` |
-| **17** | [`71p-adopt-nonoverlapping-charged-drawing-pages`](#checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages) | Adopt nonoverlapping charged drawing pages. | `src/sheet_stream.rs` | `reserved payload → original page interval → source cache` |
-| **18** | [`71q-keep-partial-drawing-sources-explicit`](#checkpoint-71q-keep-partial-drawing-sources-explicit) | Keep partial drawing sources explicit. | `src/sheet_source.rs`, `src/scene.rs`, `src/geometry_snapshot.rs` | `original remote header → available charged pages → explicit partial source` |
-| **19** | [`71r-reserve-memory-before-the-drawing-prefix`](#checkpoint-71r-reserve-memory-before-the-drawing-prefix) | Reserve memory before the drawing prefix. | `src/sheet_stream.rs` | `remaining segment share → reserved temporary bytes → checked prefix` |
-| **20** | [`71s-continue-drawing-reads-without-reviving-closed-sources`](#checkpoint-71s-continue-drawing-reads-without-reviving-closed-sources) | Continue drawing reads without reviving closed sources. | `src/sheet_stream.rs` | `current original source → generation ticket → checked page → synchronous refresh` |
-| **21** | [`71t-resolve-sheet-picks-to-original-entity-ids`](#checkpoint-71t-resolve-sheet-picks-to-original-entity-ids) | Resolve sheet picks to original entity IDs. | `src/pick_sources.rs`, `src/selection.rs`, `src/highlight.rs`, `src/part_preview.rs` | `compact integer address → original entity ID → current weak query owner` |
-| **22** | [`71u-project-authored-world-pens-into-drawing-quads`](#checkpoint-71u-project-authored-world-pens-into-drawing-quads) | Project authored world pens into drawing quads. | `src/sheet.wgsl` | `original millimetre pen → projected radius → covered quad` |
-| **23** | [`71v-use-the-same-sheet-coverage-for-color-and-picks`](#checkpoint-71v-use-the-same-sheet-coverage-for-color-and-picks) | Use the same sheet coverage for color and picks. | `src/sheet.wgsl`, `src/sheet_pick.wgsl` | `covered drawing quad → color coverage → integer owner coverage` |
-| **24** | [`71w-build-sheet-color-and-integer-pipelines`](#checkpoint-71w-build-sheet-color-and-integer-pipelines) | Build sheet color and integer pipelines. | `src/sheet_pipeline.rs`, `src/lib.rs` | `shared segment vertices → independent model uniform → explicit targets` |
-| **25** | [`71x-own-the-shared-drawing-lane-resources`](#checkpoint-71x-own-the-shared-drawing-lane-resources) | Own the shared drawing lane resources. | `src/sheet_gpu.rs`, `src/lib.rs` | `shared source cache → independent placement records → current lens` |
-| **26** | [`71y-bound-drawing-buffers-and-pack-independent-settings`](#checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings) | Bound drawing buffers and pack independent settings. | `src/sheet_gpu.rs` | `device byte limit → exact source interval → independent row settings` |
-| **27** | [`71z-upload-each-original-drawing-page-once`](#checkpoint-71z-upload-each-original-drawing-page-once) | Upload each original drawing page once. | `src/sheet_gpu.rs` | `original page → bounded segment words → shared GPU buffer` |
-| **28** | [`71aa-reuse-independent-drawing-placement-records`](#checkpoint-71aa-reuse-independent-drawing-placement-records) | Reuse independent drawing placement records. | `src/sheet_gpu.rs` | `visible original row → shared page buffer → changed placement record` |
-| **29** | [`71ab-draw-world-pens-with-the-current-camera-lens`](#checkpoint-71ab-draw-world-pens-with-the-current-camera-lens) | Draw world pens with the current camera lens. | `src/sheet_gpu.rs` | `camera lens → original world pen → shared color and integer batches` |
-| **30** | [`71ac-connect-sheet-batches-to-rendering-and-bounded-picks`](#checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks) | Connect sheet batches to rendering and bounded picks. | `src/renderer.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `current scene → retained sheet batches → bounded readback` |
-| **31** | [`71ad-own-metadata-delivery-without-pinning-drawings`](#checkpoint-71ad-own-metadata-delivery-without-pinning-drawings) | Own metadata delivery without pinning drawings. | `src/browser_sheet.rs`, `src/lib.rs` | `weak original owner → current query gate → one delivery` |
-| **32** | [`71ae-query-metadata-only-for-the-current-selected-entity`](#checkpoint-71ae-query-metadata-only-for-the-current-selected-entity) | Query metadata only for the current selected entity. | `src/browser_sheet.rs` | `selected original entity → source-relative URL → owned metadata ranges` |
-| **33** | [`71af-keep-published-drawing-sources-and-url-bases-independent`](#checkpoint-71af-keep-published-drawing-sources-and-url-bases-independent) | Keep published drawing sources and URL bases independent. | `src/publication.rs`, `src/publication_index.rs` | `original published URL → checked source cache → repeated independent placement` |
-| **34** | [`71ag-retire-staged-drawing-reads-with-their-publication-owner`](#checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner) | Retire staged drawing reads with their publication owner. | `src/browser_publication.rs` | `staged original prefix → current publication → weak source retirement` |
-| **35** | [`71ah-stage-bounded-drawings-through-publication-loading`](#checkpoint-71ah-stage-bounded-drawings-through-publication-loading) | Stage bounded drawings through publication loading. | `src/browser_publication.rs` | `source probe → bounded original prefix → shared staged ceiling → current pages` |
-| **36** | [`71ai-show-current-sheet-resources-and-selected-entity-answers`](#checkpoint-71ai-show-current-sheet-resources-and-selected-entity-answers) | Show current sheet resources and selected entity answers. | `src/memory.rs`, `src/browser.rs` | `current scene counters → selected query → accepted original metadata` |
-| **37** | [`71aj-exercise-complete-and-ranged-original-drawings`](#checkpoint-71aj-exercise-complete-and-ranged-original-drawings) | Exercise complete and ranged original drawings. | `src/editor.rs`, `src/commands.rs`, `src/sheet_scene_tests.rs`, `src/lib.rs` | `original sheet example → shared display → original entity lookup → reversible history` |
-| **38** | [`71za-build-original-construction-plane-frames`](#checkpoint-71za-build-original-construction-plane-frames) | Describe the original world planes and a movable frame. | `src/cplane.rs`, `src/lib.rs` | `original frame → parsed coordinates → world drawing point` |
-| **39** | [`71zb-map-original-plane-and-world-coordinates`](#checkpoint-71zb-map-original-plane-and-world-coordinates) | Reuse the existing origin and axes to map between plane and world coordinates. | `src/cplane.rs` | `original frame → parsed coordinates → world drawing point` |
-| **40** | [`71zc-guard-original-plane-and-ray-projections`](#checkpoint-71zc-guard-original-plane-and-ray-projections) | Complete the original plane queries for view choice, nearest projection, facing and ray intersection. | `src/cplane.rs` | `original frame → parsed coordinates → world drawing point` |
-| **41** | [`71zd-parse-original-drawing-coordinate-forms`](#checkpoint-71zd-parse-original-drawing-coordinate-forms) | Describe the original absolute, relative, polar and distance forms. | `src/drawing_coords.rs`, `src/lib.rs` | `original frame → parsed coordinates → world drawing point` |
-| **42** | [`71ze-resolve-original-relative-and-polar-coordinates`](#checkpoint-71ze-resolve-original-relative-and-polar-coordinates) | Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. | `src/drawing_coords.rs` | `original frame → parsed coordinates → world drawing point` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-71-read-original-sheet-entity-metadata"></a>
 
 ### Step 1 of 42 · Own cancellable sheet-entity lookups (`71-read-original-sheet-entity-metadata`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/42 Visual Trace (71-read-original-sheet-entity-metadata): Own cancellable sheet-entity lookups</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_entity.rs, src/sheet_example.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original table bytes</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">revision-bound entity</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cancellable lookup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_entity.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">revision-bound entity</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cancellable lookup</text>
 </svg>
-</div>
-
-- **Goal:** Complete the original lookup owner with its query id, sheet row and entity index.
-- **Data Flow Trace:** `original table bytes → revision-bound entity → cancellable lookup`
-- **Files You Touch:** `src/sheet_entity.rs` (*Extend this original owner with the day’s complete input helpers.*) · `src/sheet_example.rs` (*Supply the existing sheet scene and side-table data specimen.*) · `src/lib.rs` (*Register the supplied sheet data specimen.*)
 
 Complete the original lookup owner with its query id, sheet row and entity index. Share its cancellation flag with the pending reader and cancel when the owner drops. Keep the result and table revision together. The following lookup bridge connects these prepared helpers.
 
-> **Self-Check Question:** *Why share the cancellation flag instead of retaining the query owner?*  
-> **Answer:** The reader can observe cancellation without keeping an obsolete lookup alive. Dropping the owner signals that its result is no longer wanted.
-
-- **What You Should See:** The rotated and mirrored original references remain visible while original drawing columns, shared segment batches and selected-entity metadata connect. The final checkpoint opens the original plan.
-- **Hands-On Lab Experiment:** Trace a replacement lookup through the old owner’s Drop and the held cancellation flag.
-
-<details>
-<summary>Implementation 71-read-original-sheet-entity-metadata: Own cancellable sheet-entity lookups</summary>
-
-Complete the original lookup owner with its query id, sheet row and entity index.
-
-Data flow: original table bytes → revision-bound entity → cancellable lookup.
+> **Check:** *Why share the cancellation flag instead of retaining the query owner?* — The reader can observe cancellation without keeping an obsolete lookup alive. Dropping the owner signals that its result is no longer wanted.
 
 ### 1. `src/sheet_entity.rs`
 
 Extend this original owner with the day’s complete input helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
-    serde_json::from_slice(raw).map_err(|error| format!("Entity record is not valid JSON: {error}"))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -278,19 +130,7 @@ pub struct Resolved {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71-read-original-sheet-entity-metadata-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -298,124 +138,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original metadata and cancellation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use serde::Deserialize;
-use std::cell::Cell;
-use std::rc::Rc;
-
-/// Bytes of the table head: `SHM1` then a u32 record count.
-pub const HEAD_BYTES: u64 = 8;
-
-/// Bytes of one record: u64 offset, u64 length.
-pub const RECORD_BYTES: u64 = 16;
-
-/// Largest entity record accepted.
-pub const MAX_BLOB: u64 = 64 * 1024;
-
-/// One sheet entity's identity, from its JSON record.
-#[derive(Clone, Debug, Default, Deserialize, PartialEq)]
-pub struct EntityMeta {
-    #[serde(default)]
-    pub guid: String, // source object id
-    #[serde(default)]
-    pub name: String, // display name
-    #[serde(default)]
-    pub kind: String, // wall, door, ...
-    #[serde(default)]
-    pub width: f32, // pen width
-    #[serde(default)]
-    pub color: Vec<f32>, // pen colour
-}
-
-/// The table head, cached per sheet.
-#[derive(Clone, Debug)]
-pub struct SheetTable {
-    pub count: u32,               // records in the table
-    pub revision: Option<String>, // ETag every read must match
-}
-
-/// The record count from a table head.
-pub fn table_count(raw: &[u8]) -> Result<u32, String> {
-    if raw.len() != HEAD_BYTES as usize || &raw[..4] != b"SHM1" {
-        return Err("Side table head is not SHM1".to_string());
-    }
-
-    Ok(u32::from_le_bytes(
-        raw[4..8].try_into().expect("exact head checked above"),
-    ))
-}
-
-/// One record as (offset, length).
-pub fn record(raw: &[u8]) -> Result<(u64, u64), String> {
-    if raw.len() != RECORD_BYTES as usize {
-        return Err("Side table record must contain exactly 16 bytes".to_string());
-    }
-
-    Ok((
-        u64::from_le_bytes(raw[..8].try_into().expect("exact record checked above")),
-        u64::from_le_bytes(raw[8..].try_into().expect("exact record checked above")),
-    ))
-}
-
-/// Byte position of record `id`; `record_at(count)` starts the blobs.
-pub fn record_at(id: u32) -> u64 {
-    HEAD_BYTES + RECORD_BYTES * u64::from(id)
-}
-
-/// An entity from its JSON; missing keys default.
-pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
-    serde_json::from_slice(raw).map_err(|error| format!("Entity record is not valid JSON: {error}"))
-}
-
-/// One entity lookup in flight.
-pub struct Query {
-    pub id: u64,                   // lookup number
-    pub row: u32,                  // the sheet's object row
-    pub entity: u32,               // entity index in the sheet
-    pub cancelled: Rc<Cell<bool>>, // set when a newer lookup replaces this
-}
-
-impl Query {
-    /// A new lookup.
-    pub fn new(id: u64, row: u32, entity: u32) -> Self {
-        Self {
-            id,
-            row,
-            entity,
-            cancelled: Rc::new(Cell::new(false)),
-        }
-    }
-}
-
-impl Drop for Query {
-    /// Cancel the lookup.
-    fn drop(&mut self) {
-        self.cancelled.set(true);
-    }
-}
-
-/// The answer to one lookup.
-pub struct Resolved {
-    pub query: u64,                                       // which lookup
-    pub result: Result<(EntityMeta, SheetTable), String>, // the entity and the table head
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71-read-original-sheet-entity-metadata-2.rs" skip=2967
 ```
 
-</details>
-
-<details>
-<summary>Supplied example data</summary>
+**Supplied example data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -429,21 +158,9 @@ Copy this supplied file:
 --8<-- "journey/code/71-read-original-sheet-entity-metadata-3.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the supplied sheet data specimen.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_entity;
-```
-
-</details>
 
 After that block, type:
 
@@ -451,54 +168,40 @@ After that block, type:
 --8<-- "journey/code/71-read-original-sheet-entity-metadata-4.rs" skip=23
 ```
 
-</details>
+**Result after `71-read-original-sheet-entity-metadata`:** The rotated and mirrored original references remain visible while original drawing columns, shared segment batches and selected-entity metadata connect. The final checkpoint opens the original plan.
+
+---
 
 <a id="checkpoint-71a-bound-original-entity-records-before-reading"></a>
 
 ### Step 2 of 42 · Bound original entity records before reading (`71a-bound-original-entity-records-before-reading`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/42 Visual Trace (71a-bound-original-entity-records-before-reading): Bound original entity records before reading</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_entity.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original ID</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked record interval</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded blob</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_entity.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked record interval</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded blob</text>
 </svg>
-</div>
-
-- **Goal:** Bound original entity records before reading.
-- **Data Flow Trace:** `selected original ID → checked record interval → bounded blob`
-- **Files You Touch:** `src/sheet_entity.rs` (*Bound metadata records and retain the original side-table byte length.*)
 
 Check record count, offset overflow, JSON size and file end before fetching an entity.
 
-> **Self-Check Question:** *Can a valid record header point outside its file?*  
-> **Answer:** Yes. Check its offset and length against the total side-table size, and retain that size with the revision.
-
-- **Hands-On Lab Experiment:** Inspect overflow, oversized blob, out-of-range entity and exact file-end fixtures.
-
-<details>
-<summary>Implementation 71a-bound-original-entity-records-before-reading: Bound original entity records before reading</summary>
-
-Bound original entity records before reading.
-
-Data flow: selected original ID → checked record interval → bounded blob.
+> **Check:** *Can a valid record header point outside its file?* — Yes. Check its offset and length against the total side-table size, and retain that size with the revision.
 
 ### 1. `src/sheet_entity.rs`
 
@@ -506,16 +209,13 @@ Bound metadata records and retain the original side-table byte length.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         assert!(token.get());
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -545,8 +245,7 @@ pub fn blob_range(count: u32, id: u32, raw: &[u8], total: u64) -> Result<(u64, u
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 /// The table head, cached per sheet.
@@ -556,8 +255,6 @@ pub struct SheetTable {
     pub revision: Option<String>, // ETag every read must match
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -571,8 +268,7 @@ pub struct SheetTable {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use serde::Deserialize;
@@ -759,25 +455,7 @@ pub fn blob_range(count: u32, id: u32, raw: &[u8], total: u64) -> Result<(u64, u
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71a-bound-original-entity-records-before-reading-01.rs"
-```
-
-```text
---8<-- "journey/code/71a-bound-original-entity-records-before-reading-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -785,72 +463,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy bounded metadata-record fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Ok((at, length))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71a-bound-original-entity-records-before-reading-03.rs" skip=24
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71b-give-metadata-reads-their-own-cancellation-signal"></a>
 
 ### Step 3 of 42 · Give metadata reads their own cancellation signal (`71b-give-metadata-reads-their-own-cancellation-signal`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/42 Visual Trace (71b-give-metadata-reads-their-own-cancellation-signal): Give metadata reads their own cancellation signal</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_fetch.rs, src/sheet_entity_fetch.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned controller</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one range request</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">listener cleanup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_fetch.rs, src/s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one range request</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">listener cleanup</text>
 </svg>
-</div>
-
-- **Goal:** Give metadata reads their own cancellation signal.
-- **Data Flow Trace:** `owned controller → one range request → listener cleanup`
-- **Files You Touch:** `src/range_fetch.rs` (*Forward an owned cancellation signal to one bounded range read.*) · `src/sheet_entity_fetch.rs` (*Register the current original metadata range types.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Connect one external abort signal without cancelling unrelated reads from the same source URL.
 
-> **Self-Check Question:** *Why not cancel every request to the metadata URL?*  
-> **Answer:** Another owner can share that URL. Forward this query’s signal to its own request controller and remove the listener on Drop.
-
-- **Hands-On Lab Experiment:** Compare query cancellation with whole-scene reset and the existing request stall timer.
-
-<details>
-<summary>Implementation 71b-give-metadata-reads-their-own-cancellation-signal: Give metadata reads their own cancellation signal</summary>
-
-Give metadata reads their own cancellation signal.
-
-Data flow: owned controller → one range request → listener cleanup.
+> **Check:** *Why not cancel every request to the metadata URL?* — Another owner can share that URL. Forward this query’s signal to its own request controller and remove the listener on Drop.
 
 ### 1. `src/range_fetch.rs`
 
@@ -858,8 +508,7 @@ Forward an owned cancellation signal to one bounded range read.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn whole(self)->Option<Vec<u8>> {(self.status==206&&self.total==Some(self.bytes.len() as u64)).then_some(self.bytes)}
@@ -874,8 +523,6 @@ pub async fn get(url:&str,opts:&GetOpts)->Result<Reply,String> {
     if opts.revalidate {init.set_cache(web_sys::RequestCache::NoCache);}
     let headers=web_sys::Headers::new().map_err(|error|describe(error.into()))?;headers.set("Range",&range).map_err(|error|describe(error.into()))?;init.set_headers(&headers);
 ```
-
-</details>
 
 Replace it with:
 
@@ -894,8 +541,7 @@ pub async fn get_with_signal(url:&str,opts:&GetOpts,signal:Option<&web_sys::Abor
     let headers=web_sys::Headers::new().map_err(|error|describe(error.into()))?;headers.set("Range",&range).map_err(|error|describe(error.into()))?;init.set_headers(&headers);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -905,8 +551,6 @@ impl Drop for Read {
         if let Some(window)=web_sys::window() {window.clear_timeout_with_handle(self.timer);}
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -920,8 +564,7 @@ impl Drop for Read {
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     callback:Closure<dyn FnMut()>,
@@ -937,8 +580,6 @@ impl Read {
     }
     fn touch(&mut self)->Result<(),String> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -958,8 +599,7 @@ impl Read {
     fn touch(&mut self)->Result<(),String> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub fn cancel_url(url:&str) {REQUESTS.with(|requests|requests.borrow_mut().retain(|_,(source,controller)| {if source==url {controller.abort();false} else {true}}));}
@@ -969,8 +609,6 @@ struct Read {
     controller:web_sys::AbortController,
     timer:i32,
 ```
-
-</details>
 
 Replace it with:
 
@@ -984,8 +622,7 @@ struct Read {
     timer:i32,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::{cell::{Cell,RefCell},collections::BTreeMap,rc::Rc};
@@ -1095,31 +732,6 @@ impl<T:'static> Task<T> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71b-give-metadata-reads-their-own-cancellation-signal-01.rs"
-```
-
-```text
---8<-- "journey/code/71b-give-metadata-reads-their-own-cancellation-signal-02.rs"
-```
-
-```text
---8<-- "journey/code/71b-give-metadata-reads-their-own-cancellation-signal-03.rs"
-```
-
-```text
---8<-- "journey/code/71b-give-metadata-reads-their-own-cancellation-signal-04.rs"
-```
-
-</details>
-
 ### 2. `src/sheet_entity_fetch.rs`
 
 Register the current original metadata range types.
@@ -1134,84 +746,48 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_example;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71b-give-metadata-reads-their-own-cancellation-signal-06.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-71c-fetch-one-revision-matched-metadata-answer"></a>
 
 ### Step 4 of 42 · Fetch one revision matched metadata answer (`71c-fetch-one-revision-matched-metadata-answer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/42 Visual Trace (71c-fetch-one-revision-matched-metadata-answer): Fetch one revision matched metadata answer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_entity_fetch.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked head</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected record</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked JSON answer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_entity_fetch.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selected record</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked JSON answer</text>
 </svg>
-</div>
-
-- **Goal:** Fetch one revision matched metadata answer.
-- **Data Flow Trace:** `checked head → selected record → checked JSON answer`
-- **Files You Touch:** `src/sheet_entity_fetch.rs` (*Read bounded original entity metadata under one owned signal.*)
 
 Read the head, selected record and JSON blob under one checked revision and byte length.
 
-> **Self-Check Question:** *Can a cached table head permit a changed record?*  
-> **Answer:** No. Each range must match its revision and total size; cancellation remains active throughout.
-
-- **Hands-On Lab Experiment:** Trace three metadata ranges, cached-head reuse and explicit errors for mutable URLs without validators.
-
-<details>
-<summary>Implementation 71c-fetch-one-revision-matched-metadata-answer: Fetch one revision matched metadata answer</summary>
-
-Fetch one revision matched metadata answer.
-
-Data flow: checked head → selected record → checked JSON answer.
+> **Check:** *Can a cached table head permit a changed record?* — No. Each range must match its revision and total size; cancellation remains active throughout.
 
 ### 1. `src/sheet_entity_fetch.rs`
 
 Read bounded original entity metadata under one owned signal.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-};
-use std::cell::Cell;
-```
-
-</details>
 
 After that block, type:
 
@@ -1219,54 +795,38 @@ After that block, type:
 --8<-- "journey/code/71c-fetch-one-revision-matched-metadata-answer-01.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-71d-decode-precise-original-sheet-columns"></a>
 
 ### Step 5 of 42 · Decode precise original sheet columns (`71d-decode-precise-original-sheet-columns`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/42 Visual Trace (71d-decode-precise-original-sheet-columns): Decode precise original sheet columns</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_page.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fixed width ranges</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original columns</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_page.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original columns</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived display</text>
 </svg>
-</div>
-
-- **Goal:** Decode precise original sheet columns.
-- **Data Flow Trace:** `fixed width ranges → original columns → derived display`
-- **Files You Touch:** `src/sheet_page.rs` (*Decode original drawing columns without truncating entity IDs.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Retain f64 endpoints and original pen, color and entity columns beside their f32 display values.
 
-> **Self-Check Question:** *May two segments share one entity ID?*  
-> **Answer:** Yes. Entity IDs identify original drawing entities, so repeated IDs are valid and must survive decoding.
-
-- **Hands-On Lab Experiment:** Check exact coordinate and attribute sizes, finite display conversion and unknown-ID defaults.
-
-<details>
-<summary>Implementation 71d-decode-precise-original-sheet-columns: Decode precise original sheet columns</summary>
-
-Decode precise original sheet columns.
-
-Data flow: fixed width ranges → original columns → derived display.
+> **Check:** *May two segments share one entity ID?* — Yes. Entity IDs identify original drawing entities, so repeated IDs are valid and must survive decoding.
 
 ### 1. `src/sheet_page.rs`
 
@@ -1282,89 +842,48 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch="wasm32")]
-pub mod sheet_entity_fetch;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71d-decode-precise-original-sheet-columns-02.rs" skip=57
 ```
 
-</details>
+---
 
 <a id="checkpoint-71e-measure-original-sheet-pages-and-world-pens"></a>
 
 ### Step 6 of 42 · Measure original sheet pages and world pens (`71e-measure-original-sheet-pages-and-world-pens`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/42 Visual Trace (71e-measure-original-sheet-pages-and-world-pens): Measure original sheet pages and world pens</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_page.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original endpoints</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">f64 bounds</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">authored radius</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">payload bytes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_page.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">authored radius</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">payload bytes</text>
 </svg>
-</div>
-
-- **Goal:** Measure original sheet pages and world pens.
-- **Data Flow Trace:** `original endpoints → f64 bounds → authored radius → payload bytes`
-- **Files You Touch:** `src/sheet_page.rs` (*Derive precise bounds, physical pen radii and capacity accounting.*)
 
 Use original doubles for bounds; positive pen widths become radii while invalid pens remain original hairlines.
 
-> **Self-Check Question:** *Does a NaN original pen make a NaN GPU radius?*  
-> **Answer:** No. Preserve the original word and derive a zero-radius hairline, matching current display defaults.
-
-- **Hands-On Lab Experiment:** Copy precise coordinate, repeated high-ID, hairline and malformed-column fixtures.
-
-<details>
-<summary>Implementation 71e-measure-original-sheet-pages-and-world-pens: Measure original sheet pages and world pens</summary>
-
-Measure original sheet pages and world pens.
-
-Data flow: original endpoints → f64 bounds → authored radius → payload bytes.
+> **Check:** *Does a NaN original pen make a NaN GPU radius?* — No. Preserve the original word and derive a zero-radius hairline, matching current display defaults.
 
 ### 1. `src/sheet_page.rs`
 
 Derive precise bounds, physical pen radii and capacity accounting.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        })
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1372,8 +891,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71e-measure-original-sheet-pages-and-world-pens-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1381,71 +899,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy original-column and malformed-page fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71e-measure-original-sheet-pages-and-world-pens-02.rs" skip=3
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71f-retain-charged-pages-beside-resident-pages"></a>
 
 ### Step 7 of 42 · Retain charged pages beside resident pages (`71f-retain-charged-pages-beside-resident-pages`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/42 Visual Trace (71f-retain-charged-pages-beside-resident-pages): Retain charged pages beside resident pages</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_stream.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">resident source page</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">charged streamed page</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained display owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_stream.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">charged streamed page</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained display owner</text>
 </svg>
-</div>
-
-- **Goal:** Retain charged pages beside resident pages.
-- **Data Flow Trace:** `resident source page → charged streamed page → retained display owner`
-- **Files You Touch:** `src/sheet_stream.rs` (*Retain resident and charged streamed pages through one display interface.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Give display owners one page interface while streamed owners keep their cache charge alive.
 
-> **Self-Check Question:** *Does eviction immediately release a displayed page?*  
-> **Answer:** No. Its renderer or reader can still own it. Release the payload charge only after the last owner drops.
-
-- **Hands-On Lab Experiment:** Inspect the shared page interface and explicit segment prefix, chunk, ceiling and temporary-byte rules.
-
-<details>
-<summary>Implementation 71f-retain-charged-pages-beside-resident-pages: Retain charged pages beside resident pages</summary>
-
-Retain charged pages beside resident pages.
-
-Data flow: resident source page → charged streamed page → retained display owner.
+> **Check:** *Does eviction immediately release a displayed page?* — No. Its renderer or reader can still own it. Release the payload charge only after the last owner drops.
 
 ### 1. `src/sheet_stream.rs`
 
@@ -1461,70 +952,44 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_page;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71f-retain-charged-pages-beside-resident-pages-02.rs" skip=21
 ```
 
-</details>
+---
 
 <a id="checkpoint-71g-own-the-complete-original-drawing-source"></a>
 
 ### Step 8 of 42 · Own the complete original drawing source (`71g-own-the-complete-original-drawing-source`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/42 Visual Trace (71g-own-the-complete-original-drawing-source): Own the complete original drawing source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_source.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Sheet</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source count</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared derived page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_source.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked source count</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared derived page</text>
 </svg>
-</div>
-
-- **Goal:** Own the complete original drawing source.
-- **Data Flow Trace:** `original Sheet → checked source count → shared derived page`
-- **Files You Touch:** `src/sheet_source.rs` (*Own immutable original sheet columns and derive their display defaults.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Validate original segment counts and derive padded display columns without modifying the authored protobuf.
 
-> **Self-Check Question:** *Should padding missing pens rewrite the original drawing?*  
-> **Answer:** No. Defaults belong to display columns. The original protobuf stays unchanged for editable Save.
-
-- **Hands-On Lab Experiment:** Compare short original columns with complete display columns, and reject inconsistent segment counts.
-
-<details>
-<summary>Implementation 71g-own-the-complete-original-drawing-source: Own the complete original drawing source</summary>
-
-Own the complete original drawing source.
-
-Data flow: original Sheet → checked source count → shared derived page.
+> **Check:** *Should padding missing pens rewrite the original drawing?* — No. Defaults belong to display columns. The original protobuf stays unchanged for editable Save.
 
 ### 1. `src/sheet_source.rs`
 
@@ -1540,139 +1005,48 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_stream;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71g-own-the-complete-original-drawing-source-02.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-71h-place-drawing-rows-without-changing-endpoints"></a>
 
 ### Step 9 of 42 · Place drawing rows without changing endpoints (`71h-place-drawing-rows-without-changing-endpoints`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/42 Visual Trace (71h-place-drawing-rows-without-changing-endpoints): Place drawing rows without changing endpoints</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original drawing</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">row model</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">precise placed bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_source.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">row model</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">precise placed bounds</text>
 </svg>
-</div>
-
-- **Goal:** Place drawing rows without changing endpoints.
-- **Data Flow Trace:** `shared original drawing → row model → precise placed bounds`
-- **Files You Touch:** `src/sheet_source.rs` (*Own independent row models and precise placed bounds.*)
 
 Keep independent row identity, placement and source URL beside shared original pages.
 
-> **Self-Check Question:** *Does copying a sheet duplicate its source endpoints?*  
-> **Answer:** No. Copy shares original and derived columns while keeping independent row identity and placement.
-
-- **Hands-On Lab Experiment:** Inspect transformed bound corners and original-entity eligibility without editing the source.
-
-<details>
-<summary>Implementation 71h-place-drawing-rows-without-changing-endpoints: Place drawing rows without changing endpoints</summary>
-
-Place drawing rows without changing endpoints.
-
-Data flow: shared original drawing → row model → precise placed bounds.
+> **Check:** *Does copying a sheet duplicate its source endpoints?* — No. Copy shares original and derived columns while keeping independent row identity and placement.
 
 ### 1. `src/sheet_source.rs`
 
 Own independent row models and precise placed bounds.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{Point, Xform, proto};
-use std::rc::Rc;
-
-pub struct Prepared {
-    pub original: Rc<proto::Sheet>,
-    pub page: Rc<crate::sheet_page::Page>,
-}
-impl Prepared {
-    pub fn new(original: Rc<proto::Sheet>) -> Result<Self, &'static str> {
-        if original.guid.is_empty()
-            || original.coords.len() % 6 != 0
-            || original.coords.len() / 6 != original.segment_count as usize
-        {
-            return Err("Original sheet count does not match its coordinates");
-        }
-        let count = original.segment_count as usize;
-        // Missing authored columns use source defaults; present words stay original, including repeated entity IDs and hairline pens.
-        fn column<T: Copy>(words: &[T], count: usize, default: T) -> Result<Vec<T>, &'static str> {
-            if words.len() > count {
-                return Err("Sheet attribute exceeds original segment count");
-            }
-            let mut words = words.to_vec();
-            words.resize(count, default);
-            Ok(words)
-        }
-        let coordinates = original
-            .coords
-            .iter()
-            .flat_map(|v| v.to_le_bytes())
-            .collect::<Vec<_>>();
-        let colors = column(&original.colors, count, 0xff00_0000)?
-            .into_iter()
-            .flat_map(u32::to_le_bytes)
-            .collect::<Vec<_>>();
-        let widths = column(&original.widths, count, 0.)?
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect::<Vec<_>>();
-        let ids = column(&original.source_ids, count, u32::MAX)?
-            .into_iter()
-            .flat_map(u32::to_le_bytes)
-            .collect::<Vec<_>>();
-        let page = crate::sheet_page::Page::decode(
-            0..original.segment_count,
-            original.segment_count,
-            original.entity_count,
-            &coordinates,
-            Some(&colors),
-            Some(&widths),
-            Some(&ids),
-        )?;
-        Ok(Self {
-            original,
-            page: Rc::new(page),
-        })
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1787,69 +1161,38 @@ impl Row {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71h-place-drawing-rows-without-changing-endpoints-01.rs"
-```
-
-```text
---8<-- "journey/code/71h-place-drawing-rows-without-changing-endpoints-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71i-register-original-drawing-rows-on-the-current-layer"></a>
 
 ### Step 10 of 42 · Register original drawing rows on the current layer (`71i-register-original-drawing-rows-on-the-current-layer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/42 Visual Trace (71i-register-original-drawing-rows-on-the-current-layer): Register original drawing rows on the current layer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable row</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current layer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable row</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current layer</text>
 </svg>
-</div>
-
-- **Goal:** Register original drawing rows on the current layer.
-- **Data Flow Trace:** `validated source → stable row → current layer`
-- **Files You Touch:** `src/scene.rs` (*Insert checked drawing rows and attach their layer identities.*)
 
 Validate placement before allocating a stable row and attach its original name to the current layer.
 
-> **Self-Check Question:** *When should the next viewer ID advance?*  
-> **Answer:** After validation succeeds. Failed insertion must not leave a partial source or layer entry.
-
-- **Hands-On Lab Experiment:** Inspect empty scenes, row allocation, source URLs and placed bounds.
-
-<details>
-<summary>Implementation 71i-register-original-drawing-rows-on-the-current-layer: Register original drawing rows on the current layer</summary>
-
-Register original drawing rows on the current layer.
-
-Data flow: validated source → stable row → current layer.
+> **Check:** *When should the next viewer ID advance?* — After validation succeeds. Failed insertion must not leave a partial source or layer entry.
 
 ### 1. `src/scene.rs`
 
@@ -1857,8 +1200,7 @@ Insert checked drawing rows and attach their layer identities.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for row in &mut self.clouds {row.controls_visible=Some(row.id)==parent;}
@@ -1868,8 +1210,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn insert_stream(&mut self,prepared:Rc<crate::range_cloud::Prepared>,model:session_rust::Xform,point_px:f32)->Result<ObjectId,&'static str> {
         if !crate::placement::valid(&model.m)||!point_px.is_finite()||point_px<0. {return Err("Invalid streamed source placement or point size");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1891,8 +1231,7 @@ Replace it with:
         if !crate::placement::valid(&model.m)||!point_px.is_finite()||point_px<0. {return Err("Invalid streamed source placement or point size");}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1904,8 +1243,6 @@ Replace it with:
     pub fn demo() -> Self {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1918,8 +1255,7 @@ Replace it with:
     pub fn demo() -> Self {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ids:Rc<std::collections::HashSet<ObjectId>>,
@@ -1929,8 +1265,6 @@ Replace it with:
     clouds:Vec<crate::cloud::Row>,
     texts:Vec<crate::scene_label::Row>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1944,8 +1278,7 @@ Replace it with:
     texts:Vec<crate::scene_label::Row>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2052,7 +1385,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2690,75 +2022,38 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71i-register-original-drawing-rows-on-the-current-layer-01.rs"
-```
-
-```text
---8<-- "journey/code/71i-register-original-drawing-rows-on-the-current-layer-02.rs"
-```
-
-```text
---8<-- "journey/code/71i-register-original-drawing-rows-on-the-current-layer-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71j-carry-drawing-identity-through-scene-operations"></a>
 
 ### Step 11 of 42 · Carry drawing identity through scene operations (`71j-carry-drawing-identity-through-scene-operations`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/42 Visual Trace (71j-carry-drawing-identity-through-scene-operations): Carry drawing identity through scene operations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/rect_select.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source row</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">generic owner operations</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reversible history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/rect_se…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">generic owner operations</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reversible history</text>
 </svg>
-</div>
-
-- **Goal:** Carry drawing identity through scene operations.
-- **Data Flow Trace:** `source row → generic owner operations → reversible history`
-- **Files You Touch:** `src/scene.rs` (*Connect drawing rows to existing generic scene operations.*) · `src/rect_select.rs` (*Select original drawing segments through window and crossing rectangles.*)
 
 Include drawings in bounds, traversal, Copy, Move, Delete, history and Close.
 
-> **Self-Check Question:** *Does Close retain sheet sources through history?*  
-> **Answer:** No. It clears document history and display owners so their original allocations can release.
-
-- **Hands-On Lab Experiment:** Compare row GUIDs, shared source pointers, independent models and eligible selection.
-
-<details>
-<summary>Implementation 71j-carry-drawing-identity-through-scene-operations: Carry drawing identity through scene operations</summary>
-
-Carry drawing identity through scene operations.
-
-Data flow: source row → generic owner operations → reversible history.
+> **Check:** *Does Close retain sheet sources through history?* — No. It clears document history and display owners so their original allocations can release.
 
 ### 1. `src/scene.rs`
 
@@ -2766,8 +2061,7 @@ Connect drawing rows to existing generic scene operations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
@@ -2778,8 +2072,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2793,8 +2085,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.instances.remove(&id);
@@ -2805,8 +2096,6 @@ Replace it with:
         existed
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2820,8 +2109,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.ids=Default::default();
@@ -2832,8 +2120,6 @@ Replace it with:
         self.points = Vec::new();
         self.paths = Vec::new();
 ```
-
-</details>
 
 Replace it with:
 
@@ -2847,8 +2133,7 @@ Replace it with:
         self.paths = Vec::new();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2859,8 +2144,6 @@ Replace it with:
 
     // Prepare a single placed row before appending it; repeated instances share geometry without cloning the growing destination scene.
 ```
-
-</details>
 
 Replace it with:
 
@@ -2874,8 +2157,7 @@ Replace it with:
     // Prepare a single placed row before appending it; repeated instances share geometry without cloning the growing destination scene.
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let mut guid=source.row_guid(*old).ok_or("Original source owner is missing")?.to_owned();while !used.insert(guid.clone()) {guid=uuid::Uuid::new_v4().to_string();}names.insert(*old,guid);
@@ -2886,8 +2168,6 @@ Replace it with:
             let id=remap[old];if let Some(owner)=source.instances.get(old) {candidate.instances.insert(id,owner.clone());}candidate.place_following(id,place*&source.placement(*old).ok_or("Original placement is missing")?)?;
             let view=Rc::make_mut(&mut candidate.view);view.initial(id,source.visible(*old),source.view.locked.contains(old));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2901,8 +2181,7 @@ Replace it with:
             let view=Rc::make_mut(&mut candidate.view);view.initial(id,source.visible(*old),source.view.locked.contains(old));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(||self.clouds.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
@@ -2912,8 +2191,6 @@ Replace it with:
 
     pub(crate) fn append_document(&mut self,source:&Scene,name:&str,place:&session_rust::Xform,point_px:f32)->Result<(),&'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2927,8 +2204,7 @@ Replace it with:
     pub(crate) fn append_document(&mut self,source:&Scene,name:&str,place:&session_rust::Xform,point_px:f32)->Result<(),&'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
@@ -2938,8 +2214,6 @@ Replace it with:
         if let Some(owner)=self.instances.get(&id).cloned() {self.instances.insert(copy,owner);}
         self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2953,8 +2227,7 @@ Replace it with:
         self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(row)=self.clouds.iter().find(|row|row.id==id) {return Some(row.bounds());}
@@ -2964,8 +2237,6 @@ Replace it with:
         let mut vertices = object.mesh.vertices().iter();
         let first = vertices.next()?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2979,8 +2250,7 @@ Replace it with:
         let first = vertices.next()?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
@@ -2990,8 +2260,6 @@ Replace it with:
         Err("Object not found")
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3005,8 +2273,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
@@ -3016,8 +2283,6 @@ Replace it with:
         else { self.place_point(id,model) }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3031,8 +2296,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(|| self.clouds.iter().find(|r|r.id==id).map(|r|r.model.clone()))
@@ -3042,8 +2306,6 @@ Replace it with:
 
     pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3057,8 +2319,7 @@ Replace it with:
     pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
@@ -3068,8 +2329,6 @@ Replace it with:
         for row in self.clouds.iter().filter(|r|self.visible(r.id)) {let next=row.bounds();if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}
         bounds
 ```
-
-</details>
 
 Replace it with:
 
@@ -3083,8 +2342,7 @@ Replace it with:
         bounds
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -3191,7 +2449,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -3836,78 +3093,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-01.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-02.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-03.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-04.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-05.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-06.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-07.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-08.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-09.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-10.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-11.rs"
-```
-
-```text
---8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-12.rs"
-```
-
-</details>
-
 ### 2. `src/rect_select.rs`
 
 Select original drawing segments through window and crossing rectangles.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.texts().iter().filter(|row|eligible(row.id)) {if crate::scene_label_screen::matches(row,matrix,size,rectangle) {found.push(row.id);}}
-    for row in scene.clouds().iter().filter(|row|eligible(row.id)) {let mut points=row.prepared.source.coords().chunks_exact(3).map(|p|screen(matrix,world(&row.model,[p[0],p[1],p[2]]),size));let hit=if rectangle.crossing {points.any(|p|p.is_some_and(|p|rectangle.contains(p)))} else {points.all(|p|p.is_some_and(|p|rectangle.contains(p)))};if hit {found.push(row.id);}}
-    found.sort_unstable_by_key(|id|id.value());found.dedup();found
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3915,96 +3103,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71j-carry-drawing-identity-through-scene-operations-13.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71k-save-and-reopen-complete-original-sheets"></a>
 
 ### Step 12 of 42 · Save and reopen complete original sheets (`71k-save-and-reopen-complete-original-sheets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/42 Visual Trace (71k-save-and-reopen-complete-original-sheets): Save and reopen complete original sheets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document_source.rs, src/document_geometry.rs, src/archive_identity.rs, src/scene_archive.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mixed original document</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original sheet snapshot</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked archive reopening</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/document_source.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original sheet snapshot</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked archive reopeni…</text>
 </svg>
-</div>
-
-- **Goal:** Save and reopen complete original sheets.
-- **Data Flow Trace:** `mixed original document → original sheet snapshot → checked archive reopening`
-- **Files You Touch:** `src/document_source.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/document_geometry.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/archive_identity.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/scene_archive.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/document.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/geometry_snapshot.rs` (*Save complete original Sheet protobuf columns rather than display segments.*)
 
 Import original Sheet records beside other geometry and save original columns with independent placements and layer flags.
 
-> **Self-Check Question:** *Does the Sheet protobuf contain object visibility flags?*  
-> **Answer:** No. Keep viewer layer presentation in archive metadata while retaining the original drawing columns and source names.
-
-- **Hands-On Lab Experiment:** Compare complete mixed archives with original doubles, repeated entity IDs and separate namespaces.
-
-<details>
-<summary>Implementation 71k-save-and-reopen-complete-original-sheets: Save and reopen complete original sheets</summary>
-
-Save and reopen complete original sheets.
-
-Data flow: mixed original document → original sheet snapshot → checked archive reopening.
+> **Check:** *Does the Sheet protobuf contain object visibility flags?* — No. Keep viewer layer presentation in archive metadata while retaining the original drawing columns and source names.
 
 ### 1. `src/document_source.rs`
 
 Connect original sheets to mixed document persistence and namespace identities.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world})
-}
-
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    if !source.interactions.is_empty() {return Err("Interactions arrive with element features".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.planes.is_empty()||!objects.bboxes.is_empty()||!objects.elements.is_empty()||!objects.components.is_empty()||!objects.sheets.is_empty() {return Err("This subject cannot open planes, boxes, assemblies or sheets yet".into());}
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4042,40 +3176,9 @@ fn supported(source:&proto::Session)->Result<(),String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71k-save-and-reopen-complete-original-sheets-01.rs"
-```
-
-```text
---8<-- "journey/code/71k-save-and-reopen-complete-original-sheets-02.rs"
-```
-
-```text
---8<-- "journey/code/71k-save-and-reopen-complete-original-sheets-03.rs"
-```
-
-</details>
-
 ### 2. `src/document_geometry.rs`
 
 Connect original sheets to mixed document persistence and namespace identities.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for source in &loaded.document.objects.breps {add!(source,scene.insert_prepared_cad(shapes.prepare(source.clone()).map_err(str::to_owned)?));}
-    for source in &loaded.document.objects.pointclouds {let id=add!(source,scene.insert_cloud(crate::cloud::Prepared::new(source.clone()).map_err(str::to_owned)?));scene.cloud_point_size(id,point_px).map_err(str::to_owned)?;}
-    let templates=crate::instance_definition::templates(loaded.document.clone(),&mut shapes).map_err(str::to_owned)?;let mut used=scene.used_guids();
-    for instance in &loaded.document.objects.instances {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4087,19 +3190,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Connect original sheets to mixed document persistence and namespace identities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) fn objects(objects:&mut proto::Objects,names:&HashMap<String,String>) {
-    macro_rules! remap {($field:ident)=>{for object in &mut objects.$field {if let Some(guid)=names.get(&object.guid) {object.guid=guid.clone();}}};}
-    remap!(meshes);remap!(lines);remap!(points);remap!(polylines);remap!(nurbscurves);remap!(nurbssurfaces);remap!(breps);remap!(pointclouds);remap!(instances);
-}
-pub(crate) fn tree(node:&mut proto::TreeNode,names:&HashMap<String,String>) {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -4109,19 +3199,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/scene_archive.rs`
 
 Connect original sheets to mixed document persistence and namespace identities.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn inventory(scene:&Scene)->Vec<Namespace> {
-    let mut out=scene.forest.documents.iter().map(|doc|Namespace {name:doc.label.clone(),doc:Some(doc.clone()),ids:doc.nodes.iter().filter_map(|node|node.object).filter(|id|scene.contains(*id)).collect()}).collect::<Vec<_>>();
-    let all=scene.objects().iter().map(|row|row.id).chain(scene.lines().iter().map(|row|row.id)).chain(scene.paths().iter().map(|row|row.id)).chain(scene.points().iter().map(|row|row.id)).chain(scene.clouds().iter().map(|row|row.id)).chain(scene.texts().iter().map(|row|row.id)).collect::<HashSet<_>>();
-    let assigned=out.iter().flat_map(|namespace|namespace.ids.iter().copied()).collect::<HashSet<_>>();let ids=all.difference(&assigned).copied().collect::<HashSet<_>>();if !ids.is_empty() {out.push(Namespace {name:"Created".into(),doc:None,ids});}out
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4133,18 +3210,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Connect original sheets to mixed document persistence and namespace identities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if scene.objects().iter().any(|row|row.surface.is_some()||row.cad.is_some()) {return Err("This checkpoint cannot save CAD surface objects yet");}
-    if !scene.clouds().is_empty() {return Err("This checkpoint cannot save cloud objects yet");}
-    if !scene.texts().is_empty() {return Err("This checkpoint cannot save scene text objects yet");}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -4155,72 +3220,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Save complete original Sheet protobuf columns rather than display segments.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.points().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {push!(points,row.id,row.prepared.source.to_proto());}
-    for row in scene.clouds().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {push!(pointclouds,row.id,row.prepared.source.to_proto());}
-    for (id,owner) in scene.instances.iter().filter(|(id,_)|ids.contains(id)) {
-        let mut source=owner.instance.to_proto();source.guid=scene.row_guid(*id).ok_or("Original instance owner is missing")?.into();source.flags=(source.flags&!(session_rust::InstanceRef::FLAG_HIDDEN|session_rust::InstanceRef::FLAG_LOCKED))|if scene.visible(*id) {0} else {session_rust::InstanceRef::FLAG_HIDDEN}|if scene.view.locked.contains(id) {session_rust::InstanceRef::FLAG_LOCKED} else {0};out.instances.push(source);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/71k-save-and-reopen-complete-original-sheets-08.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges"></a>
 
 ### Step 13 of 42 · Locate original drawing identity and fixed ranges (`71l-locate-original-drawing-identity-and-fixed-ranges`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/42 Visual Trace (71l-locate-original-drawing-identity-and-fixed-ranges): Locate original drawing identity and fixed ranges</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_range.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">single sheet envelope</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source GUID</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fixed column interval</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_range.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source GUID</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fixed column interval</text>
 </svg>
-</div>
-
-- **Goal:** Locate original drawing identity and fixed ranges.
-- **Data Flow Trace:** `single sheet envelope → source GUID → fixed column interval`
-- **Files You Touch:** `src/sheet_range.rs` (*Locate original sheet identity and checked column intervals.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Accept one original sheet envelope and derive checked intervals within its fixed-width arrays.
 
-> **Self-Check Question:** *Can a mixed document use this single-sheet shortcut?*  
-> **Answer:** No. Mixed documents load complete so other source owners and placements remain intact.
-
-- **Hands-On Lab Experiment:** Copy original protobuf layout, repeated-sheet, mixed-source and overflow fixtures.
-
-<details>
-<summary>Implementation 71l-locate-original-drawing-identity-and-fixed-ranges: Locate original drawing identity and fixed ranges</summary>
-
-Locate original drawing identity and fixed ranges.
-
-Data flow: single sheet envelope → source GUID → fixed column interval.
+> **Check:** *Can a mixed document use this single-sheet shortcut?* — No. Mixed documents load complete so other source owners and placements remain intact.
 
 ### 1. `src/sheet_range.rs`
 
@@ -4236,24 +3273,13 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_source;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71l-locate-original-drawing-identity-and-fixed-ranges-02.rs" skip=23
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4261,85 +3287,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy exact original drawing-envelope and interval fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Some((start, bytes))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71l-locate-original-drawing-identity-and-fixed-ranges-03.rs" skip=27
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71m-validate-the-bounded-drawing-envelope-tail"></a>
 
 ### Step 14 of 42 · Validate the bounded drawing envelope tail (`71m-validate-the-bounded-drawing-envelope-tail`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/42 Visual Trace (71m-validate-the-bounded-drawing-envelope-tail): Validate the bounded drawing envelope tail</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_range.rs, src/stream.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked drawing end</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded tail</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original envelope validation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_range.rs, src/s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded tail</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original envelope valid…</text>
 </svg>
-</div>
-
-- **Goal:** Validate the bounded drawing envelope tail.
-- **Data Flow Trace:** `checked drawing end → bounded tail → original envelope validation`
-- **Files You Touch:** `src/sheet_range.rs` (*Validate bounded original drawing envelope metadata under its revision.*) · `src/stream.rs` (*Expose the existing bounded metadata window to drawing range adapters.*)
 
 Refuse unapplied placements and extended originals before adopting a ranged drawing.
 
-> **Self-Check Question:** *May a range loader silently ignore source transforms?*  
-> **Answer:** No. A placed or extended envelope requires complete loading until the loader can apply it correctly.
-
-- **Hands-On Lab Experiment:** Trace the one-MiB tail cap and existing original tree-owner and source-placement guards.
-
-<details>
-<summary>Implementation 71m-validate-the-bounded-drawing-envelope-tail: Validate the bounded drawing envelope tail</summary>
-
-Validate the bounded drawing envelope tail.
-
-Data flow: checked drawing end → bounded tail → original envelope validation.
+> **Check:** *May a range loader silently ignore source transforms?* — No. A placed or extended envelope requires complete loading until the loader can apply it correctly.
 
 ### 1. `src/sheet_range.rs`
 
 Validate bounded original drawing envelope metadata under its revision.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4353,8 +3342,7 @@ Expose the existing bounded metadata window to drawing range adapters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4365,8 +3353,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             url: &str,
             at: u64,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4380,8 +3366,7 @@ Replace it with:
             at: u64,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 /// A cached slice of the file's header bytes.
@@ -4392,8 +3377,6 @@ struct MetadataWindow {
     bytes: Vec<u8>, // the cached bytes
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4407,8 +3390,7 @@ pub(crate) struct MetadataWindow {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::source_validate::varint;
@@ -4800,7 +3782,6 @@ pub fn sheet_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
 pub fn plain(head: &[u8]) -> bool {
     cloud_layout(head).is_none() && sheet_layout(head).is_none()
 }
-
 
 impl SheetFields {
     /// Bytes per segment: six doubles.
@@ -5601,87 +4582,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71m-validate-the-bounded-drawing-envelope-tail-02.rs"
-```
-
-```text
---8<-- "journey/code/71m-validate-the-bounded-drawing-envelope-tail-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71n-scan-drawing-columns-under-one-revision"></a>
 
 ### Step 15 of 42 · Scan drawing columns under one revision (`71n-scan-drawing-columns-under-one-revision`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/42 Visual Trace (71n-scan-drawing-columns-under-one-revision): Scan drawing columns under one revision</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_range.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source probe</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked metadata windows</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original drawing layout</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_range.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked metadata windows</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original drawing layout</text>
 </svg>
-</div>
-
-- **Goal:** Scan drawing columns under one revision.
-- **Data Flow Trace:** `source probe → checked metadata windows → original drawing layout`
-- **Files You Touch:** `src/sheet_range.rs` (*Scan original array positions and validate source revision before page reads.*)
 
 Skip large arrays while reading bounded metadata windows and rejecting duplicate fields or inconsistent counts.
 
-> **Self-Check Question:** *Must the first paint download every coordinate?*  
-> **Answer:** No. Fixed-width arrays expose byte positions, and bounded metadata reads supply counts and the side-table URL.
-
-- **Hands-On Lab Experiment:** Inspect byte-range status, immutable URLs, original declared counts and duplicate-field errors.
-
-<details>
-<summary>Implementation 71n-scan-drawing-columns-under-one-revision: Scan drawing columns under one revision</summary>
-
-Scan drawing columns under one revision.
-
-Data flow: source probe → checked metadata windows → original drawing layout.
+> **Check:** *Must the first paint download every coordinate?* — No. Fixed-width arrays expose byte positions, and bounded metadata reads supply counts and the side-table URL.
 
 ### 1. `src/sheet_range.rs`
 
 Scan original array positions and validate source revision before page reads.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Some((start, bytes))
-}
-#[cfg(test)]
-mod tests {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5689,54 +4625,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71n-scan-drawing-columns-under-one-revision-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71o-read-drawing-page-columns-through-the-shared-queue"></a>
 
 ### Step 16 of 42 · Read drawing page columns through the shared queue (`71o-read-drawing-page-columns-through-the-shared-queue`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/42 Visual Trace (71o-read-drawing-page-columns-through-the-shared-queue): Read drawing page columns through the shared queue</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_range.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked row interval</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">four fixed column reads</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_range.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">four fixed column reads</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original page</text>
 </svg>
-</div>
-
-- **Goal:** Read drawing page columns through the shared queue.
-- **Data Flow Trace:** `checked row interval → four fixed column reads → original page`
-- **Files You Touch:** `src/sheet_range.rs` (*Read original page columns through the bounded source range queue.*)
 
 Request coordinate, color, pen and entity ranges through the existing bounded range queue.
 
-> **Self-Check Question:** *Does four columns mean four unrestricted requests?*  
-> **Answer:** No. They use the shared range gate, retaining existing concurrency, retry and cancellation rules.
-
-- **Hands-On Lab Experiment:** Trace absent-column defaults and exact byte counts before constructing a page.
-
-<details>
-<summary>Implementation 71o-read-drawing-page-columns-through-the-shared-queue: Read drawing page columns through the shared queue</summary>
-
-Read drawing page columns through the shared queue.
-
-Data flow: checked row interval → four fixed column reads → original page.
+> **Check:** *Does four columns mean four unrestricted requests?* — No. They use the shared range gate, retaining existing concurrency, retry and cancellation rules.
 
 ### 1. `src/sheet_range.rs`
 
@@ -5744,8 +4664,7 @@ Read original page columns through the bounded source range queue.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             fields,
@@ -5755,8 +4674,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 #[cfg(test)]
 mod tests {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5815,8 +4732,7 @@ Replace it with:
 mod tests {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -5827,8 +4743,6 @@ impl Source {
     pub async fn from_probe(
         url: String,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5842,8 +4756,7 @@ impl Source {
         url: String,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::stream::{SheetFields, field_at};
@@ -6097,90 +5010,42 @@ async fn envelope(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71o-read-drawing-page-columns-through-the-shared-queue-01.rs"
-```
-
-```text
---8<-- "journey/code/71o-read-drawing-page-columns-through-the-shared-queue-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages"></a>
 
 ### Step 17 of 42 · Adopt nonoverlapping charged drawing pages (`71p-adopt-nonoverlapping-charged-drawing-pages`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/42 Visual Trace (71p-adopt-nonoverlapping-charged-drawing-pages): Adopt nonoverlapping charged drawing pages</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_stream.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reserved payload</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original page interval</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source cache</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_stream.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original page interval</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source cache</text>
 </svg>
-</div>
-
-- **Goal:** Adopt nonoverlapping charged drawing pages.
-- **Data Flow Trace:** `reserved payload → original page interval → source cache`
-- **Files You Touch:** `src/sheet_stream.rs` (*Own checked original page intervals, cache charges and source generations.*)
 
 Keep original intervals in a source-owned cache and retain its generation and loaded extent.
 
-> **Self-Check Question:** *Can a second page overlap a resident original interval?*  
-> **Answer:** No. Reject it before adoption; payload charges and original source identity remain attached to the accepted page.
-
-- **Hands-On Lab Experiment:** Copy segment-limit, overflow and retained-charge fixtures.
-
-<details>
-<summary>Implementation 71p-adopt-nonoverlapping-charged-drawing-pages: Adopt nonoverlapping charged drawing pages</summary>
-
-Adopt nonoverlapping charged drawing pages.
-
-Data flow: reserved payload → original page interval → source cache.
+> **Check:** *Can a second page overlap a resident original interval?* — No. Reject it before adoption; payload charges and original source identity remain attached to the accepted page.
 
 ### 1. `src/sheet_stream.rs`
 
 Own checked original page intervals, cache charges and source generations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::rc::Rc;
-use crate::{page_cache::Held,sheet_page::Page};
-pub const PREFIX:u32=25000;
-pub const CHUNK:u32=500000;
-pub const CEILING:u32=3000000;
-#[derive(Clone)]
-pub enum DisplayPage {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6188,8 +5053,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71p-adopt-nonoverlapping-charged-drawing-pages-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6197,72 +5061,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy segment-budget and retained-page ownership fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    (count > 0).then(|| from..from + count)
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71p-adopt-nonoverlapping-charged-drawing-pages-02.rs" skip=46
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71q-keep-partial-drawing-sources-explicit"></a>
 
 ### Step 18 of 42 · Keep partial drawing sources explicit (`71q-keep-partial-drawing-sources-explicit`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/42 Visual Trace (71q-keep-partial-drawing-sources-explicit): Keep partial drawing sources explicit</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_source.rs, src/scene.rs, src/geometry_snapshot.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original remote header</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">available charged pages</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit partial source</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_source.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">available charged pages</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit partial source</text>
 </svg>
-</div>
-
-- **Goal:** Keep partial drawing sources explicit.
-- **Data Flow Trace:** `original remote header → available charged pages → explicit partial source`
-- **Files You Touch:** `src/sheet_source.rs` (*Keep complete and partial source ownership explicit.*) · `src/scene.rs` (*Keep original stream URLs beside independent drawing rows.*) · `src/geometry_snapshot.rs` (*Refuse partial drawing sources before editable archive creation.*)
 
 Expose available charged pages and preserve original header fields without claiming a complete editable drawing.
 
-> **Self-Check Question:** *Can a fully displayed prefix become an editable Save?*  
-> **Answer:** No. The original complete source is required; retained display pages can omit coordinates or be evicted.
-
-- **Hands-On Lab Experiment:** Compare original count, available page intervals, source URL and the editable-save refusal.
-
-<details>
-<summary>Implementation 71q-keep-partial-drawing-sources-explicit: Keep partial drawing sources explicit</summary>
-
-Keep partial drawing sources explicit.
-
-Data flow: original remote header → available charged pages → explicit partial source.
+> **Check:** *Can a fully displayed prefix become an editable Save?* — No. The original complete source is required; retained display pages can omit coordinates or be evicted.
 
 ### 1. `src/sheet_source.rs`
 
@@ -6270,8 +5106,7 @@ Keep complete and partial source ownership explicit.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Ok(Self {
@@ -6281,8 +5116,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6296,8 +5129,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -6307,8 +5139,6 @@ Replace it with:
         if original.guid.is_empty()
             || original.coords.len() % 6 != 0
 ```
-
-</details>
 
 Replace it with:
 
@@ -6322,8 +5152,7 @@ Replace it with:
             || original.coords.len() % 6 != 0
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Prepared {
@@ -6336,8 +5165,6 @@ impl Prepared {
         let mut bounds = None;
         for page in self.pages() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6394,8 +5221,7 @@ impl Prepared {
         for page in self.pages() {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use session_rust::{Point, Xform, proto};
@@ -6551,29 +5377,7 @@ impl Row {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71q-keep-partial-drawing-sources-explicit-01.rs"
-```
-
-```text
---8<-- "journey/code/71q-keep-partial-drawing-sources-explicit-02.rs"
-```
-
-```text
---8<-- "journey/code/71q-keep-partial-drawing-sources-explicit-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6581,41 +5385,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy immutable original source and display-default fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-                .any(|page| page.entities.contains(&id))
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71q-keep-partial-drawing-sources-explicit-04.rs" skip=65
 ```
 
-</details>
-
 ### 3. `src/scene.rs`
 
 Keep original stream URLs beside independent drawing rows.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn sheets(&self)->&[crate::sheet_source::Row] {&self.sheets}
-    pub fn insert_sheet(&mut self,prepared:Rc<crate::sheet_source::Prepared>)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.original.guid.clone();let used=self.used_guids();while used.contains(&guid) {guid=uuid::Uuid::new_v4().to_string();}let name=prepared.original.name.clone();let url=None;let row=crate::sheet_source::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity(),url};self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);self.sheets.push(row);crate::layer_edit::attach_generated(self,id,guid,name)?;Ok(id)
-    }
-    pub fn place_sheet(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6627,89 +5405,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Refuse partial drawing sources before editable archive creation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.points().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {push!(points,row.id,row.prepared.source.to_proto());}
-    for row in scene.clouds().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {push!(pointclouds,row.id,row.prepared.source.to_proto());}
-    for row in scene.sheets().iter().filter(|row|ids.contains(&row.id)) {let mut source=row.prepared.original.as_ref().clone();source.guid=scene.row_guid(row.id).ok_or("Original sheet owner is missing")?.into();if !guids.insert(source.guid.clone()) {return Err("Sheet GUID occurs twice within one saved document".into());}out.sheets.push(source);}
-    for (id,owner) in scene.instances.iter().filter(|(id,_)|ids.contains(id)) {
-        let mut source=owner.instance.to_proto();source.guid=scene.row_guid(*id).ok_or("Original instance owner is missing")?.into();source.flags=(source.flags&!(session_rust::InstanceRef::FLAG_HIDDEN|session_rust::InstanceRef::FLAG_LOCKED))|if scene.visible(*id) {0} else {session_rust::InstanceRef::FLAG_HIDDEN}|if scene.view.locked.contains(id) {session_rust::InstanceRef::FLAG_LOCKED} else {0};out.instances.push(source);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/71q-keep-partial-drawing-sources-explicit-06.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71r-reserve-memory-before-the-drawing-prefix"></a>
 
 ### Step 19 of 42 · Reserve memory before the drawing prefix (`71r-reserve-memory-before-the-drawing-prefix`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/42 Visual Trace (71r-reserve-memory-before-the-drawing-prefix): Reserve memory before the drawing prefix</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_stream.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">remaining segment share</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reserved temporary bytes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked prefix</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_stream.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reserved temporary bytes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked prefix</text>
 </svg>
-</div>
-
-- **Goal:** Reserve memory before the drawing prefix.
-- **Data Flow Trace:** `remaining segment share → reserved temporary bytes → checked prefix`
-- **Files You Touch:** `src/sheet_stream.rs` (*Reserve temporary memory and stage one checked original drawing prefix.*)
 
 Charge temporary page bytes before allocation and adopt the first checked segment prefix.
 
-> **Self-Check Question:** *Does the segment ceiling bound all CPU and GPU memory?*  
-> **Answer:** No. It bounds staged segments; retained original data, display buffers and pending reads need separate accounting.
-
-- **Hands-On Lab Experiment:** Compare a25000-segment prefix with its source count and shared page budget.
-
-<details>
-<summary>Implementation 71r-reserve-memory-before-the-drawing-prefix: Reserve memory before the drawing prefix</summary>
-
-Reserve memory before the drawing prefix.
-
-Data flow: remaining segment share → reserved temporary bytes → checked prefix.
+> **Check:** *Does the segment ceiling bound all CPU and GPU memory?* — No. It bounds staged segments; retained original data, display buffers and pending reads need separate accounting.
 
 ### 1. `src/sheet_stream.rs`
 
 Reserve temporary memory and stage one checked original drawing prefix.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    (count > 0).then(|| from..from + count)
-}
-#[cfg(test)]
-mod tests {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6717,74 +5454,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71r-reserve-memory-before-the-drawing-prefix-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71s-continue-drawing-reads-without-reviving-closed-sources"></a>
 
 ### Step 20 of 42 · Continue drawing reads without reviving closed sources (`71s-continue-drawing-reads-without-reviving-closed-sources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/42 Visual Trace (71s-continue-drawing-reads-without-reviving-closed-sources): Continue drawing reads without reviving closed sources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_stream.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">generation ticket</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked page</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">synchronous refresh</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_stream.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked page</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">synchronous refresh</text>
 </svg>
-</div>
-
-- **Goal:** Continue drawing reads without reviving closed sources.
-- **Data Flow Trace:** `current original source → generation ticket → checked page → synchronous refresh`
-- **Files You Touch:** `src/sheet_stream.rs` (*Continue checked drawing pages with explicit ownership and visible eviction refresh.*)
 
 Require the current source, runtime, cancellation token and generation before adopting each page.
 
-> **Self-Check Question:** *When can an evicted page charge be reused?*  
-> **Answer:** After refresh drops its GPU owner and cancels old pick addresses. Other retained readers remain charged.
-
-- **Hands-On Lab Experiment:** Trace chunk ceilings, eviction, failed reads and late replies after Close.
-
-<details>
-<summary>Implementation 71s-continue-drawing-reads-without-reviving-closed-sources: Continue drawing reads without reviving closed sources</summary>
-
-Continue drawing reads without reviving closed sources.
-
-Data flow: current original source → generation ticket → checked page → synchronous refresh.
+> **Check:** *When can an evicted page charge be reused?* — After refresh drops its GPU owner and cancels old pick addresses. Other retained readers remain charged.
 
 ### 1. `src/sheet_stream.rs`
 
 Continue checked drawing pages with explicit ownership and visible eviction refresh.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    })
-}
-#[cfg(test)]
-mod tests {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6792,54 +5497,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71s-continue-drawing-reads-without-reviving-closed-sources-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71t-resolve-sheet-picks-to-original-entity-ids"></a>
 
 ### Step 21 of 42 · Resolve sheet picks to original entity IDs (`71t-resolve-sheet-picks-to-original-entity-ids`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/42 Visual Trace (71t-resolve-sheet-picks-to-original-entity-ids): Resolve sheet picks to original entity IDs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs, src/selection.rs, src/highlight.rs, src/part_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">compact integer address</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original entity ID</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current weak query owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_sources.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original entity ID</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current weak query owner</text>
 </svg>
-</div>
-
-- **Goal:** Resolve sheet picks to original entity IDs.
-- **Data Flow Trace:** `compact integer address → original entity ID → current weak query owner`
-- **Files You Touch:** `src/pick_sources.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/selection.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/highlight.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/part_preview.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/sheet_lookup.rs` (*Require current original ownership and selection for one metadata answer.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Map compact segment addresses back to complete original u32 entity IDs and retain query ownership separately.
 
-> **Self-Check Question:** *Should the GPU tag pack the original entity ID?*  
-> **Answer:** No. Keep the full ID in the source table; compact addresses identify the current display snapshot.
-
-- **Hands-On Lab Experiment:** Compare repeated high IDs, wrong owners, one-shot completions and cancellation without pinned sources.
-
-<details>
-<summary>Implementation 71t-resolve-sheet-picks-to-original-entity-ids: Resolve sheet picks to original entity IDs</summary>
-
-Resolve sheet picks to original entity IDs.
-
-Data flow: compact integer address → original entity ID → current weak query owner.
+> **Check:** *Should the GPU tag pack the original entity ID?* — No. Keep the full ID in the source table; compact addresses identify the current display snapshot.
 
 ### 1. `src/pick_sources.rs`
 
@@ -6847,8 +5536,7 @@ Resolve original sheet entities and guard display-only source edits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let ids = append(&mut sources.controls, Kind::Control, Target { owner: row.parent, part: Part::Control(row.control.index) })?;
@@ -6857,8 +5545,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         Ok(sources)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6871,8 +5557,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -6882,8 +5567,6 @@ pub struct Sources {
     pub edges: Vec<Target>,
     pub controls: Vec<Target>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6897,8 +5580,7 @@ pub struct Sources {
     pub controls: Vec<Target>,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -6909,8 +5591,6 @@ pub enum Part { Object, Face(usize), SurfaceEdge(usize), BRepEdge(usize), MeshEd
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Target { pub owner: ObjectId, pub part: Part }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6924,8 +5604,7 @@ pub enum Part { Object, Face(usize), SurfaceEdge(usize), BRepEdge(usize), MeshEd
 pub struct Target { pub owner: ObjectId, pub part: Part }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -7021,72 +5700,9 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-01.rs"
-```
-
-```text
---8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-02.rs"
-```
-
-```text
---8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-03.rs"
-```
-
-</details>
-
 ### 2. `src/selection.rs`
 
 Resolve original sheet entities and guard display-only source edits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{pick_sources::{Part, Target}, scene::Scene};
-
-impl Target {
-    pub fn valid(self, scene: &Scene) -> bool {
-        if scene.pick_id(self.owner.value()).is_none() { return false; }
-        match self.part {
-            Part::CloudPoint(id)=>crate::cloud_pick::position(scene,self.owner,id).is_some(),
-            Part::Object => true,
-            Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
-            Part::BRepEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.cad.as_ref().is_some_and(|cad|cad.edges.iter().any(|border|border.edge==edge))),
-            Part::SurfaceEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.surface.as_ref().is_some_and(|s|s.grid.boundaries.iter().any(|b|b.edge==edge))),
-            Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
-            Part::PathEdge(index) => scene.paths().iter().any(|r| r.id == self.owner && matches!(&r.prepared.source,
-                crate::chain::Source::Polyline(line) if line.get_points().windows(2).nth(index).is_some_and(|pair| pair[0].to_f32() != pair[1].to_f32()))),
-            Part::Curve => scene.lines().iter().any(|r| r.id == self.owner) || scene.paths().iter().any(|r| r.id == self.owner && !matches!(r.prepared.source, crate::chain::Source::Polyline(_))),
-            Part::Control(index) => scene.paths().iter().any(|r| r.id == self.owner && r.controls_visible && matches!(&r.prepared.source,
-                crate::chain::Source::Curve(curve, _) if crate::controls::Control::new(std::rc::Rc::clone(curve), index).is_ok())),
-        }
-    }
-
-    pub fn describe(self) -> String {
-        match self.part {
-            Part::CloudPoint(id)=>format!("Object {} · original point {id}",self.owner.value()),
-            Part::Object => format!("Object {}", self.owner.value()),
-            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
-            Part::BRepEdge(edge)=>format!("Object {} · original BRep edge {edge}",self.owner.value()),
-            Part::SurfaceEdge(edge)=>format!("Object {} · surface domain edge {edge}",self.owner.value()),
-            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),
-            Part::PathEdge(index) => format!("Object {} · source segment {index}", self.owner.value()),
-            Part::Curve => format!("Object {} · original curve", self.owner.value()),
-            Part::Control(index) => format!("Object {} · original control {index}", self.owner.value()),
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7129,37 +5745,9 @@ impl Target {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-04.rs"
-```
-
-```text
---8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-05.rs"
-```
-
-</details>
-
 ### 3. `src/highlight.rs`
 
 Resolve original sheet entities and guard display-only source edits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                markers.push(crate::marker::Marker {center:p.to_f32(),diameter:11.,colour:yellow});
-            }
-            Part::Object => {}
-        } }
-        self.strokes.set(device, strokes)?; self.paths.set_chains(device, paths)?; self.markers.set_points(device, markers)?; Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7170,18 +5758,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/part_preview.rs`
 
 Resolve original sheet entities and guard display-only source edits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if scene.instances.contains_key(&target.owner) {return Err("Detach the shared definition before editing its source geometry");}
-    if !target.valid(scene) {return Err("Selected part is no longer editable");}
-    if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-    let model=scene.placement(target.owner).ok_or("Part owner is missing")?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7203,24 +5779,13 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_range;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-09.rs" skip=22
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7228,72 +5793,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy late-answer, current-selection and weak-source cancellation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71t-resolve-sheet-picks-to-original-entity-ids-10.rs" skip=8
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71u-project-authored-world-pens-into-drawing-quads"></a>
 
 ### Step 22 of 42 · Project authored world pens into drawing quads (`71u-project-authored-world-pens-into-drawing-quads`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/42 Visual Trace (71u-project-authored-world-pens-into-drawing-quads): Project authored world pens into drawing quads</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original millimetre pen</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected radius</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">covered quad</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">projected radius</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">covered quad</text>
 </svg>
-</div>
-
-- **Goal:** Project authored world pens into drawing quads.
-- **Data Flow Trace:** `original millimetre pen → projected radius → covered quad`
-- **Files You Touch:** `src/sheet.wgsl` (*Project original physical sheet pens into covered quads.*)
 
 Expand each original segment by its projected physical radius, preserving original colors and selection style.
 
-> **Self-Check Question:** *Should instance scale multiply the authored pen?*  
-> **Answer:** No. It transforms segment positions; the original physical pen width remains unchanged.
-
-- **Hands-On Lab Experiment:** Inspect near clipping, degenerate segments, hairline flooring and subpixel fade.
-
-<details>
-<summary>Implementation 71u-project-authored-world-pens-into-drawing-quads: Project authored world pens into drawing quads</summary>
-
-Project authored world pens into drawing quads.
-
-Data flow: original millimetre pen → projected radius → covered quad.
+> **Check:** *Should instance scale multiply the authored pen?* — No. It transforms segment positions; the original physical pen width remains unchanged.
 
 ### 1. `src/sheet.wgsl`
 
@@ -7305,68 +5842,42 @@ Create the file and type:
 --8<-- "journey/code/71u-project-authored-world-pens-into-drawing-quads-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71v-use-the-same-sheet-coverage-for-color-and-picks"></a>
 
 ### Step 23 of 42 · Use the same sheet coverage for color and picks (`71v-use-the-same-sheet-coverage-for-color-and-picks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/42 Visual Trace (71v-use-the-same-sheet-coverage-for-color-and-picks): Use the same sheet coverage for color and picks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet.wgsl, src/sheet_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">covered drawing quad</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">color coverage</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">integer owner coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet.wgsl, src/sheet…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer owner coverage</text>
 </svg>
-</div>
-
-- **Goal:** Use the same sheet coverage for color and picks.
-- **Data Flow Trace:** `covered drawing quad → color coverage → integer owner coverage`
-- **Files You Touch:** `src/sheet.wgsl` (*Connect original pen coverage to the color entry points.*) · `src/sheet_pick.wgsl` (*Use matching sheet coverage and compact original entity addresses in integer picks.*)
 
 Write integer owner addresses only where the drawing coverage exists and the current pick mode permits them.
 
-> **Self-Check Question:** *Can an invisible fragment select an entity?*  
-> **Answer:** No. The integer pass uses the same geometric coverage and rejects disallowed kinds. Locked rows retain occlusion with owner zero.
-
-- **Hands-On Lab Experiment:** Compare physical-width quads, original packed colors and bounded crop transforms.
-
-<details>
-<summary>Implementation 71v-use-the-same-sheet-coverage-for-color-and-picks: Use the same sheet coverage for color and picks</summary>
-
-Use the same sheet coverage for color and picks.
-
-Data flow: covered drawing quad → color coverage → integer owner coverage.
+> **Check:** *Can an invisible fragment select an entity?* — No. The integer pass uses the same geometric coverage and rejects disallowed kinds. Locked rows retain occlusion with owner zero.
 
 ### 1. `src/sheet.wgsl`
 
 Connect original pen coverage to the color entry points.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    return output;
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7384,54 +5895,38 @@ Create the file and type:
 --8<-- "journey/code/71v-use-the-same-sheet-coverage-for-color-and-picks-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71w-build-sheet-color-and-integer-pipelines"></a>
 
 ### Step 24 of 42 · Build sheet color and integer pipelines (`71w-build-sheet-color-and-integer-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/42 Visual Trace (71w-build-sheet-color-and-integer-pipelines): Build sheet color and integer pipelines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_pipeline.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared segment vertices</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent model uniform</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit targets</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_pipeline.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent model unifo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit targets</text>
 </svg>
-</div>
-
-- **Goal:** Build sheet color and integer pipelines.
-- **Data Flow Trace:** `shared segment vertices → independent model uniform → explicit targets`
-- **Files You Touch:** `src/sheet_pipeline.rs` (*Build current wgpu color and exact integer sheet pipeline adapters.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Bind the32-byte original segment layout, independent model records and bounded pick crop.
 
-> **Self-Check Question:** *Why does the pick pipeline use an integer target?*  
-> **Answer:** It preserves exact owner and source-table addresses, including values that cannot be represented by an f32 color.
-
-- **Hands-On Lab Experiment:** Check original segment stride, color blending, forward ink depth and pick attachment formats.
-
-<details>
-<summary>Implementation 71w-build-sheet-color-and-integer-pipelines: Build sheet color and integer pipelines</summary>
-
-Build sheet color and integer pipelines.
-
-Data flow: shared segment vertices → independent model uniform → explicit targets.
+> **Check:** *Why does the pick pipeline use an integer target?* — It preserves exact owner and source-table addresses, including values that cannot be represented by an f32 color.
 
 ### 1. `src/sheet_pipeline.rs`
 
@@ -7447,70 +5942,44 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_lookup;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71w-build-sheet-color-and-integer-pipelines-02.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-71x-own-the-shared-drawing-lane-resources"></a>
 
 ### Step 25 of 42 · Own the shared drawing lane resources (`71x-own-the-shared-drawing-lane-resources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/42 Visual Trace (71x-own-the-shared-drawing-lane-resources): Own the shared drawing lane resources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source cache</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent placement records</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current lens</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_gpu.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent placement r…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current lens</text>
 </svg>
-</div>
-
-- **Goal:** Own the shared drawing lane resources.
-- **Data Flow Trace:** `shared source cache → independent placement records → current lens`
-- **Files You Touch:** `src/sheet_gpu.rs` (*Own shared sheet GPU resources and independent row settings.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Keep one source-buffer cache beside independent placement records and an explicit camera lens.
 
-> **Self-Check Question:** *Does changing the camera require rebuilding original segments?*  
-> **Answer:** No. Update view settings; keep source buffers and original page owners shared.
-
-- **Hands-On Lab Experiment:** Inspect cached geometry, weak entries, live draw owners and explicit allocation counters.
-
-<details>
-<summary>Implementation 71x-own-the-shared-drawing-lane-resources: Own the shared drawing lane resources</summary>
-
-Own the shared drawing lane resources.
-
-Data flow: shared source cache → independent placement records → current lens.
+> **Check:** *Does changing the camera require rebuilding original segments?* — No. Update view settings; keep source buffers and original page owners shared.
 
 ### 1. `src/sheet_gpu.rs`
 
@@ -7526,84 +5995,48 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_pipeline;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71x-own-the-shared-drawing-lane-resources-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings"></a>
 
 ### Step 26 of 42 · Bound drawing buffers and pack independent settings (`71y-bound-drawing-buffers-and-pack-independent-settings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/42 Visual Trace (71y-bound-drawing-buffers-and-pack-independent-settings): Bound drawing buffers and pack independent settings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">device byte limit</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact source interval</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent row settings</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact source interval</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent row settings</text>
 </svg>
-</div>
-
-- **Goal:** Bound drawing buffers and pack independent settings.
-- **Data Flow Trace:** `device byte limit → exact source interval → independent row settings`
-- **Files You Touch:** `src/sheet_gpu.rs` (*Bound source-buffer intervals and pack independent original owner settings.*)
 
 Split large resident pages at device limits and keep row identity, source address and style in independent settings.
 
-> **Self-Check Question:** *Does splitting a buffer renumber original entities?*  
-> **Answer:** No. Preserve each original interval and offset its compact address base; original entity IDs stay in the source table.
-
-- **Hands-On Lab Experiment:** Copy exact chunk-limit fixtures and inspect packed model, color and eligibility words.
-
-<details>
-<summary>Implementation 71y-bound-drawing-buffers-and-pack-independent-settings: Bound drawing buffers and pack independent settings</summary>
-
-Bound drawing buffers and pack independent settings.
-
-Data flow: device byte limit → exact source interval → independent row settings.
+> **Check:** *Does splitting a buffer renumber original entities?* — No. Preserve each original interval and offset its compact address base; original entity IDs stay in the source table.
 
 ### 1. `src/sheet_gpu.rs`
 
 Bound source-buffer intervals and pack independent original owner settings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7611,8 +6044,7 @@ After that block, type:
 --8<-- "journey/code/71y-bound-drawing-buffers-and-pack-independent-settings-01.rs" skip=8
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7620,90 +6052,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy exact original GPU interval fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Ok(out)
-}
-fn settings(scene: &Scene, row: &crate::sheet_source::Row, base: u32, selected: bool) -> Vec<u8> {
-    let mut bytes = row
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/71y-bound-drawing-buffers-and-pack-independent-settings-02.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71z-upload-each-original-drawing-page-once"></a>
 
 ### Step 27 of 42 · Upload each original drawing page once (`71z-upload-each-original-drawing-page-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/42 Visual Trace (71z-upload-each-original-drawing-page-once): Upload each original drawing page once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original page</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded segment words</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared GPU buffer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded segment words</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared GPU buffer</text>
 </svg>
-</div>
-
-- **Goal:** Upload each original drawing page once.
-- **Data Flow Trace:** `original page → bounded segment words → shared GPU buffer`
-- **Files You Touch:** `src/sheet_gpu.rs` (*Reuse original page uploads while retaining their payload ownership.*)
 
 Cache source-owned32-byte segment buffers while retaining their resident or charged page owner.
 
-> **Self-Check Question:** *Can a GPU buffer outlive an evicted cache entry?*  
-> **Answer:** Yes. Retain the charged page alongside that buffer, so memory cannot be reused while display still owns it.
-
-- **Hands-On Lab Experiment:** Compare repeated placements, original page keys and exact upload-byte counters.
-
-<details>
-<summary>Implementation 71z-upload-each-original-drawing-page-once: Upload each original drawing page once</summary>
-
-Upload each original drawing page once.
-
-Data flow: original page → bounded segment words → shared GPU buffer.
+> **Check:** *Can a GPU buffer outlive an evicted cache entry?* — Yes. Retain the charged page alongside that buffer, so memory cannot be reused while display still owns it.
 
 ### 1. `src/sheet_gpu.rs`
 
 Reuse original page uploads while retaining their payload ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    }
-}
-pub fn chunks(count: u32, bytes: u64) -> Result<Vec<std::ops::Range<u32>>, &'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7711,70 +6101,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71z-upload-each-original-drawing-page-once-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71aa-reuse-independent-drawing-placement-records"></a>
 
 ### Step 28 of 42 · Reuse independent drawing placement records (`71aa-reuse-independent-drawing-placement-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/42 Visual Trace (71aa-reuse-independent-drawing-placement-records): Reuse independent drawing placement records</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible original row</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared page buffer</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">changed placement record</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared page buffer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">changed placement record</text>
 </svg>
-</div>
-
-- **Goal:** Reuse independent drawing placement records.
-- **Data Flow Trace:** `visible original row → shared page buffer → changed placement record`
-- **Files You Touch:** `src/sheet_gpu.rs` (*Reuse shared source geometry and update only changed independent row records.*)
 
 Update changed row settings while shared original geometry stays in the cache.
 
-> **Self-Check Question:** *Does Move upload the original drawing again?*  
-> **Answer:** No. Only its independent model record changes; reused source buffers keep their upload counters unchanged.
-
-- **Hands-On Lab Experiment:** Inspect source-key reuse, compact address offsets, selection style and weak-cache pruning.
-
-<details>
-<summary>Implementation 71aa-reuse-independent-drawing-placement-records: Reuse independent drawing placement records</summary>
-
-Reuse independent drawing placement records.
-
-Data flow: visible original row → shared page buffer → changed placement record.
+> **Check:** *Does Move upload the original drawing again?* — No. Only its independent model record changes; reused source buffers keep their upload counters unchanged.
 
 ### 1. `src/sheet_gpu.rs`
 
 Reuse shared source geometry and update only changed independent row records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        )
-    }
-}
-pub fn chunks(count: u32, bytes: u64) -> Result<Vec<std::ops::Range<u32>>, &'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7782,71 +6144,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71aa-reuse-independent-drawing-placement-records-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71ab-draw-world-pens-with-the-current-camera-lens"></a>
 
 ### Step 29 of 42 · Draw world pens with the current camera lens (`71ab-draw-world-pens-with-the-current-camera-lens`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/42 Visual Trace (71ab-draw-world-pens-with-the-current-camera-lens): Draw world pens with the current camera lens</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera lens</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original world pen</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared color and integer batches</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original world pen</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared color and intege…</text>
 </svg>
-</div>
-
-- **Goal:** Draw world pens with the current camera lens.
-- **Data Flow Trace:** `camera lens → original world pen → shared color and integer batches`
-- **Files You Touch:** `src/sheet_gpu.rs` (*Draw original page batches with physical pens and truthful allocated-byte counters.*)
 
 Use the camera lens independently of panel shifts and send the same original batches to drawing and picks.
 
-> **Self-Check Question:** *Can a shifted panel frame change pen thickness?*  
-> **Answer:** No. A frame shift moves the projection without changing the lens. Read the lens directly from the camera.
-
-- **Hands-On Lab Experiment:** Inspect perspective/orthographic lens values, retained buffers and independent view updates.
-
-<details>
-<summary>Implementation 71ab-draw-world-pens-with-the-current-camera-lens: Draw world pens with the current camera lens</summary>
-
-Draw world pens with the current camera lens.
-
-Data flow: camera lens → original world pen → shared color and integer batches.
+> **Check:** *Can a shifted panel frame change pen thickness?* — No. A frame shift moves the projection without changing the lens. Read the lens directly from the camera.
 
 ### 1. `src/sheet_gpu.rs`
 
 Draw original page batches with physical pens and truthful allocated-byte counters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(())
-    }
-}
-pub fn chunks(count: u32, bytes: u64) -> Result<Vec<std::ops::Range<u32>>, &'static str> {
-    let size = u32::try_from((bytes / 32).min(u64::from(u32::MAX)))
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7854,54 +6187,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71ab-draw-world-pens-with-the-current-camera-lens-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks"></a>
 
 ### Step 30 of 42 · Connect sheet batches to rendering and bounded picks (`71ac-connect-sheet-batches-to-rendering-and-bounded-picks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/42 Visual Trace (71ac-connect-sheet-batches-to-rendering-and-bounded-picks): Connect sheet batches to rendering and bounded picks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current scene</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained sheet batches</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded readback</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/pick…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained sheet batches</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded readback</text>
 </svg>
-</div>
-
-- **Goal:** Connect sheet batches to rendering and bounded picks.
-- **Data Flow Trace:** `current scene → retained sheet batches → bounded readback`
-- **Files You Touch:** `src/renderer.rs` (*Connect shared original drawing batches to color and bounded integer picking.*) · `src/pick_gpu.rs` (*Connect shared original drawing batches to color and bounded integer picking.*) · `src/pick_encode.rs` (*Connect shared original drawing batches to color and bounded integer picking.*)
 
 Refresh drawing batches with the scene and selection; cancel old pick work before reusing source addresses.
 
-> **Self-Check Question:** *Why refresh both batch settings and the source table?*  
-> **Answer:** Compact addresses belong to the current display pages. Their owners and page retention must change together.
-
-- **Hands-On Lab Experiment:** Compare camera-only frames, selected rows, locked occlusion and page removal.
-
-<details>
-<summary>Implementation 71ac-connect-sheet-batches-to-rendering-and-bounded-picks: Connect sheet batches to rendering and bounded picks</summary>
-
-Connect sheet batches to rendering and bounded picks.
-
-Data flow: current scene → retained sheet batches → bounded readback.
+> **Check:** *Why refresh both batch settings and the source table?* — Compact addresses belong to the current display pages. Their owners and page retention must change together.
 
 ### 1. `src/renderer.rs`
 
@@ -7909,8 +6226,7 @@ Connect shared original drawing batches to color and bounded integer picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.highlight.ink(&mut pass);
@@ -7921,8 +6237,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.markers.draw(&mut pass);
             self.preview.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -7936,8 +6250,7 @@ Replace it with:
             self.preview.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
@@ -7947,8 +6260,6 @@ Replace it with:
         self.markers.view(&self.queue, transform, self.size, self.density);
         self.grid.view(&self.queue, transform, self.size, self.density);
 ```
-
-</details>
 
 Replace it with:
 
@@ -7962,8 +6273,7 @@ Replace it with:
         self.grid.view(&self.queue, transform, self.size, self.density);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -7973,8 +6283,6 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
         [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
 ```
-
-</details>
 
 Replace it with:
 
@@ -7989,8 +6297,7 @@ Replace it with:
         [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
@@ -8001,8 +6308,6 @@ Replace it with:
     pub fn cloud_error(&self)->Option<String> {self.cloud_error.borrow().clone()}
     fn set_clouds(&self,scene:&Scene,selected:&[ObjectId])->Result<(),&'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8016,8 +6321,7 @@ Replace it with:
     fn set_clouds(&self,scene:&Scene,selected:&[ObjectId])->Result<(),&'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } }
@@ -8027,8 +6331,6 @@ Replace it with:
         if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8041,8 +6343,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
@@ -8053,8 +6354,6 @@ Replace it with:
 
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8068,8 +6367,7 @@ Replace it with:
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         drop(old);
@@ -8079,8 +6377,6 @@ Replace it with:
         if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
         if let Err(error)=self.set_clouds(scene,selected.as_slice()) {*self.cloud_error.borrow_mut()=Some(error.to_string());}
 ```
-
-</details>
 
 Replace it with:
 
@@ -8094,8 +6390,7 @@ Replace it with:
         if let Err(error)=self.set_clouds(scene,selected.as_slice()) {*self.cloud_error.borrow_mut()=Some(error.to_string());}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
@@ -8106,8 +6401,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         renderer.set_scene(scene, None);
 ```
-
-</details>
 
 Replace it with:
 
@@ -8122,8 +6415,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -8133,8 +6425,6 @@ pub struct Renderer {
     cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
     cloud_error:std::cell::RefCell<Option<String>>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8148,8 +6438,7 @@ pub struct Renderer {
     cloud_error:std::cell::RefCell<Option<String>>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -8600,59 +6889,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-01.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-02.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-03.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-04.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-05.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-06.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-07.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-08.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-09.rs"
-```
-
-</details>
-
 ### 2. `src/pick_gpu.rs`
 
 Connect shared original drawing batches to color and bounded integer picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
@@ -8664,8 +6907,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8681,12 +6922,10 @@ Replace it with:
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -8694,13 +6933,10 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -8708,8 +6944,7 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -8721,7 +6956,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -8774,7 +7008,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
         let request = queued.request; let window = request.window;
@@ -8820,60 +7053,9 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-10.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-11.rs"
-```
-
-</details>
-
 ### 3. `src/pick_encode.rs`
 
 Connect shared original drawing batches to color and bounded integer picking.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,ctx:&crate::text_gpu_support::GpuCtx) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-            if let Some(clouds)=clouds {clouds.pick(ctx,&mut pass,window,mode);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8907,69 +7089,38 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-12.rs"
-```
-
-```text
---8<-- "journey/code/71ac-connect-sheet-batches-to-rendering-and-bounded-picks-13.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71ad-own-metadata-delivery-without-pinning-drawings"></a>
 
 ### Step 31 of 42 · Own metadata delivery without pinning drawings (`71ad-own-metadata-delivery-without-pinning-drawings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/42 Visual Trace (71ad-own-metadata-delivery-without-pinning-drawings): Own metadata delivery without pinning drawings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_sheet.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">weak original owner</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current query gate</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one delivery</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_sheet.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current query gate</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one delivery</text>
 </svg>
-</div>
-
-- **Goal:** Own metadata delivery without pinning drawings.
-- **Data Flow Trace:** `weak original owner → current query gate → one delivery`
-- **Files You Touch:** `src/browser_sheet.rs` (*Own cancellation, revision cache and current weak metadata delivery.*) · `src/lib.rs` (*Register the drawing component.*)
 
 Keep cancellation, weak source identity and current-runtime validation beside the metadata inbox.
 
-> **Self-Check Question:** *Can a pending lookup keep a closed drawing alive?*  
-> **Answer:** No. Its source reference is weak, and its controller retires the request when the UI owner drops.
-
-- **Hands-On Lab Experiment:** Inspect stale-runtime rejection, cached table ownership and exact one-shot delivery.
-
-<details>
-<summary>Implementation 71ad-own-metadata-delivery-without-pinning-drawings: Own metadata delivery without pinning drawings</summary>
-
-Own metadata delivery without pinning drawings.
-
-Data flow: weak original owner → current query gate → one delivery.
+> **Check:** *Can a pending lookup keep a closed drawing alive?* — No. Its source reference is weak, and its controller retires the request when the UI owner drops.
 
 ### 1. `src/browser_sheet.rs`
 
@@ -8985,86 +7136,48 @@ Create the file and type:
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sheet_gpu;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71ad-own-metadata-delivery-without-pinning-drawings-02.rs" skip=20
 ```
 
-</details>
+---
 
 <a id="checkpoint-71ae-query-metadata-only-for-the-current-selected-entity"></a>
 
 ### Step 32 of 42 · Query metadata only for the current selected entity (`71ae-query-metadata-only-for-the-current-selected-entity`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/42 Visual Trace (71ae-query-metadata-only-for-the-current-selected-entity): Query metadata only for the current selected entity</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_sheet.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original entity</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source-relative URL</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owned metadata ranges</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_sheet.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source-relative URL</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owned metadata ranges</text>
 </svg>
-</div>
-
-- **Goal:** Query metadata only for the current selected entity.
-- **Data Flow Trace:** `selected original entity → source-relative URL → owned metadata ranges`
-- **Files You Touch:** `src/browser_sheet.rs` (*Start one selected-entity query with independent cancellation and original URL identity.*)
 
 Resolve the side table from the published drawing URL and cancel a lookup when selection changes.
 
-> **Self-Check Question:** *Should opening a sheet fetch every entity name?*  
-> **Answer:** No. Begin metadata reads only for one selected original entity. Local files need an explicit published URL.
-
-- **Hands-On Lab Experiment:** Compare selecting a shared entity, changing selection, missing metadata URLs and cached-head reuse.
-
-<details>
-<summary>Implementation 71ae-query-metadata-only-for-the-current-selected-entity: Query metadata only for the current selected entity</summary>
-
-Query metadata only for the current selected entity.
-
-Data flow: selected original entity → source-relative URL → owned metadata ranges.
+> **Check:** *Should opening a sheet fetch every entity name?* — No. Begin metadata reads only for one selected original entity. Local files need an explicit published URL.
 
 ### 1. `src/browser_sheet.rs`
 
 Start one selected-entity query with independent cancellation and original URL identity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-impl Control {
-    pub fn take(&self) -> Option<Result<EntityMeta, String>> {
-        self.0.borrow_mut().reply.take()
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9072,73 +7185,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71ae-query-metadata-only-for-the-current-selected-entity-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71af-keep-published-drawing-sources-and-url-bases-independent"></a>
 
 ### Step 33 of 42 · Keep published drawing sources and URL bases independent (`71af-keep-published-drawing-sources-and-url-bases-independent`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/42 Visual Trace (71af-keep-published-drawing-sources-and-url-bases-independent): Keep published drawing sources and URL bases independent</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/publication.rs, src/publication_index.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original published URL</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source cache</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">repeated independent placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/publication.rs, src/p…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked source cache</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">repeated independent pl…</text>
 </svg>
-</div>
-
-- **Goal:** Keep published drawing sources and URL bases independent.
-- **Data Flow Trace:** `original published URL → checked source cache → repeated independent placement`
-- **Files You Touch:** `src/publication.rs` (*Keep original drawing revisions and per-import metadata URL bases independent.*) · `src/publication_index.rs` (*Keep original drawing revisions and per-import metadata URL bases independent.*)
 
 Cache checked ranged sources and preserve each original drawing’s metadata base when appending another document.
 
-> **Self-Check Question:** *May a new import rewrite older drawings’ metadata URLs?*  
-> **Answer:** No. Attach the new URL only to newly imported rows and keep earlier originals unchanged.
-
-- **Hands-On Lab Experiment:** Compare repeated revisions, independent placement records and sources imported from two folders.
-
-<details>
-<summary>Implementation 71af-keep-published-drawing-sources-and-url-bases-independent: Keep published drawing sources and URL bases independent</summary>
-
-Keep published drawing sources and URL bases independent.
-
-Data flow: original published URL → checked source cache → repeated independent placement.
+> **Check:** *May a new import rewrite older drawings’ metadata URLs?* — No. Attach the new URL only to newly imported rows and keep earlier originals unchanged.
 
 ### 1. `src/publication.rs`
 
 Keep original drawing revisions and per-import metadata URL bases independent.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if bytes.starts_with(crate::archive::MAGIC) {crate::scene_document::open(&mut candidate,bytes)?;return Ok(candidate);}
-    if replace {candidate.clear();}
-    match crate::document::load_at(bytes,location) {
-        Ok(loaded)=>candidate.import(loaded).map_err(str::to_owned)?,
-        Err(_)=>{crate::scene_document::import(&mut candidate,bytes,"",&session_rust::Xform::identity(),0.)?;}
-    }
-    Ok(candidate)
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9150,200 +7232,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Keep original drawing revisions and per-import metadata URL bases independent.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let source=match crate::publication::prepare(&Scene::empty(),bytes,true,Some(Rc::new(crate::reload_url::ReloadUrl::new(url.into())))) {Ok(source)=>source,Err(error)=>{self.revisions.forget(url);return Err(error);}};
-        self.sources.insert(url.into(),source);self.sizes.insert(url.into(),bytes.len());self.pending=true;Ok(true)
-    }
-    pub fn source_points(&self,url:&str)->u32 {self.sources.get(url).map_or(0,|scene|scene.streams().iter().map(|row|row.prepared.loaded.get()).sum())}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/71af-keep-published-drawing-sources-and-url-bases-independent-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner"></a>
 
 ### Step 34 of 42 · Retire staged drawing reads with their publication owner (`71ag-retire-staged-drawing-reads-with-their-publication-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/42 Visual Trace (71ag-retire-staged-drawing-reads-with-their-publication-owner): Retire staged drawing reads with their publication owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_publication.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">staged original prefix</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current publication</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">weak source retirement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_publication.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current publication</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">weak source retirement</text>
 </svg>
-</div>
-
-- **Goal:** Retire staged drawing reads with their publication owner.
-- **Data Flow Trace:** `staged original prefix → current publication → weak source retirement`
-- **Files You Touch:** `src/browser_publication.rs` (*Own staged drawing delivery and retire obsolete original source generations.*)
 
 Keep staged prefixes and weak streamed owners beside publication delivery; close obsolete generations before releasing them.
 
-> **Self-Check Question:** *Can a superseded publication continue adopting pages?*  
-> **Answer:** No. Current runtime, source ownership and generation must all match before delivery.
-
-- **Hands-On Lab Experiment:** Trace Close, replacement, obsolete sources and cancellation of pending drawing prefixes.
-
-<details>
-<summary>Implementation 71ag-retire-staged-drawing-reads-with-their-publication-owner: Retire staged drawing reads with their publication owner</summary>
-
-Retire staged drawing reads with their publication owner.
-
-Data flow: staged original prefix → current publication → weak source retirement.
+> **Check:** *Can a superseded publication continue adopting pages?* — No. Current runtime, source ownership and generation must all match before delivery.
 
 ### 1. `src/browser_publication.rs`
 
 Own staged drawing delivery and retire obsolete original source generations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{publication_index::Index,publication_route::Route};
-use std::{cell::{Cell,RefCell},collections::HashSet,rc::{Rc,Weak}};
-use wasm_bindgen::{JsCast,JsValue,closure::Closure};
-
-struct State {
-    active:bool,inflight:bool,again:bool,
-    pending_streams:Vec<crate::stream_load::Cursor>,streams:Vec<std::rc::Weak<crate::range_cloud::Prepared>>,cancelled:Rc<Cell<bool>>,
-    gate:crate::read_gate::ReadGate,
-    abort:Option<web_sys::AbortController>,
-    route:Route,index:Option<Index>,
-    document:crate::drawing_document::Shared,fault:crate::gpu_fault::Fault,
-    delivery:Option<Result<Box<crate::scene::Scene>,String>>,last_error:Option<String>,
-    timer:Option<i32>,tick:Option<Closure<dyn FnMut()>>,
-    notify:Option<web_sys::EventSource>,message:Option<Closure<dyn FnMut(web_sys::MessageEvent)>>,
-}
-pub struct Publication(Option<Rc<RefCell<State>>>);
-#[derive(Clone)]
-pub struct Control(Option<Weak<RefCell<State>>>);
-impl Publication {
-    pub fn new(document:crate::drawing_document::Shared,fault:crate::gpu_fault::Fault)->Result<Self,JsValue> {
-        let window=web_sys::window().ok_or("No browser window")?;let url=web_sys::Url::new(&window.location().href()?)?;let q=url.search_params();
-        let scene=q.get("scene");let data=q.get("data");let live=q.get("live");let poll=q.get("poll");let notify=q.get("notify");
-        let Some(route)=crate::publication_route::select(scene.as_deref(),&window.location().pathname()?,data.as_deref(),live.as_deref(),poll.as_deref(),notify.as_deref()) else {return Ok(Self(None));};
-        let index=Index::new(route.base.clone());Ok(Self(Some(Rc::new(RefCell::new(State {active:true,inflight:false,again:false,pending_streams:Vec::new(),streams:Vec::new(),cancelled:Rc::new(Cell::new(false)),gate:Default::default(),abort:None,route,index:Some(index),document,fault,delivery:None,last_error:None,timer:None,tick:None,notify:None,message:None})))))
-    }
-    pub fn control(&self)->Control {Control(self.0.as_ref().map(Rc::downgrade))}
-}
-impl Drop for Publication {fn drop(&mut self) {self.control().cancel();}}
-impl Control {
-    fn state(&self)->Option<Rc<RefCell<State>>> {self.0.as_ref()?.upgrade()}
-    pub fn begin(&self) {
-        let Some(state)=self.state() else {return;};let Some(window)=web_sys::window() else {return;};
-        let route=state.borrow().route.clone();
-        if let Some(ms)=route.poll_ms {
-            let weak=Rc::downgrade(&state);let callback=Closure::<dyn FnMut()>::new(move ||{if let Some(state)=weak.upgrade() {poll(state);}});
-            match window.set_interval_with_callback_and_timeout_and_arguments_0(callback.as_ref().unchecked_ref(),ms) {Ok(id)=>{let mut state=state.borrow_mut();state.timer=Some(id);state.tick=Some(callback);},Err(error)=>crate::browser::report(&format!("Cannot schedule live polling: {error:?}"))}
-            if let Some(url)=route.notify {if let Ok(source)=web_sys::EventSource::new(&url) {let weak=Rc::downgrade(&state);let callback=Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |_|{if let Some(state)=weak.upgrade() {poll(state);}});source.set_onmessage(Some(callback.as_ref().unchecked_ref()));let mut state=state.borrow_mut();state.notify=Some(source);state.message=Some(callback);}}
-        }
-        poll(state);
-    }
-    pub fn cancel(&self) {
-        let Some(state)=self.state() else {return;};let mut state=state.borrow_mut();state.active=false;state.cancelled.set(true);for source in state.streams.drain(..).filter_map(|s|s.upgrade()) {source.generation.borrow_mut().close();}state.pending_streams.clear();crate::stream::reset_range_gate();state.gate.cancel();state.delivery=None;state.index=None;
-        if let Some(abort)=state.abort.take() {abort.abort();}if let Some(id)=state.timer.take() {if let Some(window)=web_sys::window() {window.clear_interval_with_handle(id);}}
-        if let Some(source)=state.notify.take() {source.set_onmessage(None);source.close();}state.message=None;state.tick=None;
-    }
-    pub fn take(&self)->Result<Option<crate::editor::Action>,String> {
-        let Some(state)=self.state() else {return Ok(None);};let mut owner=state.borrow_mut();if !owner.active {owner.delivery=None;return Ok(None);}
-        let scene=owner.delivery.take().transpose()?;
-        if let Some(next)=scene.as_ref() {
-            owner.streams.retain(|weak|weak.upgrade().is_some_and(|source| {if next.streams().iter().any(|row|Rc::ptr_eq(&row.prepared,&source)) {true} else {source.generation.borrow_mut().close();crate::range_fetch::cancel_url(&source.source.url);false}}));
-            let cursors=std::mem::take(&mut owner.pending_streams);let cancelled=owner.cancelled.clone();drop(owner);
-            for cursor in cursors {
-                let weak=Rc::downgrade(&state);let current=Rc::new(move |source:&Rc<crate::range_cloud::Prepared>|weak.upgrade().is_some_and(|state| {let owner=state.borrow();owner.active&&crate::browser_runtime::owns(&owner.fault)&&owner.fault.message().is_none()&&owner.document.borrow().scene.streams().iter().any(|row|Rc::ptr_eq(&row.prepared,source))}));
-                let changed=Rc::new(|| {if let Some(window)=web_sys::window() {if let Ok(event)=web_sys::Event::new("viewer-stream-page") {let _=window.dispatch_event(&event);}}});
-                let error=Rc::new(|message:String|crate::browser::report(&format!("Source page read stopped: {message}")));
-                crate::stream_load::continue_read(cursor,current,changed,error,cancelled.clone());
-            }
-        }
-        Ok(scene.map(crate::editor::Action::Live))
-    }
-
-}
-
-fn poll(state:Rc<RefCell<State>>) {
-    let mut owner=state.borrow_mut();if !owner.active||!crate::browser_runtime::owns(&owner.fault)||owner.fault.message().is_some() {return;}
-    if owner.inflight {owner.again=true;return;}
-    let Ok(abort)=web_sys::AbortController::new() else {return;};let Ok(ticket)=owner.gate.begin() else {return;};let Some(mut index)=owner.index.take() else {return;};
-    owner.inflight=true;owner.abort=Some(abort.clone());let route=owner.route.clone();drop(owner);
-    wasm_bindgen_futures::spawn_local(async move {
-        let result=read(&route,&mut index,&abort.signal()).await;
-        let mut owner=state.borrow_mut();let current=owner.active&&owner.gate.finish(ticket)&&crate::browser_runtime::owns(&owner.fault)&&owner.fault.message().is_none();
-        owner.inflight=false;owner.abort=None;if !current {return;}
-        let outcome=result.and_then(|cursors| {for cursor in &cursors {owner.streams.push(Rc::downgrade(&cursor.prepared));}owner.pending_streams.extend(cursors);index.replacement(&owner.document.borrow().scene)});owner.index=Some(index);
-        let changed=match outcome {Ok(Some(scene))=>{owner.last_error=None;owner.delivery=Some(Ok(Box::new(scene)));true},Ok(None)=>false,Err(error)=>{if owner.last_error.as_ref()==Some(&error) {false} else {let _=crate::browser_report::observe("publication",&error);owner.last_error=Some(error.clone());owner.delivery=Some(Err(error));true}}};
-        let again=std::mem::take(&mut owner.again);drop(owner);
-        if changed {if let Some(window)=web_sys::window() {if let Ok(event)=web_sys::Event::new("viewer-publication") {let _=window.dispatch_event(&event);}}}
-        if again {poll(state);}
-    });
-}
-
-async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Result<Vec<crate::stream_load::Cursor>,String> {
-    let mut cursors=Vec::new();let mut points=index.streamed_points();let budget=crate::page_cache::Budget::new(crate::stream_budget::PAGE_BYTES);
-    let started=crate::browser_phase::now();let mut response=crate::publication_fetch::get(&route.manifest,index.etag(&route.manifest),4*1024*1024,signal).await?;
-    if response.status==404&&route.manifest.ends_with(".toml") {let yaml=format!("{}.yaml",route.manifest.trim_end_matches(".toml"));response=crate::publication_fetch::get(&yaml,index.etag(&route.manifest),4*1024*1024,signal).await?;}
-    match response.status {304 if index.has_manifest()=>{},200..=299=>{index.manifest(&route.manifest,response.etag,&response.bytes)?;crate::browser_phase::finish("manifest",started,response.bytes.len() as u64,&route.manifest);},status=>return Err(format!("Manifest HTTP {status}"))}
-    let mut seen=HashSet::new();
-    for url in index.urls() {
-        if !seen.insert(url.clone())||crate::manifest::immutable_key(&url)&&index.cached(&url) {continue;}
-        let encoding=index.encoding(&url)?;
-        if encoding.name.is_empty()&&url.split('?').next().is_some_and(|path|path.ends_with(".pb")) {
-            if let Some(probe)=crate::stream::probe(&url).await {
-                if crate::range_shape::single_cloud(&probe.bytes)&&crate::stream::cloud_identity(&probe.bytes).is_some() {
-                    let source=crate::range_source::Source::from_probe(url.clone(),&probe).await?;
-                    if source.fields.count>crate::stream_budget::PREFIX_POINTS||source.fields.coords_len>=crate::stream_budget::MIN_BYTES {
-                        if index.cached(&url)&&source.fields.revision.is_some()&&index.etag(&url)==source.fields.revision {continue;}
-                        if signal.aborted() {return Err("Source read cancelled".into());}
-                        points=points.saturating_sub(index.source_points(&url));
-                        let remaining=crate::stream_budget::MAX_POINTS.saturating_sub(points);
-                        if remaining==0 {return Err("Manifest sources exceed the point ceiling".into());}
-                        let cursor=crate::stream_load::start(Rc::new(source),budget.clone(),remaining).await?;
-                        if signal.aborted() {cursor.prepared.generation.borrow_mut().close();return Err("Source read cancelled".into());}
-                        points=points.saturating_add(cursor.loaded);index.stream(&url,cursor.prepared.clone())?;cursors.push(cursor);continue;
-                    }
-                }
-            }
-        }
-        let response=crate::publication_fetch::get(&url,index.etag(&url),crate::archive::LIMIT,signal).await?;
-        match response.status {
-            304 if index.cached(&url)=>{},
-            200..=299=>{let started=crate::browser_phase::now();let bytes=crate::source_unpack::decode(response.bytes,&encoding,signal).await?;index.source(&url,response.etag,&bytes)?;crate::browser_phase::finish("decode/validation/display",started,bytes.len() as u64,&url);},
-            status=>{index.forget(&url);return Err(format!("Source HTTP {status}: {url}"));}
-        }
-    }
-    let extra=crate::stream_budget::MAX_POINTS.saturating_sub(points)/(cursors.len().max(1) as u32);for cursor in &mut cursors {cursor.ceiling=cursor.loaded+extra;}
-    Ok(cursors)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9470,93 +7400,38 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-01.rs"
-```
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-02.rs"
-```
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-03.rs"
-```
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-04.rs"
-```
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-05.rs"
-```
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-06.rs"
-```
-
-```text
---8<-- "journey/code/71ag-retire-staged-drawing-reads-with-their-publication-owner-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71ah-stage-bounded-drawings-through-publication-loading"></a>
 
 ### Step 35 of 42 · Stage bounded drawings through publication loading (`71ah-stage-bounded-drawings-through-publication-loading`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/42 Visual Trace (71ah-stage-bounded-drawings-through-publication-loading): Stage bounded drawings through publication loading</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_publication.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source probe</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded original prefix</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared staged ceiling</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current pages</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_publication.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared staged ceiling</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current pages</text>
 </svg>
-</div>
-
-- **Goal:** Stage bounded drawings through publication loading.
-- **Data Flow Trace:** `source probe → bounded original prefix → shared staged ceiling → current pages`
-- **Files You Touch:** `src/browser_publication.rs` (*Connect checked single-sheet ranges and staged segment ceilings to publication delivery.*)
 
 Load single unplaced drawings by checked ranges and share the global staged segment ceiling across sources.
 
-> **Self-Check Question:** *Do repeated placements spend the source ceiling twice?*  
-> **Answer:** No. Cache one original source and reuse it; each placement keeps independent row identity and model settings.
-
-- **Hands-On Lab Experiment:** Compare original prefix/chunk defaults, complete mixed loading and no whole body for a ranged sheet.
-
-<details>
-<summary>Implementation 71ah-stage-bounded-drawings-through-publication-loading: Stage bounded drawings through publication loading</summary>
-
-Stage bounded drawings through publication loading.
-
-Data flow: source probe → bounded original prefix → shared staged ceiling → current pages.
+> **Check:** *Do repeated placements spend the source ceiling twice?* — No. Cache one original source and reuse it; each placement keeps independent row identity and model settings.
 
 ### 1. `src/browser_publication.rs`
 
@@ -9564,8 +7439,7 @@ Connect checked single-sheet ranges and staged segment ceilings to publication d
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -9574,8 +7448,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok((cursors,Vec::new()))
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9588,8 +7460,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let encoding=index.encoding(&url)?;
@@ -9599,8 +7470,6 @@ Replace it with:
                     let source=crate::range_source::Source::from_probe(url.clone(),&probe).await?;
                     if source.fields.count>crate::stream_budget::PREFIX_POINTS||source.fields.coords_len>=crate::stream_budget::MIN_BYTES {
 ```
-
-</details>
 
 Replace it with:
 
@@ -9619,8 +7488,7 @@ Replace it with:
                     if source.fields.count>crate::stream_budget::PREFIX_POINTS||source.fields.coords_len>=crate::stream_budget::MIN_BYTES {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -9631,8 +7499,6 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
     if response.status==404&&route.manifest.ends_with(".toml") {let yaml=format!("{}.yaml",route.manifest.trim_end_matches(".toml"));response=crate::publication_fetch::get(&yaml,index.etag(&route.manifest),4*1024*1024,signal).await?;}
     match response.status {304 if index.has_manifest()=>{},200..=299=>{index.manifest(&route.manifest,response.etag,&response.bytes)?;crate::browser_phase::finish("manifest",started,response.bytes.len() as u64,&route.manifest);},status=>return Err(format!("Manifest HTTP {status}"))}
 ```
-
-</details>
 
 Replace it with:
 
@@ -9646,8 +7512,7 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
     match response.status {304 if index.has_manifest()=>{},200..=299=>{index.manifest(&route.manifest,response.etag,&response.bytes)?;crate::browser_phase::finish("manifest",started,response.bytes.len() as u64,&route.manifest);},status=>return Err(format!("Manifest HTTP {status}"))}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{publication_index::Index,publication_route::Route};
@@ -9779,89 +7644,42 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71ah-stage-bounded-drawings-through-publication-loading-01.rs"
-```
-
-```text
---8<-- "journey/code/71ah-stage-bounded-drawings-through-publication-loading-02.rs"
-```
-
-```text
---8<-- "journey/code/71ah-stage-bounded-drawings-through-publication-loading-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71ai-show-current-sheet-resources-and-selected-entity-answers"></a>
 
 ### Step 36 of 42 · Show current sheet resources and selected entity answers (`71ai-show-current-sheet-resources-and-selected-entity-answers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/42 Visual Trace (71ai-show-current-sheet-resources-and-selected-entity-answers): Show current sheet resources and selected entity answers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current scene counters</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected query</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accepted original metadata</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/memory.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selected query</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">accepted original metad…</text>
 </svg>
-</div>
-
-- **Goal:** Show current sheet resources and selected entity answers.
-- **Data Flow Trace:** `current scene counters → selected query → accepted original metadata`
-- **Files You Touch:** `src/memory.rs` (*Expose original drawing resources and only accepted current entity answers.*) · `src/browser.rs` (*Expose original drawing resources and only accepted current entity answers.*)
 
 Connect original-source and GPU counters, query ownership and accepted metadata answers to the viewer.
 
-> **Self-Check Question:** *What should resource diagnostics distinguish?*  
-> **Answer:** Original column capacities, retained derived pages, independent rows and actual GPU buffers; none is a total-memory or Lenovo timing claim.
-
-- **Hands-On Lab Experiment:** Inspect original count beside resident pages, then Close while a metadata lookup is pending.
-
-<details>
-<summary>Implementation 71ai-show-current-sheet-resources-and-selected-entity-answers: Show current sheet resources and selected entity answers</summary>
-
-Show current sheet resources and selected entity answers.
-
-Data flow: current scene counters → selected query → accepted original metadata.
+> **Check:** *What should resource diagnostics distinguish?* — Original column capacities, retained derived pages, independent rows and actual GPU buffers; none is a total-memory or Lenovo timing claim.
 
 ### 1. `src/memory.rs`
 
 Expose original drawing resources and only accepted current entity answers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    usage[1]=documents.len();usage[2]=definitions.len();usage
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9875,8 +7693,7 @@ Expose original drawing resources and only accepted current entity answers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
@@ -9886,8 +7703,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-instance-gpu",&serde_json::to_string(&renderer.instance_usage()).unwrap())?;
     let instances=editor.scene.instances.iter().map(|(id,owner)|serde_json::json!({"id":id.value(),"guid":editor.scene.row_guid(*id),"source_guid":owner.instance.guid(),"definition_guid":owner.definition.guid(),"document_guid":owner.document.guid(),"model":editor.scene.placement(*id).map(|m|m.m),"flags":owner.instance.flags,"colour":editor.scene.face_rgba(*id)})).collect::<Vec<_>>();
 ```
-
-</details>
 
 Replace it with:
 
@@ -9901,8 +7716,7 @@ Replace it with:
     let instances=editor.scene.instances.iter().map(|(id,owner)|serde_json::json!({"id":id.value(),"guid":editor.scene.row_guid(*id),"source_guid":owner.instance.guid(),"definition_guid":owner.definition.guid(),"document_guid":owner.document.guid(),"model":editor.scene.placement(*id).map(|m|m.m),"flags":owner.instance.flags,"colour":editor.scene.face_rgba(*id)})).collect::<Vec<_>>();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     listeners.listen(document.as_ref(), "cancel")?;
@@ -9912,8 +7726,6 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-file")?;
     listeners.listen(window.as_ref(), "viewer-file-error")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -9927,8 +7739,7 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-file-error")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
@@ -9938,8 +7749,6 @@ Replace it with:
         text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
         let rect=pointer_canvas.get_bounding_client_rect();
 ```
-
-</details>
 
 Replace it with:
 
@@ -9954,8 +7763,7 @@ Replace it with:
         let rect=pointer_canvas.get_bounding_client_rect();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let owned_reload = std::rc::Rc::clone(&reload);
@@ -9965,8 +7773,6 @@ Replace it with:
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
         if active_fault.message().is_some() { return; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9980,8 +7786,7 @@ Replace it with:
         if active_fault.message().is_some() { return; }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -10808,84 +8613,38 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71ai-show-current-sheet-resources-and-selected-entity-answers-02.rs"
-```
-
-```text
---8<-- "journey/code/71ai-show-current-sheet-resources-and-selected-entity-answers-03.rs"
-```
-
-```text
---8<-- "journey/code/71ai-show-current-sheet-resources-and-selected-entity-answers-04.rs"
-```
-
-```text
---8<-- "journey/code/71ai-show-current-sheet-resources-and-selected-entity-answers-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71aj-exercise-complete-and-ranged-original-drawings"></a>
 
 ### Step 37 of 42 · Exercise complete and ranged original drawings (`71aj-exercise-complete-and-ranged-original-drawings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/42 Visual Trace (71aj-exercise-complete-and-ranged-original-drawings): Exercise complete and ranged original drawings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/sheet_scene_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original sheet example</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared display</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original entity lookup</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reversible history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original entity lookup</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reversible history</text>
 </svg>
-</div>
-
-- **Goal:** Exercise complete and ranged original drawings.
-- **Data Flow Trace:** `original sheet example → shared display → original entity lookup → reversible history`
-- **Files You Touch:** `src/editor.rs` (*Connect the original drawing example through the existing history transactions.*) · `src/commands.rs` (*Connect the original drawing example through the existing history transactions.*) · `src/sheet_scene_tests.rs` (*Copy exact original persistence, partial-source, revision and independent-URL fixtures.*) · `src/lib.rs` (*Register the drawing component.*) · `src/pick_gpu_tests.rs` (*Copy actual original entity IDs, physical pens, source sharing, camera shifts, locked occlusion and eviction fixtures.*)
 
 Open the plan example and copy complete archive, ownership, physical-pen and actual GPU regression fixtures.
 
-> **Self-Check Question:** *What distinguishes source identity from displayed segment addresses?*  
-> **Answer:** The saved original GUID and full entity IDs belong to the drawing. Compact addresses belong only to the current display snapshot.
-
-- **What You Should See:** The original plan has black physical-width boundaries and a blue hairline axis. Complete sheets preserve original columns through editable Save/Open; ranged sheets keep partial ownership explicit. Select Edge resolves original entity IDs and loads one side-table record only from a published drawing URL. Move, Copy, Delete, Undo/Redo, layers and Close operate on stable row owners.
-- **Hands-On Lab Experiment:** Type Close, Example Sheet, Fit and Select Edge; select the blue axis. Test Move, Undo/Redo, Save/Open and Close. Use the supplied published fixture for metadata and cancellation.
-
-<details>
-<summary>Implementation 71aj-exercise-complete-and-ranged-original-drawings: Exercise complete and ranged original drawings</summary>
-
-Exercise complete and ranged original drawings.
-
-Data flow: original sheet example → shared display → original entity lookup → reversible history.
+> **Check:** *What distinguishes source identity from displayed segment addresses?* — The saved original GUID and full entity IDs belong to the drawing. Compact addresses belong only to the current display snapshot.
 
 ### 1. `src/editor.rs`
 
@@ -10893,8 +8652,7 @@ Connect the original drawing example through the existing history transactions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::AddText(placement)=>{let source=std::rc::Rc::new(crate::scene_label::example(placement));let prepared=crate::scene_label::Prepared::new(source)?;self.history.try_edit(&mut self.scene,|scene|scene.insert_text(prepared).map(|_|()))?;},
@@ -10904,8 +8662,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::AddShapeReuse=>{self.history.try_edit(&mut self.scene,|scene|crate::scene_document::import(scene,&crate::cad_shape_example::bytes(),"",&session_rust::Xform::identity(),0.).map(|_|()).map_err(|_|"Cannot prepare congruent original CAD"))?;},
             Action::AddInstances=>{self.history.try_edit(&mut self.scene,|scene|crate::scene_document::import(scene,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).map(|_|()).map_err(|_|"Cannot prepare original definition instances"))?;},
 ```
-
-</details>
 
 Replace it with:
 
@@ -10919,8 +8675,7 @@ Replace it with:
             Action::AddInstances=>{self.history.try_edit(&mut self.scene,|scene|crate::scene_document::import(scene,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).map(|_|()).map_err(|_|"Cannot prepare original definition instances"))?;},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     AddInstances,
@@ -10930,8 +8685,6 @@ Replace it with:
     AddSurface,
     AddLine,
 ```
-
-</details>
 
 Replace it with:
 
@@ -10945,8 +8698,7 @@ Replace it with:
     AddLine,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -11713,38 +9465,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-01.rs"
-```
-
-```text
---8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-02.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Connect the original drawing example through the existing history transactions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Example Shape Reuse",||Action::AddShapeReuse),
-    ("Example Nested Instances",||Action::AddNestedInstances),
-    ("Example Scene Text",||Action::AddText(crate::text::TextPlacement::WorldPlane {world:[-1.5,0.,1.],right:[1.,0.,0.],up:[0.,1.,0.],world_height:0.22})),
-    ("Example Billboard",||Action::AddText(crate::text::TextPlacement::WorldBillboard {world:[-1.5,0.,1.],world_height:0.22})),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -11752,8 +9475,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11767,10 +9489,7 @@ Copy this supplied file:
 --8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-04.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11778,26 +9497,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the drawing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(target_arch="wasm32")]
-pub mod browser_sheet;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-05.rs" skip=52
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11805,34 +9511,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual original entity IDs, physical pens, source sharing, camera shifts, locked occlusion and eviction fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-
-fn colour_pixels(renderer: &mut Renderer) -> Vec<u8> {
-    let texture = renderer.device.create_texture(&wgpu::TextureDescriptor { label: Some("selection pixels"),
-        size: wgpu::Extent3d { width: 320, height: 240, depth_or_array_layers: 1 }, mip_level_count: 1, sample_count: 1,
-        dimension: wgpu::TextureDimension::D2, format: wgpu::TextureFormat::Rgba8Unorm,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC, view_formats: &[] });
-    renderer.draw_mode(&texture.create_view(&Default::default()), &Default::default(), &identity(), false);
-    let bytes = renderer.device.create_buffer(&wgpu::BufferDescriptor { label: Some("selection readback"), size: 320 * 240 * 4,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ, mapped_at_creation: false });
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-06.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11840,36 +9525,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual original entity IDs, physical pens, source sharing, camera shifts, locked occlusion and eviction fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let id=scene.objects()[1].id;gpu.select_objects(&scene,&[id]).unwrap();let pixels=colour_pixels(&mut gpu);assert!(pixels.chunks_exact(4).filter(|p|p[0]>140&&p[1]>90&&p[2]<40).count()>500);let bytes=crate::scene_archive::save(&scene).unwrap();let mut restored=Scene::empty();crate::scene_document::open(&mut restored,&bytes).unwrap();for a in scene.objects() {let guid=scene.instances[&a.id].instance.guid();let b=restored.objects().iter().find(|row|restored.instances[&row.id].instance.guid()==guid).unwrap();for (a,b) in a.model.m.iter().zip(&b.model.m) {assert!((a-b).abs()<1e-12,"Canonical placement for {guid}: {a} {b}");}}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-07.rs" skip=634
 ```
 
-</details>
-
 ### 7. `src/editor.rs`
 
 Include original sheet owners in the existing Select All path before applying one Move transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).chain(self.scene.clouds().iter().map(|r|r.id)).chain(self.scene.streams().iter().map(|r|r.id)).collect();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -11877,19 +9541,7 @@ Edit the existing block to match this code; keep unchanged lines:
                     .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).chain(self.scene.clouds().iter().map(|r|r.id)).chain(self.scene.streams().iter().map(|r|r.id)).chain(self.scene.sheets().iter().map(|r|r.id)).collect();
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11897,76 +9549,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Validate mixed original selection, placement, shared source identity and one-step Undo/Redo.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-heets()[1].url.as_deref(),
-        Some("https://example.test/second/plan.pb")
-    );
-    assert_ne!(second.sheets()[0].id, second.sheets()[1].id);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71aj-exercise-complete-and-ranged-original-drawings-09.rs" skip=150
 ```
 
-</details>
+**Result after `71aj-exercise-complete-and-ranged-original-drawings`:** The original plan has black physical-width boundaries and a blue hairline axis. Complete sheets preserve original columns through editable Save/Open; ranged sheets keep partial ownership explicit. Select Edge resolves original entity IDs and loads one side-table record only from a published drawing URL. Move, Copy, Delete, Undo/Redo, layers and Close operate on stable row owners.
 
-</details>
+---
 
 <a id="checkpoint-71za-build-original-construction-plane-frames"></a>
 
 ### Step 38 of 42 · Build original construction-plane frames (`71za-build-original-construction-plane-frames`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 38/42 Visual Trace (71za-build-original-construction-plane-frames): Build original construction-plane frames</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cplane.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parsed coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world drawing point</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cplane.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">parsed coordinates</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world drawing point</text>
 </svg>
-</div>
-
-- **Goal:** Describe the original world planes and a movable frame.
-- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
-- **Files You Touch:** `src/cplane.rs` (*Type the whole original frame or coordinate helpers using their shared owners.*) · `src/lib.rs` (*Compile this shared original frame or coordinate module.*)
 
 Describe the original world planes and a movable frame. Build a right-handed frame from three points using shared subtraction, cross-product and normalization helpers. Reject collinear points before constructing the axes.
 
-> **Self-Check Question:** *Why take two cross products when constructing the frame?*  
-> **Answer:** The first finds its normal. The second derives a perpendicular in-plane y axis while retaining the chosen x direction.
-
-- **What You Should See:** Construction-plane frames can be built without changing the current browser view.
-- **Hands-On Lab Experiment:** Trace three valid points and three collinear points through the same frame builder.
-
-<details>
-<summary>Implementation 71za-build-original-construction-plane-frames: Build original construction-plane frames</summary>
-
-Describe the original world planes and a movable frame.
-
-Data flow: original frame → parsed coordinates → world drawing point.
+> **Check:** *Why take two cross products when constructing the frame?* — The first finds its normal. The second derives a perpendicular in-plane y axis while retaining the chosen x direction.
 
 ### 1. `src/cplane.rs`
 
@@ -11982,89 +9604,50 @@ Create the file and type:
 
 Compile this shared original frame or coordinate module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod sheet_scene_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71za-build-original-construction-plane-frames-2.rs" skip=36
 ```
 
-</details>
+**Result after `71za-build-original-construction-plane-frames`:** Construction-plane frames can be built without changing the current browser view.
+
+---
 
 <a id="checkpoint-71zb-map-original-plane-and-world-coordinates"></a>
 
 ### Step 39 of 42 · Map original plane and world coordinates (`71zb-map-original-plane-and-world-coordinates`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 39/42 Visual Trace (71zb-map-original-plane-and-world-coordinates): Map original plane and world coordinates</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cplane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parsed coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world drawing point</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cplane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">parsed coordinates</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world drawing point</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the existing origin and axes to map between plane and world coordinates.
-- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
-- **Files You Touch:** `src/cplane.rs` (*Extend this original owner with the day’s complete input helpers.*)
 
 Reuse the existing origin and axes to map between plane and world coordinates. Pack the same basis into a column-major matrix for drawing the grid. Keep CAD calculations in double precision and convert only the grid matrix to GPU floats.
 
-> **Self-Check Question:** *Why keep the coordinate maps separate from the grid matrix?*  
-> **Answer:** CAD points retain double precision. The matrix is a drawing representation of the same frame.
-
-- **What You Should See:** The frame helpers can map original plane coordinates to and from world coordinates.
-- **Hands-On Lab Experiment:** Trace a plane point into world coordinates and back. Identify the matrix columns that draw those axes.
-
-<details>
-<summary>Implementation 71zb-map-original-plane-and-world-coordinates: Map original plane and world coordinates</summary>
-
-Reuse the existing origin and axes to map between plane and world coordinates.
-
-Data flow: original frame → parsed coordinates → world drawing point.
+> **Check:** *Why keep the coordinate maps separate from the grid matrix?* — CAD points retain double precision. The matrix is a drawing representation of the same frame.
 
 ### 1. `src/cplane.rs`
 
 Extend this original owner with the day’s complete input helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            CPlane::Yz => (Vector::new(0.0, 1.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
-            CPlane::Frame { x, y, .. } => {
-                (Vector::new(x[0], x[1], x[2]), Vector::new(y[0], y[1], y[2]))
-            }
-        }
-    }
-```
-
-</details>
 
 After that block, type:
 
@@ -12113,82 +9696,44 @@ After that block, type:
     }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `71zb-map-original-plane-and-world-coordinates`:** The frame helpers can map original plane coordinates to and from world coordinates.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/71zb-map-original-plane-and-world-coordinates-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-71zc-guard-original-plane-and-ray-projections"></a>
 
 ### Step 40 of 42 · Guard original plane and ray projections (`71zc-guard-original-plane-and-ray-projections`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 40/42 Visual Trace (71zc-guard-original-plane-and-ray-projections): Guard original plane and ray projections</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cplane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parsed coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world drawing point</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cplane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">parsed coordinates</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world drawing point</text>
 </svg>
-</div>
-
-- **Goal:** Complete the original plane queries for view choice, nearest projection, facing and ray intersection.
-- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
-- **Files You Touch:** `src/cplane.rs` (*Extend this original owner with the day’s complete input helpers.*)
 
 Complete the original plane queries for view choice, nearest projection, facing and ray intersection. Reuse the same origin, axes and normal. Reject a grazing ray before dividing by its small plane-normal component.
 
-> **Self-Check Question:** *Why reject grazing rays before intersection?*  
-> **Answer:** A nearly parallel ray makes the intersection unstable. Preserve the original guard instead of returning a distant misleading drawing point.
-
-- **What You Should See:** Plane and ray projection guards compile before drawing input uses them.
-- **Hands-On Lab Experiment:** Compare a perpendicular ray, a grazing ray and a ray facing away from the plane.
-
-<details>
-<summary>Implementation 71zc-guard-original-plane-and-ray-projections: Guard original plane and ray projections</summary>
-
-Complete the original plane queries for view choice, nearest projection, facing and ray intersection.
-
-Data flow: original frame → parsed coordinates → world drawing point.
+> **Check:** *Why reject grazing rays before intersection?* — A nearly parallel ray makes the intersection unstable. Preserve the original guard instead of returning a distant misleading drawing point.
 
 ### 1. `src/cplane.rs`
 
 Extend this original owner with the day’s complete input helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let o = self.origin();
-        let at = |k: usize| o[k] + uvw[0] * x[k] + uvw[1] * y[k] + uvw[2] * z[k];
-        Point::new(at(0), at(1), at(2))
-    }
-```
-
-</details>
 
 After that block, type:
 
@@ -12196,8 +9741,7 @@ After that block, type:
 --8<-- "journey/code/71zc-guard-original-plane-and-ray-projections-1.rs" skip=160
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12205,275 +9749,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original frame and coordinate validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use session_rust::{Point, Vector};
-
-/// How square onto a world plane a view must look, as the cosine, for View mode to draw on it: within 20 degrees.
-const SQUARE_ON: f64 = 0.94;
-
-/// Below this cosine between a ray and the plane's normal, about 5 degrees off the plane, the ray only grazes it.
-const GRAZING: f64 = 0.08;
-
-/// A construction plane: one of the world planes, or a frame anywhere in space.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum CPlane {
-    Xy, // ground, normal z
-    Yz, // normal x
-    Xz, // normal y
-    Frame {
-        origin: [f64; 3], // where its grid is centred
-        x: [f64; 3],      // its unit x axis
-        y: [f64; 3],      // its unit y axis, square to x
-    },
-}
-
-impl CPlane {
-    /// The plane through `origin`, its x axis toward `on_x`, `in_plane` on its positive y side; None when the three points are in line.
-    pub fn from_3_points(origin: &Point, on_x: &Point, in_plane: &Point) -> Option<Self> {
-        let x = unit(sub(on_x, origin))?;
-        let z = unit(cross(x, sub(in_plane, origin)))?;
-        let y = cross(z, x);
-
-        Some(CPlane::Frame {
-            origin: [origin[0], origin[1], origin[2]],
-            x,
-            y,
-        })
-    }
-
-    /// The point its grid is centred on: the world origin for a world plane.
-    pub fn origin(self) -> Point {
-        match self {
-            CPlane::Frame { origin, .. } => Point::new(origin[0], origin[1], origin[2]),
-            _ => Point::new(0.0, 0.0, 0.0),
-        }
-    }
-
-    /// Its two in-plane axes; x × y faces the viewer in Top, Front and Right.
-    pub fn axes(self) -> (Vector, Vector) {
-        match self {
-            CPlane::Xy => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
-            CPlane::Xz => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
-            CPlane::Yz => (Vector::new(0.0, 1.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
-            CPlane::Frame { x, y, .. } => {
-                (Vector::new(x[0], x[1], x[2]), Vector::new(y[0], y[1], y[2]))
-            }
-        }
-    }
-
-    /// The grid's frame as a column-major matrix: x, y, x × y and the origin.
-    pub fn matrix(self) -> [f32; 16] {
-        let (x, y) = self.axes();
-        let z = cross([x[0], x[1], x[2]], [y[0], y[1], y[2]]);
-        let o = self.origin();
-        [
-            x[0] as f32,
-            x[1] as f32,
-            x[2] as f32,
-            0.0,
-            y[0] as f32,
-            y[1] as f32,
-            y[2] as f32,
-            0.0,
-            z[0] as f32,
-            z[1] as f32,
-            z[2] as f32,
-            0.0,
-            o[0] as f32,
-            o[1] as f32,
-            o[2] as f32,
-            1.0,
-        ]
-    }
-
-    /// `point` in plane coordinates: along x, along y, height off the plane.
-    pub fn local(self, point: &Point) -> [f64; 3] {
-        let (x, y) = self.axes();
-        let z = cross([x[0], x[1], x[2]], [y[0], y[1], y[2]]);
-        let d = sub(point, &self.origin());
-        let dot = |a: [f64; 3]| a[0] * d[0] + a[1] * d[1] + a[2] * d[2];
-        [dot([x[0], x[1], x[2]]), dot([y[0], y[1], y[2]]), dot(z)]
-    }
-
-    /// The world point at plane coordinates `uvw`.
-    pub fn world(self, uvw: [f64; 3]) -> Point {
-        let (x, y) = self.axes();
-        let z = cross([x[0], x[1], x[2]], [y[0], y[1], y[2]]);
-        let o = self.origin();
-        let at = |k: usize| o[k] + uvw[0] * x[k] + uvw[1] * y[k] + uvw[2] * z[k];
-        Point::new(at(0), at(1), at(2))
-    }
-
-    /// The plane drawing follows the view on: the world plane a named view looks square onto, else the ground under a free or isometric view.
-    pub fn view(forward: &Vector) -> Self {
-        let (x, y) = (forward[0].abs(), forward[1].abs());
-
-        match () {
-            _ if x >= SQUARE_ON => CPlane::Yz,
-            _ if y >= SQUARE_ON => CPlane::Xz,
-            _ => CPlane::Xy,
-        }
-    }
-
-    /// The point of the plane through `origin` nearest `point`.
-    pub fn project(self, origin: &Point, point: &Point) -> Point {
-        let n = self.normal();
-        let h = (point[0] - origin[0]) * n[0]
-            + (point[1] - origin[1]) * n[1]
-            + (point[2] - origin[2]) * n[2];
-        Point::new(
-            point[0] - n[0] * h,
-            point[1] - n[1] * h,
-            point[2] - n[2] * h,
-        )
-    }
-
-    /// True when a ray along `direction` meets the plane too obliquely to place a point well.
-    pub fn grazed(self, direction: &Vector) -> bool {
-        let n = self.normal();
-        let along = (direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2]).abs();
-        let length = (direction[0] * direction[0]
-            + direction[1] * direction[1]
-            + direction[2] * direction[2])
-            .sqrt();
-        along < GRAZING * length
-    }
-
-    /// The plane the view faces most directly.
-    pub fn facing(forward: &Vector) -> Self {
-        let (x, y, z) = (forward[0].abs(), forward[1].abs(), forward[2].abs());
-
-        if z >= x && z >= y {
-            CPlane::Xy
-        } else if y >= x {
-            CPlane::Xz
-        } else {
-            CPlane::Yz
-        }
-    }
-
-    /// The plane's unit normal.
-    pub fn normal(self) -> Vector {
-        match self {
-            CPlane::Xy => Vector::new(0.0, 0.0, 1.0),
-            CPlane::Yz => Vector::new(1.0, 0.0, 0.0),
-            CPlane::Xz => Vector::new(0.0, 1.0, 0.0),
-            CPlane::Frame { x, y, .. } => {
-                let z = cross(x, y);
-                Vector::new(z[0], z[1], z[2])
-            }
-        }
-    }
-
-    /// Where a ray hits this plane through `origin`, in front of the eye.
-    pub fn hit(self, origin: &Point, from: &Point, direction: &Vector) -> Option<Point> {
-        let n = self.normal();
-        let denom = direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2];
-
-        if denom.abs() < 1e-12 {
-            return None; // ray parallel to the plane
-        }
-
-        let num = (origin[0] - from[0]) * n[0]
-            + (origin[1] - from[1]) * n[1]
-            + (origin[2] - from[2]) * n[2];
-        let t = num / denom;
-
-        if !t.is_finite() || t <= 0.0 {
-            return None; // behind the eye
-        }
-
-        Some(Point::new(
-            from[0] + direction[0] * t,
-            from[1] + direction[1] * t,
-            from[2] + direction[2] * t,
-        ))
-    }
-}
-
-/// `a - b` as an array.
-fn sub(a: &Point, b: &Point) -> [f64; 3] {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-}
-
-/// The cross product of two arrays.
-fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
-    [
-        a[1] * b[2] - a[2] * b[1],
-        a[2] * b[0] - a[0] * b[2],
-        a[0] * b[1] - a[1] * b[0],
-    ]
-}
-
-/// `v` scaled to length 1; None for a zero vector.
-fn unit(v: [f64; 3]) -> Option<[f64; 3]> {
-    let length = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
-    (length > 1e-9).then(|| [v[0] / length, v[1] / length, v[2] / length])
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/71zc-guard-original-plane-and-ray-projections-2.rs" skip=6883
 ```
 
-</details>
+**Result after `71zc-guard-original-plane-and-ray-projections`:** Plane and ray projection guards compile before drawing input uses them.
 
-</details>
+---
 
 <a id="checkpoint-71zd-parse-original-drawing-coordinate-forms"></a>
 
 ### Step 41 of 42 · Parse original drawing coordinate forms (`71zd-parse-original-drawing-coordinate-forms`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 41/42 Visual Trace (71zd-parse-original-drawing-coordinate-forms): Parse original drawing coordinate forms</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/drawing_coords.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parsed coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world drawing point</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/drawing_coords.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">parsed coordinates</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world drawing point</text>
 </svg>
-</div>
-
-- **Goal:** Describe the original absolute, relative, polar and distance forms.
-- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
-- **Files You Touch:** `src/drawing_coords.rs` (*Type the whole original frame or coordinate helpers using their shared owners.*) · `src/lib.rs` (*Compile this shared original frame or coordinate module.*)
 
 Describe the original absolute, relative, polar and distance forms. Keep the selected construction plane in its existing owner. Parse only finite numbers and retain missing height as a distinct two-dimensional coordinate.
 
-> **Self-Check Question:** *Why retain missing height instead of immediately inserting zero?*  
-> **Answer:** A two-dimensional input lies on the drawing plane. An explicit third coordinate asks for a three-dimensional position.
-
-- **What You Should See:** The coordinate grammar can distinguish supported drawing forms; the existing input remains available.
-- **Hands-On Lab Experiment:** Trace 1,2, @1,2, 5<45 and a single distance through the same parser.
-
-<details>
-<summary>Implementation 71zd-parse-original-drawing-coordinate-forms: Parse original drawing coordinate forms</summary>
-
-Describe the original absolute, relative, polar and distance forms.
-
-Data flow: original frame → parsed coordinates → world drawing point.
+> **Check:** *Why retain missing height instead of immediately inserting zero?* — A two-dimensional input lies on the drawing plane. An explicit third coordinate asks for a three-dimensional position.
 
 ### 1. `src/drawing_coords.rs`
 
@@ -12489,121 +9804,50 @@ Create the file and type:
 
 Compile this shared original frame or coordinate module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod cplane;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/71zd-parse-original-drawing-coordinate-forms-2.rs" skip=17
 ```
 
-</details>
+**Result after `71zd-parse-original-drawing-coordinate-forms`:** The coordinate grammar can distinguish supported drawing forms; the existing input remains available.
+
+---
 
 <a id="checkpoint-71ze-resolve-original-relative-and-polar-coordinates"></a>
 
 ### Step 42 of 42 · Resolve original relative and polar coordinates (`71ze-resolve-original-relative-and-polar-coordinates`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 42/42 Visual Trace (71ze-resolve-original-relative-and-polar-coordinates): Resolve original relative and polar coordinates</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/drawing_coords.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parsed coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world drawing point</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/drawing_coords.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">parsed coordinates</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world drawing point</text>
 </svg>
-</div>
-
-- **Goal:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
-- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
-- **Files You Touch:** `src/drawing_coords.rs` (*Extend this original owner with the day’s complete input helpers.*)
 
 Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. Reuse one finite parser for every form. Require a previous point and direction where the original distance form needs them.
 
-> **Self-Check Question:** *Why does a distance need both a previous point and direction?*  
-> **Answer:** Its scalar value alone cannot locate a point. The existing context supplies the starting point and the direction to follow.
-
-- **What You Should See:** Relative and polar coordinates can resolve against the declared drawing frame.
-- **Hands-On Lab Experiment:** Trace a polar input from a previous point, then a distance with and without a direction.
-
-<details>
-<summary>Implementation 71ze-resolve-original-relative-and-polar-coordinates: Resolve original relative and polar coordinates</summary>
-
-Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
-
-Data flow: original frame → parsed coordinates → world drawing point.
+> **Check:** *Why does a distance need both a previous point and direction?* — Its scalar value alone cannot locate a point. The existing context supplies the starting point and the direction to follow.
 
 ### 1. `src/drawing_coords.rs`
 
 Extend this original owner with the day’s complete input helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// Parse coordinate text without the world prefix.
-fn parse_plain(text: &str) -> Option<Typed> {
-    let text = text.trim();
-
-    if text.is_empty() {
-        return None;
-    }
-
-    let (body, relative) = match text.strip_prefix('@') {
-        Some(rest) => (rest.trim(), true),
-        None => (text, false),
-    };
-
-    if let Some((d, a)) = body.split_once('<') {
-        let distance = number(d)?;
-        let degrees = number(a)?;
-        return Some(Typed::Polar { distance, degrees });
-    }
-
-    let parts: Vec<&str> = body.split(',').map(str::trim).collect();
-
-    match parts.len() {
-        1 if relative => None, // `@5` has no direction
-        1 => Some(Typed::Distance(number(parts[0])?)),
-        2 | 3 => {
-            let x = number(parts[0])?;
-            let y = number(parts[1])?;
-            let z = match parts.get(2) {
-                Some(v) => Some(number(v)?),
-                None => None,
-            };
-            Some(if relative {
-                Typed::Relative { x, y, z }
-            } else {
-                Typed::Absolute { x, y, z }
-            })
-        }
-        _ => None,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -12611,29 +9855,22 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/71ze-resolve-original-relative-and-polar-coordinates-1.rs"
 ```
 
-</details>
+**Result after `71ze-resolve-original-relative-and-polar-coordinates`:** Relative and polar coordinates can resolve against the declared drawing frame.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 71ze-resolve-original-relative-and-polar-coordinates
-npm --prefix ../session_tests run course -- check 71ze-resolve-original-relative-and-polar-coordinates
-npm --prefix ../session_tests run course -- save 71ze-resolve-original-relative-and-polar-coordinates
+npm --prefix ../session_tests run course -- dependencies 14.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 14.1
+npm --prefix ../session_tests run course -- save 14.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Relative and polar coordinates can resolve against the declared drawing frame.
-
-- **Final Lesson Experiment:** Trace a polar input from a previous point, then a distance with and without a direction.
-
-Continue with [Precise coordinates and original drawing drafts](../../consolidation/72-copy-current-construction-planes-and-coordinate-forms.md).
+Continue with [14.2 · Precise coordinates and original drawing drafts](../../consolidation/72-copy-current-construction-planes-and-coordinate-forms.md).

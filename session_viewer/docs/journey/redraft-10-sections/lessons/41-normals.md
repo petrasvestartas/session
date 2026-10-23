@@ -1,237 +1,98 @@
 # 5.7 · Normals, placement and a depth-correct construction grid
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.7** (Redraft `4.7`) · **8 checkpoints (`41-normals` → `41f-input`)** · **Study time: 6–10 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `41-normals` → `41f-input` (8 steps) · **Production source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-> **What You Will Learn & Build:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout. By the final checkpoint (`41f-input`), you will enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
+> **Goal:** Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 5 Visual Explanation: Homogeneous Near-Clip, Screen-Space Ribbon Quad Extrusion & Point Discs</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Clipping to w > near before perspective divide. Center: Extruding segment pA→pB along normal n. Right: SDF point disc.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Homogeneous Near-Plane Clip -->
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Homogeneous Clip (w &gt; near)</text>
-    <!-- Near plane vertical line at x=115 -->
-    <line x1="115" y1="96" x2="115" y2="196" stroke="#111111" stroke-width="1.75"/>
-    <text x="115" y="92" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">w = near plane</text>
-    <!-- Eye at (65, 148) -->
-    <circle cx="65" cy="148" r="4" fill="#111111"/>
-    <text x="65" y="164" text-anchor="middle" font-size="9" fill="#111111">Camera</text>
-    <!-- Segment from behind camera B(45, 180) through B'(115, 152) to A(225, 108) -->
-    <line x1="45" y1="180" x2="115" y2="152" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3"/>
-    <line x1="115" y1="152" x2="225" y2="108" stroke="#111111" stroke-width="2.5"/>
-    <circle cx="45" cy="180" r="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <circle cx="115" cy="152" r="4" fill="#111111"/>
-    <circle cx="225" cy="108" r="4" fill="#111111"/>
-    <text x="58" y="192" font-size="9" fill="#111111">B (w &lt; 0)</text>
-    <text x="142" y="164" font-size="9.5" font-weight="700" fill="#111111">Clipped B'</text>
-    <text x="225" y="102" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">A (w &gt; near)</text>
-    <text x="140" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Clip in 4D BEFORE xyz / w divide</text>
-    <text x="140" y="232" text-anchor="middle" font-size="9" fill="#111111">so behind-camera endpoints never flip!</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Screen-Space Ribbon Quad Extrusion -->
-    <rect x="287" y="64" width="295" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Screen-Space Ribbon Quad (6 Verts)</text>
-    <!-- Outer AA feather quad (dashed) -->
-    <polygon points="316,120 516,92 528,162 328,190" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <!-- Core stroke quad -->
-    <polygon points="319,130 519,102 525,152 325,180" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Center line pA -> pB -->
-    <line x1="322" y1="155" x2="522" y2="127" stroke="#111111" stroke-width="2"/>
-    <circle cx="322" cy="155" r="4" fill="#111111"/>
-    <circle cx="522" cy="127" r="4" fill="#111111"/>
-    <!-- Normal vector n = (-dir.y, dir.x) -->
-    <line x1="422" y1="141" x2="416" y2="104" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="458" y="114" font-size="9.5" font-weight="700" fill="#111111">n = (-dir.y, dir.x)</text>
-    <text x="315" y="172" font-size="9.5" font-weight="700" fill="#111111">pA</text>
-    <text x="532" y="130" font-size="9.5" font-weight="700" fill="#111111">pB</text>
-    <text x="434" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">offset = n * (half_width_px + 1px_AA)</text>
-    <text x="434" y="223" text-anchor="middle" font-size="9" fill="#111111">Constant CSS pixel width at any 3D zoom</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Point Marker SDF Disc (glyph.wgsl) -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Point Marker Disc (SDF)</text>
-    <!-- Bounding 2D screen quad -->
-    <rect x="664" y="96" width="100" height="100" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
-    <!-- Outer AA circle and Inner solid circle -->
-    <circle cx="714" cy="146" r="42" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <circle cx="714" cy="146" r="34" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="714" cy="146" r="3" fill="#111111"/>
-    <line x1="714" y1="146" x2="748" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="731" y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">r</text>
-    <text x="714" y="213" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">d = length(uv); discard d &gt; r+1</text>
-    <text x="714" y="227" text-anchor="middle" font-size="9" fill="#111111">smoothstep feathers 1px rim</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 5.7 Pipeline Schematic: Normals, placement and a depth-correct construction grid</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 41-normals → 41f-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original vertex</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">normal attributes</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel normal</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">extraction</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite normalized</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">display stream</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">retained payload</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">accounting</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">View Grid On / Off</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 5.7:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/normals.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/memory.rs  ·  src/normal_source_tests.rs  ·  src/normal_matrix_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 41-normals → 41f-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Near Clip (w &gt; 0)</text>
+  <line x1="115" y1="58" x2="115" y2="162" stroke="#111111" stroke-width="2"/>
+  <text x="115" y="176" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">w = near</text>
+  <line x1="55" y1="142" x2="115" y2="110" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 4"/>
+  <line x1="115" y1="110" x2="210" y2="68" stroke="#111111" stroke-width="3"/>
+  <circle cx="55" cy="142" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="115" cy="110" r="4.5" fill="#111111"/>
+  <circle cx="210" cy="68" r="4" fill="#111111"/>
+  <text x="68" y="156" font-family="monospace" font-size="9" fill="#111111">Clipped</text>
+  <text x="180" y="95" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Kept</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Ribbon Quad</text>
+  <polygon points="338,120 480,68 498,108 356,160" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="347" y1="140" x2="489" y2="88" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="347" cy="140" r="4" fill="#111111"/>
+  <circle cx="489" cy="88" r="4" fill="#111111"/>
+  <line x1="418" y1="114" x2="407" y2="88" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="385" y="84" font-family="monospace" font-size="10" font-weight="700" fill="#111111">+n</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">6-Vert Extrusion</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. SDF Anti-Alias</text>
+  <line x1="620" y1="148" x2="788" y2="148" stroke="#111111" stroke-width="1.5"/>
+  <path d="M 628 148 L 656 76 L 752 76 L 780 148" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="704" y="68" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">alpha = 1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">smoothstep() Edge</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
-| **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
-| **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
+| **WGSL (`ribbon.wgsl`)** | Near-Plane Clip (`w > near`) | Clips 3D segments in 4D before dividing by `w`. |
+| **WGSL (`ribbon.wgsl`)** | 6-Vertex Screen Quad (`±n`) | Extrudes each 3D line along screen normal `(-dir.y, dir.x)`. |
+| **WGSL (`glyph.wgsl`)** | `smoothstep()` SDF Coverage | Anti-aliases stroke edges and round point markers in `@fragment`. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`41-normals`](#checkpoint-41-normals) | Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout. | `src/normals.rs`, `src/lib.rs`, `src/mesh.rs`, `src/memory.rs` | `original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting` |
-| **2** | [`41a-placement`](#checkpoint-41a-placement) | Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening. | `src/normals.rs`, `src/lib.rs`, `src/normal_matrix_tests.rs` | `accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix` |
-| **3** | [`41b-drawing`](#checkpoint-41b-drawing) | Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback. | `src/gpu_geometry.rs`, `src/renderer.rs`, `src/gpu_mesh.rs`, `src/scene.rs` | `checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal` |
-| **4** | [`41c-view`](#checkpoint-41c-view) | Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history. | `src/editor.rs`, `src/triangle.wgsl`, `src/renderer.rs`, `src/browser.rs` | `source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings` |
-| **5** | [`41ca-input`](#checkpoint-41ca-input) | Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes. | `src/normal_example.rs`, `src/editor.rs`, `src/browser.rs`, `src/lib.rs` | `sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen` |
-| **6** | [`41d-grid`](#checkpoint-41d-grid) | Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range. | `src/grid.rs`, `src/lib.rs`, `src/camera.rs`, `src/grid_source_tests.rs` | `checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range` |
-| **7** | [`41e-drawing`](#checkpoint-41e-drawing) | Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting. | `src/depth.rs`, `src/stroke_gpu.rs`, `src/renderer.rs` | `checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership` |
-| **8** | [`41f-input`](#checkpoint-41f-input) | Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/grid_input_tests.rs` | `View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history` |
+![Recorded visual output for Lesson 5.7 (41f-input)](../../../screenshots/journey/41f-input-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-41-normals"></a>
 
 ### Step 1 of 8 · Retain checked source normals beside display positions (`41-normals`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (41-normals): Retain checked source normals beside display positions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/normals.rs, src/lib.rs, src/mesh.rs, src/memory.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original vertex normal</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kernel normal extraction</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite normalized display</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stream</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained payload</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accounting</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/normals.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite normalized displ…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained payload accoun…</text>
 </svg>
-</div>
-
-- **Goal:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
-- **Data Flow Trace:** `original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting`
-- **Files You Touch:** `src/normals.rs` (*Normalize bounded display directions safely while preserving an explicit flat fallback.*) · `src/lib.rs` (*Register normal preparation and its source checks.*) · `src/mesh.rs` (*Retain normal data independently of the established position/colour stream.*) · `src/memory.rs` (*Copy the normal-capacity oracle for a display mesh retaining three normals.*) · `src/normal_source_tests.rs` (*Copy exact original attributes, normalized directions, flat zeros, malformed data and overflow-safe checks.*)
 
 Keep normals in a separate checked stream beside existing display positions and colours. Use the kernel adapter’s source normals; normalize finite nonzero vectors without overflow.
 
 Zero normals keep the existing flat fallback. Retain original attributes untouched and include normal capacity in CPU display accounting before adding its GPU stream.
 
-> **Self-Check Question:** *Why does an absent normal remain a zero vector rather than inventing a smooth normal?*  
-> **Answer:** Zero explicitly requests the existing flat derivative normal. A present kernel normal is the source’s smoothing choice; preserving that distinction keeps sharp surfaces sharp.
-
-- **What You Should See:** Run normal-stream checks. Original attributes remain exact, valid nonzero normals become bounded unit vectors, and missing normals retain the flat fallback.
-- **Hands-On Lab Experiment:** Prepare a source normal of length five. Its display direction is unit length while its original nx/ny/nz attributes remain unchanged.
-
-<details>
-<summary>Implementation 41-normals: Retain checked source normals beside display positions</summary>
-
-Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
-
-Data flow: original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting.
+> **Check:** *Why does an absent normal remain a zero vector rather than inventing a smooth normal?* — Zero explicitly requests the existing flat derivative normal. A present kernel normal is the source’s smoothing choice; preserving that distinction keeps sharp surfaces sharp.
 
 ### 1. `src/normals.rs`
 
@@ -247,15 +108,6 @@ Create the file and type:
 
 Register normal preparation and its source checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -264,25 +116,13 @@ pub mod normals;
 mod normal_source_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41-normals-02.rs"
-```
-
-</details>
-
 ### 3. `src/mesh.rs`
 
 Retain normal data independently of the established position/colour stream. Give manually created display meshes explicit flat normals by default. Carry kernel-extracted normal directions into checked display preparation. Require one finite checked normal per display vertex without touching original geometry. Count actual retained normal capacity in CPU display bytes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let [r, g, b, _] = vertex.color;
@@ -298,8 +138,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -327,8 +165,7 @@ Replace it with:
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if vertices.iter().flatten().any(|value| !value.is_finite()) {
@@ -339,8 +176,6 @@ Replace it with:
 
     pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -355,8 +190,7 @@ Replace it with:
     pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Mesh {
@@ -364,8 +198,6 @@ pub struct Mesh {
     indices: Vec<u32>,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -377,8 +209,7 @@ pub struct Mesh {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Mesh {
@@ -457,37 +288,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41-normals-03.rs"
-```
-
-```text
---8<-- "journey/code/41-normals-04.rs"
-```
-
-```text
---8<-- "journey/code/41-normals-05.rs"
-```
-
-```text
---8<-- "journey/code/41-normals-06.rs"
-```
-
-```text
---8<-- "journey/code/41-normals-07.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -495,25 +296,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the normal-capacity oracle for a display mesh retaining three normals.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-baseline[4] + 16 * 24 + 16 * 4
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/41-normals-08.rs" skip=30
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -527,78 +316,46 @@ Copy this supplied file:
 --8<-- "journey/code/41-normals-09.rs"
 ```
 
-</details>
+**Result after `41-normals`:** Run normal-stream checks. Original attributes remain exact, valid nonzero normals become bounded unit vectors, and missing normals retain the flat fallback.
 
-</details>
+---
 
 <a id="checkpoint-41a-placement"></a>
 
 ### Step 2 of 8 · Transform normals with nonuniform surface placement (`41a-placement`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (41a-placement): Transform normals with nonuniform surface placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/normals.rs, src/lib.rs, src/normal_matrix_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted affine placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cofactor columns</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded common scale</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">oriented world-normal</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matrix</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/normals.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded common scale</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">oriented world-normal m…</text>
 </svg>
-</div>
-
-- **Goal:** Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening.
-- **Data Flow Trace:** `accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix`
-- **Files You Touch:** `src/normals.rs` (*Prepare bounded cofactor columns for oriented affine normal transformation.*) · `src/lib.rs` (*Register nonuniform, reflected and singular placement checks.*) · `src/normal_matrix_tests.rs` (*Copy perpendicularity, translation independence, winding, collapse and finite-range checks.*)
 
 Build the normal matrix from cofactors of the placement’s three linear columns. Translation is excluded. A shared positive rescale keeps GPU entries finite without changing direction.
 
 This follows oriented face winding under reflection and still works for a flattened plane. Rank-one collapse produces zero normals, preserving the flat fallback rather than pretending an inverse exists.
 
-> **Self-Check Question:** *Why does multiplying a normal by the position matrix fail under nonuniform scale?*  
-> **Answer:** A normal must remain perpendicular to transformed tangent vectors. Cofactor columns preserve that relationship and face orientation, including reflections and rank-two flattening.
-
-- **What You Should See:** Inspect perpendicularity, reflection, flattening and extreme-scale tests. Translation does not change the normal matrix.
-- **Hands-On Lab Experiment:** Shear and scale two source tangents differently. Their transformed cross product must align with the transformed source normal.
-
-<details>
-<summary>Implementation 41a-placement: Transform normals with nonuniform surface placement</summary>
-
-Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening.
-
-Data flow: accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix.
+> **Check:** *Why does multiplying a normal by the position matrix fail under nonuniform scale?* — A normal must remain perpendicular to transformed tangent vectors. Cofactor columns preserve that relationship and face orientation, including reflections and rank-two flattening.
 
 ### 1. `src/normals.rs`
 
 Prepare bounded cofactor columns for oriented affine normal transformation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Ok(vector.map(|v| v / length))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -619,29 +376,9 @@ pub fn matrix(model: &session_rust::Xform) -> Result<[f32; 16], &'static str> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41a-placement-01.rs"
-```
-
-</details>
-
 ### 2. `src/lib.rs`
 
 Register nonuniform, reflected and singular placement checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod normals;
-```
-
-</details>
 
 After that block, type:
 
@@ -650,19 +387,7 @@ After that block, type:
 mod normal_matrix_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41a-placement-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -676,113 +401,46 @@ Copy this supplied file:
 --8<-- "journey/code/41a-placement-03.rs"
 ```
 
-</details>
+**Result after `41a-placement`:** Inspect perpendicularity, reflection, flattening and extreme-scale tests. Translation does not change the normal matrix.
 
-</details>
+---
 
 <a id="checkpoint-41b-drawing"></a>
 
 ### Step 3 of 8 · Draw smooth normals and sharp surface faces (`41b-drawing`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (41b-drawing): Draw smooth normals and sharp surface faces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_geometry.rs, src/renderer.rs, src/gpu_mesh.rs, src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source normals</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared GPU normal buffer</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">per-row cofactor uniform</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">interpolated world</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">direction…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_geometry.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">per-row cofactor uniform</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">interpolated world dire…</text>
 </svg>
-</div>
-
-- **Goal:** Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback.
-- **Data Flow Trace:** `checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal`
-- **Files You Touch:** `src/gpu_geometry.rs` (*Share the checked normal stream with the geometry’s existing GPU lifetime.*) · `src/renderer.rs` (*Describe three normal floats in shader attribute two.*) · `src/gpu_mesh.rs` (*Retain previous model, selection and normal-matrix settings for change-only writes.*) · `src/scene.rs` (*Refuse invalid initial placement before consuming an ID or creating a row.*) · `src/geometry_cache.rs` (*Count initialized normal payload separately from retained GPU capacity.*) · `src/triangle.wgsl` (*Keep the shader uniform layout identical to the 144-byte host settings.*) · `src/lib.rs` (*Register atomic placement and normal-stream GPU boundary checks.*) · `src/normal_gpu_tests.rs` (*Copy invalid-placement refusal and unchanged identity-allocation checks.*)
 
 Add one shared normal buffer beside positions and colours. Give each object a bounded cofactor matrix in its placement uniform; translation cannot change its normal direction.
 
 Interpolate present normals across the face, normalize safely in the fragment shader, and use the derivative face normal for explicit zero normals. Count actual normal allocations and initialized bytes separately from later uniform changes.
 
-> **Self-Check Question:** *Why calculate the flat derivative normal even when a smooth normal is present?*  
-> **Answer:** Fragment derivatives need neighbouring invocations. Calculate them before choosing the normal, then safely normalize the selected finite direction without a zero-vector division.
-
-- **What You Should See:** Inspect the supplied state fixtures, then compare Example Face Colors and Example Point Colors. Their source colours still draw correctly with the new normal stream. The next lesson connects a visible normal diagnostic.
-- **Hands-On Lab Experiment:** Rotate and zoom the coloured specimens. Missing source normals retain sharp-face lighting; camera movement must not rebuild the geometry buffers.
-
-<details>
-<summary>Implementation 41b-drawing: Draw smooth normals and sharp surface faces</summary>
-
-Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback.
-
-Data flow: checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal.
+> **Check:** *Why calculate the flat derivative normal even when a smooth normal is present?* — Fragment derivatives need neighbouring invocations. Calculate them before choosing the normal, then safely normalize the selected finite direction without a zero-vector division.
 
 ### 1. `src/gpu_geometry.rs`
 
 Share the checked normal stream with the geometry’s existing GPU lifetime. Upload three finite floats for each display vertex normal. Retain the normal allocation beside position and index buffers. Report actual normal allocation bytes as shared geometry. Bind the normal stream independently from position and colour attributes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
-
-pub struct GpuGeometry {
-    pub source: Rc<Mesh>,
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-}
-
-impl GpuGeometry {
-    pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
-        let bytes: Vec<u8> = source.vertices().iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh vertices"), contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = source.indices().iter()
-            .flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh indices"), contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        let index_count = source.indices().len() as u32;
-        Self { source, vertices, indices, index_count }
-    }
-
-    pub fn allocated_bytes(&self) -> u64 { self.vertices.size() + self.indices.size() }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -832,46 +490,9 @@ impl GpuGeometry {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-01.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-02.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-03.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-04.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-05.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Describe three normal floats in shader attribute two.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }],
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -883,25 +504,13 @@ Edit the existing block to match this code; keep unchanged lines:
                 }],
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-06.rs"
-```
-
-</details>
-
 ### 3. `src/gpu_mesh.rs`
 
 Retain previous model, selection and normal-matrix settings for change-only writes. Allocate 64 model bytes, 16 selection bytes and 64 normal-matrix bytes. Serialize bounded normal cofactors after model and selection settings. Rewrite only the settings region whose bytes changed.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
@@ -912,8 +521,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 queue.write_buffer(&self.model, start as u64, &next[start..end]);
                 writes[0] += 1;
 ```
-
-</details>
 
 Replace it with:
 
@@ -927,8 +534,7 @@ Replace it with:
                 writes[0] += 1;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     model_group: wgpu::BindGroup,
@@ -947,8 +553,6 @@ fn settings(object: &Object, selected: bool) -> [u8; 80] {
     bytes
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -974,8 +578,7 @@ fn settings(object: &Object, selected: bool) -> [u8; 144] {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -1050,44 +653,9 @@ impl GpuMesh {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-07.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-08.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-09.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-10.rs"
-```
-
-</details>
-
 ### 4. `src/scene.rs`
 
 Refuse invalid initial placement before consuming an ID or creating a row.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1097,29 +665,9 @@ Edit the existing block to match this code; keep unchanged lines:
         let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-11.rs"
-```
-
-</details>
-
 ### 5. `src/geometry_cache.rs`
 
 Count initialized normal payload separately from retained GPU capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.uploaded_bytes += (source.vertices().len() * 24 + source.indices().len() * 4) as u64;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1127,29 +675,9 @@ Edit the existing block to match this code; keep unchanged lines:
         self.uploaded_bytes += (source.vertices().len() * 24 + source.normals().len() * 12 + source.indices().len() * 4) as u64;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-12.rs"
-```
-
-</details>
-
 ### 6. `src/renderer.rs`
 
 Count complete initial object settings without confusing the separate ink view uniform.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 80 + self.settings_bytes as u64
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1157,60 +685,9 @@ Edit the existing block to match this code; keep unchanged lines:
         self.geometry.uploaded_bytes + self.settings_allocations as u64 * 144 + self.settings_bytes as u64
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-13.rs"
-```
-
-</details>
-
 ### 7. `src/triangle.wgsl`
 
 Keep the shader uniform layout identical to the 144-byte host settings. Interpolate the placed source normal across the rasterized face. Read the normal attribute from the separate shared stream. Transform a direction without adding the object’s translation. Choose source smoothing or sharp derivatives, then normalize without zero division or squaring huge vectors.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = transform * world;
-    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x > 0.5);
-    output.world = world.xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
-    // Neighbouring fragments give two directions along this triangle's surface.
-    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1256,45 +733,9 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-14.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-15.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-16.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-17.rs"
-```
-
-```text
---8<-- "journey/code/41b-drawing-18.rs"
-```
-
-</details>
-
 ### 8. `src/lib.rs`
 
 Register atomic placement and normal-stream GPU boundary checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod normals;
-```
-
-</details>
 
 After that block, type:
 
@@ -1303,19 +744,7 @@ After that block, type:
 mod normal_gpu_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41b-drawing-19.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1329,65 +758,42 @@ Copy this supplied file:
 --8<-- "journey/code/41b-drawing-20.rs"
 ```
 
-</details>
+**Result after `41b-drawing`:** Inspect the supplied state fixtures, then compare Example Face Colors and Example Point Colors. Their source colours still draw correctly with the new normal stream. The next lesson connects a visible normal diagnostic.
 
-</details>
+---
 
 <a id="checkpoint-41c-view"></a>
 
 ### Step 4 of 8 · Reveal oriented world normals in the renderer (`41c-view`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (41c-view): Reveal oriented world normals in the renderer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/triangle.wgsl, src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source normals or sharp</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derivatives</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual front-facing</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">orientation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world-normal RGB</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view-only camera settings</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/triang…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world-normal RGB</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">view-only camera settin…</text>
 </svg>
-</div>
-
-- **Goal:** Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history.
-- **Data Flow Trace:** `source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings`
-- **Files You Touch:** `src/editor.rs` (*Expose source insertion and normal diagnostics as separate editor actions.*) · `src/triangle.wgsl` (*Describe camera transform and diagnostic mode in the view uniform.*) · `src/renderer.rs` (*Allocate the complete camera and diagnostic uniform.*) · `src/browser.rs` (*Pass the editor’s diagnostic setting to actual initial or subsequent browser drawing.*) · `src/lib.rs` (*Register the source-history independence check.*) · `src/normal_view_tests.rs` (*Copy the check that viewing normals preserves geometry, identity and Undo.*)
 
 View Normals On turns oriented world-normal components into RGB. Compare it with View Normals Off on the existing coloured faces.
 
 The front-facing flag recovers the source orientation of sharp faces from screen derivatives. Source smooth normals take precedence when present. Camera settings select diagnostics without changing original colours or document history.
 
-> **Self-Check Question:** *Why do derivatives alone fail to distinguish opposite source face winding?*  
-> **Answer:** They follow neighbouring rasterized points, so reversed vertex order produces the same screen derivatives. The actual front-facing flag restores oriented sharp-face normals.
-
-- **What You Should See:** Close, type Example Face Colors, then View Normals On. Both flat faces become lavender: their world normals point along positive Z. View Normals Off restores their red and blue source colours.
-- **Hands-On Lab Experiment:** With normals on, rotate the camera and zoom. The face colours stay lavender because the displayed direction is in world coordinates. Toggle normals off and Undo: one Undo still removes the source specimen.
-
-<details>
-<summary>Implementation 41c-view: Reveal oriented world normals in the renderer</summary>
-
-Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history.
-
-Data flow: source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings.
+> **Check:** *Why do derivatives alone fail to distinguish opposite source face winding?* — They follow neighbouring rasterized points, so reversed vertex order produces the same screen derivatives. The actual front-facing flag restores oriented sharp-face normals.
 
 ### 1. `src/editor.rs`
 
@@ -1395,8 +801,7 @@ Expose source insertion and normal diagnostics as separate editor actions. Retai
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             view => {
@@ -1406,8 +811,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     Action::Pan(dx, dy) => self.camera.pan(dx, dy),
                     Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1421,8 +824,7 @@ Replace it with:
                     Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             selected: None,
@@ -1432,8 +834,6 @@ Replace it with:
             last_release: 0,
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1447,8 +847,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub selected: Option<ObjectId>,
@@ -1458,8 +857,6 @@ Replace it with:
     last_release: u64,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1473,8 +870,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     AddPoint,
@@ -1484,8 +880,6 @@ Replace it with:
     AddPolyline,
     AddArrow,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1499,8 +893,7 @@ Replace it with:
     AddArrow,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1904,81 +1297,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41c-view-03.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-04.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-05.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-06.rs"
-```
-
-</details>
-
 ### 2. `src/triangle.wgsl`
 
 Describe camera transform and diagnostic mode in the view uniform. Use the transform field of the extended view settings. Receive actual face orientation rather than inferring winding from lighting. Recover oriented sharp-face normals from raster derivatives and actual front-facing state. Map oriented world-normal components into visible diagnostic RGB.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<f32>,
-    normal_matrix: mat4x4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = transform * world;
-    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x > 0.5);
-    output.world = world.xyz;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let face = cross(dpdx(input.world), dpdy(input.world));
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2028,41 +1349,13 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41c-view-07.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-08.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-09.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-10.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-11.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Allocate the complete camera and diagnostic uniform. Draw either actual surface lighting or normal diagnostics with shared geometry and ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         view: &wgpu::TextureView,
@@ -2074,8 +1367,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.strokes.view(&self.queue, transform, self.size, self.density);
         self.paths.view(&self.queue, transform, self.size, self.density);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2096,8 +1387,7 @@ Replace it with:
         self.paths.view(&self.queue, transform, self.size, self.density);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             cache: None,
@@ -2109,8 +1399,6 @@ Replace it with:
             mapped_at_creation: false,
         });
 ```
-
-</details>
 
 Replace it with:
 
@@ -2125,8 +1413,7 @@ Replace it with:
         });
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2355,31 +1642,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41c-view-12.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-13.rs"
-```
-
-</details>
-
 ### 4. `src/browser.rs`
 
 Pass the editor’s diagnostic setting to actual initial or subsequent browser drawing. Carry diagnostic mode through browser surface presentation. Present actual diagnostic pixels through the maintained surface renderer. Expose current view mode for actual command verification. Offer normal visualization through completion and Help. Connect actual typed commands to the independent view setting.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         format: Some(frame.texture.format().add_srgb_suffix()),
@@ -2390,8 +1659,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     frame.present();
     Ok(())
 ```
-
-</details>
 
 Replace it with:
 
@@ -2405,8 +1672,7 @@ Replace it with:
     Ok(())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     renderer: &Renderer,
@@ -2416,8 +1682,6 @@ Replace it with:
 ) -> Result<(), JsValue> {
     let frame = match surface.get_current_texture() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2431,8 +1695,7 @@ Replace it with:
     let frame = match surface.get_current_texture() {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
@@ -2442,8 +1705,6 @@ Replace it with:
     canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
     let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2457,8 +1718,7 @@ Replace it with:
     let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 &renderer,
@@ -2468,8 +1728,6 @@ Replace it with:
             ) {
                 report(&format!("Cannot redraw: {error:?}"));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2483,8 +1741,7 @@ Replace it with:
                 report(&format!("Cannot redraw: {error:?}"));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "example object color" => Action::AddColours(crate::colour::Mode::Object),
@@ -2494,8 +1751,6 @@ Replace it with:
                     "controls off" => Action::Controls(false),
                     "example polyline" => Action::AddPolyline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2511,8 +1766,7 @@ Replace it with:
                     "example polyline" => Action::AddPolyline,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             &renderer,
@@ -2522,8 +1776,6 @@ Replace it with:
         )?;
         let completing = fault.clone();
 ```
-
-</details>
 
 Replace it with:
 
@@ -2537,8 +1789,7 @@ Replace it with:
         let completing = fault.clone();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Example Object Color",
@@ -2548,8 +1799,6 @@ Replace it with:
             "Controls Off",
             "Example Polyline",
 ```
-
-</details>
 
 Replace it with:
 
@@ -2565,8 +1814,7 @@ Replace it with:
             "Example Polyline",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -3223,55 +2471,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41c-view-14.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-15.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-16.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-17.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-18.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-19.rs"
-```
-
-```text
---8<-- "journey/code/41c-view-20.rs"
-```
-
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the source-history independence check.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod normals;
-```
-
-</details>
 
 After that block, type:
 
@@ -3280,19 +2482,7 @@ After that block, type:
 mod normal_view_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41c-view-21.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3306,73 +2496,42 @@ Copy this supplied file:
 --8<-- "journey/code/41c-view-22.rs"
 ```
 
-</details>
+**Result after `41c-view`:** Close, type Example Face Colors, then View Normals On. Both flat faces become lavender: their world normals point along positive Z. View Normals Off restores their red and blue source colours.
 
-</details>
+---
 
 <a id="checkpoint-41ca-input"></a>
 
 ### Step 5 of 8 · Inspect smooth normals and face winding through commands (`41ca-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (41ca-input): Inspect smooth normals and face winding through commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/normal_example.rs, src/editor.rs, src/browser.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sharp / smooth /</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">winding…</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one original mesh</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">insertion</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">View Normals</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">diagnostic</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual direction</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixels</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source Save / reopen</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/normal_example.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">View Normals diagnostic</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source Save / reopen</text>
 </svg>
-</div>
-
-- **Goal:** Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.
-- **Data Flow Trace:** `sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen`
-- **Files You Touch:** `src/normal_example.rs` (*Create original source specimens with missing, smooth or oppositely wound normals.*) · `src/editor.rs` (*Expose source insertion and normal diagnostics as separate editor actions.*) · `src/browser.rs` (*Expose normal specimens and diagnostics in actual dock completion and Help.*) · `src/lib.rs` (*Register source normal attributes, view independence, history and editable roundtrip checks.*) · `src/normal_input_tests.rs` (*Copy source normal attributes, exact protobuf roundtrip, independent view mode, one-step history and Close checks.*)
 
 Insert original sharp, smooth and oppositely wound surfaces through dock commands. View Normals On maps world-normal components from minus one through plus one into visible RGB.
 
 Recover oriented sharp-face normals using the actual front-facing flag. Keep this view setting outside document history; Save/reopen preserves original normal attributes rather than diagnostic pixel colours.
 
-Keep the oppositely wound panels topologically independent: the kernel’s load policy repairs inconsistent winding across a shared edge.
-
-> **Self-Check Question:** *Why does a normals view need the front-facing flag for a sharp face?*  
-> **Answer:** Screen-space derivatives describe the same rasterized surface even when its vertex order reverses. The front-facing flag recovers the oriented face direction, so reversed winding becomes visible.
-
-- **What You Should See:** Close, type Example Winding, then View Normals On. The neighbouring source faces show opposite blue components; View Normals Off restores surface lighting.
-- **Hands-On Lab Experiment:** Compare Example Sharp and Example Smooth using View Normals On. The sharp face stays one direction; the smooth face interpolates its original vertex directions.
-
-<details>
-<summary>Implementation 41ca-input: Inspect smooth normals and face winding through commands</summary>
-
-Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.
-
-Data flow: sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen.
+> **Check:** *Why does a normals view need the front-facing flag for a sharp face?* — Screen-space derivatives describe the same rasterized surface even when its vertex order reverses. The front-facing flag recovers the oriented face direction, so reversed winding becomes visible.
 
 ### 1. `src/normal_example.rs`
 
@@ -3390,8 +2549,7 @@ Expose source insertion and normal diagnostics as separate editor actions. Commi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
@@ -3401,8 +2559,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
                 self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -3419,8 +2575,7 @@ Replace it with:
                 self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     AddCurve,
@@ -3430,8 +2585,6 @@ Replace it with:
     AddPolyline,
     AddArrow,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3445,8 +2598,7 @@ Replace it with:
     AddArrow,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3855,31 +3007,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41ca-input-01.rs"
-```
-
-```text
---8<-- "journey/code/41ca-input-02.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Expose normal specimens and diagnostics in actual dock completion and Help. Dispatch real command input through source and view actions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
@@ -3890,8 +3024,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     "controls off" => Action::Controls(false),
                     "example polyline" => Action::AddPolyline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3903,14 +3035,12 @@ Replace it with:
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
 
-
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
                     "example polyline" => Action::AddPolyline,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Example Face Colors",
@@ -3921,8 +3051,6 @@ Replace it with:
             "Controls Off",
             "Example Polyline",
 ```
-
-</details>
 
 Replace it with:
 
@@ -3934,14 +3062,12 @@ Replace it with:
             "Example Smooth",
             "Example Winding",
 
-
             "Controls On",
             "Controls Off",
             "Example Polyline",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -4076,7 +3202,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
 
             "Controls On",
             "Controls Off",
@@ -4285,7 +3410,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                     "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
-
 
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
@@ -4606,35 +3730,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41ca-input-03.rs"
-```
-
-```text
---8<-- "journey/code/41ca-input-04.rs"
-```
-
-</details>
-
 ### 4. `src/lib.rs`
 
 Register source normal attributes, view independence, history and editable roundtrip checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod normals;
-```
-
-</details>
 
 After that block, type:
 
@@ -4644,19 +3742,7 @@ pub mod normal_example;
 mod normal_input_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41ca-input-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4670,65 +3756,42 @@ Copy this supplied file:
 --8<-- "journey/code/41ca-input-05.rs"
 ```
 
-</details>
+**Result after `41ca-input`:** Close, type Example Winding, then View Normals On. The neighbouring source faces show opposite blue components; View Normals Off restores surface lighting.
 
-</details>
+---
 
 <a id="checkpoint-41d-grid"></a>
 
 ### Step 6 of 8 · Bound the ground grid and its camera depth range (`41d-grid`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (41d-grid): Bound the ground grid and its camera depth range</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/grid.rs, src/lib.rs, src/camera.rs, src/grid_source_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked spacing and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite floor lines and BRG</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">axes</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">corner/axis depth reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera far range</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/grid.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">corner/axis depth reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera far range</text>
 </svg>
-</div>
-
-- **Goal:** Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range.
-- **Data Flow Trace:** `checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range`
-- **Files You Touch:** `src/grid.rs` (*Validate and prepare finite grid lines, current axis colours and depth-reach reference points.*) · `src/lib.rs` (*Register bounded ground-grid preparation and camera-range checks.*) · `src/camera.rs` (*Retain the enabled grid extent independently of source scene bounds.*) · `src/grid_source_tests.rs` (*Copy checked grid capacity, source colour values, invalid input and actual camera corner-depth checks.*)
 
 Build finite floor lines and the current pink, yellow-green and blue axes. Validate spacing and cap the number of cells before allocating display data.
 
 Include grid corners and axis ends in camera depth reach when enabled. Keep Fit tied to source geometry; extending the depth range does not enlarge the source object.
 
-> **Self-Check Question:** *Why can fitting a small object accidentally clip a large ground grid?*  
-> **Answer:** The scene radius only covers the object. The far depth range must also reach the grid corners relative to the camera target, without changing the object’s Fit bounds.
-
-- **What You Should See:** Run bounded-grid and depth-range checks. Grid data has a fixed checked maximum, current axis colours and camera reach that includes its distant corners.
-- **Hands-On Lab Experiment:** Fit a small scene and orbit into an isometric view. Compare a distant grid corner’s depth with the grid disabled and enabled.
-
-<details>
-<summary>Implementation 41d-grid: Bound the ground grid and its camera depth range</summary>
-
-Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range.
-
-Data flow: checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range.
+> **Check:** *Why can fitting a small object accidentally clip a large ground grid?* — The scene radius only covers the object. The far depth range must also reach the grid corners relative to the camera target, without changing the object’s Fit bounds.
 
 ### 1. `src/grid.rs`
 
@@ -4744,15 +3807,6 @@ Create the file and type:
 
 Register bounded ground-grid preparation and camera-range checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod normal_example;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -4761,25 +3815,13 @@ pub mod grid;
 mod grid_source_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41d-grid-02.rs"
-```
-
-</details>
-
 ### 3. `src/camera.rs`
 
 Retain the enabled grid extent independently of source scene bounds. Keep prior camera drawing unchanged until actual grid input enables it. Include grid corners in enabled far depth without altering source Fit bounds.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         );
@@ -4790,8 +3832,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Projection::Perspective => Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far),
             Projection::Orthographic => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4806,8 +3846,7 @@ Replace it with:
             Projection::Orthographic => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
@@ -4817,8 +3856,6 @@ Replace it with:
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4832,8 +3869,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub orientation: Quaternion,
@@ -4843,8 +3879,6 @@ Replace it with:
 
 impl Default for Camera {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4858,8 +3892,7 @@ Replace it with:
 impl Default for Camera {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use session_rust::{Point, Quaternion, Vector, Xform};
@@ -5070,29 +4103,7 @@ mod orthographic_range_tests{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41d-grid-03.rs"
-```
-
-```text
---8<-- "journey/code/41d-grid-04.rs"
-```
-
-```text
---8<-- "journey/code/41d-grid-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5106,20 +4117,9 @@ Copy this supplied file:
 --8<-- "journey/code/41d-grid-06.rs"
 ```
 
-</details>
-
 ### 5. `src/camera.rs`
 
 Cover enabled grid corners in the same orthographic depth interval.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                let depth_range = (self.distance + 2.0 * self.radius).max(1.0e-6);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5127,94 +4127,46 @@ Edit the existing block to match this code; keep unchanged lines:
                 let depth_range = (self.distance + 2.0 * reach).max(1.0e-6);
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `41d-grid`:** Run bounded-grid and depth-range checks. Grid data has a fixed checked maximum, current axis colours and camera reach that includes its distant corners.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41d-grid-orthographic-depth.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-41e-drawing"></a>
 
 ### Step 7 of 8 · Draw a depth-correct grid with shared stroke buffers (`41e-drawing`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (41e-drawing): Draw a depth-correct grid with shared stroke buffers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/depth.rs, src/stroke_gpu.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked grid strokes</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared 44-byte lane</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">read-only strict</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual floor/axis</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixels</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">change-only buffer</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ownership</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/depth.rs, src/stroke_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">read-only strict depth</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">change-only buffer owne…</text>
 </svg>
-</div>
-
-- **Goal:** Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting.
-- **Data Flow Trace:** `checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership`
-- **Files You Touch:** `src/depth.rs` (*Hide coplanar grid ink without changing source strokes’ equal-depth drawing policy.*) · `src/stroke_gpu.rs` (*Share stroke preparation while choosing a separate grid depth policy.*) · `src/renderer.rs` (*Own grid display data independently from document geometry.*)
 
 Reuse the existing CSS stroke lane for the finite grid and axes. Give its pipeline strict read-only surface depth; draw it after surfaces and before source ink.
 
 Keep grid buffers independent from document ownership. Upload changed grid data only, count initialized payload separately from current capacity, and release the active allocation when disabled.
 
-Cache accepted grid settings as well as packed bytes, so camera events do not rebuild identical grid data on the CPU.
-
-> **Self-Check Question:** *Why does ground-grid ink use a strict depth comparison?*  
-> **Answer:** A source face on or above the ground hides the grid. Read-only Less keeps a coplanar grid from overlaying the face, while grid lines in front of below-ground geometry remain visible.
-
-- **What You Should See:** Inspect the supplied state fixtures and open the viewer. Its existing normal and colour commands still work. The grid renderer is ready; the next lesson connects View Grid On and Off.
-- **Hands-On Lab Experiment:** Use View Normals On and Off, then rotate and zoom. The independent grid lane must leave the existing surface view usable.
-
-<details>
-<summary>Implementation 41e-drawing: Draw a depth-correct grid with shared stroke buffers</summary>
-
-Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting.
-
-Data flow: checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership.
+> **Check:** *Why does ground-grid ink use a strict depth comparison?* — A source face on or above the ground hides the grid. Read-only Less keeps a coplanar grid from overlaying the face, while grid lines in front of below-ground geometry remain visible.
 
 ### 1. `src/depth.rs`
 
 Hide coplanar grid ink without changing source strokes’ equal-depth drawing policy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn ink() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::LessEqual) }
-```
-
-</details>
 
 After that block, type:
 
@@ -5222,25 +4174,13 @@ After that block, type:
 pub fn grid() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::Less) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41e-drawing-01.rs"
-```
-
-</details>
-
 ### 2. `src/stroke_gpu.rs`
 
 Share stroke preparation while choosing a separate grid depth policy. Use the caller’s explicit ink or grid depth policy.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     write_mask: wgpu::ColorWrites::ALL })],
@@ -5251,8 +4191,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         });
         let uniform = device.create_buffer(&wgpu::BufferDescriptor { label: Some("stroke view"), size: 80,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5266,8 +4204,7 @@ Replace it with:
         let uniform = device.create_buffer(&wgpu::BufferDescriptor { label: Some("stroke view"), size: 80,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5277,8 +4214,6 @@ Replace it with:
             label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),
         });
 ```
-
-</details>
 
 Replace it with:
 
@@ -5302,8 +4237,7 @@ Replace it with:
         });
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -5442,31 +4376,13 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41e-drawing-02.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-03.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Own grid display data independently from document geometry. Create an empty depth-correct grid pipeline. Retain the grid lane for the renderer lifetime. Validate grid settings before mutation and expose actual grid bytes and uploads. Include initialized grid payload in cumulative uploads without mixing current allocations. Update only grid view settings when the camera or display density changes. Draw the grid against actual surface depth before original source ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             for mesh in &self.meshes {
@@ -5476,8 +4392,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.paths.draw(&mut pass);
             self.markers.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5491,8 +4405,7 @@ Replace it with:
             self.markers.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.strokes.view(&self.queue, transform, self.size, self.density);
@@ -5502,8 +4415,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5517,8 +4428,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5529,8 +4439,6 @@ Replace it with:
 
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5554,8 +4462,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let strokes = crate::stroke_gpu::Lane::new(&device, format);
@@ -5568,8 +4475,6 @@ Replace it with:
         renderer
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5586,8 +4491,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     strokes: crate::stroke_gpu::Lane,
@@ -5597,8 +4501,6 @@ Replace it with:
     density: f32,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5613,8 +4515,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5858,105 +4759,42 @@ impl Renderer {
 }
 ```
 
-</details>
+**Result after `41e-drawing`:** Inspect the supplied state fixtures and open the viewer. Its existing normal and colour commands still work. The grid renderer is ready; the next lesson connects View Grid On and Off.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41e-drawing-04.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-05.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-06.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-07.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-08.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-09.rs"
-```
-
-```text
---8<-- "journey/code/41e-drawing-10.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-41f-input"></a>
 
 ### Step 8 of 8 · Inspect the ground grid through actual commands (`41f-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (41f-input): Inspect the ground grid through actual commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/lib.rs, src/grid_input_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">View Grid On / Off</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated camera</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">grid…</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached renderer grid</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lane</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual BRG pixels</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view-only history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached renderer grid la…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">view-only history</text>
 </svg>
-</div>
-
-- **Goal:** Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
-- **Data Flow Trace:** `View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history`
-- **Files You Touch:** `src/editor.rs` (*Expose checked viewport grid state through editor input.*) · `src/browser.rs` (*Expose actual grid input in dock completion and Help.*) · `src/lib.rs` (*Register atomic grid state, camera reset and source-history checks.*) · `src/grid_input_tests.rs` (*Copy validation atomicity, reset preservation, view-only history and independent source/grid release checks.*)
 
 Add View Grid On and View Grid Off as view actions. Validate settings before changing the camera; synchronize only changed grid settings before actual browser inspection and drawing.
 
 Keep the grid through pose reset and document Close. Its allocation belongs to the viewport, so turning the grid off releases it independently from original scene geometry and history.
 
-> **Self-Check Question:** *What should View Reset and Close do to the ground grid?*  
-> **Answer:** View Reset changes the pose and preserves the grid setting. Close releases document geometry and history while the viewport grid remains; View Grid Off releases its active buffer.
-
-- **What You Should See:** Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.
-- **Hands-On Lab Experiment:** Insert Example Sharp, toggle the grid and reset the view. One Undo still removes that source insertion; grid settings never enter document history.
-
-<details>
-<summary>Implementation 41f-input: Inspect the ground grid through actual commands</summary>
-
-Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
-
-Data flow: View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history.
+> **Check:** *What should View Reset and Close do to the ground grid?* — View Reset changes the pose and preserves the grid setting. Close releases document geometry and history while the viewport grid remains; View Grid Off releases its active buffer.
 
 ### 1. `src/editor.rs`
 
@@ -5964,8 +4802,7 @@ Expose checked viewport grid state through editor input. Validate finite grid se
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     }
@@ -5976,8 +4813,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     _ => unreachable!("Document actions were handled above"),
                 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5991,8 +4826,7 @@ Replace it with:
                 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 match view {
@@ -6002,8 +4836,6 @@ Replace it with:
                     Action::Pan(dx, dy) => self.camera.pan(dx, dy),
                     Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
 ```
-
-</details>
 
 Replace it with:
 
@@ -6020,8 +4852,7 @@ Replace it with:
                     Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     AddCurve,
@@ -6031,8 +4862,6 @@ Replace it with:
     Controls(bool),
     AddPolyline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6046,8 +4875,7 @@ Replace it with:
     AddPolyline,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6461,35 +5289,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41f-input-01.rs"
-```
-
-```text
---8<-- "journey/code/41f-input-02.rs"
-```
-
-```text
---8<-- "journey/code/41f-input-03.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Expose actual grid input in dock completion and Help. Dispatch real viewport grid commands through checked editor actions. Synchronize cached grid state before reporting or presenting the actual frame. Expose actual enabled state and grid allocation/upload counters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
@@ -6499,8 +5305,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
     canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6515,8 +5319,7 @@ Replace it with:
     canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -6526,8 +5329,6 @@ Replace it with:
             report(&format!("Cannot report projection: {error:?}"));
             return;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6543,8 +5344,7 @@ Replace it with:
             return;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
@@ -6554,8 +5354,6 @@ Replace it with:
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
 ```
-
-</details>
 
 Replace it with:
 
@@ -6570,8 +5368,7 @@ Replace it with:
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Example Face Colors",
@@ -6581,8 +5378,6 @@ Replace it with:
             "Example Smooth",
             "Example Winding",
 ```
-
-</details>
 
 Replace it with:
 
@@ -6597,8 +5392,7 @@ Replace it with:
             "Example Winding",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -6735,7 +5529,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
 
             "Controls On",
             "Controls Off",
@@ -6946,7 +5739,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                     "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
-
 
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
@@ -7272,43 +6064,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41f-input-04.rs"
-```
-
-```text
---8<-- "journey/code/41f-input-05.rs"
-```
-
-```text
---8<-- "journey/code/41f-input-06.rs"
-```
-
-```text
---8<-- "journey/code/41f-input-07.rs"
-```
-
-</details>
-
 ### 3. `src/lib.rs`
 
 Register atomic grid state, camera reset and source-history checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod grid;
-```
-
-</details>
 
 After that block, type:
 
@@ -7317,19 +6075,7 @@ After that block, type:
 mod grid_input_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/41f-input-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7343,31 +6089,21 @@ Copy this supplied file:
 --8<-- "journey/code/41f-input-09.rs"
 ```
 
-</details>
-
-</details>
+**Result after `41f-input`:** Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 41f-input
-npm --prefix ../session_tests run course -- check 41f-input
-npm --prefix ../session_tests run course -- save 41f-input
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 5.7
+npm --prefix ../session_tests run course -- save 5.7
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 5.7 (41f-input)](../../../screenshots/journey/41f-input-browser.png)
-
-Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.
-
-- **Final Lesson Experiment:** Insert Example Sharp, toggle the grid and reset the view. One Undo still removes that source insertion; grid settings never enter document history.
+Continue with [6.1 · A bounded integer picking pass](../../consolidation/42-window.md).

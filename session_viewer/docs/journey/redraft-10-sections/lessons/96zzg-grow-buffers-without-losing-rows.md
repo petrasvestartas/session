@@ -1,223 +1,100 @@
 # 20.3 · Shared arenas, object records and source preparation
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.3** (Redraft `10.7`) · **14 checkpoints (`96zzg-grow-buffers-without-losing-rows` → `96zzt-share-the-current-selection-yellow`)** · **Study time: 10–14 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzg-grow-buffers-without-losing-rows` → `96zzt-share-the-current-selection-yellow` (14 steps) · **Production source:** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs)
 
-> **What You Will Learn & Build:** Preserve uploaded GPU records when a shared buffer grows. By the final checkpoint (`96zzt-share-the-current-selection-yellow`), you will use the current selection yellow for surfaces and temporary highlights without changing original colors.
+> **Goal:** Use the current selection yellow for surfaces and temporary highlights without changing original colors.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 20.3 Pipeline Schematic: Shared arenas, object records and source preparation</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (14 Checkpoints: 96zzg-grow-buffers-without-losing-rows → 96zzt-share-the-current-selection-yellow)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="110" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="192" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow existing rows</text>
-    <text x="110" y="124" text-anchor="middle" font-size="11" fill="#111111">through buffer</text>
-    <text x="110" y="140" text-anchor="middle" font-size="11" fill="#111111">replacement,…</text>
-    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="224" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="234" y1="90" x2="398" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">Session palette</text>
-    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="430" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="522" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="440" y1="90" x2="604" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">CPU highlight data and</text>
-    <text x="522" y="124" text-anchor="middle" font-size="11" fill="#111111">shared WGSL</text>
-    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="636" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="728" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="646" y1="90" x2="810" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">selected display</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 20.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/text_gpu_support.rs  ·  src/growing_buffer_tests.rs  ·  src/lib.rs  ·  src/arena_rows.rs  ·  src/arena_rows_tests.rs  ·  src/mesh_arena.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">14 Checkpoints: 96zzg-grow-buffers-without-losing-rows → 96zzt-share-the-current-selection-yellow — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzg-grow-buffers-without-losing-rows`](#checkpoint-96zzg-grow-buffers-without-losing-rows) | Preserve uploaded GPU records when a shared buffer grows. | `src/text_gpu_support.rs`, `src/growing_buffer_tests.rs`, `src/lib.rs` | `Follow existing rows through buffer replacement, an ordered GPU copy and the next append.` |
-| **2** | [`96zzh-prepare-shared-compact-mesh-ranges`](#checkpoint-96zzh-prepare-shared-compact-mesh-ranges) | Prepare shared packed records and stable ranges without pinning display sources. | `src/arena_rows.rs`, `src/arena_rows_tests.rs`, `src/lib.rs` | `Follow a local mesh index into its arena vertex offset and a reused range for shared placements.` |
-| **3** | [`96zzi-upload-compact-ranges-to-shared-gpu-storage`](#checkpoint-96zzi-upload-compact-ranges-to-shared-gpu-storage) | Upload shared compact ranges and refresh immutable bindings after buffer growth. | `src/arena_rows.rs`, `src/mesh_arena.rs`, `src/lib.rs`, `src/growing_buffer_tests.rs` | `Follow an appended range into buffer growth and the replacement shared bind group.` |
-| **4** | [`96zzj-share-the-object-record-layout`](#checkpoint-96zzj-share-the-object-record-layout) | Share the host object-record size across uniform and instance consumers. | `src/object_record.rs`, `src/lib.rs`, `src/gpu_mesh.rs`, `src/instance_gpu.rs` | `packed object bytes → uniform binding or instance array stride → WGSL object fields` |
-| **5** | [`96zzk-borrow-the-current-arena-buffers`](#checkpoint-96zzk-borrow-the-current-arena-buffers) | Use one geometry interface for standalone and current shared storage. | `src/gpu_geometry.rs`, `src/face_pick.rs`, `src/tile_gpu.rs`, `src/caps_gpu.rs` | `geometry lease → arena owner → current vertex, index and binding handles` |
-| **6** | [`96zzl-read-shared-ranges-through-object-records`](#checkpoint-96zzl-read-shared-ranges-through-object-records) | Read an arena range without changing original owners or local triangle identity. | `src/object_record.rs`, `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/cap_count.wgsl` | `object range start → shared index → shared packed vertex → original draw and triangle owner` |
-| **7** | [`96zzm-connect-the-renderer-to-one-mesh-arena`](#checkpoint-96zzm-connect-the-renderer-to-one-mesh-arena) | Render prepared source meshes through one shared arena and release its owner when unused. | `src/geometry_cache.rs`, `src/renderer.rs`, `src/browser.rs`, `src/global_outline_tests.rs` | `prepared mesh → cached geometry lease → shared arena → object range → existing renderer passes` |
-| **8** | [`96zzn-describe-eight-byte-draw-slots`](#checkpoint-96zzn-describe-eight-byte-draw-slots) | Store an object row and primitive ID base in one instance-step vertex record. | `src/draw_slots.rs`, `src/lib.rs`, `src/draw_slots_tests.rs` | `object row + primitive ID base → eight-byte slot → instance-step vertex input` |
-| **9** | [`96zzo-read-instance-properties-through-draw-slots`](#checkpoint-96zzo-read-instance-properties-through-draw-slots) | Connect compact draw slots to the existing instance color pipeline. | `src/draw_slots.rs`, `src/instance_gpu.rs`, `src/object_record_tests.rs`, `src/pick_gpu_tests.rs` | `instance slot → property record + ID base → shared mesh range → color and physical triangle` |
-| **10** | [`96zzp-classify-contact-fill-shading`](#checkpoint-96zzp-classify-contact-fill-shading) | Read the contact marker from packed RGBA and keep that display fill opaque and unlit. | `src/triangle.wgsl`, `src/face_pick.wgsl`, `src/global_outline_tests.rs` | `derived RGBA → packed vertex → contact classification → opaque unlit display` |
-| **11** | [`96zzq-open-files-through-one-measured-session-reader`](#checkpoint-96zzq-open-files-through-one-measured-session-reader) | Prepare browser file imports once through the measured full original-document reader. | `src/load_measure.rs`, `src/document_source.rs`, `src/source_phase_tests.rs`, `src/lib.rs` | `file bytes → decode → full validation → kernel → display walk → atomic history adoption` |
-| **12** | [`96zzr-route-current-close-and-opacity-commands`](#checkpoint-96zzr-route-current-close-and-opacity-commands) | Finish an active curve with Close and read the current Opacity argument convention. | `src/commands.rs`, `src/editor.rs`, `src/opacity_command_tests.rs`, `src/current_command_tests.rs` | `command words → existing editor action → draft or display state` |
-| **13** | [`96zzs-reuse-full-source-preparation-for-editor-and-reload`](#checkpoint-96zzs-reuse-full-source-preparation-for-editor-and-reload) | Reuse the full Session reader for byte actions and released mesh sources. | `src/editor.rs`, `src/document.rs`, `src/full_source_action_tests.rs`, `src/lib.rs` | `source bytes → shared full reader → prepared scene or restored source` |
-| **14** | [`96zzt-share-the-current-selection-yellow`](#checkpoint-96zzt-share-the-current-selection-yellow) | Use the current selection yellow for surfaces and temporary highlights without changing original colors. | `src/colour.rs`, `src/highlight.rs`, `src/tool_preview.rs`, `src/clipping_gpu.rs` | `Session palette → CPU highlight data and shared WGSL → selected display` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzg-grow-buffers-without-losing-rows"></a>
 
 ### Step 1 of 14 · Grow buffers without losing rows (`96zzg-grow-buffers-without-losing-rows`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/14 Visual Trace (96zzg-grow-buffers-without-losing-rows): Grow buffers without losing rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_gpu_support.rs, src/growing_buffer_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow existing rows through buffer replacement, an ordered GPU copy and the next append.</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_gpu_support.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow existing rows th…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow existing rows th…</text>
 </svg>
-</div>
-
-- **Goal:** Preserve uploaded GPU records when a shared buffer grows.
-- **Data Flow Trace:** `Follow existing rows through buffer replacement, an ordered GPU copy and the next append.`
-- **Files You Touch:** `src/text_gpu_support.rs` (*Grow the existing owner in rows, preserve live bytes on the GPU and share one append algorithm.*) · `src/growing_buffer_tests.rs` (*Supply real mapped GPU bytes for nonempty growth, empty appends, reuse, release and the existing float adapter.*) · `src/lib.rs` (*Register the supplied GPU-growth readback fixture.*)
 
 Growing a shared GPU arena must keep rows already uploaded.
 
 Extend the existing text buffer owner to append any aligned record bytes, preserve live rows with a GPU copy and respect device limits. Text keeps the same owner; the compact mesh arena will reuse it next. Mesh storage is still per geometry at this preparatory checkpoint.
 
-> **Self-Check Question:** *Why submit the old-row copy before writing the appended rows?*  
-> **Answer:** Queue order preserves earlier writes before the copy and places the new append after it. No CPU readback is needed for growth.
-
-- **What You Should See:** One existing GPU buffer owner preserves old records, supports aligned packed bytes and bounds growth by device limits.
-- **Hands-On Lab Experiment:** Create and move original text repeatedly, then clear it and add it again. Check the existing text counters and pixels. The supplied GPU fixture separately verifies the exact bytes through multiple nonempty growths and reset/release.
-
-<details>
-<summary>Implementation 96zzg-grow-buffers-without-losing-rows: Grow buffers without losing rows</summary>
-
-Preserve uploaded GPU records when a shared buffer grows.
-
-Data flow: Follow existing rows through buffer replacement, an ordered GPU copy and the next append..
+> **Check:** *Why submit the old-row copy before writing the appended rows?* — Queue order preserves earlier writes before the copy and places the new append after it. No CPU readback is needed for growth.
 
 ### 1. `src/text_gpu_support.rs`
 
 Grow the existing owner in rows, preserve live bytes on the GPU and share one append algorithm.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct GrowBuf {pub buf:wgpu::Buffer,stride:u64,len:u32,label:&'static str,usage:wgpu::BufferUsages}
-impl GrowBuf {
- pub fn new(ctx:&GpuCtx,label:&'static str,stride:u64,usage:wgpu::BufferUsages)->Self {Self {buf:ctx.device.create_buffer(&wgpu::BufferDescriptor {label:Some(label),size:stride,usage,mapped_at_creation:false}),stride,len:0,label,usage}}
- pub fn append<const N:usize>(&mut self,ctx:&GpuCtx,vertices:&[[f32;N]]) {assert_eq!(self.stride,N as u64*4);if vertices.is_empty() {return;}
-  let count=u32::try_from(vertices.len()).expect("Bounded text vertices");let size=(self.len as u64+count as u64)*self.stride;
-  if size>self.buf.size() {assert_eq!(self.len,0,"Text upload starts at an empty buffer");self.buf=ctx.device.create_buffer(&wgpu::BufferDescriptor {label:Some(self.label),size:size.next_power_of_two(),usage:self.usage,mapped_at_creation:false});}
-  let bytes:Vec<u8>=vertices.iter().flatten().flat_map(|n|n.to_ne_bytes()).collect();ctx.queue.write_buffer(&self.buf,self.len as u64*self.stride,&bytes);self.len+=count;
- }
- pub fn reset(&mut self) {self.len=0;}
- pub fn release(&mut self,ctx:&GpuCtx) {*self=Self::new(ctx,self.label,self.stride,self.usage);}
- pub fn len(&self)->u32 {self.len}
- pub fn is_empty(&self)->bool {self.len==0}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -225,8 +102,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/96zzg-grow-buffers-without-losing-rows-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -240,20 +116,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zzg-grow-buffers-without-losing-rows-2.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the supplied GPU-growth readback fixture.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod text_gpu_support;
-```
-
-</details>
 
 After that block, type:
 
@@ -262,60 +127,42 @@ After that block, type:
 mod growing_buffer_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzg-grow-buffers-without-losing-rows`:** One existing GPU buffer owner preserves old records, supports aligned packed bytes and bounds growth by device limits.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzg-grow-buffers-without-losing-rows-3.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzh-prepare-shared-compact-mesh-ranges"></a>
 
 ### Step 2 of 14 · Prepare shared compact mesh ranges (`96zzh-prepare-shared-compact-mesh-ranges`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/14 Visual Trace (96zzh-prepare-shared-compact-mesh-ranges): Prepare shared compact mesh ranges</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/arena_rows.rs, src/arena_rows_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow a local mesh index into its arena vertex offset and a reused range for shared placements.</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/arena_rows.rs, src/ar…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow a local mesh ind…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow a local mesh ind…</text>
 </svg>
-</div>
-
-- **Goal:** Prepare shared packed records and stable ranges without pinning display sources.
-- **Data Flow Trace:** `Follow a local mesh index into its arena vertex offset and a reused range for shared placements.`
-- **Files You Touch:** `src/arena_rows.rs` (*Use the existing twenty-byte encoder, rebase validated local indices and cache weak display identities.*) · `src/arena_rows_tests.rs` (*Supply exact packed bytes, shared owner ranges, global indices, weak retention and reset/release fixtures.*) · `src/lib.rs` (*Register the preparatory arena records and supplied fixtures.*)
 
 Shared geometry needs one range of vertices and indices, regardless of how many placed rows draw it.
 
 Prepare compact mesh records with the existing encoder. Rebase local indices into their shared vertex range and reuse ranges for the same display owner. Keep weak source references so derived arena records do not keep removed sources alive. This is preparation; the renderer still uploads per geometry.
 
-> **Self-Check Question:** *Why add the vertex offset to indices rather than changing source positions?*  
-> **Answer:** The range changes where storage lives. Positions remain in the original object frame; placements remain separate draw state.
-
-- **What You Should See:** Prepared arena records preserve source positions and share ranges by display identity.
-- **Hands-On Lab Experiment:** Inspect placed copies of an original CAD surface and compare their shared geometry counts. Rendering is unchanged at this preparatory checkpoint; the supplied fixture verifies exact compact bytes, index offsets and weak source retention.
-
-<details>
-<summary>Implementation 96zzh-prepare-shared-compact-mesh-ranges: Prepare shared compact mesh ranges</summary>
-
-Prepare shared packed records and stable ranges without pinning display sources.
-
-Data flow: Follow a local mesh index into its arena vertex offset and a reused range for shared placements..
+> **Check:** *Why add the vertex offset to indices rather than changing source positions?* — The range changes where storage lives. Positions remain in the original object frame; placements remain separate draw state.
 
 ### 1. `src/arena_rows.rs`
 
@@ -327,8 +174,7 @@ Create the file and type:
 --8<-- "journey/code/96zzh-prepare-shared-compact-mesh-ranges-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -342,20 +188,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zzh-prepare-shared-compact-mesh-ranges-2.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the preparatory arena records and supplied fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod packed_vertex;
-```
-
-</details>
 
 After that block, type:
 
@@ -365,73 +200,46 @@ pub mod arena_rows;
 mod arena_rows_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzh-prepare-shared-compact-mesh-ranges`:** Prepared arena records preserve source positions and share ranges by display identity.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzh-prepare-shared-compact-mesh-ranges-3.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzi-upload-compact-ranges-to-shared-gpu-storage"></a>
 
 ### Step 3 of 14 · Upload compact ranges to shared GPU storage (`96zzi-upload-compact-ranges-to-shared-gpu-storage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/14 Visual Trace (96zzi-upload-compact-ranges-to-shared-gpu-storage): Upload compact ranges to shared GPU storage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/arena_rows.rs, src/mesh_arena.rs, src/lib.rs, src/growing_buffer_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow an appended range into buffer growth and the replacement shared bind group.</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/arena_rows.rs, src/me…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow an appended rang…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Follow an appended rang…</text>
 </svg>
-</div>
-
-- **Goal:** Upload shared compact ranges and refresh immutable bindings after buffer growth.
-- **Data Flow Trace:** `Follow an appended range into buffer growth and the replacement shared bind group.`
-- **Files You Touch:** `src/arena_rows.rs` (*Share one index serializer for full and appended ranges.*) · `src/mesh_arena.rs` (*Upload appended records through the existing owners and rebuild bindings only when growth replaces resources.*) · `src/lib.rs` (*Register the preparatory shared GPU storage owner.*) · `src/growing_buffer_tests.rs` (*Reuse the existing supplied mapped-buffer reader in the arena fixtures.*) · `src/mesh_arena_tests.rs` (*Supply real packed-byte reads and two rendered arena triangles through fresh and stale bindings.*)
 
 A shared arena binds one vertex buffer and one index buffer.
 
 Upload only the new ranges through the existing growth owner. Rebuild the shared bind group when growth replaces either buffer: bind groups retain the resources they were created with. Reuse the CPU range cache and index encoder. The application renderer still uses per-geometry uploads at this preparatory checkpoint.
 
-> **Self-Check Question:** *Why does growing a buffer require a new bind group?*  
-> **Answer:** The old bind group refers to the old GPU buffer. Updating a Rust field does not retarget that resource binding.
-
-- **What You Should See:** One shared GPU owner uploads appended records, preserves earlier ranges and rebuilds bindings when resources change.
-- **Hands-On Lab Experiment:** Inspect existing placed CAD copies and their upload counters; the application remains unchanged here. In the supplied GPU exercise, omit rebuilding the group and predict which of the two arena triangles disappears. Restore the rebuild before continuing.
-
-<details>
-<summary>Implementation 96zzi-upload-compact-ranges-to-shared-gpu-storage: Upload compact ranges to shared GPU storage</summary>
-
-Upload shared compact ranges and refresh immutable bindings after buffer growth.
-
-Data flow: Follow an appended range into buffer growth and the replacement shared bind group..
+> **Check:** *Why does growing a buffer require a new bind group?* — The old bind group refers to the old GPU buffer. Updating a Rust field does not retarget that resource binding.
 
 ### 1. `src/arena_rows.rs`
 
 Share one index serializer for full and appended ranges.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn index_bytes(&self)->Vec<u8>{self.indices.iter().flat_map(|i|i.to_le_bytes()).collect()}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -439,17 +247,6 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn index_bytes(&self)->Vec<u8>{self.index_bytes_from(0)}
     pub fn index_bytes_from(&self,start:usize)->Vec<u8>{self.indices[start..].iter().flat_map(|i|i.to_le_bytes()).collect()}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzi-upload-compact-ranges-to-shared-gpu-storage-1.rs"
-```
-
-</details>
 
 ### 2. `src/mesh_arena.rs`
 
@@ -465,34 +262,13 @@ Create the file and type:
 
 Register the preparatory shared GPU storage owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod arena_rows;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 pub mod mesh_arena;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzi-upload-compact-ranges-to-shared-gpu-storage-3.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -500,25 +276,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Reuse the existing supplied mapped-buffer reader in the arena fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn read(ctx:
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzi-upload-compact-ranges-to-shared-gpu-storage-4.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -532,20 +296,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zzi-upload-compact-ranges-to-shared-gpu-storage-5.rs"
 ```
 
-</details>
-
 ### 6. `src/lib.rs`
 
 Register the supplied arena GPU fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh_arena;
-```
-
-</details>
 
 After that block, type:
 
@@ -554,68 +307,42 @@ After that block, type:
 mod mesh_arena_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzi-upload-compact-ranges-to-shared-gpu-storage`:** One shared GPU owner uploads appended records, preserves earlier ranges and rebuilds bindings when resources change.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzi-upload-compact-ranges-to-shared-gpu-storage-6.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzj-share-the-object-record-layout"></a>
 
 ### Step 4 of 14 · Share the object record layout (`96zzj-share-the-object-record-layout`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/14 Visual Trace (96zzj-share-the-object-record-layout): Share the object record layout</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/object_record.rs, src/lib.rs, src/gpu_mesh.rs, src/instance_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">packed object bytes</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">uniform binding or instance array</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stride</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">WGSL object fields</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/object_record.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">uniform binding or inst…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">WGSL object fields</text>
 </svg>
-</div>
-
-- **Goal:** Share the host object-record size across uniform and instance consumers.
-- **Data Flow Trace:** `packed object bytes → uniform binding or instance array stride → WGSL object fields`
-- **Files You Touch:** `src/object_record.rs` (*Name the shared record as two matrices and two four-component blocks.*) · `src/lib.rs` (*Register the shared host layout.*) · `src/gpu_mesh.rs` (*Use the same record type for packing and retained previous bytes.*) · `src/instance_gpu.rs` (*Share the packed type and stride with the instance lane.*) · `src/renderer.rs` (*Declare the object binding from the shared host size.*) · `src/face_pick.rs` (*Declare the object binding from the shared host size.*) · `src/cap_pipeline.rs` (*Declare the object binding from the shared host size.*) · `src/cap_pick_pipeline.rs` (*Declare the object binding from the shared host size.*) · `src/ambient_source_pipeline.rs` (*Declare the object binding from the shared host size.*) · `src/outline_gpu.rs` (*Declare the object binding from the shared host size.*) · `src/object_record_tests.rs` (*Supply a check against the actual assembled WGSL layouts, not a repeated Rust size assertion.*)
 
 One object record contains a model matrix, four integer settings, a normal matrix and a color override. Uniforms and instance arrays must agree on its byte size.
 
 Name the host record and its size once. Reuse them in packing, instance capacity, pipeline bindings and upload accounting. Existing shader fields and browser behavior remain unchanged; this prepares the record for shared arena offsets.
 
-> **Self-Check Question:** *Why does a correct uniform binding size not prove that an instance array has the correct stride?*  
-> **Answer:** A uniform reads one object. A storage array locates subsequent objects by its element stride; both must match the WGSL struct layout.
-
-- **Hands-On Lab Experiment:** Add the byte sizes of the two matrices and two four-component settings blocks. Compare uniform and storage-array shader declarations. Predict the effect of an undersized instance stride, then rebuild the unchanged browser scene.
-
-<details>
-<summary>Implementation 96zzj-share-the-object-record-layout: Share the object record layout</summary>
-
-Share the host object-record size across uniform and instance consumers.
-
-Data flow: packed object bytes → uniform binding or instance array stride → WGSL object fields.
+> **Check:** *Why does a correct uniform binding size not prove that an instance array has the correct stride?* — A uniform reads one object. A storage array locates subsequent objects by its element stride; both must match the WGSL struct layout.
 
 ### 1. `src/object_record.rs`
 
@@ -631,31 +358,11 @@ Create the file and type:
 
 Register the shared host layout.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh_arena;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 pub mod object_record;
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-2.rs"
-```
-
-</details>
 
 ### 3. `src/gpu_mesh.rs`
 
@@ -663,8 +370,7 @@ Use the same record type for packing and retained previous bytes. Use the shared
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, style:Style) -> [usize; 2] {
@@ -675,8 +381,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 queue.write_buffer(&self.model, start as u64, &next[start..end]);
                 writes[0] += 1;
 ```
-
-</details>
 
 Replace it with:
 
@@ -690,8 +394,7 @@ Replace it with:
                 writes[0] += 1;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -702,8 +405,6 @@ Replace it with:
 
     pub fn set_primitive_base(&mut self,queue:&wgpu::Queue,base:u32)->Result<(),&'static str>{
 ```
-
-</details>
 
 Replace it with:
 
@@ -717,8 +418,7 @@ Replace it with:
     pub fn set_primitive_base(&mut self,queue:&wgpu::Queue,base:u32)->Result<(),&'static str>{
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     model_group: wgpu::BindGroup,
@@ -736,8 +436,6 @@ fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_b
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -758,8 +456,7 @@ fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_b
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -768,8 +465,6 @@ use wgpu::util::DeviceExt;
 
 pub struct GpuMesh {
 ```
-
-</details>
 
 Replace it with:
 
@@ -782,8 +477,7 @@ use wgpu::util::DeviceExt;
 pub struct GpuMesh {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -893,91 +587,9 @@ impl GpuMesh {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-7.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-8.rs"
-```
-
-</details>
-
 ### 4. `src/instance_gpu.rs`
 
 Share the packed type and stride with the instance lane. Use the same size for minimum binding, capacity and cached instance records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_geometry::GpuGeometry,gpu_mesh::GpuMesh};
-use std::{collections::{BTreeMap,HashMap},rc::Rc};
-use wgpu::util::DeviceExt;
-
-struct Batch {geometry:Rc<GpuGeometry>,records:wgpu::Buffer,group:wgpu::BindGroup,bytes:Vec<u8>,count:u32}
-pub struct Lane {pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,batches:BTreeMap<(usize,usize),Batch>,pub writes:u64,pub written_bytes:u64}
-impl Lane {
-    pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,view:&wgpu::BindGroupLayout)->Self {
-        let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {label:Some("shared instance records"),entries:&[wgpu::BindGroupLayoutEntry {binding:0,visibility:wgpu::ShaderStages::VERTEX,ty:wgpu::BindingType::Buffer {ty:wgpu::BufferBindingType::Storage {read_only:true},has_dynamic_offset:false,min_binding_size:std::num::NonZeroU64::new(160)},count:None}]});
-        let source=include_str!("triangle.wgsl")
-            .replace("var<uniform> object_settings: ObjectSettings;", "var<storage, read> objects: array<ObjectSettings>;")
-            .replace("return object_settings;", "return objects[index];");
-        let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor {label:Some("shared definition placements"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(&source,2,0).into())});
-        let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {label:Some("shared instance settings"),bind_group_layouts:&[Some(view),Some(&layout),Some(&crate::clipping_gpu::layout(device)),Some(&GpuGeometry::storage_layout(device))],immediate_size:0});
-        let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {label:Some("shared original definition drawing"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState {module:&shader,entry_point:Some("vertex"),compilation_options:Default::default(),buffers:&[]},fragment:Some(wgpu::FragmentState {module:&shader,entry_point:Some("fragment"),compilation_options:Default::default(),targets:&[Some(format.into()),Some(crate::primitive_image::target(true))]}),primitive:Default::default(),depth_stencil:Some(crate::depth::surface()),multisample:Default::default(),multiview_mask:None,cache:None});
-        Self {pipeline,layout,batches:BTreeMap::new(),writes:0,written_bytes:0}
-    }
-    pub fn set<'a>(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,rows:impl IntoIterator<Item=&'a GpuMesh>)->Result<(),&'static str> {
-        let limit=(u64::from(device.limits().max_storage_buffer_binding_size).min(device.limits().max_buffer_size)/160) as usize;
-        if limit==0 {return Err("Device cannot hold one instance record");}
-        let mut groups:HashMap<usize,(Rc<GpuGeometry>,Vec<[u8;160]>)>=HashMap::new();
-        for row in rows {let key=Rc::as_ptr(&row.geometry) as usize;groups.entry(key).or_insert_with(||(row.geometry.clone(),Vec::new())).1.push(row.packed());}
-        let mut old=std::mem::take(&mut self.batches);let mut batches=BTreeMap::new();
-        for (source,(geometry,records)) in groups {
-            for (part,records) in records.chunks(limit).enumerate() {
-                let key=(source,part);let bytes=records.iter().flatten().copied().collect::<Vec<_>>();
-                let batch=if let Some(mut batch)=old.remove(&key).filter(|b|Rc::ptr_eq(&b.geometry,&geometry)&&b.records.size()>=bytes.len() as u64) {
-                    if batch.bytes!=bytes {queue.write_buffer(&batch.records,0,&bytes);self.writes+=1;self.written_bytes+=bytes.len() as u64;batch.bytes=bytes;}batch.count=records.len() as u32;batch
-                } else {
-                    let buffer=device.create_buffer_init(&wgpu::util::BufferInitDescriptor {label:Some("independent source placements"),contents:&bytes,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST});let group=crate::gpu_layout::group(device,&self.layout,&buffer);self.writes+=1;self.written_bytes+=bytes.len() as u64;Batch {geometry:geometry.clone(),records:buffer,group,bytes,count:records.len() as u32}
-                };batches.insert(key,batch);
-            }
-        }
-        self.batches=batches;Ok(())
-    }
-    pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>) {
-        pass.set_pipeline(&self.pipeline);
-        for batch in self.batches.values() {pass.set_bind_group(1,&batch.group,&[]);batch.geometry.draw_pulled(pass,batch.count);}
-    }
-    pub fn usage(&self)->[u64;5] {[self.batches.len() as u64,self.batches.values().map(|b|u64::from(b.count)).sum(),self.batches.values().map(|b|b.records.size()).sum(),self.writes,self.written_bytes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1026,41 +638,9 @@ impl Lane {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-9.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-12.rs"
-```
-
-</details>
-
 ### 5. `src/renderer.rs`
 
 Declare the object binding from the shared host size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let model_layout = crate::gpu_layout::uniform(&device, 160);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1068,29 +648,9 @@ Edit the existing block to match this code; keep unchanged lines:
         let model_layout = crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-13.rs"
-```
-
-</details>
-
 ### 6. `src/face_pick.rs`
 
 Declare the object binding from the shared host size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let model = crate::gpu_layout::uniform(device, 160); let crop = crate::gpu_layout::uniform(device, 80);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1098,29 +658,9 @@ Edit the existing block to match this code; keep unchanged lines:
         let model = crate::gpu_layout::uniform(device, crate::object_record::BYTES as u64); let crop = crate::gpu_layout::uniform(device, 80);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-14.rs"
-```
-
-</details>
-
 ### 7. `src/cap_pipeline.rs`
 
 Declare the object binding from the shared host size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,160);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1128,29 +668,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-15.rs"
-```
-
-</details>
-
 ### 8. `src/cap_pick_pipeline.rs`
 
 Declare the object binding from the shared host size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,160);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1158,29 +678,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-16.rs"
-```
-
-</details>
-
 ### 9. `src/ambient_source_pipeline.rs`
 
 Declare the object binding from the shared host size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,160);let clip=crate::clipping_gpu::layout(device);let radius=crate::gpu_layout::uniform(device,16);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(&radius)],immediate_size:0});let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient original normals and radii"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("ambient_sources.wgsl"),2,0).into())});
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1188,29 +688,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let radius=crate::gpu_layout::uniform(device,16);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(&radius)],immediate_size:0});let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient original normals and radii"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("ambient_sources.wgsl"),2,0).into())});
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-17.rs"
-```
-
-</details>
-
 ### 10. `src/outline_gpu.rs`
 
 Declare the object binding from the shared host size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let model = crate::gpu_layout::uniform(device, 160);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1218,29 +698,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let model = crate::gpu_layout::uniform(device, crate::object_record::BYTES as u64);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-18.rs"
-```
-
-</details>
-
 ### 11. `src/renderer.rs`
 
 Count allocated object records using their actual shared size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * 160 + self.settings_bytes as u64
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1248,19 +708,7 @@ Edit the existing block to match this code; keep unchanged lines:
         self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * crate::object_record::BYTES as u64 + self.settings_bytes as u64
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-19.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1274,20 +722,9 @@ Copy this supplied file:
 --8<-- "journey/code/96zzj-share-the-object-record-layout-20.rs"
 ```
 
-</details>
-
 ### 13. `src/lib.rs`
 
 Register the supplied shader-layout fixture.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod object_record;
-```
-
-</details>
 
 After that block, type:
 
@@ -1296,143 +733,42 @@ After that block, type:
 mod object_record_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzj-share-the-object-record-layout-21.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzk-borrow-the-current-arena-buffers"></a>
 
 ### Step 5 of 14 · Borrow the current arena buffers (`96zzk-borrow-the-current-arena-buffers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/14 Visual Trace (96zzk-borrow-the-current-arena-buffers): Borrow the current arena buffers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_geometry.rs, src/face_pick.rs, src/tile_gpu.rs, src/caps_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">geometry lease</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">arena owner</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current vertex, index and binding</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">handles</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_geometry.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">arena owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current vertex, index a…</text>
 </svg>
-</div>
-
-- **Goal:** Use one geometry interface for standalone and current shared storage.
-- **Data Flow Trace:** `geometry lease → arena owner → current vertex, index and binding handles`
-- **Files You Touch:** `src/gpu_geometry.rs` (*Borrow one shared arena owner instead of retaining an old buffer generation.*) · `src/face_pick.rs` (*Build source-face bindings from the current shared handles.*) · `src/tile_gpu.rs` (*Invalidate projected rows when the shared buffer handles change.*) · `src/caps_gpu.rs` (*Reuse the indexed range draw while preserving the plane instance.*) · `src/cap_pick_gpu.rs` (*Reuse the indexed range draw while preserving the plane instance.*) · `src/global_outline_tests.rs` (*Keep the supplied actual compact-buffer allocation assertion through the common accessor.*) · `src/geometry_storage_tests.rs` (*Supply a real GPU growth, current-handle and weak-source ownership exercise.*) · `src/lib.rs` (*Register the supplied shared-storage ownership fixture.*)
 
 A geometry can own standalone preview buffers or borrow the shared arena. Keep one interface for both. Borrow its current buffers and bind group when drawing, so growth does not pin an obsolete generation. Shared range addressing connects in the following lesson.
 
-> **Self-Check Question:** *Why can a geometry retain its source without pinning an old GPU buffer generation?*  
-> **Answer:** It retains the original mesh and a shared arena owner. Buffer and binding handles are read from that owner when needed.
-
-- **Hands-On Lab Experiment:** Inspect the unchanged browser scene. In the supplied storage exercise, compare an earlier geometry’s current buffer handles before and after appending a second source. Offset pulled draws connect next.
-
-<details>
-<summary>Implementation 96zzk-borrow-the-current-arena-buffers: Borrow the current arena buffers</summary>
-
-Use one geometry interface for standalone and current shared storage.
-
-Data flow: geometry lease → arena owner → current vertex, index and binding handles.
+> **Check:** *Why can a geometry retain its source without pinning an old GPU buffer generation?* — It retains the original mesh and a shared arena owner. Buffer and binding handles are read from that owner when needed.
 
 ### 1. `src/gpu_geometry.rs`
 
 Borrow one shared arena owner instead of retaining an old buffer generation. Retain a source range separately from its storage owner. Keep standalone preview storage and shared source storage in one geometry interface. Keep the existing standalone upload path at range zero. Upload through the existing arena and read its latest handles. Count shared storage at its owner, not once per geometry. Read the current shared binding on every pulled draw. Use one indexed-range draw for ordinary passes and per-plane cap instances.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
-
-pub struct GpuGeometry {
-    pub source: Rc<Mesh>,
-    pub(crate) vertices: wgpu::Buffer,
-    pub(crate) indices: wgpu::Buffer,
-    pub(crate) index_count: u32,
-    pull_group: wgpu::BindGroup,
-}
-
-impl GpuGeometry {
-    pub fn storage_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-        let entries = [0, 2].map(|binding| wgpu::BindGroupLayoutEntry {
-            binding, visibility: wgpu::ShaderStages::VERTEX,
-            ty: wgpu::BindingType::Buffer {
-                ty: wgpu::BufferBindingType::Storage { read_only: true },
-                has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(if binding==0 {20}else{4}),
-            }, count: None,
-        });
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("shared geometry storage"), entries: &entries,
-        })
-    }
-
-    pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
-        fn buffer(device: &wgpu::Device, label: &str, mut bytes: Vec<u8>, usage: wgpu::BufferUsages) -> wgpu::Buffer {
-            if bytes.is_empty() { bytes.resize(4, 0); }
-            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(label), contents: &bytes, usage: usage | wgpu::BufferUsages::STORAGE,
-            })
-        }
-        let mut bytes = crate::packed_vertex::bytes(&source);
-        if bytes.is_empty() { bytes.resize(20, 0); }
-        let vertices = buffer(device, "shared mesh vertices", bytes, wgpu::BufferUsages::VERTEX);
-        let bytes = source.indices().iter().flat_map(|v| v.to_ne_bytes()).collect();
-        let indices = buffer(device, "shared mesh indices", bytes, wgpu::BufferUsages::INDEX);
-        let entries = [(0, &vertices), (2, &indices)].map(|(binding, buffer)| wgpu::BindGroupEntry {
-            binding, resource: buffer.as_entire_binding(),
-        });
-        let pull_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("shared vertex reads"), layout: &Self::storage_layout(device), entries: &entries,
-        });
-        let index_count = source.indices().len() as u32;
-        Self { source, vertices, indices, index_count, pull_group }
-    }
-
-    pub fn allocated_bytes(&self) -> u64 { self.vertices.size() + self.indices.size() }
-
-    pub fn draw_pulled(&self, pass: &mut wgpu::RenderPass<'_>, count: u32) {
-        if self.index_count == 0 || count == 0 { return; }
-        pass.set_bind_group(3, &self.pull_group, &[]);
-        pass.draw(0..self.index_count, 0..count);
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {self.draw_instances(pass,1);}
-
-    pub fn draw_instances(&self, pass: &mut wgpu::RenderPass<'_>,count:u32) {
-        if self.index_count==0||count==0{return;}
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..count);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1524,53 +860,9 @@ impl GpuGeometry {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-7.rs"
-```
-
-</details>
-
 ### 2. `src/face_pick.rs`
 
 Build source-face bindings from the current shared handles.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            let buffers = [&geometry.vertices, &geometry.indices, &faces, &settings,clipping];
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1579,84 +871,9 @@ Edit the existing block to match this code; keep unchanged lines:
             let buffers = [&vertices, &indices, &faces, &settings,clipping];
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-8.rs"
-```
-
-</details>
-
 ### 3. `src/tile_gpu.rs`
 
 Invalidate projected rows when the shared buffer handles change. Use current shared buffers when preparing projection rows.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh,tile_math::{TileLayout,PROJECTED_BYTES,projected_records,next_pool_words,project_groups},tile_pipelines::{Pipelines,group},tile_report::PoolReport};
-use wgpu::util::DeviceExt;
-type Witness=(wgpu::Buffer,wgpu::Buffer,wgpu::Buffer,[u8;64]);
-struct Row{vertices:wgpu::Buffer,indices:wgpu::Buffer,model:wgpu::Buffer,count:wgpu::Buffer,triangles:u32,group:Option<wgpu::BindGroup>}
-pub struct Tiles{pub projected:wgpu::Buffer,pub buffer:wgpu::Buffer,pipes:Pipelines,line:wgpu::Buffer,line_group:wgpu::BindGroup,raster:wgpu::BindGroup,scan:wgpu::BindGroup,rows:Vec<Row>,witness:Vec<Witness>,triangles:u32,viewport:[u32;2],layout:Option<TileLayout>,target:Option<wgpu::TextureView>,pool:u64,report:PoolReport,key:Option<[f32;16]>,pub projections:u64,pub bins:u64,reported:Option<u64>,pub fallback:bool}
-fn buffer(device:&wgpu::Device,label:&str,size:u64)->wgpu::Buffer{device.create_buffer(&wgpu::BufferDescriptor{label:Some(label),size,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::COPY_SRC,mapped_at_creation:false})}
-impl Tiles{
- pub fn new(device:&wgpu::Device,view:&wgpu::BindGroupLayout)->Self{
-  let pipes=Pipelines::new(device,view);let projected=buffer(device,"finite projected placeholder",PROJECTED_BYTES);let buffer=buffer(device,"finite tile placeholder",16);
-  let line=device.create_buffer(&wgpu::BufferDescriptor{label:Some("finite view dimensions"),size:32,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});
-  let line_group=group(device,&pipes.line,&[&line]);let raster=group(device,&pipes.raster_layout,&[&projected,&buffer]);let scan=group(device,&pipes.scan_layout,&[&buffer]);
-  Self{projected,buffer,pipes,line,line_group,raster,scan,rows:Vec::new(),witness:Vec::new(),triangles:0,viewport:[0;2],layout:None,target:None,pool:0,report:PoolReport::new(device),key:None,projections:0,bins:0,reported:None,fallback:false}
- }
- pub fn set(&mut self,device:&wgpu::Device,meshes:&[GpuMesh]){
-  let limit=u64::from(device.limits().max_storage_buffer_binding_size).min(device.limits().max_buffer_size);
-  let count=meshes.iter().try_fold(0u32,|count,row|count.checked_add(row.geometry.index_count/3));
-  self.fallback=count.is_none_or(|count|u64::from(count)*PROJECTED_BYTES>limit);
-  if self.fallback{self.rows.clear();self.witness.clear();self.triangles=0;self.key=None;return}
-  let witness=meshes.iter().filter(|row|row.geometry.index_count>0).map(|row|(row.geometry.vertices.clone(),row.geometry.indices.clone(),row.model_buffer().clone(),row.packed()[..64].try_into().unwrap())).collect::<Vec<_>>();
-  if witness==self.witness{return}
-  self.rows.clear();let mut offset=0;
-  for row in meshes.iter().filter(|row|row.geometry.index_count>0){let triangles=row.geometry.index_count/3;
-   let bytes=[triangles,offset,0,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>();
-   let count=device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("finite original triangle interval"),contents:&bytes,usage:wgpu::BufferUsages::UNIFORM});
-   self.rows.push(Row{vertices:row.geometry.vertices.clone(),indices:row.geometry.indices.clone(),model:row.model_buffer().clone(),count,triangles,group:None});offset+=triangles;
-  }
-  self.witness=witness;self.triangles=count.unwrap();self.key=None;
- }
- fn rebind(&mut self,device:&wgpu::Device){self.raster=group(device,&self.pipes.raster_layout,&[&self.projected,&self.buffer]);self.scan=group(device,&self.pipes.scan_layout,&[&self.buffer]);for row in &mut self.rows{row.group=None;}}
- fn release(&mut self,device:&wgpu::Device){if self.layout.take().is_none()&&self.projected.size()==PROJECTED_BYTES&&self.buffer.size()==16{return}self.projected=buffer(device,"finite projected placeholder",PROJECTED_BYTES);self.buffer=buffer(device,"finite tile placeholder",16);self.pool=0;self.target=None;self.key=None;self.rebind(device);}
- pub fn prepare(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,size:[u32;2]){
-  if self.triangles==0||size.contains(&0){self.release(device);return}
-  let layout=TileLayout::new((size[0],size[1]));let limit=u64::from(device.limits().max_storage_buffer_binding_size).min(device.limits().max_buffer_size);
-  let report=self.report.poll().filter(|_|self.layout==Some(layout));let capacity=self.buffer.size()/4;
-  let ceiling=layout.max_pool_words().min(limit.saturating_sub(layout.header_records()*16)/4);
-  let pool=next_pool_words(self.pool,layout.initial_pool_words(self.triangles),capacity,report,ceiling);
-  if pool<layout.initial_pool_words(self.triangles)||layout.header_records()*16>limit{self.fallback=true;self.release(device);return}
-  let mut moved=false;
-  if let Some(records)=projected_records(u64::from(self.triangles),self.projected.size()/PROJECTED_BYTES,limit/PROJECTED_BYTES){self.projected=buffer(device,"finite projected triangles",records*PROJECTED_BYTES);moved=true;}
-  if self.layout!=Some(layout)||pool>self.pool{self.buffer=buffer(device,"finite triangle tile lists",layout.buffer_bytes(pool));self.pool=pool;moved=true;}
-  if self.layout!=Some(layout){self.target=Some(device.create_texture(&wgpu::TextureDescriptor{label:Some("finite tile raster"),size:wgpu::Extent3d{width:layout.dimensions()[0],height:layout.dimensions()[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::R8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]}).create_view(&Default::default()));}
-  if self.viewport!=size{let bytes=[0.,0.,0.,size[1]as f32,size[0]as f32,0.,0.,0.].into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>();queue.write_buffer(&self.line,0,&bytes);self.viewport=size;self.key=None;}
-  self.layout=Some(layout);if moved{self.key=None;self.rebind(device);}
- }
- pub fn encode(&mut self,device:&wgpu::Device,encoder:&mut wgpu::CommandEncoder,view:&wgpu::BindGroup,matrix:[f32;16]){
-  let Some(layout)=self.layout else{return};if self.key==Some(matrix){if self.reported!=Some(self.bins)&&self.report.copy(encoder,&self.buffer){self.reported=Some(self.bins)}return}
-  for row in &mut self.rows{let bindings=row.group.get_or_insert_with(||group(device,&self.pipes.project_layout,&[&row.vertices,&row.indices,&row.model,&self.projected,&row.count]));let mut pass=encoder.begin_compute_pass(&wgpu::ComputePassDescriptor{label:Some("finite original projection"),timestamp_writes:None});pass.set_pipeline(&self.pipes.project);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,&self.line_group,&[]);pass.set_bind_group(2,&*bindings,&[]);let(x,y)=project_groups(row.triangles);pass.dispatch_workgroups(x,y,1);}
-  self.projections+=1;encoder.clear_buffer(&self.buffer,0,Some(layout.header_records()*16));self.bin(encoder,&self.pipes.count);
-  let blocks=layout.count().div_ceil(256);
-  for(pipeline,count)in self.pipes.scans.iter().zip([blocks,blocks.div_ceil(256),blocks]){let mut pass=encoder.begin_compute_pass(&wgpu::ComputePassDescriptor{label:Some("finite prefix scan"),timestamp_writes:None});pass.set_pipeline(pipeline);pass.set_bind_group(0,&self.line_group,&[]);pass.set_bind_group(1,&self.scan,&[]);pass.dispatch_workgroups(count,1,1);}
-  self.bin(encoder,&self.pipes.fill);self.bins+=1;if self.report.copy(encoder,&self.buffer){self.reported=Some(self.bins)}self.key=Some(matrix);
- }
- fn bin(&self,encoder:&mut wgpu::CommandEncoder,pipeline:&wgpu::RenderPipeline){let Some(target)=&self.target else{return};let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite tile lists"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:target,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Discard}})],depth_stencil_attachment:None,timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});pass.set_pipeline(pipeline);pass.set_bind_group(0,&self.line_group,&[]);pass.set_bind_group(1,&self.raster,&[]);pass.draw(0..4,0..self.triangles);}
- pub fn map_report(&mut self){self.report.map();}
- pub fn usage(&self)->[u64;7]{[self.projected.size(),self.buffer.size(),32+16+16*self.rows.len()as u64,self.triangles as u64,self.pool,self.projections,self.bins]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1719,33 +936,9 @@ impl Tiles{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-9.rs"
-```
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-10.rs"
-```
-
-</details>
-
 ### 4. `src/caps_gpu.rs`
 
 Reuse the indexed range draw while preserving the plane instance.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-   {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original closed-solid crossings"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&counts.image.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&pipes.count);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clipping,&[]);for mesh in meshes.iter().filter(|m|m.closed()&&self.targets.get(&m.id.value()).is_some_and(|mask|mask&(1<<plane)!=0)){mesh.bind_model(&mut pass);pass.set_vertex_buffer(0,mesh.geometry.vertices.slice(..));pass.set_index_buffer(mesh.geometry.indices.slice(..),wgpu::IndexFormat::Uint32);pass.draw_indexed(0..mesh.geometry.index_count,0,plane..plane+1);self.draws+=1;}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1753,29 +946,9 @@ Edit the existing block to match this code; keep unchanged lines:
    {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original closed-solid crossings"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&counts.image.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&pipes.count);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clipping,&[]);for mesh in meshes.iter().filter(|m|m.closed()&&self.targets.get(&m.id.value()).is_some_and(|mask|mask&(1<<plane)!=0)){mesh.bind_model(&mut pass);mesh.geometry.draw_range(&mut pass,plane..plane+1);self.draws+=1;}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-11.rs"
-```
-
-</details>
-
 ### 5. `src/cap_pick_gpu.rs`
 
 Reuse the indexed range draw while preserving the plane instance.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  for pipeline in [&self.pipes.count,&self.pipes.nearest]{let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original section count and nearest owner"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&target.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(pipeline);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clipping,&[]);pass.set_bind_group(3,self.record_group.as_ref().unwrap(),&[]);for plane in 0..planes{for mesh in meshes.iter().filter(|m|m.closed()&&targets.get(&m.id.value()).is_some_and(|mask|mask&(1<<plane)!=0)){mesh.bind_model(&mut pass);pass.set_vertex_buffer(0,mesh.geometry.vertices.slice(..));pass.set_index_buffer(mesh.geometry.indices.slice(..),wgpu::IndexFormat::Uint32);pass.draw_indexed(0..mesh.geometry.index_count,0,plane..plane+1);}}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1783,19 +956,7 @@ Edit the existing block to match this code; keep unchanged lines:
   for pipeline in [&self.pipes.count,&self.pipes.nearest]{let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original section count and nearest owner"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&target.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(pipeline);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clipping,&[]);pass.set_bind_group(3,self.record_group.as_ref().unwrap(),&[]);for plane in 0..planes{for mesh in meshes.iter().filter(|m|m.closed()&&targets.get(&m.id.value()).is_some_and(|mask|mask&(1<<plane)!=0)){mesh.bind_model(&mut pass);mesh.geometry.draw_range(&mut pass,plane..plane+1);}}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-12.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1803,25 +964,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the supplied actual compact-buffer allocation assertion through the common accessor.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-gpu.meshes[0].geometry.vertices.size()
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-13.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1835,10 +984,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-14.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1846,91 +992,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the supplied shared-storage ownership fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub mod object_record;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzk-borrow-the-current-arena-buffers-15.rs" skip=22
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzl-read-shared-ranges-through-object-records"></a>
 
 ### Step 6 of 14 · Read shared ranges through object records (`96zzl-read-shared-ranges-through-object-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/14 Visual Trace (96zzl-read-shared-ranges-through-object-records): Read shared ranges through object records</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/object_record.rs, src/gpu_mesh.rs, src/triangle.wgsl, src/cap_count.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object range start</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared index</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared packed vertex</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original draw and triangle</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/object_record.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared packed vertex</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original draw and trian…</text>
 </svg>
-</div>
-
-- **Goal:** Read an arena range without changing original owners or local triangle identity.
-- **Data Flow Trace:** `object range start → shared index → shared packed vertex → original draw and triangle owner`
-- **Files You Touch:** `src/object_record.rs` (*Append an aligned four-word range block after the existing object fields.*) · `src/gpu_mesh.rs` (*Pack the range after the existing model, flags, normal matrix and override.*) · `src/triangle.wgsl` (*Match the appended aligned host range block.*) · `src/cap_count.wgsl` (*Match the appended aligned host range block.*) · `src/outline_mask.wgsl` (*Keep the object layout consistent in indexed surface consumers.*) · `src/ambient_sources.wgsl` (*Keep the object layout consistent in indexed surface consumers.*) · `src/finite_project.wgsl` (*Read the same object range in physical triangle projection.*) · `src/triangle_pick.wgsl` (*Read the same shared range for first surface picks.*) · `src/face_pick.wgsl` (*Keep original face metadata local while pulling shared positions.*) · `src/object_record_tests.rs` (*Match the new range field in both supplied surface shader layout assertions.*) · `src/global_outline_tests.rs` (*Supply an actual nonzero-range renderer comparison for surface color, original face picks, projection, outlines and clipped caps.*) · `src/pick_gpu_tests.rs` (*Keep the exact supplied GPU allocation check: two 176-byte object records occupy 352 bytes.*)
 
 An arena index addresses a global vertex, while a draw still names its own local triangle. Keep the first index in the object record and use it only for mesh reads.
 
 Let geometry borrow the arena owner instead of retaining buffer generations. Read its latest buffers and bind group after growth. Surface and pick shaders add the range start; indexed caps, outlines and ambient drawing use the matching index interval. The application cache remains per geometry until the next connection.
 
-> **Self-Check Question:** *Why must an old geometry read the arena’s latest binding after growth?*  
-> **Answer:** A retained binding reads the old buffers. Borrowing the shared owner gives every draw the same current buffers, including earlier ranges preserved by the growth helper.
-
-- **Hands-On Lab Experiment:** Trace local occurrence zero with a nonzero first index. Compare its storage address with its local primitive number. Inspect the browser scene; the application cache still uses standalone uploads here.
-
-<details>
-<summary>Implementation 96zzl-read-shared-ranges-through-object-records: Read shared ranges through object records</summary>
-
-Read an arena range without changing original owners or local triangle identity.
-
-Data flow: object range start → shared index → shared packed vertex → original draw and triangle owner.
+> **Check:** *Why must an old geometry read the arena’s latest binding after growth?* — A retained binding reads the old buffers. Borrowing the shared owner gives every draw the same current buffers, including earlier ranges preserved by the growth helper.
 
 ### 1. `src/object_record.rs`
 
 Append an aligned four-word range block after the existing object fields.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const BYTES: usize = 64 + 16 + 64 + 16;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1939,25 +1044,13 @@ pub const RANGE: usize = 64 + 16 + 64 + 16;
 pub const BYTES: usize = RANGE + 16;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-1.rs"
-```
-
-</details>
-
 ### 2. `src/gpu_mesh.rs`
 
 Pack the range after the existing model, flags, normal matrix and override. Keep the range address independent from the cap token and selected primitive base. Write the first shared index into its own integer field. Pack the geometry range when creating an object row. Preserve its range while updating placement and display settings. Compare and upload the color and range independently.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn settings_bytes(&self) -> u64 { self.model.size() }
@@ -1970,8 +1063,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 queue.write_buffer(&self.model, start as u64, &next[start..end]);
                 writes[0] += 1;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1987,8 +1078,7 @@ Replace it with:
                 writes[0] += 1;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
@@ -1999,8 +1089,6 @@ Replace it with:
             label: Some("object placement"),
             contents: &bytes,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2014,8 +1102,7 @@ Replace it with:
             contents: &bytes,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         bytes[80 + index * 4..84 + index * 4].copy_from_slice(&value.to_ne_bytes());
@@ -2024,8 +1111,6 @@ Replace it with:
     bytes
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2038,8 +1123,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 #[derive(Clone,Copy)]
@@ -2050,8 +1134,6 @@ fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_b
     for (index, value) in object.model.m.iter().enumerate() {
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
 ```
-
-</details>
 
 Replace it with:
 
@@ -2065,8 +1147,7 @@ fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_b
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -2076,8 +1157,6 @@ use wgpu::util::DeviceExt;
 
 pub struct GpuMesh {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2090,8 +1169,7 @@ use wgpu::util::DeviceExt;
 pub struct GpuMesh {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -2202,111 +1280,29 @@ impl GpuMesh {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-7.rs"
-```
-
-</details>
-
 ### 3. `src/triangle.wgsl`
 
 Match the appended aligned host range block.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    face_colour:vec4<f32>,
-```
-
-</details>
 
 After that block, type:
 
 ```wgsl
     range:vec4<u32>,
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-8.wgsl"
-```
-
-</details>
 
 ### 4. `src/cap_count.wgsl`
 
 Match the appended aligned host range block.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    face_colour:vec4<f32>,
-```
-
-</details>
-
 After that block, type:
 
 ```wgsl
     range:vec4<u32>,
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-9.wgsl"
-```
-
-</details>
-
 ### 5. `src/outline_mask.wgsl`
 
 Keep the object layout consistent in indexed surface consumers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2314,29 +1310,9 @@ Edit the existing block to match this code; keep unchanged lines:
 struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>,range:vec4<u32>}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-10.wgsl"
-```
-
-</details>
-
 ### 6. `src/ambient_sources.wgsl`
 
 Keep the object layout consistent in indexed surface consumers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct Object{model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2344,29 +1320,9 @@ Edit the existing block to match this code; keep unchanged lines:
 struct Object{model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>,range:vec4<u32>}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-11.wgsl"
-```
-
-</details>
-
 ### 7. `src/finite_project.wgsl`
 
 Read the same object range in physical triangle projection.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ObjectSettings {model:mat4x4<f32>,selected:u32,id:u32,pad:vec2<u32>,normals:mat4x4<f32>,colour:vec4<f32>}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2374,25 +1330,13 @@ Edit the existing block to match this code; keep unchanged lines:
 struct ObjectSettings {model:mat4x4<f32>,selected:u32,id:u32,pad:vec2<u32>,normals:mat4x4<f32>,colour:vec4<f32>,range:vec4<u32>}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-12.wgsl"
-```
-
-</details>
-
 ### 8. `src/triangle.wgsl`
 
 Keep a local occurrence separate from the shared storage offset. Offset only the storage read; local triangle numbering stays unchanged. Use each instance’s own object row when pulling shared vertices.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 @group(3) @binding(0) var<storage, read> mesh_values: array<PackedVertex>;
@@ -2411,8 +1355,6 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
     output.primitive=(object.selection.x>>1u)+occurrence/3u+1u;
     return output;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2434,8 +1376,7 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
     return output;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
@@ -2519,39 +1460,9 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-13.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-14.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-15.wgsl"
-```
-
-</details>
-
 ### 9. `src/triangle_pick.wgsl`
 
 Read the same shared range for first surface picks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let input=mesh_vertex(occurrence);let placed=geometry(input.position,input.colour,input.normal,object_settings);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2559,29 +1470,9 @@ Edit the existing block to match this code; keep unchanged lines:
     let input=mesh_vertex(occurrence,object_settings.range.x);let placed=geometry(input.position,input.colour,input.normal,object_settings);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-16.wgsl"
-```
-
-</details>
-
 ### 10. `src/face_pick.wgsl`
 
 Keep original face metadata local while pulling shared positions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let vertex = positions[indices[index]];
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2589,29 +1480,9 @@ Edit the existing block to match this code; keep unchanged lines:
     let vertex = positions[indices[index+object_settings.range.x]];
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-17.wgsl"
-```
-
-</details>
-
 ### 11. `src/finite_project.wgsl`
 
 Project the same shared source indices into the local physical interval.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
- let point=packed_position(physical_vertices[physical_indices[index]]);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2619,19 +1490,7 @@ Edit the existing block to match this code; keep unchanged lines:
  let point=packed_position(physical_vertices[physical_indices[index+object.range.x]]);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-18.wgsl"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2639,25 +1498,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Match the new range field in both supplied surface shader layout assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-(uniform, vec![0, 64, 80, 144]), (instances, vec![0, 64, 80, 144])
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-19.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2665,25 +1512,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Match the same range field in the supplied compute shader layout assertion.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-vec![0, 64, 68, 72, 80, 144]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-20.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2691,36 +1526,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply an actual nonzero-range renderer comparison for surface color, original face picks, projection, outlines and clipped caps.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[test]
-fn actual_compact_surface_upload_uses_twenty_bytes_per_vertex_and_releases(){
- let scene=Scene::demo();let mut gpu=renderer(&scene);let source=scene.objects()[0].mesh.clone();let original=source.vertices().to_vec();
- assert_eq!(gpu.meshes[0].geometry.buffers().0.size(),source.vertices().len()as u64*20);
- assert_eq!(gpu.meshes[0].geometry.allocated_bytes(),source.vertices().len()as u64*20+source.indices().len()as u64*4);
- let mut cache=crate::geometry_cache::GeometryCache::default();let uploaded=cache.get(&gpu.device,&source);
- assert_eq!(cache.uploaded_bytes,uploaded.allocated_bytes(),"Nonempty compact upload statistics match actual GPU buffers");
- let written=cache.uploaded_bytes;cache.get(&gpu.device,&source);assert_eq!(cache.uploads,1);assert_eq!(cache.uploaded_bytes,written);
- let empty=crate::gpu_geometry::GpuGeometry::upload(&gpu.device,std::rc::Rc::new(crate::mesh::Mesh::new(vec![],vec![]).unwrap()));assert_eq!(empty.allocated_bytes(),24);
- pixels(&gpu);assert_eq!(source.vertices(),original);let uploads=gpu.stats();pixels(&gpu);assert_eq!(gpu.stats(),uploads);
- gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-21.rs" skip=1162
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2728,25 +1540,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the exact supplied GPU allocation check: two 176-byte object records occupy 352 bytes.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-renderer.instance_usage()[..3],&[1,2,320]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-instance-bytes-renderer.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2754,124 +1554,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the exact supplied GPU allocation check: two 176-byte object records occupy 352 bytes.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-gpu.instance_usage()[..3],&[1,2,320]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzl-read-shared-ranges-through-object-records-instance-bytes-gpu.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzm-connect-the-renderer-to-one-mesh-arena"></a>
 
 ### Step 7 of 14 · Connect the renderer to one mesh arena (`96zzm-connect-the-renderer-to-one-mesh-arena`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/14 Visual Trace (96zzm-connect-the-renderer-to-one-mesh-arena): Connect the renderer to one mesh arena</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/geometry_cache.rs, src/renderer.rs, src/browser.rs, src/global_outline_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared mesh</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached geometry</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lease</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared arena</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object range</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing renderer</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">passes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/geometry_cache.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared arena</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing renderer passes</text>
 </svg>
-</div>
-
-- **Goal:** Render prepared source meshes through one shared arena and release its owner when unused.
-- **Data Flow Trace:** `prepared mesh → cached geometry lease → shared arena → object range → existing renderer passes`
-- **Files You Touch:** `src/geometry_cache.rs` (*Keep one shared arena alongside the existing weak geometry cache.*) · `src/renderer.rs` (*Connect visible source objects to the shared arena cache.*) · `src/browser.rs` (*Include retained packed upload rows in the browser’s CPU payload diagnostic.*) · `src/global_outline_tests.rs` (*Supply exact shared-owner accounting, cached-source reuse, preserved standalone placeholder and document-release checks.*)
 
 Connect the existing renderer cache to the shared arena. Keep weak geometry leases for definition reuse, while the arena owns one vertex buffer and one index buffer.
 
 Upload a source range once. Each object record carries its start; earlier geometry reads the current handles after growth. Count arena capacity once, include retained CPU upload rows, and drop the owner when the last geometry lease disappears.
 
-> **Self-Check Question:** *Why are geometry leases weak while the arena itself has one strong owner?*  
-> **Answer:** Object rows keep live geometry leases. The cache must not keep removed geometry alive; it owns shared storage only while a live lease remains.
-
-- **Hands-On Lab Experiment:** Compare geometry uploads before and after moving and selecting an existing placed copy. Close the document and inspect the GPU geometry byte count: the shared owner must be released.
-
-<details>
-<summary>Implementation 96zzm-connect-the-renderer-to-one-mesh-arena: Connect the renderer to one mesh arena</summary>
-
-Render prepared source meshes through one shared arena and release its owner when unused.
-
-Data flow: prepared mesh → cached geometry lease → shared arena → object range → existing renderer passes.
+> **Check:** *Why are geometry leases weak while the arena itself has one strong owner?* — Object rows keep live geometry leases. The cache must not keep removed geometry alive; it owns shared storage only while a live lease remains.
 
 ### 1. `src/geometry_cache.rs`
 
 Keep one shared arena alongside the existing weak geometry cache. Allocate shared storage lazily when a prepared source is first requested. Use the existing GPU context to upload through the arena. Reuse the shared source-range encoder and count only newly prepared ranges and uploaded bytes. Remove the per-geometry upload accounting now that the arena records actual appended bytes. Release the owner after the last active geometry lease is removed. Report shared GPU capacity and retained CPU upload-row capacity once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_geometry::GpuGeometry, mesh::Mesh};
-use std::{collections::HashMap, rc::{Rc, Weak}};
-
-#[derive(Default)]
-pub struct GeometryCache {
-    entries: HashMap<*const Mesh, Weak<GpuGeometry>>,
-    pub uploads: usize,
-    pub uploaded_bytes: u64,
-}
-
-impl GeometryCache {
-    pub fn get(&mut self, device: &wgpu::Device, source: &Rc<Mesh>) -> Rc<GpuGeometry> {
-        let key = Rc::as_ptr(source);
-        if let Some(geometry) = self.entries.get(&key).and_then(Weak::upgrade) {
-            return geometry;
-        }
-        let geometry = Rc::new(GpuGeometry::upload(device, Rc::clone(source)));
-        self.entries.insert(key, Rc::downgrade(&geometry));
-        self.uploads += 1;
-        self.uploaded_bytes += (source.vertices().len() * 20 + source.indices().len() * 4) as u64;
-        geometry
-    }
-
-    pub fn prune(&mut self) {
-        self.entries.retain(|_, geometry| geometry.strong_count() > 0);
-    }
-
-    pub fn entries(&self) -> usize { self.entries.len() }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2915,45 +1641,13 @@ impl GeometryCache {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-7.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Connect visible source objects to the shared arena cache. Add the arena owner once instead of charging its buffers to every source geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.meshes.iter().map(|row| &row.geometry)
@@ -2964,8 +1658,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn uploaded_bytes(&self) -> u64 {
         self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * crate::object_record::BYTES as u64 + self.settings_bytes as u64
 ```
-
-</details>
 
 Replace it with:
 
@@ -2980,8 +1672,7 @@ Replace it with:
         self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * crate::object_record::BYTES as u64 + self.settings_bytes as u64
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.settings_bytes += bytes;
@@ -2992,8 +1683,6 @@ Replace it with:
                 GpuMesh::with_geometry(&self.device, &layout, object,
                     style(scene,object.id,selected==Some(object.id)), geometry)
 ```
-
-</details>
 
 Replace it with:
 
@@ -3007,8 +1696,7 @@ Replace it with:
                     style(scene,object.id,selected==Some(object.id)), geometry)
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3568,35 +2256,9 @@ mod global_outline_tests;
 mod opacity_gpu_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-8.rs"
-```
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-9.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Include retained packed upload rows in the browser’s CPU payload diagnostic.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let cpu = crate::memory::cpu(editor.presentation_scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3605,19 +2267,7 @@ Edit the existing block to match this code; keep unchanged lines:
     cpu[4]+=renderer.arena_cpu_bytes();
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-10.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3625,81 +2275,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply exact shared-owner accounting, cached-source reuse, preserved standalone placeholder and document-release checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn actual_compact_surface_upload_uses_twenty_bytes_per_vertex_and_releases(){
- let scene=Scene::demo();let mut gpu=renderer(&scene);let source=scene.objects()[0].mesh.clone();let original=source.vertices().to_vec();
- assert_eq!(gpu.meshes[0].geometry.buffers().0.size(),source.vertices().len()as u64*20);
- assert_eq!(gpu.meshes[0].geometry.allocated_bytes(),source.vertices().len()as u64*20+source.indices().len()as u64*4);
- let mut cache=crate::geometry_cache::GeometryCache::default();let uploaded=cache.get(&gpu.device,&source);
- assert_eq!(cache.uploaded_bytes,uploaded.allocated_bytes(),"Nonempty compact upload statistics match actual GPU buffers");
- let written=cache.uploaded_bytes;cache.get(&gpu.device,&source);assert_eq!(cache.uploads,1);assert_eq!(cache.uploaded_bytes,written);
- let empty=crate::gpu_geometry::GpuGeometry::upload(&gpu.device,std::rc::Rc::new(crate::mesh::Mesh::new(vec![],vec![]).unwrap()));assert_eq!(empty.allocated_bytes(),24);
- pixels(&gpu);assert_eq!(source.vertices(),original);let uploads=gpu.stats();pixels(&gpu);assert_eq!(gpu.stats(),uploads);
- gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzm-connect-the-renderer-to-one-mesh-arena-11.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzn-describe-eight-byte-draw-slots"></a>
 
 ### Step 8 of 14 · Describe eight-byte draw slots (`96zzn-describe-eight-byte-draw-slots`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/14 Visual Trace (96zzn-describe-eight-byte-draw-slots): Describe eight-byte draw slots</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/draw_slots.rs, src/lib.rs, src/draw_slots_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object row + primitive ID base</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eight-byte slot</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">instance-step vertex input</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/draw_slots.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">eight-byte slot</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">instance-step vertex in…</text>
 </svg>
-</div>
-
-- **Goal:** Store an object row and primitive ID base in one instance-step vertex record.
-- **Data Flow Trace:** `object row + primitive ID base → eight-byte slot → instance-step vertex input`
-- **Files You Touch:** `src/draw_slots.rs` (*Type the compact integer layout and reuse the existing growing buffer for slot ownership.*) · `src/lib.rs` (*Register the shared slot owner before connecting the instance pipeline.*) · `src/draw_slots_tests.rs` (*Supply a real GPU readback fixture for exact large integer IDs, growth, reuse, sentinel and release.*)
 
 Separate instance selection from object properties. A draw slot contains two integers: the object row to read and the primitive ID base. Reserve slot zero for an ordinary draw that keeps its own object row. Reuse the growing buffer and preserve that sentinel through reset and release.
 
-> **Self-Check Question:** *Why does a draw slot use an instance-step buffer?*  
-> **Answer:** Every vertex of one placed instance reads the same slot; the next instance advances to another object row and ID base.
-
-- **Hands-On Lab Experiment:** Trace slots for two placed copies. Predict the uploaded bytes and explain why slot zero remains available after clearing the instances.
-
-<details>
-<summary>Implementation 96zzn-describe-eight-byte-draw-slots: Describe eight-byte draw slots</summary>
-
-Store an object row and primitive ID base in one instance-step vertex record.
-
-Data flow: object row + primitive ID base → eight-byte slot → instance-step vertex input.
+> **Check:** *Why does a draw slot use an instance-step buffer?* — Every vertex of one placed instance reads the same slot; the next instance advances to another object row and ID base.
 
 ### 1. `src/draw_slots.rs`
 
@@ -3715,21 +2328,6 @@ Create the file and type:
 
 Register the shared slot owner before connecting the instance pipeline.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn validate_source_json(text: &str) -> Result<(), JsValue> {
-    source_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -3737,19 +2335,7 @@ After that block, type:
 mod draw_slots;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzn-describe-eight-byte-draw-slots-2.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3763,10 +2349,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzn-describe-eight-byte-draw-slots-3.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3774,113 +2357,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the optional GPU fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod draw_slots;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzn-describe-eight-byte-draw-slots-4.rs" skip=15
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzo-read-instance-properties-through-draw-slots"></a>
 
 ### Step 9 of 14 · Read instance properties through draw slots (`96zzo-read-instance-properties-through-draw-slots`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/14 Visual Trace (96zzo-read-instance-properties-through-draw-slots): Read instance properties through draw slots</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/draw_slots.rs, src/instance_gpu.rs, src/object_record_tests.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">instance slot</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">property record + ID base</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared mesh range</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">color and physical</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">triangle</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/draw_slots.rs, src/in…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared mesh range</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color and physical tria…</text>
 </svg>
-</div>
-
-- **Goal:** Connect compact draw slots to the existing instance color pipeline.
-- **Data Flow Trace:** `instance slot → property record + ID base → shared mesh range → color and physical triangle`
-- **Files You Touch:** `src/draw_slots.rs` (*Keep one comparison shadow in the slot owner.*) · `src/instance_gpu.rs` (*Keep slots beside the existing batch property records.*) · `src/object_record_tests.rs` (*Validate the actual shader assembled by the instance pipeline.*) · `src/pick_gpu_tests.rs` (*Retain exact two-record allocation checks and include the three eight-byte slots.*)
 
 Bind an eight-byte slot beside the shared source mesh. Its object row chooses a full property record, and its ID base names the placed triangle. Keep the shader’s local triangle address separate from the original owner ID. Reuse unchanged slot bytes when only object properties change.
 
-> **Self-Check Question:** *Why must placed copies have separate primitive ID bases?*  
-> **Answer:** They share source triangles but occupy distinct places. Physical visibility must distinguish those occurrences while picking retains each original object owner.
-
-- **Hands-On Lab Experiment:** Create two placed copies, move one, toggle normal diagnostics and select it. Check the source upload count stays fixed and Undo restores the same image.
-
-<details>
-<summary>Implementation 96zzo-read-instance-properties-through-draw-slots: Read instance properties through draw slots</summary>
-
-Connect compact draw slots to the existing instance color pipeline.
-
-Data flow: instance slot → property record + ID base → shared mesh range → color and physical triangle.
+> **Check:** *Why must placed copies have separate primitive ID bases?* — They share source triangles but occupy distinct places. Physical visibility must distinguish those occurrences while picking retains each original object owner.
 
 ### 1. `src/draw_slots.rs`
 
 Keep one comparison shadow in the slot owner. Start with no uploaded slots. Skip unchanged slot uploads. Update the shadow after uploading the complete logical slot rows.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::text_gpu_support::{GpuCtx,GrowBuf};
-pub const OWN_ROW:u32=u32::MAX;
-pub type Slot=[u32;2];
-const ATTRIBUTES:[wgpu::VertexAttribute;2]=[
- wgpu::VertexAttribute {offset:0,shader_location:0,format:wgpu::VertexFormat::Uint32},
- wgpu::VertexAttribute {offset:4,shader_location:1,format:wgpu::VertexFormat::Uint32},
-];
-pub fn layout()->wgpu::VertexBufferLayout<'static>{wgpu::VertexBufferLayout {array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ATTRIBUTES}}
-pub struct Slots {pub(crate) buffer:GrowBuf}
-impl Slots {
- pub fn new(ctx:&GpuCtx)->Self {
-  let mut slots=Self {buffer:GrowBuf::new(ctx,"instance draw slots",8,wgpu::BufferUsages::VERTEX)};
-  slots.set(ctx,&[]);slots
- }
- pub fn set(&mut self,ctx:&GpuCtx,rows:&[Slot]){
-  let bytes:Vec<u8>=std::iter::once([OWN_ROW,0]).chain(rows.iter().copied()).flatten().flat_map(u32::to_ne_bytes).collect();
-  self.buffer.reset();self.buffer.append_bytes(ctx,&bytes);
- }
- pub fn clear(&mut self,ctx:&GpuCtx,free:bool){if free {self.buffer.release(ctx);}self.set(ctx,&[]);}
- pub fn bind(&self,pass:&mut wgpu::RenderPass<'_>,slot:u32,first:u32){
-  assert!(first<self.buffer.len());pass.set_vertex_buffer(slot,self.buffer.buf.slice(u64::from(first)*8..));
- }
- pub fn instances(&self)->u32{self.buffer.len()-1}
- pub fn allocated_bytes(&self)->u64{self.buffer.buf.size()}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3914,82 +2432,9 @@ impl Slots {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-4.rs"
-```
-
-</details>
-
 ### 2. `src/instance_gpu.rs`
 
 Keep slots beside the existing batch property records. Use one assembled instance shader for the pipeline and its validation fixture. Select a property row and placed primitive ID base from instance-step integer attributes. Avoid assembling the clipping and packed helpers twice. Declare the eight-byte instance-step slot in the actual pipeline. Keep each batch-local object row and its existing globally assigned primitive base. Upload slots only when their row or primitive address changes. Create the sentinel and instance slots when a batch is first allocated. Skip sentinel slot zero when drawing actual instances. Count both property storage and actual slot-buffer capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_geometry::GpuGeometry,gpu_mesh::GpuMesh};
-use std::{collections::{BTreeMap,HashMap},rc::Rc};
-use wgpu::util::DeviceExt;
-use crate::object_record::{BYTES, Record};
-
-struct Batch {geometry:Rc<GpuGeometry>,records:wgpu::Buffer,group:wgpu::BindGroup,bytes:Vec<u8>,count:u32}
-pub struct Lane {pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,batches:BTreeMap<(usize,usize),Batch>,pub writes:u64,pub written_bytes:u64}
-impl Lane {
-    pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,view:&wgpu::BindGroupLayout)->Self {
-        let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {label:Some("shared instance records"),entries:&[wgpu::BindGroupLayoutEntry {binding:0,visibility:wgpu::ShaderStages::VERTEX,ty:wgpu::BindingType::Buffer {ty:wgpu::BufferBindingType::Storage {read_only:true},has_dynamic_offset:false,min_binding_size:std::num::NonZeroU64::new(BYTES as u64)},count:None}]});
-        let source=include_str!("triangle.wgsl")
-            .replace("var<uniform> object_settings: ObjectSettings;", "var<storage, read> objects: array<ObjectSettings>;")
-            .replace("return object_settings;", "return objects[index];");
-        let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor {label:Some("shared definition placements"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(&source,2,0).into())});
-        let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {label:Some("shared instance settings"),bind_group_layouts:&[Some(view),Some(&layout),Some(&crate::clipping_gpu::layout(device)),Some(&GpuGeometry::storage_layout(device))],immediate_size:0});
-        let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {label:Some("shared original definition drawing"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState {module:&shader,entry_point:Some("vertex"),compilation_options:Default::default(),buffers:&[]},fragment:Some(wgpu::FragmentState {module:&shader,entry_point:Some("fragment"),compilation_options:Default::default(),targets:&[Some(format.into()),Some(crate::primitive_image::target(true))]}),primitive:Default::default(),depth_stencil:Some(crate::depth::surface()),multisample:Default::default(),multiview_mask:None,cache:None});
-        Self {pipeline,layout,batches:BTreeMap::new(),writes:0,written_bytes:0}
-    }
-    pub fn set<'a>(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,rows:impl IntoIterator<Item=&'a GpuMesh>)->Result<(),&'static str> {
-        let limit=(u64::from(device.limits().max_storage_buffer_binding_size).min(device.limits().max_buffer_size)/BYTES as u64) as usize;
-        if limit==0 {return Err("Device cannot hold one instance record");}
-        let mut groups:HashMap<usize,(Rc<GpuGeometry>,Vec<Record>)>=HashMap::new();
-        for row in rows {let key=Rc::as_ptr(&row.geometry) as usize;groups.entry(key).or_insert_with(||(row.geometry.clone(),Vec::new())).1.push(row.packed());}
-        let mut old=std::mem::take(&mut self.batches);let mut batches=BTreeMap::new();
-        for (source,(geometry,records)) in groups {
-            for (part,records) in records.chunks(limit).enumerate() {
-                let key=(source,part);let bytes=records.iter().flatten().copied().collect::<Vec<_>>();
-                let batch=if let Some(mut batch)=old.remove(&key).filter(|b|Rc::ptr_eq(&b.geometry,&geometry)&&b.records.size()>=bytes.len() as u64) {
-                    if batch.bytes!=bytes {queue.write_buffer(&batch.records,0,&bytes);self.writes+=1;self.written_bytes+=bytes.len() as u64;batch.bytes=bytes;}batch.count=records.len() as u32;batch
-                } else {
-                    let buffer=device.create_buffer_init(&wgpu::util::BufferInitDescriptor {label:Some("independent source placements"),contents:&bytes,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST});let group=crate::gpu_layout::group(device,&self.layout,&buffer);self.writes+=1;self.written_bytes+=bytes.len() as u64;Batch {geometry:geometry.clone(),records:buffer,group,bytes,count:records.len() as u32}
-                };batches.insert(key,batch);
-            }
-        }
-        self.batches=batches;Ok(())
-    }
-    pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>) {
-        pass.set_pipeline(&self.pipeline);
-        for batch in self.batches.values() {pass.set_bind_group(1,&batch.group,&[]);batch.geometry.draw_pulled(pass,batch.count);}
-    }
-    pub fn usage(&self)->[u64;5] {[self.batches.len() as u64,self.batches.values().map(|b|u64::from(b.count)).sum(),self.batches.values().map(|b|b.records.size()).sum(),self.writes,self.written_bytes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4048,55 +2493,7 @@ impl Lane {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-7.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-8.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-9.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-14.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4104,26 +2501,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Validate the actual shader assembled by the instance pipeline.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let instances = uniform.replace("var<uniform> object_settings: ObjectSettings;", "var<storage, read> objects: array<ObjectSettings>;")
-        .replace("return object_settings;", "return objects[index];");
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-15.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4131,25 +2515,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain exact two-record allocation checks and include the three eight-byte slots.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-renderer.instance_usage()[..3],&[1,2,352]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-16.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4157,166 +2529,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain exact two-record allocation checks and include the three eight-byte slots.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-gpu.instance_usage()[..3],&[1,2,352]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzo-read-instance-properties-through-draw-slots-17.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzp-classify-contact-fill-shading"></a>
 
 ### Step 10 of 14 · Classify contact fill shading (`96zzp-classify-contact-fill-shading`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/14 Visual Trace (96zzp-classify-contact-fill-shading): Classify contact fill shading</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/face_pick.wgsl, src/global_outline_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived RGBA</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">packed vertex</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">contact classification</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">opaque unlit display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle.wgsl, src/fa…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">contact classification</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">opaque unlit display</text>
 </svg>
-</div>
-
-- **Goal:** Read the contact marker from packed RGBA and keep that display fill opaque and unlit.
-- **Data Flow Trace:** `derived RGBA → packed vertex → contact classification → opaque unlit display`
-- **Files You Touch:** `src/triangle.wgsl` (*Keep packed alpha available when placing a surface vertex.*) · `src/face_pick.wgsl` (*Reuse the same RGBA placement input in source-face picking.*) · `src/global_outline_tests.rs` (*Supply an actual rendered closed-source fixture for contact color, opacity/x-ray exemptions, selection, original picks, source preservation and release.*)
 
 The derived display already retains the kernel contact marker: alpha is one byte out of 255. Carry that byte through the shared vertex decoder. Classify it once when placing the vertex, preserve its own color before selection, and exempt the fill from solid opacity and x-ray. Keep the original object owner and primitive address.
 
-> **Self-Check Question:** *Why is this alpha a marker instead of transparency?*  
-> **Answer:** The derived contact display uses this reserved value to identify a fill. Its presentation is opaque; applying the marker as opacity would nearly erase it.
-
-- **Hands-On Lab Experiment:** Trace the contact marker through RGBA packing and compare its fragment with an ordinary face. Predict the result at opacity zero and when its original owner is selected.
-
-<details>
-<summary>Implementation 96zzp-classify-contact-fill-shading: Classify contact fill shading</summary>
-
-Read the contact marker from packed RGBA and keep that display fill opaque and unlit.
-
-Data flow: derived RGBA → packed vertex → contact classification → opaque unlit display.
+> **Check:** *Why is this alpha a marker instead of transparency?* — The derived contact display uses this reserved value to identify a fill. Its presentation is opaque; applying the marker as opacity would nearly erase it.
 
 ### 1. `src/triangle.wgsl`
 
 Keep packed alpha available when placing a surface vertex. Recognize the reserved byte and retain contact color before the existing selection override. Carry classification in the existing flat flags while exempting contact fills from closed-solid and x-ray behavior. Read the placed classification in the fragment. Paint the contact fill opaque and unlit after clipping; ordinary faces retain the existing normal and lighting path. Pass all RGBA components through the one surface decoder. Decode the already packed marker without a second upload or vertex format.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<u32>,
-    normal_matrix: mat4x4<f32>,
-    face_colour:vec4<f32>,
-    range:vec4<u32>,
-}
-@group(1) @binding(0) var<uniform> object_settings: ObjectSettings;
-fn object_at(index: u32) -> ObjectSettings { return object_settings; }
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-    @location(3) @interpolate(flat) clip_flags:u32,
-    @location(4) @interpolate(flat) mirrored:u32,
-    @location(5) @interpolate(flat) primitive:u32,
-}
-
-fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>, object: ObjectSettings) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = view.transform * world;
-    let displayed=select(colour,object.face_colour.xyz,object.face_colour.w>0.5);
-    output.colour = select(displayed, vec3<f32>(1.0, 0.75, 0.05), (object.selection.x & 1u) != 0u);
-    output.mirrored=select(0u,1u,determinant(mat3x3<f32>(object.model[0].xyz,object.model[1].xyz,object.model[2].xyz))<0.);
-    output.world = world.xyz;output.clip_flags=object.selection.z;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-fn shade(input: VertexOutput, front: bool) -> vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let derivative = cross(dpdx(input.world), dpdy(input.world));
-    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
-    let face = select(derivative, -derivative, front);
-    if(clip_active()&&clip_cut(input.clip_flags,input.world)){discard;}
-    let closed=(input.clip_flags&8192u)!=0u;
-    let source_front=(front!=(input.mirrored!=0u))!=((input.clip_flags&16384u)!=0u);
-    if((input.clip_flags&32768u)!=0u || (closed&&!source_front&&view.display.y>0.&&view.display.y<1.)){discard;}
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), select(1.,view.display.y,closed)); }
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, select(1.,view.display.y,closed));
-}
-
-struct FragmentOutput{
-    @location(0) color:vec4<f32>,
-    @location(1) primitive:vec2<u32>,
-}
-@fragment
-fn fragment(input:VertexOutput,@builtin(front_facing) front:bool)->FragmentOutput{
-    return FragmentOutput(shade(input,front),physical_primitive(input.primitive));
-}
-
-@group(3) @binding(0) var<storage, read> mesh_values: array<PackedVertex>;
-@group(3) @binding(2) var<storage, read> mesh_indices: array<u32>;
-struct MeshInput { position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>, }
-fn mesh_vertex(occurrence:u32,first:u32)->MeshInput{
- let vertex=mesh_values[mesh_indices[occurrence+first]];
- return MeshInput(packed_position(vertex),unpack4x8unorm(vertex.color).rgb,oct32_decode(vertex.normal));
-}
-
-@vertex
-fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) instance: u32) -> VertexOutput {
-    let object=object_at(instance);
-    let input=mesh_vertex(occurrence,object.range.x);
-    var output=geometry(input.position,input.colour,input.normal,object);
-    output.primitive=(object.selection.x>>1u)+occurrence/3u+1u;
-    return output;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4407,53 +2661,9 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-6.rs"
-```
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-7.rs"
-```
-
-</details>
-
 ### 2. `src/face_pick.wgsl`
 
 Reuse the same RGBA placement input in source-face picking.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let placed = geometry(packed_position(vertex), unpack4x8unorm(vertex.color).rgb, vec3<f32>(0.0),object_settings);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4461,19 +2671,7 @@ Edit the existing block to match this code; keep unchanged lines:
     let placed = geometry(packed_position(vertex), unpack4x8unorm(vertex.color), vec3<f32>(0.0),object_settings);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzp-classify-contact-fill-shading-8.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4481,100 +2679,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply an actual rendered closed-source fixture for contact color, opacity/x-ray exemptions, selection, original picks, source preservation and release.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pected,"Shared source addressing preserves original picks");
-        }
-        assert!(r.tiles.borrow().usage()[3]>0);
-        if clipped {assert_eq!(r.cap_usage()[1],1);}
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzp-classify-contact-fill-shading-9.rs" skip=180
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzq-open-files-through-one-measured-session-reader"></a>
 
 ### Step 11 of 14 · Open files through one measured Session reader (`96zzq-open-files-through-one-measured-session-reader`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/14 Visual Trace (96zzq-open-files-through-one-measured-session-reader): Open files through one measured Session reader</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/load_measure.rs, src/document_source.rs, src/source_phase_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">file bytes</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">decode</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kernel</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display walk</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">atomic history</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">adoption</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/load_measure.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">kernel</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">atomic history adoption</text>
 </svg>
-</div>
-
-- **Goal:** Prepare browser file imports once through the measured full original-document reader.
-- **Data Flow Trace:** `file bytes → decode → full validation → kernel → display walk → atomic history adoption`
-- **Files You Touch:** `src/load_measure.rs` (*Let the existing timer observe String errors without duplicating its clock and completion algorithm.*) · `src/document_source.rs` (*Expose observations on the existing full reader and share its browser callback.*) · `src/source_phase_tests.rs` (*Supply fixtures against actual original Element/interaction bytes, exact phase order and failure boundaries, and retained source locations.*) · `src/lib.rs` (*Register the optional full-source observation fixtures.*) · `src/scene_document.rs` (*Reuse original-document import while allowing the browser file origin to retain its reload location.*) · `src/publication.rs` (*Remove the older mesh reader and unmeasured fallback; preserve the existing archive path.*)
 
 Use one full Session reader for browser files. Reuse the phase timer for decode, validation, kernel reconstruction and the actual display walk. Retain the source reload location, and adopt the candidate only after preparation succeeds. Keep archive opening on its existing path.
 
-> **Self-Check Question:** *Why must timing and file adoption use the same full reader?*  
-> **Answer:** Measurements must describe the work that prepares the accepted document. A decode, validation or display error must leave the visible document and its undo/redo history intact.
-
-- **Hands-On Lab Experiment:** Open an Element Session with interactions, download Report, then try malformed bytes. Inspect the four successful phases, the failed decode, and unchanged accepted drawing. Undo and Redo must preserve original owners.
-
-<details>
-<summary>Implementation 96zzq-open-files-through-one-measured-session-reader: Open files through one measured Session reader</summary>
-
-Prepare browser file imports once through the measured full original-document reader.
-
-Data flow: file bytes → decode → full validation → kernel → display walk → atomic history adoption.
+> **Check:** *Why must timing and file adoption use the same full reader?* — Measurements must describe the work that prepares the accepted document. A decode, validation or display error must leave the visible document and its undo/redo history intact.
 
 ### 1. `src/load_measure.rs`
 
 Let the existing timer observe String errors without duplicating its clock and completion algorithm.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn run<T>(name: &str, bytes: u64, clock: &mut impl FnMut() -> f64,
-    observe: &mut impl FnMut(Completed<'_>), operation: impl FnOnce() -> Result<T, &'static str>,
-) -> Result<T, &'static str> {
-```
-
-</details>
 
 After that block, type:
 
@@ -4585,42 +2731,6 @@ After that block, type:
 ### 2. `src/document_source.rs`
 
 Expose observations on the existing full reader and share its browser callback. Record the actual decode and a stable malformed-payload error. Start validation around the existing complete schema, identities, tree, placements and prepared-sheet checks. Finish validation and retain the original reload location in the one source origin. Measure the actual kernel reconstruction once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>,pub sheets:Vec<Rc<crate::sheet_source::Prepared>>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(components);identity!(elements);identity!(planes);identity!(bboxes);identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);identity!(sheets);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let sheets=objects.sheets.iter().cloned().map(|sheet|crate::sheet_source::Prepared::new(Rc::new(sheet)).map(Rc::new).map_err(str::to_owned)).collect::<Result<Vec<_>,_>>()?;
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world,sheets})
-}
-
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4668,35 +2778,7 @@ fn supported(source:&proto::Session)->Result<(),String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-6.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4710,10 +2792,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-7.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4721,30 +2800,11 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the optional full-source observation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ce_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-
-mod draw_slots;
-#[cfg(test)] mod draw_slots_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-8.rs" skip=180
 ```
-
-</details>
 
 ### 5. `src/scene_document.rs`
 
@@ -4752,8 +2812,7 @@ Reuse original-document import while allowing the browser file origin to retain 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -4762,8 +2821,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     scene.restore(candidate);Ok(key)
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4776,8 +2833,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use {session_rust::proto,prost::Message,std::collections::HashSet};
@@ -4790,8 +2846,6 @@ pub fn import(scene:&mut Scene,bytes:&[u8],name:&str,place:&Xform,point_px:f32)-
     let key=candidate.reserve_document_key().map_err(str::to_owned)?;let owners=crate::document_geometry::append(&mut candidate,&source,place,point_px)?;
     candidate.forest=forest;candidate.created=created;Rc::make_mut(&mut candidate.view).current=current;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4810,8 +2864,7 @@ pub fn import_at(scene:&mut Scene,bytes:&[u8],name:&str,place:&Xform,point_px:f3
     candidate.forest=forest;candidate.created=created;Rc::make_mut(&mut candidate.view).current=current;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::scene::Scene;
@@ -4918,47 +2971,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-9.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-12.rs"
-```
-
-</details>
-
 ### 6. `src/publication.rs`
 
 Remove the older mesh reader and unmeasured fallback; preserve the existing archive path.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let url=location.as_ref().map(|location|location.value().to_owned());
-    match crate::document::load_at(bytes,location) {
-        Ok(loaded)=>candidate.import(loaded).map_err(str::to_owned)?,
-        Err(_)=>{let previous=candidate.all_ids();crate::scene_document::import(&mut candidate,bytes,"",&session_rust::Xform::identity(),0.)?;if let Some(url)=url {candidate.sheet_import_url(&url,&previous);}}
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4966,8 +2981,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-13.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4975,38 +2989,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply full original Element/interaction preparation and atomic malformed-file checks with retained reload origin.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-t(),1);assert_eq!(editor.camera.uniform(),camera);assert_eq!(editor.scene.clouds().len(),1);editor.apply(Action::Undo).unwrap();assert_eq!(editor.scene.clouds().len(),1);
-    }
-
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-14.rs" skip=180
 ```
 
-</details>
-
 ### 8. `src/publication.rs`
 
 Reuse the existing sheet URL initializer for newly imported originals; preserve earlier sheets’ metadata bases.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    crate::scene_document::import_at(&mut candidate,bytes,"",&session_rust::Xform::identity(),0.,location)?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5016,78 +3007,42 @@ Edit the existing block to match this code; keep unchanged lines:
     if let Some(url)=url {candidate.sheet_import_url(&url,&previous);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzq-open-files-through-one-measured-session-reader-15.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzr-route-current-close-and-opacity-commands"></a>
 
 ### Step 12 of 14 · Route current Close and Opacity commands (`96zzr-route-current-close-and-opacity-commands`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/14 Visual Trace (96zzr-route-current-close-and-opacity-commands): Route current Close and Opacity commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/commands.rs, src/editor.rs, src/opacity_command_tests.rs, src/current_command_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command words</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing editor action</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">draft or display state</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/commands.rs, src/edit…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing editor action</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">draft or display state</text>
 </svg>
-</div>
-
-- **Goal:** Finish an active curve with Close and read the current Opacity argument convention.
-- **Data Flow Trace:** `command words → existing editor action → draft or display state`
-- **Files You Touch:** `src/commands.rs` (*Route the public command through the existing curve-closing action.*) · `src/editor.rs` (*Protect other tools and construction-plane picks before building a closed curve.*) · `src/opacity_command_tests.rs` (*Update the original invalid-input fixture for the required current parser behavior.*) · `src/current_command_tests.rs` (*Supply original-document, one-undo, retained-draft and precision-boundary fixtures.*) · `src/lib.rs` (*Register the optional command fixtures.*) · `src/inventory_tests.rs` (*Update the comparison fixture to require the now-matched first-argument convention and its exact value.*)
 
 Route Close through the existing curve builder and one history transaction, protecting other tools and construction-plane picks. Read the first Opacity value as a finite double before narrowing for the shader. Later words follow the current parser convention.
 
-> **Self-Check Question:** *Why keep document release separate from Close?*  
-> **Answer:** Close finishes an unfinished curve. A document lifetime action owns release and history cleanup; a drawing command must not erase existing geometry.
-
-- **Hands-On Lab Experiment:** With existing geometry visible, run Close without a draft and confirm it remains. Begin Polyline, enter three points separately, run Close, and Undo once. Try Opacity 0.5 extra, then Opacity 1.000000001 extra; only the first is valid.
-
-<details>
-<summary>Implementation 96zzr-route-current-close-and-opacity-commands: Route current Close and Opacity commands</summary>
-
-Finish an active curve with Close and read the current Opacity argument convention.
-
-Data flow: command words → existing editor action → draft or display state.
+> **Check:** *Why keep document release separate from Close?* — Close finishes an unfinished curve. A document lifetime action owns release and history cleanup; a drawing command must not erase existing geometry.
 
 ### 1. `src/commands.rs`
 
 Route the public command through the existing curve-closing action.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Close", || Action::Close),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5095,29 +3050,9 @@ Edit the existing block to match this code; keep unchanged lines:
     ("Close", || Action::CloseTool),
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-1.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Protect other tools and construction-plane picks before building a closed curve.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                if draft.gather.is_some()||draft.project.is_some()||draft.extend.is_some(){return Err("Close works on a polyline or curve")}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5125,29 +3060,9 @@ Edit the existing block to match this code; keep unchanged lines:
                 if self.plane_only || draft.plane_points.is_some() || !matches!(draft.tool.name(),"Polyline"|"Curve"){return Err("Close works on a polyline or curve")}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-2.rs"
-```
-
-</details>
-
 ### 3. `src/commands.rs`
 
 Validate the first argument in the same precision as the current command parser.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if name=="Opacity"{let [word]=&words[count..]else{return Err("Opacity 0..1 · Example: Opacity 0.5".into())};let value=word.parse::<f32>().ok().filter(|v|v.is_finite()&&(0.0..=1.0).contains(v)).ok_or("Opacity takes a value from 0 to 1")?;return Ok(Command::Editor(Action::Opacity(value)));}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5155,19 +3070,7 @@ Edit the existing block to match this code; keep unchanged lines:
     if name=="Opacity"{let word=words.get(count).ok_or("Opacity 0..1 · Example: Opacity 0.5")?;let value=word.parse::<f64>().ok().filter(|v|v.is_finite()&&(0.0..=1.0).contains(v)).ok_or("Opacity takes a value from 0 to 1")?;return Ok(Command::Editor(Action::Opacity(value as f32)));}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-3.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5175,25 +3078,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Update the original invalid-input fixture for the required current parser behavior.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-"Opacity NaN","Opacity 0.5 extra"
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-4.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5207,10 +3098,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-5.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5218,35 +3106,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the optional command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-
-mod draw_slots;
-#[cfg(test)] mod draw_slots_tests;
-
-#[cfg(test)] mod source_phase_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-6.rs" skip=160
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5254,71 +3120,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Update the comparison fixture to require the now-matched first-argument convention and its exact value.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert!(crate::commands::parse("Opacity 0.4 extra").is_err());
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzr-route-current-close-and-opacity-commands-7.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzs-reuse-full-source-preparation-for-editor-and-reload"></a>
 
 ### Step 13 of 14 · Reuse full source preparation for editor and reload (`96zzs-reuse-full-source-preparation-for-editor-and-reload`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/14 Visual Trace (96zzs-reuse-full-source-preparation-for-editor-and-reload): Reuse full source preparation for editor and reload</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/document.rs, src/full_source_action_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source bytes</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared full reader</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepared scene or restored source</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/docume…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared full reader</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared scene or resto…</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the full Session reader for byte actions and released mesh sources.
-- **Data Flow Trace:** `source bytes → shared full reader → prepared scene or restored source`
-- **Files You Touch:** `src/editor.rs` (*Prepare every byte action once through the existing full candidate reader.*) · `src/document.rs` (*Validate the same full original file before recovering a released mesh source.*) · `src/full_source_action_tests.rs` (*Supply all four editor actions, original Element payloads, shared locations, one-undo and mixed-file reload fixtures.*) · `src/lib.rs` (*Register the optional full-source action fixtures.*)
 
 Route all editor byte imports through the existing atomic candidate preparation. Reuse that reader when restoring a released mesh from a mixed Session file, checking its file version first. Keep source locations and original payloads; avoid a second geometry-type whitelist.
 
-> **Self-Check Question:** *Why must a mesh reload accept the entire original file?*  
-> **Answer:** A mesh can share its Session file with points, Elements and other originals. Reloading its source must validate that complete file, then recover the mesh by its original GUID.
-
-- **Hands-On Lab Experiment:** Trace an imported mixed file through candidate preparation, original source release and reload. Identify which owner keeps the reload location and which check rejects changed bytes.
-
-<details>
-<summary>Implementation 96zzs-reuse-full-source-preparation-for-editor-and-reload: Reuse full source preparation for editor and reload</summary>
-
-Reuse the full Session reader for byte actions and released mesh sources.
-
-Data flow: source bytes → shared full reader → prepared scene or restored source.
+> **Check:** *Why must a mesh reload accept the entire original file?* — A mesh can share its Session file with points, Elements and other originals. Reloading its source must validate that complete file, then recover the mesh by its original GUID.
 
 ### 1. `src/editor.rs`
 
@@ -5326,8 +3165,7 @@ Prepare every byte action once through the existing full candidate reader. Route
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::AddInstances=>{self.history.try_edit(&mut self.scene,|scene|crate::scene_document::import(scene,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).map(|_|()).map_err(|_|"Cannot prepare original definition instances"))?;},
@@ -5357,8 +3195,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     let mut line = session_rust::Polyline::new(vec![session_rust::Point::new(-0.6, -0.4, 0.0),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5384,8 +3220,7 @@ Replace it with:
                     let mut line = session_rust::Polyline::new(vec![session_rust::Point::new(-0.6, -0.4, 0.0),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6592,31 +4427,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzs-reuse-full-source-preparation-for-editor-and-reload-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzs-reuse-full-source-preparation-for-editor-and-reload-2.rs"
-```
-
-</details>
-
 ### 2. `src/document.rs`
 
 Validate the same full original file before recovering a released mesh source. Remove the restricted decode helper that reload no longer calls.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")
@@ -6637,8 +4454,6 @@ pub(crate) fn restore(bytes: &[u8], origin: &crate::origin::Origin) -> Result<Rc
 pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -6654,8 +4469,7 @@ pub(crate) fn restore(bytes: &[u8], origin: &crate::origin::Origin) -> Result<Rc
 pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::prepared::PreparedMesh;
@@ -6830,21 +4644,7 @@ fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzs-reuse-full-source-preparation-for-editor-and-reload-3.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6858,10 +4658,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzs-reuse-full-source-preparation-for-editor-and-reload-5.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6869,97 +4666,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the optional full-source action fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-]
-mod cloud_shader_contract;
-
-mod draw_slots;
-#[cfg(test)] mod draw_slots_tests;
-
-#[cfg(test)] mod source_phase_tests;
-
-#[cfg(test)]
-mod current_command_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzs-reuse-full-source-preparation-for-editor-and-reload-6.rs" skip=160
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzt-share-the-current-selection-yellow"></a>
 
 ### Step 14 of 14 · Share the current selection yellow (`96zzt-share-the-current-selection-yellow`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/14 Visual Trace (96zzt-share-the-current-selection-yellow): Share the current selection yellow</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/colour.rs, src/highlight.rs, src/tool_preview.rs, src/clipping_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Session palette</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CPU highlight data and shared WGSL</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">selected display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/colour.rs, src/highli…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">CPU highlight data and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selected display</text>
 </svg>
-</div>
-
-- **Goal:** Use the current selection yellow for surfaces and temporary highlights without changing original colors.
-- **Data Flow Trace:** `Session palette → CPU highlight data and shared WGSL → selected display`
-- **Files You Touch:** `src/colour.rs` (*Define selection presentation once from the existing Session palette.*) · `src/highlight.rs` (*Use the shared palette in the existing temporary overlay owner.*) · `src/tool_preview.rs` (*Use the shared palette in the existing temporary overlay owner.*) · `src/clipping_gpu.rs` (*Include the same generated selection constant in the shared shader assembly.*) · `src/triangle.wgsl` (*Read selection presentation from the shared shader constant.*) · `src/global_outline_tests.rs` (*Update the existing exact contact-selection pixel assertion to the current palette.*) · `src/pick_gpu_tests.rs` (*Require current yellow in the original surface and temporary-preview GPU fixtures; preserve ownership and upload checks.*)
 
 Read selection yellow from the Session color palette. Reuse it in temporary CPU highlights and generate the shared WGSL constant from those same components. Surface selection changes presentation; it must preserve authored colors, original owners and GPU storage.
 
-> **Self-Check Question:** *Why generate the shader constant from the CPU palette?*  
-> **Answer:** Both sides must use the same components. A shared definition prevents surface selection and temporary overlays from drifting apart, without adding a uniform or changing the object record.
-
-- **Hands-On Lab Experiment:** Select a surface, then select one of its original edges or controls. Compare their yellow. Clear selection and confirm the original colors return; Undo should still describe geometry edits.
-
-<details>
-<summary>Implementation 96zzt-share-the-current-selection-yellow: Share the current selection yellow</summary>
-
-Use the current selection yellow for surfaces and temporary highlights without changing original colors.
-
-Data flow: Session palette → CPU highlight data and shared WGSL → selected display.
+> **Check:** *Why generate the shader constant from the CPU palette?* — Both sides must use the same components. A shared definition prevents surface selection and temporary overlays from drifting apart, without adding a uniform or changing the object record.
 
 ### 1. `src/colour.rs`
 
 Define selection presentation once from the existing Session palette.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Mode::Points => mesh.set_pointcolors(vec![red.clone(), green.clone(), blue.clone(), red, green, blue]),
-        Mode::Faces => mesh.set_facecolors(vec![red, blue]),
-    }
-    mesh
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -6972,25 +4720,13 @@ pub fn selection_shader()->String{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzt-share-the-current-selection-yellow-1.rs"
-```
-
-</details>
-
 ### 2. `src/highlight.rs`
 
 Use the shared palette in the existing temporary overlay owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -7001,8 +4737,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             crate::stroke::Stroke { colour: yellow, width: r.prepared.display.width + 2., ..r.stroke() }).chain(scene.objects().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)&&r.mesh.indices().is_empty()).flat_map(|r|r.mesh.parts.endpoints.iter().map(move|pair|{let ends=pair.map(|p|r.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32());crate::stroke::Stroke{start:ends[0],end:ends[1],colour:yellow,width:3.}}))))?;
         let planes=crate::clipping_rows::owners(scene);let flags=scene.lines().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)).map(|_|0).chain(scene.objects().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)&&r.mesh.indices().is_empty()).flat_map(|r|std::iter::repeat_n(if planes.contains(&r.id){4096}else{0},r.mesh.parts.endpoints.len()))).collect();self.strokes.set_flags(device,flags)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -7016,8 +4750,7 @@ Replace it with:
         let planes=crate::clipping_rows::owners(scene);let flags=scene.lines().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)).map(|_|0).chain(scene.objects().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)&&r.mesh.indices().is_empty()).flat_map(|r|std::iter::repeat_n(if planes.contains(&r.id){4096}else{0},r.mesh.parts.endpoints.len()))).collect();self.strokes.set_flags(device,flags)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn finite_frame(&self,device:&wgpu::Device,tables:&crate::finite_ink::Tables,depth:&wgpu::TextureView){for lane in [&self.strokes,&self.paths,&self.markers]{lane.finite_frame(device,tables,depth)}}
@@ -7028,8 +4761,6 @@ Replace it with:
             Part::Face(key) => {
                 let row = scene.objects().iter().find(|r| r.id == target.owner).unwrap();
 ```
-
-</details>
 
 Replace it with:
 
@@ -7043,8 +4774,7 @@ Replace it with:
                 let row = scene.objects().iter().find(|r| r.id == target.owner).unwrap();
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_sources::{Part, Target}, scene::Scene, stroke_gpu::Lane};
@@ -7140,35 +4870,9 @@ impl Highlight {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzt-share-the-current-selection-yellow-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzt-share-the-current-selection-yellow-3.rs"
-```
-
-</details>
-
 ### 3. `src/tool_preview.rs`
 
 Use the shared palette in the existing temporary overlay owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let yellow = [1., 0.75, 0.05, 1.]; let mut strokes = Vec::new(); let mut markers = Vec::new();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7180,44 +4884,15 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Include the same generated selection constant in the shared shader assembly.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn source(base:&str,group:u32,binding:u32)->String{format!("@group({group}) @binding({binding}) var<uniform> clipping:ClipUniform;\n{}\n{base}",concat!(include_str!("packed_vertex.wgsl"),"\n",include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 pub fn source(base:&str,group:u32,binding:u32)->String{format!("{}\n@group({group}) @binding({binding}) var<uniform> clipping:ClipUniform;\n{}\n{base}",crate::colour::selection_shader(),concat!(include_str!("packed_vertex.wgsl"),"\n",include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzt-share-the-current-selection-yellow-5.rs"
-```
-
-</details>
-
 ### 5. `src/triangle.wgsl`
 
 Read selection presentation from the shared shader constant.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    output.colour = select(displayed, vec3<f32>(1.0, 0.75, 0.05), (object.selection.x & 1u) != 0u);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7225,19 +4900,7 @@ Edit the existing block to match this code; keep unchanged lines:
     output.colour = select(displayed, SELECTION_COLOR, (object.selection.x & 1u) != 0u);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzt-share-the-current-selection-yellow-6.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7245,25 +4908,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Update the existing exact contact-selection pixel assertion to the current palette.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-&[255,191,13]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzt-share-the-current-selection-yellow-7.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7271,27 +4922,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply actual selected pixels, original picks, exact restoration, stable uploads and release assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-sert_eq!(gpu.stats()[0],uploads);assert_eq!(source.alphas(),vec![1./255.;vertices]);
- scene.clear();gpu.set_scene(&scene,None);assert_eq!(gpu.usage(),[0;4]);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzt-share-the-current-selection-yellow-8.rs" skip=160
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7299,25 +4936,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Require current yellow in the original surface and temporary-preview GPU fixtures; preserve ownership and upload checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert!(p[0] > p[1] && p[1] > p[2]);
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzt-share-the-current-selection-yellow-9.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7325,44 +4950,26 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Require current yellow in the original surface and temporary-preview GPU fixtures; preserve ownership and upload checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert!(p[0]>p[1] && p[1]>p[2], "The preview is yellow: {p:?}");
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzt-share-the-current-selection-yellow-10.rs"
 ```
 
-</details>
-
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzt-share-the-current-selection-yellow
-npm --prefix ../session_tests run course -- check 96zzt-share-the-current-selection-yellow
-npm --prefix ../session_tests run course -- save 96zzt-share-the-current-selection-yellow
+npm --prefix ../session_tests run course -- dependencies 20.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 20.3
+npm --prefix ../session_tests run course -- save 20.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-- **Final Lesson Experiment:** Select a surface, then select one of its original edges or controls. Compare their yellow. Clear selection and confirm the original colors return; Undo should still describe geometry edits.
-
-Continue with [Slots, independent instance owners and stable record updates](../../consolidation/96zzu-separate-primitive-addresses-from-selection.md).
+Continue with [20.4 · Slots, independent instance owners and stable record updates](../../consolidation/96zzu-separate-primitive-addresses-from-selection.md).

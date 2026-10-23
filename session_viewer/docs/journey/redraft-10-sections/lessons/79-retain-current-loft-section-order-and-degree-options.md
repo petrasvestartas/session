@@ -1,202 +1,93 @@
 # 15.3 · Lofts, rail sweeps and network foundations
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.3** (Redraft `8.9`) · **12 checkpoints (`79-retain-current-loft-section-order-and-degree-options` → `79zze-fit-the-original-gordon-surface`)** · **Study time: 6–12 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `79-retain-current-loft-section-order-and-degree-options` → `79zze-fit-the-original-gordon-surface` (12 steps) · **Production source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../../src/app/walk/brep.rs)
 
-> **What You Will Learn & Build:** Retain current loft section order and degree options. By the final checkpoint (`79zze-fit-the-original-gordon-surface`), you will combine the two lofts minus their shared tensor.
+> **Goal:** Combine the two lofts minus their shared tensor.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 15.3 Pipeline Schematic: Lofts, rail sweeps and network foundations</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (12 Checkpoints: 79-retain-current-loft-section-order-and-degree-options → 79zze-fit-the-original-gordon-surface)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">ordered original</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">sections</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">Open Closed or</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">Smooth Straight</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original loft</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">surface</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">crossings</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">ordered stations</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 15.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/loft_geometry.rs  ·  src/lib.rs  ·  src/nurbs_loft_geometry.rs  ·  src/sweep1_geometry.rs  ·  src/sweep2_geometry.rs  ·  src/gather_registry.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">12 Checkpoints: 79-retain-current-loft-section-order-and-degree-options → 79zze-fit-the-original-gordon-surface — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`79-retain-current-loft-section-order-and-degree-options`](#checkpoint-79-retain-current-loft-section-order-and-degree-options) | Retain current loft section order and degree options. | `src/loft_geometry.rs`, `src/lib.rs`, `src/nurbs_loft_geometry.rs` | `ordered original sections → Open Closed or Smooth Straight → original loft surface` |
-| **2** | [`79aa-frame-original-profiles-on-their-rail`](#checkpoint-79aa-frame-original-profiles-on-their-rail) | Find each profile’s station from its sampled center and the nearest rail parameter. | `src/sweep1_geometry.rs`, `src/lib.rs` | `original rail and profiles → local section frames → kernel sweep surface` |
-| **3** | [`79ab-carry-and-blend-original-profiles-along-the-rail`](#checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail) | Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames. | `src/sweep1_geometry.rs` | `original rail and profiles → local section frames → kernel sweep surface` |
-| **4** | [`79a-carry-original-profiles-along-one-rail`](#checkpoint-79a-carry-original-profiles-along-one-rail) | Complete the existing gather recipe with one rail and one or more profiles. | `src/sweep1_geometry.rs` | `original rail and profiles → local section frames → kernel sweep surface` |
-| **5** | [`79b-align-shape-curves-between-two-original-rails`](#checkpoint-79b-align-shape-curves-between-two-original-rails) | Align shape curves between two original rails. | `src/sweep2_geometry.rs`, `src/lib.rs` | `first rail and second rail → aligned shape copies → original swept surface` |
-| **6** | [`79c-register-loft-sweep-names-options-and-aliases`](#checkpoint-79c-register-loft-sweep-names-options-and-aliases) | Register loft sweep names options and aliases. | `src/gather_registry.rs`, `src/commands.rs` | `current registered names and aliases → existing gather owner → one surfacing transaction` |
-| **7** | [`79d-exercise-original-sections-rail-groups-and-exact-persistence`](#checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence) | Exercise original sections rail groups and exact persistence. | `src/loft_tests.rs`, `src/lib.rs` | `original curves in order → current Loft or Sweep → one history edit → original Save/Open` |
-| **8** | [`79zza-sample-original-network-curve-stations`](#checkpoint-79zza-sample-original-network-curve-stations) | Write control bounds, tolerant crossing checks and interpolation helpers. | `src/network_geometry.rs`, `src/lib.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
-| **9** | [`79zzb-classify-two-original-network-directions`](#checkpoint-79zzb-classify-two-original-network-directions) | Find original curve crossings and assign opposite directions through their graph. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
-| **10** | [`79zzc-order-and-orient-original-network-curves`](#checkpoint-79zzc-order-and-orient-original-network-curves) | Sort each family along the other and orient its crossing parameters consistently. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
-| **11** | [`79zzd-sample-original-network-lofts-and-tensor`](#checkpoint-79zzd-sample-original-network-lofts-and-tensor) | Sample both curve-family lofts and the tensor through their shared crossings. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
-| **12** | [`79zze-fit-the-original-gordon-surface`](#checkpoint-79zze-fit-the-original-gordon-surface) | Combine the two lofts minus their shared tensor. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-79-retain-current-loft-section-order-and-degree-options"></a>
 
 ### Step 1 of 12 · Retain current loft section order and degree options (`79-retain-current-loft-section-order-and-degree-options`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/12 Visual Trace (79-retain-current-loft-section-order-and-degree-options): Retain current loft section order and degree options</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/loft_geometry.rs, src/lib.rs, src/nurbs_loft_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered original sections</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Open Closed or Smooth Straight</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original loft surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/loft_geometry.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Open Closed or Smooth S…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original loft surface</text>
 </svg>
-</div>
-
-- **Goal:** Retain current loft section order and degree options.
-- **Data Flow Trace:** `ordered original sections → Open Closed or Smooth Straight → original loft surface`
-- **Files You Touch:** `src/loft_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*) · `src/lib.rs` (*Register the current surfacing component.*) · `src/nurbs_loft_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*)
 
 Write both loft recipes on top of the section alignment already taught in 77zzi. Preserve picked order, choose open or closed sections, and select straight or smooth degree without changing the original profiles.
 
-> **Self-Check Question:** *Why does Closed need three sections?*  
-> **Answer:** It returns through the first section. Two sections cannot enclose that route; reject before adopting a surface or changing history.
-
-- **What You Should See:** The capped rectangular extrusion and exact revolved surface remain visible while loft/sweep recipes connect. The final exercise creates an original surface through three curved sections.
-- **Hands-On Lab Experiment:** Inspect the middle-section fixture, seam alignment and Straight degree1. Compare it with Smooth degree clamped to the available sections.
-
-<details>
-<summary>Implementation 79-retain-current-loft-section-order-and-degree-options: Retain current loft section order and degree options</summary>
-
-Retain current loft section order and degree options.
-
-Data flow: ordered original sections → Open Closed or Smooth Straight → original loft surface.
+> **Check:** *Why does Closed need three sections?* — It returns through the first section. Two sections cannot enclose that route; reject before adopting a surface or changing history.
 
 ### 1. `src/loft_geometry.rs`
 
@@ -208,8 +99,7 @@ Create the file and type:
 --8<-- "journey/code/79-retain-current-loft-section-order-and-degree-options-typed-loft_geometry.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -217,73 +107,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original geometry validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::gather_input::{Input, Made, Recipe, Step};
-use crate::surfacing::{self, checked, count, curves};
-use session_rust::{Point, Vector};
-
-pub static RECIPE: Recipe = Recipe {
-    name: "Loft",
-    chips: &[
-        ("Open", "Open"),
-        ("Closed", "Closed"),
-        ("Finish", ""),
-        ("Cancel", "Escape"),
-    ],
-    steps: &[Step::Curves {
-        prompt: "select curves in order",
-        min: 2,
-        max: usize::MAX,
-    }],
-    axis: no_axis,
-    build,
-};
-
-/// Loft has no distance to slide.
-pub fn no_axis(_input: &Input) -> (Point, Vector) {
-    (Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0))
-}
-
-/// A cubic loft through the curves in pick order; Closed returns to the first.
-fn build(input: &Input) -> Result<Made, String> {
-    let sections = curves(&input.curves[0]);
-    let surface = surfacing::loft(&sections, input.choice == "Closed", 3)?;
-    Ok(Made {
-        geometries: vec![checked(surface, "loft")?],
-        message: format!(
-            "Lofted {} into a NURBS surface",
-            count(sections.len(), "curve")
-        ),
-    })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/79-retain-current-loft-section-order-and-degree-options-typed-loft_geometry-fixtures.rs" skip=1087
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the current surfacing component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod gather_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -305,71 +137,46 @@ Create the file and type:
 
 Register the current surfacing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod loft_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/79-retain-current-loft-section-order-and-degree-options-04.rs" skip=24
 ```
 
-</details>
+**Result after `79-retain-current-loft-section-order-and-degree-options`:** The capped rectangular extrusion and exact revolved surface remain visible while loft/sweep recipes connect. The final exercise creates an original surface through three curved sections.
+
+---
 
 <a id="checkpoint-79aa-frame-original-profiles-on-their-rail"></a>
 
 ### Step 2 of 12 · Frame original profiles on their rail (`79aa-frame-original-profiles-on-their-rail`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/12 Visual Trace (79aa-frame-original-profiles-on-their-rail): Frame original profiles on their rail</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sweep1_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rail and profiles</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local section frames</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">kernel sweep surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sweep1_geometry.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local section frames</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">kernel sweep surface</text>
 </svg>
-</div>
-
-- **Goal:** Find each profile’s station from its sampled center and the nearest rail parameter.
-- **Data Flow Trace:** `original rail and profiles → local section frames → kernel sweep surface`
-- **Files You Touch:** `src/sweep1_geometry.rs` (*Type the whole original sweep helpers using the existing kernel and gather owners.*) · `src/lib.rs` (*Compile this shared original sweep module.*)
 
 Find each profile’s station from its sampled center and the nearest rail parameter. Use the kernel’s perpendicular rail frame to prepare a local transform. Write the original four-dimensional control-point blend for the matched profiles used in the next step.
 
-> **Self-Check Question:** *Why transform a profile copy into the rail frame?*  
-> **Answer:** Its shape must be carried from that local frame to later rail frames. Keep the picked original unchanged.
-
-- **What You Should See:** Original profiles can be framed on their rail without changing the existing drawing.
-- **Hands-On Lab Experiment:** Trace a closed profile’s repeated end sample and its local frame. Compare endpoint and middle control weights in the blend.
-
-<details>
-<summary>Implementation 79aa-frame-original-profiles-on-their-rail: Frame original profiles on their rail</summary>
-
-Find each profile’s station from its sampled center and the nearest rail parameter.
-
-Data flow: original rail and profiles → local section frames → kernel sweep surface.
+> **Check:** *Why transform a profile copy into the rail frame?* — Its shape must be carried from that local frame to later rail frames. Keep the picked original unchanged.
 
 ### 1. `src/sweep1_geometry.rs`
 
@@ -385,91 +192,50 @@ Create the file and type:
 
 Compile this shared original sweep module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod nurbs_loft_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/79aa-frame-original-profiles-on-their-rail-2.rs" skip=30
 ```
 
-</details>
+**Result after `79aa-frame-original-profiles-on-their-rail`:** Original profiles can be framed on their rail without changing the existing drawing.
+
+---
 
 <a id="checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail"></a>
 
 ### Step 3 of 12 · Carry and blend original profiles along the rail (`79ab-carry-and-blend-original-profiles-along-the-rail`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/12 Visual Trace (79ab-carry-and-blend-original-profiles-along-the-rail): Carry and blend original profiles along the rail</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sweep1_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rail and profiles</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local section frames</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">kernel sweep surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sweep1_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local section frames</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">kernel sweep surface</text>
 </svg>
-</div>
-
-- **Goal:** Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames.
-- **Data Flow Trace:** `original rail and profiles → local section frames → kernel sweep surface`
-- **Files You Touch:** `src/sweep1_geometry.rs` (*Extend this original owner with the day’s complete input helpers.*)
 
 Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames. Blend matching local profiles between stations, transform each section into its rail frame, then validate the final cubic kernel loft.
 
-> **Self-Check Question:** *Why include every profile station among the rail samples?*  
-> **Answer:** The resulting surface must pass through the selected sections at their original rail positions. Uniform rail samples alone can miss those stations.
-
-- **What You Should See:** The sweep helpers can carry and blend the framed profiles along the original rail.
-- **Hands-On Lab Experiment:** Trace two profiles with different stations through matching, blending and the final surface.
-
-<details>
-<summary>Implementation 79ab-carry-and-blend-original-profiles-along-the-rail: Carry and blend original profiles along the rail</summary>
-
-Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames.
-
-Data flow: original rail and profiles → local section frames → kernel sweep surface.
+> **Check:** *Why include every profile station among the rail samples?* — The resulting surface must pass through the selected sections at their original rail positions. Uniform rail samples alone can miss those stations.
 
 ### 1. `src/sweep1_geometry.rs`
 
 Extend this original owner with the day’s complete input helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let local = Xform::world_to_frame(
-        &frame.origin(),
-        &frame.x_axis(),
-        &frame.y_axis(),
-        &frame.z_axis(),
-    );
-    (t, local)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -544,65 +310,40 @@ pub fn sweep1(rail: &NurbsCurve, profiles: &[NurbsCurve]) -> Result<NurbsSurface
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `79ab-carry-and-blend-original-profiles-along-the-rail`:** The sweep helpers can carry and blend the framed profiles along the original rail.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/79ab-carry-and-blend-original-profiles-along-the-rail-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-79a-carry-original-profiles-along-one-rail"></a>
 
 ### Step 4 of 12 · Connect original one-rail sweep inputs (`79a-carry-original-profiles-along-one-rail`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/12 Visual Trace (79a-carry-original-profiles-along-one-rail): Connect original one-rail sweep inputs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sweep1_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rail and profiles</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local section frames</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">kernel sweep surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sweep1_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local section frames</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">kernel sweep surface</text>
 </svg>
-</div>
-
-- **Goal:** Complete the existing gather recipe with one rail and one or more profiles.
-- **Data Flow Trace:** `original rail and profiles → local section frames → kernel sweep surface`
-- **Files You Touch:** `src/sweep1_geometry.rs` (*Extend this original owner with the day’s complete input helpers.*)
 
 Complete the existing gather recipe with one rail and one or more profiles. Reuse the prepared sweep builder, validate the result and return the original surface as one transaction. The following registry connects the completed sweep recipe.
 
-> **Self-Check Question:** *Why gather the rail separately from the profiles?*  
-> **Answer:** The rail defines the carrying path. The profile group defines the sections along that path; mixing them would change the geometry roles.
-
-- **Hands-On Lab Experiment:** Trace the minimum rail and profile counts, then one sweep result and one Undo.
-
-<details>
-<summary>Implementation 79a-carry-original-profiles-along-one-rail: Connect original one-rail sweep inputs</summary>
-
-Complete the existing gather recipe with one rail and one or more profiles.
-
-Data flow: original rail and profiles → local section frames → kernel sweep surface.
+> **Check:** *Why gather the rail separately from the profiles?* — The rail defines the carrying path. The profile group defines the sections along that path; mixing them would change the geometry roles.
 
 ### 1. `src/sweep1_geometry.rs`
 
@@ -610,16 +351,13 @@ Extend this original owner with the day’s complete input helpers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
 
     section
 ```
-
-</details>
 
 Replace it with:
 
@@ -639,16 +377,13 @@ fn build(input: &Input) -> Result<Made, String> {
     })
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 /// The rail parameter nearest the profile's middle and world to the rail frame there.
 fn on_rail(rail: &NurbsCurve, profile: &NurbsCurve) -> (f64, Xform) {
     let mut points = profile.divide_by_count(SAMPLES, true).0;
 ```
-
-</details>
 
 Replace it with:
 
@@ -677,17 +412,13 @@ fn on_rail(rail: &NurbsCurve, profile: &NurbsCurve) -> (f64, Xform) {
     let mut points = profile.divide_by_count(SAMPLES, true).0;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 --8<-- "journey/code/79a-carry-original-profiles-along-one-rail-1.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -695,217 +426,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original sweep validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::gather_input::{Input, Made, Recipe, Step};
-use crate::surfacing::{SAMPLES, checked, count, curves};
-use session_rust::{NurbsCurve, NurbsSurface, Point, Primitives, Xform};
-
-pub static RECIPE: Recipe = Recipe {
-    name: "Nurbs Surface Sweep1",
-    chips: &[("Finish", ""), ("Cancel", "Escape")],
-    steps: &[
-        Step::Curves {
-            prompt: "select the rail",
-            min: 1,
-            max: 1,
-        },
-        Step::Curves {
-            prompt: "select profile curves",
-            min: 1,
-            max: usize::MAX,
-        },
-    ],
-    axis: crate::gather_input::no_axis,
-    build,
-};
-
-/// The rail parameter nearest the profile's middle and world to the rail frame there.
-fn on_rail(rail: &NurbsCurve, profile: &NurbsCurve) -> (f64, Xform) {
-    let mut points = profile.divide_by_count(SAMPLES, true).0;
-
-    // a closed profile's end repeats its start
-    if profile.is_closed() {
-        points.pop();
-    }
-
-    let count = points.len().max(1) as f64;
-    let sum = points.iter().fold([0.0; 3], |sum, p| {
-        [sum[0] + p[0], sum[1] + p[1], sum[2] + p[2]]
-    });
-    let middle = Point::new(sum[0] / count, sum[1] / count, sum[2] / count);
-    let t = rail.closest_parameter(&middle);
-    let frame = rail.perpendicular_plane_at(t, false);
-    let local = Xform::world_to_frame(
-        &frame.origin(),
-        &frame.x_axis(),
-        &frame.y_axis(),
-        &frame.z_axis(),
-    );
-    (t, local)
-}
-
-/// The profiles carried along the rail, each kept where it sits; between two they blend.
-pub fn sweep1(rail: &NurbsCurve, profiles: &[NurbsCurve]) -> Result<NurbsSurface, String> {
-    if profiles.is_empty() {
-        return Err("Select at least 1 profile".into());
-    }
-
-    let mut placed: Vec<(f64, NurbsCurve)> = profiles
-        .iter()
-        .map(|profile| {
-            let (t, local) = on_rail(rail, profile);
-            (t, profile.transformed(&local))
-        })
-        .collect();
-    placed.sort_by(|a, b| a.0.total_cmp(&b.0));
-    let (stations, locals): (Vec<f64>, Vec<NurbsCurve>) = placed.into_iter().unzip();
-    let shared = if locals.len() == 1 {
-        locals
-    } else {
-        // a straight loft makes the profiles share knots; its rows are the profiles again
-        let bridge = Primitives::create_loft(&locals, 1);
-        let rows: Vec<NurbsCurve> = bridge
-            .get_nurbsknots(1)
-            .iter()
-            .take(locals.len())
-            .filter_map(|v| bridge.iso_curve(0, *v))
-            .collect();
-
-        if rows.len() != locals.len() {
-            return Err("The profiles could not be matched to each other".into());
-        }
-
-        rows
-    };
-
-    // frames at even lengths plus one at every profile, so the surface runs through them
-    let count = (rail.span_count() * 2 + 1).clamp(5, 200);
-    let mut params = rail.divide_by_count(count + 1, true).1;
-    let (t0, t1) = rail.domain();
-    let near = 1e-6 * (t1 - t0);
-    params.retain(|t| stations.iter().all(|s| (t - s).abs() > near));
-    params.extend_from_slice(&stations);
-    params.sort_by(f64::total_cmp);
-    params.dedup_by(|a, b| (*a - *b).abs() <= near);
-    let mut sections = Vec::with_capacity(params.len());
-
-    for t in params {
-        let upper = stations.partition_point(|s| *s < t);
-        let mut section = match upper {
-            0 => shared[0].clone(),
-            n if n == stations.len() => shared[n - 1].clone(),
-            n => blend(
-                &shared[n - 1],
-                &shared[n],
-                (t - stations[n - 1]) / (stations[n] - stations[n - 1]),
-            ),
-        };
-        section.transform(&Xform::to_frame(&rail.perpendicular_plane_at(t, false)));
-        sections.push(section);
-    }
-
-    let surface = Primitives::create_loft(&sections, 3);
-
-    if !surface.is_valid() {
-        return Err("The profiles could not be swept along the rail".into());
-    }
-
-    Ok(surface)
-}
-
-/// The curve `s` of the way from `a` to `b`, control point by control point.
-fn blend(a: &NurbsCurve, b: &NurbsCurve, s: f64) -> NurbsCurve {
-    let mut section = a.clone();
-
-    for i in 0..a.cv_count() {
-        let (Some(p), Some(q)) = (a.get_cv_4d(i), b.get_cv_4d(i)) else {
-            continue;
-        };
-        let mix = |x: f64, y: f64| x + (y - x) * s;
-        section.set_cv_4d(
-            i,
-            mix(p.0, q.0),
-            mix(p.1, q.1),
-            mix(p.2, q.2),
-            mix(p.3, q.3),
-        );
-    }
-
-    section
-}
-
-/// The sweep of the profiles along the rail.
-fn build(input: &Input) -> Result<Made, String> {
-    let profiles = curves(&input.curves[1]);
-    let surface = sweep1(&input.curves[0][0].curve, &profiles)?;
-    Ok(Made {
-        geometries: vec![checked(surface, "sweep")?],
-        message: format!("Swept {} along the rail", count(profiles.len(), "profile")),
-    })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/79a-carry-original-profiles-along-one-rail-2.rs" skip=4831
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-79b-align-shape-curves-between-two-original-rails"></a>
 
 ### Step 5 of 12 · Align shape curves between two original rails (`79b-align-shape-curves-between-two-original-rails`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/12 Visual Trace (79b-align-shape-curves-between-two-original-rails): Align shape curves between two original rails</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sweep2_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">first rail and second rail</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">aligned shape copies</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original swept surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sweep2_geometry.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">aligned shape copies</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original swept surface</text>
 </svg>
-</div>
-
-- **Goal:** Align shape curves between two original rails.
-- **Data Flow Trace:** `first rail and second rail → aligned shape copies → original swept surface`
-- **Files You Touch:** `src/sweep2_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*) · `src/lib.rs` (*Register the current surfacing component.*)
 
 Orient a copy of the second rail to follow the first. Orient copies of the shape curves toward the first rail, then ask the kernel for one exact swept surface. Keep the picked originals unchanged and reuse the existing gather recipe.
 
-> **Self-Check Question:** *Does reversing rail2 change the saved source?*  
-> **Answer:** Alignment reverses a builder copy. Keep the original rail allocation and control data unchanged, including after Undo and Save/Open.
-
-- **Hands-On Lab Experiment:** Inspect the reversed-rail fixture. Compare first rail, second rail and shape group order with the generic gather maximum/minimum rules.
-
-<details>
-<summary>Implementation 79b-align-shape-curves-between-two-original-rails: Align shape curves between two original rails</summary>
-
-Align shape curves between two original rails.
-
-Data flow: first rail and second rail → aligned shape copies → original swept surface.
+> **Check:** *Does reversing rail2 change the saved source?* — Alignment reverses a builder copy. Keep the original rail allocation and control data unchanged, including after Undo and Save/Open.
 
 ### 1. `src/sweep2_geometry.rs`
 
@@ -917,8 +475,7 @@ Create the file and type:
 --8<-- "journey/code/79b-align-shape-curves-between-two-original-rails-typed-sweep2_geometry.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -926,120 +483,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original geometry validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::gather_input::{Input, Made, Recipe, Step};
-use crate::surfacing::{checked, count, curves};
-use session_rust::{NurbsCurve, NurbsSurface, Primitives};
-
-pub static RECIPE: Recipe = Recipe {
-    name: "Nurbs Surface Sweep2",
-    chips: &[("Finish", ""), ("Cancel", "Escape")],
-    steps: &[
-        Step::Curves {
-            prompt: "select the first rail",
-            min: 1,
-            max: 1,
-        },
-        Step::Curves {
-            prompt: "select the second rail",
-            min: 1,
-            max: 1,
-        },
-        Step::Curves {
-            prompt: "select shape curves",
-            min: 1,
-            max: usize::MAX,
-        },
-    ],
-    axis: crate::gather_input::no_axis,
-    build,
-};
-
-/// Rail 2 runs with rail 1 and every shape starts on rail 1.
-pub fn sweep2(
-    first: &NurbsCurve,
-    second: &NurbsCurve,
-    shapes: &[NurbsCurve],
-) -> Result<NurbsSurface, String> {
-    let mut second = second.clone();
-    let start = first.point_at_start();
-
-    if second
-        .point_at_start()
-        .distance(&first.point_at_end(), None)
-        < second.point_at_start().distance(&start, None)
-    {
-        second.reverse();
-    }
-
-    let shapes: Vec<NurbsCurve> = shapes
-        .iter()
-        .map(|shape| {
-            let mut shape = shape.clone();
-            let near = |curve: &NurbsCurve, rail: &NurbsCurve| {
-                curve.point_at_start().distance(
-                    &rail.point_at(rail.closest_parameter(&curve.point_at_start())),
-                    None,
-                )
-            };
-
-            if near(&shape, &second) < near(&shape, first) {
-                shape.reverse();
-            }
-
-            shape
-        })
-        .collect();
-    let surface = Primitives::create_sweep2(first, &second, &shapes);
-
-    if !surface.is_valid() {
-        return Err("The shapes could not be swept along the rails".into());
-    }
-
-    Ok(surface)
-}
-
-/// The sweep of the shapes between the two rails.
-fn build(input: &Input) -> Result<Made, String> {
-    let shapes = curves(&input.curves[2]);
-    let surface = sweep2(
-        &input.curves[0][0].curve,
-        &input.curves[1][0].curve,
-        &shapes,
-    )?;
-    Ok(Made {
-        geometries: vec![checked(surface, "sweep")?],
-        message: format!("Swept {} along 2 rails", count(shapes.len(), "shape")),
-    })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/79b-align-shape-curves-between-two-original-rails-typed-sweep2_geometry-fixtures.rs" skip=2342
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the current surfacing component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod sweep1_geometry;
-```
-
-</details>
 
 After that block, type:
 
@@ -1047,69 +499,42 @@ After that block, type:
 --8<-- "journey/code/79b-align-shape-curves-between-two-original-rails-02.rs" skip=26
 ```
 
-</details>
+---
 
 <a id="checkpoint-79c-register-loft-sweep-names-options-and-aliases"></a>
 
 ### Step 6 of 12 · Register loft sweep names options and aliases (`79c-register-loft-sweep-names-options-and-aliases`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/12 Visual Trace (79c-register-loft-sweep-names-options-and-aliases): Register loft sweep names options and aliases</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_registry.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current registered names and aliases</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing gather owner</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one surfacing transaction</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_registry.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing gather owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one surfacing transacti…</text>
 </svg>
-</div>
-
-- **Goal:** Register loft sweep names options and aliases.
-- **Data Flow Trace:** `current registered names and aliases → existing gather owner → one surfacing transaction`
-- **Files You Touch:** `src/gather_registry.rs` (*Register maintained loft/sweep recipes and current aliases through shared gather input.*) · `src/commands.rs` (*Register maintained loft/sweep recipes and current aliases through shared gather input.*)
 
 Extend the shared recipe registry and canonicalize maintained aliases without duplicating the gather input owner.
 
-> **Self-Check Question:** *Does a recipe need its own command-line parser?*  
-> **Answer:** The shared gather recipe handles options and questions. The registry supplies its name and current alias before existing longest-name matching.
-
-- **Hands-On Lab Experiment:** Compare Loft Closed, Nurbs Surface Loft Straight, nurbssurface_sweep1 and nurbssurface_sweep2; inspect current prompts and group order.
-
-<details>
-<summary>Implementation 79c-register-loft-sweep-names-options-and-aliases: Register loft sweep names options and aliases</summary>
-
-Register loft sweep names options and aliases.
-
-Data flow: current registered names and aliases → existing gather owner → one surfacing transaction.
+> **Check:** *Does a recipe need its own command-line parser?* — The shared gather recipe handles options and questions. The registry supplies its name and current alias before existing longest-name matching.
 
 ### 1. `src/gather_registry.rs`
 
 Register maintained loft/sweep recipes and current aliases through shared gather input.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gather_input::Recipe,editor::Action};
-pub const ENTRIES:&[(&str,&Recipe)]=&[("Extrude",&crate::extrude_geometry::RECIPE),("Nurbs Surface Revolve",&crate::revolve_geometry::RECIPE)];
-pub fn command(name:&str,text:&str)->Option<Action>{let(_,recipe)=ENTRIES.iter().find(|(label,_)|*label==name)?;Some(Action::GatherBegin{recipe,text:text.into()})}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1123,8 +548,7 @@ Register maintained loft/sweep recipes and current aliases through shared gather
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1135,8 +559,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
     let words: Vec<_> = line.split_whitespace().collect();
     let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1150,8 +572,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
     let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1162,8 +583,6 @@ pub fn canonical(line: &str) -> String {
     let words: Vec<_> = line.split_whitespace().collect();
     matched(&words).map_or_else(|| line.trim().to_owned(), |(name, count)| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1177,8 +596,7 @@ pub fn canonical(line: &str) -> String {
     matched(&words).map_or_else(|| line.trim().to_owned(), |(name, count)| {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -1344,79 +762,40 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/79c-register-loft-sweep-names-options-and-aliases-02.rs"
-```
-
-```text
---8<-- "journey/code/79c-register-loft-sweep-names-options-and-aliases-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence"></a>
 
 ### Step 7 of 12 · Exercise original sections rail groups and exact persistence (`79d-exercise-original-sections-rail-groups-and-exact-persistence`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/12 Visual Trace (79d-exercise-original-sections-rail-groups-and-exact-persistence): Exercise original sections rail groups and exact persistence</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/loft_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves in order</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Loft or Sweep</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history edit</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original Save/Open</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/loft_tests.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original Save/Open</text>
 </svg>
-</div>
-
-- **Goal:** Exercise original sections rail groups and exact persistence.
-- **Data Flow Trace:** `original curves in order → current Loft or Sweep → one history edit → original Save/Open`
-- **Files You Touch:** `src/loft_tests.rs` (*Copy integrated maintained loft/sweep group/order/options/source/archive fixtures.*) · `src/lib.rs` (*Register the current surfacing component.*)
 
 Copy integrated current option and group fixtures, then build the rendered surface through three original curved sections.
 
-> **Self-Check Question:** *Can a short curve group create a partial surface?*  
-> **Answer:** No. Its minimum and builder validation must pass. Keep accepted picks and Redo when the group cannot yet build.
+> **Check:** *Can a short curve group create a partial surface?* — No. Its minimum and builder validation must pass. Keep accepted picks and Redo when the group cannot yet build.
 
-- **What You Should See:** A smooth original NURBS surface passes through three original sections. Current Open/Closed, Smooth/Straight and one/two-rail sweep recipes share ordered original picks and one checked history transaction. Original profiles, rational source data and exact archives remain preserved.
-- **Hands-On Lab Experiment:** Type Close, Curve w-1,-1,0 w0,-1,1 w1,-1,0, Curve w-1,0,0 w0,0,1.5 w1,0,0, Curve w-1,1,0 w0,1,0.75 w1,1,0, Select All, Nurbs Surface Loft Smooth, View Isometric, Select None and Fit. Try Straight, Closed with only two sections, Sweep1 rail/profile and Sweep2 rail/rail/shape order, Escape, Undo/Redo and Save/Open.
-
-<details>
-<summary>Implementation 79d-exercise-original-sections-rail-groups-and-exact-persistence: Exercise original sections rail groups and exact persistence</summary>
-
-Exercise original sections rail groups and exact persistence.
-
-Data flow: original curves in order → current Loft or Sweep → one history edit → original Save/Open.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1430,10 +809,7 @@ Copy this supplied file:
 --8<-- "journey/code/79d-exercise-original-sections-rail-groups-and-exact-persistence-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1441,77 +817,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the current surfacing component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod sweep2_geometry;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/79d-exercise-original-sections-rail-groups-and-exact-persistence-02.rs" skip=26
 ```
 
-</details>
+**Result after `79d-exercise-original-sections-rail-groups-and-exact-persistence`:** A smooth original NURBS surface passes through three original sections. Current Open/Closed, Smooth/Straight and one/two-rail sweep recipes share ordered original picks and one checked history transaction. Original profiles, rational source data and exact archives remain preserved.
 
-</details>
+---
 
 <a id="checkpoint-79zza-sample-original-network-curve-stations"></a>
 
 ### Step 8 of 12 · Sample original network curve stations (`79zza-sample-original-network-curve-stations`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/12 Visual Trace (79zza-sample-original-network-curve-stations): Sample original network curve stations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/network_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve crossings</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered stations</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sampled lofts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fitted surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/network_geometry.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled lofts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fitted surface</text>
 </svg>
-</div>
-
-- **Goal:** Write control bounds, tolerant crossing checks and interpolation helpers.
-- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
-- **Files You Touch:** `src/network_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original network-surface owner.*)
 
 Write control bounds, tolerant crossing checks and interpolation helpers. Map evenly spaced stations to the original crossing parameters.
 
-> **Self-Check Question:** *Why retain the original parameters?*  
-> **Answer:** Equal stations describe the grid layout; original curve parameters still determine the actual surface points.
-
-- **What You Should See:** Network helpers can sample stations on the original curves; browser drawing is unchanged.
-- **Hands-On Lab Experiment:** Compare nonuniform crossing intervals and the sample-count cap.
-
-<details>
-<summary>Implementation 79zza-sample-original-network-curve-stations: Sample original network curve stations</summary>
-
-Write control bounds, tolerant crossing checks and interpolation helpers.
-
-Data flow: original curve crossings → ordered stations → sampled lofts → fitted surface.
+> **Check:** *Why retain the original parameters?* — Equal stations describe the grid layout; original curve parameters still determine the actual surface points.
 
 ### 1. `src/network_geometry.rs`
 
@@ -1527,92 +872,50 @@ Create the file and type:
 
 Register the original network-surface owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod loft_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/79zza-sample-original-network-curve-stations-2.rs" skip=29
 ```
 
-</details>
+**Result after `79zza-sample-original-network-curve-stations`:** Network helpers can sample stations on the original curves; browser drawing is unchanged.
+
+---
 
 <a id="checkpoint-79zzb-classify-two-original-network-directions"></a>
 
 ### Step 9 of 12 · Classify two original network directions (`79zzb-classify-two-original-network-directions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/12 Visual Trace (79zzb-classify-two-original-network-directions): Classify two original network directions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/network_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve crossings</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered stations</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sampled lofts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fitted surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/network_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled lofts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fitted surface</text>
 </svg>
-</div>
-
-- **Goal:** Find original curve crossings and assign opposite directions through their graph.
-- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
-- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Find original curve crossings and assign opposite directions through their graph. Refuse disconnected, same-direction or incomplete crossing sets.
 
-> **Self-Check Question:** *Why require every opposite pair to cross?*  
-> **Answer:** The surface needs a complete grid of stations in both directions. An incomplete graph cannot define it.
-
-- **What You Should See:** The original curve network can be classified into two candidate directions.
-- **Hands-On Lab Experiment:** Trace a disconnected graph, a triangle and a complete two-direction grid.
-
-<details>
-<summary>Implementation 79zzb-classify-two-original-network-directions: Classify two original network directions</summary>
-
-Find original curve crossings and assign opposite directions through their graph.
-
-Data flow: original curve crossings → ordered stations → sampled lofts → fitted surface.
+> **Check:** *Why require every opposite pair to cross?* — The surface needs a complete grid of stations in both directions. An incomplete graph cannot define it.
 
 ### 1. `src/network_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// Samples between crossings: `DENSITY` per span, at most `MOST` in all, crossings included.
-fn sample_count(crossings: usize) -> usize {
-    let spans = crossings - 1;
-    DENSITY.min((MOST - 1) / spans).max(1) * spans + 1
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1691,89 +994,44 @@ fn directions(cross: &Crossings) -> Result<(Vec<usize>, Vec<usize>), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `79zzb-classify-two-original-network-directions`:** The original curve network can be classified into two candidate directions.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/79zzb-classify-two-original-network-directions-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-79zzc-order-and-orient-original-network-curves"></a>
 
 ### Step 10 of 12 · Order and orient original network curves (`79zzc-order-and-orient-original-network-curves`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/12 Visual Trace (79zzc-order-and-orient-original-network-curves): Order and orient original network curves</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/network_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve crossings</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered stations</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sampled lofts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fitted surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/network_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled lofts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fitted surface</text>
 </svg>
-</div>
-
-- **Goal:** Sort each family along the other and orient its crossing parameters consistently.
-- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
-- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Sort each family along the other and orient its crossing parameters consistently. Reverse originals only on cloned curves and update their parameter rows.
 
-> **Self-Check Question:** *Why reject mixed crossing order?*  
-> **Answer:** A folded station ordering cannot define one coherent grid direction.
-
-- **What You Should See:** Each network direction can retain a coherent original curve order and orientation.
-- **Hands-On Lab Experiment:** Trace a reversed curve through domain preservation and parameter reflection.
-
-<details>
-<summary>Implementation 79zzc-order-and-orient-original-network-curves: Order and orient original network curves</summary>
-
-Sort each family along the other and orient its crossing parameters consistently.
-
-Data flow: original curve crossings → ordered stations → sampled lofts → fitted surface.
+> **Check:** *Why reject mixed crossing order?* — A folded station ordering cannot define one coherent grid direction.
 
 ### 1. `src/network_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .any(|&i| vs.iter().any(|&j| cross[i][j].is_none()))
-    {
-        return Err("Every curve must cross each curve of the other direction once".into());
-    }
-
-    Ok((us, vs))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1821,92 +1079,44 @@ fn oriented(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `79zzc-order-and-orient-original-network-curves`:** Each network direction can retain a coherent original curve order and orientation.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/79zzc-order-and-orient-original-network-curves-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-79zzd-sample-original-network-lofts-and-tensor"></a>
 
 ### Step 11 of 12 · Sample original network lofts and tensor (`79zzd-sample-original-network-lofts-and-tensor`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/12 Visual Trace (79zzd-sample-original-network-lofts-and-tensor): Sample original network lofts and tensor</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/network_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve crossings</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered stations</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sampled lofts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fitted surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/network_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled lofts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fitted surface</text>
 </svg>
-</div>
-
-- **Goal:** Sample both curve-family lofts and the tensor through their shared crossings.
-- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
-- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Sample both curve-family lofts and the tensor through their shared crossings. Keep their original averaging and station maps.
 
-> **Self-Check Question:** *Why sample three surfaces?*  
-> **Answer:** The two lofts each include the common crossing surface. The Gordon combination later subtracts that shared tensor once.
-
-- **What You Should See:** The prepared network samples can supply loft and tensor terms for the surface recipe.
-- **Hands-On Lab Experiment:** Trace one crossing through the two loft samples and tensor sample.
-
-<details>
-<summary>Implementation 79zzd-sample-original-network-lofts-and-tensor: Sample original network lofts and tensor</summary>
-
-Sample both curve-family lofts and the tensor through their shared crossings.
-
-Data flow: original curve crossings → ordered stations → sampled lofts → fitted surface.
+> **Check:** *Why sample three surfaces?* — The two lofts each include the common crossing surface. The Gordon combination later subtracts that shared tensor once.
 
 ### 1. `src/network_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            curves[i].set_domain(t0, t1);
-
-            for &j in others.iter() {
-                cross[i][j] = cross[i][j].map(|t| t0 + t1 - t);
-            }
-        }
-    }
-
-    Ok(curves)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1990,89 +1200,44 @@ fn sampled(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `79zzd-sample-original-network-lofts-and-tensor`:** The prepared network samples can supply loft and tensor terms for the surface recipe.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/79zzd-sample-original-network-lofts-and-tensor-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-79zze-fit-the-original-gordon-surface"></a>
 
 ### Step 12 of 12 · Fit the original Gordon surface (`79zze-fit-the-original-gordon-surface`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/12 Visual Trace (79zze-fit-the-original-gordon-surface): Fit the original Gordon surface</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/network_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve crossings</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered stations</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sampled lofts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fitted surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/network_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled lofts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fitted surface</text>
 </svg>
-</div>
-
-- **Goal:** Combine the two lofts minus their shared tensor.
-- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
-- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Combine the two lofts minus their shared tensor. Interpolate rows, then columns through their control points, and copy knots and controls into the resulting surface.
 
-> **Self-Check Question:** *Why subtract the tensor?*  
-> **Answer:** Both lofts already contain it. Subtraction leaves one copy while retaining each input family.
-
-- **What You Should See:** The Gordon fitting helper compiles before the complete network recipe is assembled.
-- **Hands-On Lab Experiment:** Trace a row sample through the fitted row and column control arrays.
-
-<details>
-<summary>Implementation 79zze-fit-the-original-gordon-surface: Fit the original Gordon surface</summary>
-
-Combine the two lofts minus their shared tensor.
-
-Data flow: original curve crossings → ordered stations → sampled lofts → fitted surface.
+> **Check:** *Why subtract the tensor?* — Both lofts already contain it. Subtraction leaves one copy while retaining each input family.
 
 ### 1. `src/network_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            let row: Vec<Point> = lines.iter().map(|line| at(line, *y)).collect();
-            let curve = interpolated(&row);
-            xs.iter().map(|x| at(&curve, *x)).collect()
-        })
-        .collect();
-    Samples { across_u, across_v, tensor }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2126,40 +1291,22 @@ fn fitted(samples: Samples) -> Result<NurbsSurface, String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/79zze-fit-the-original-gordon-surface-1.rs"
-```
-
-</details>
-
-</details>
+**Result after `79zze-fit-the-original-gordon-surface`:** The Gordon fitting helper compiles before the complete network recipe is assembled.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 79zze-fit-the-original-gordon-surface
-npm --prefix ../session_tests run course -- check 79zze-fit-the-original-gordon-surface
-npm --prefix ../session_tests run course -- save 79zze-fit-the-original-gordon-surface
+npm --prefix ../session_tests run course -- dependencies 15.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 15.3
+npm --prefix ../session_tests run course -- save 15.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The Gordon fitting helper compiles before the complete network recipe is assembled.
-
-- **Final Lesson Experiment:** Trace a row sample through the fitted row and column control arrays.
-
-Continue with [Two-direction networks and corner patches](../../consolidation/80-build-a-surface-through-two-directions-of-original-curves.md).
+Continue with [15.4 · Two-direction networks and corner patches](../../consolidation/80-build-a-surface-through-two-directions-of-original-curves.md).

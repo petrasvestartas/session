@@ -1,225 +1,98 @@
 # 22.2 · Contact fills and original face queries
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.2** (Redraft `10.17`) · **5 checkpoints (`96zzzzzzi-share-one-frame-across-color-and-ink` → `96zzzzzzm-query-original-faces-under-contact-overlays`)** · **Study time: 5–10 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzzzzzi-share-one-frame-across-color-and-ink` → `96zzzzzzm-query-original-faces-under-contact-overlays` (5 steps) · **Production source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs)
 
-> **What You Will Learn & Build:** Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking. By the final checkpoint (`96zzzzzzm-query-original-faces-under-contact-overlays`), you will select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
+> **Goal:** Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 22.2 Pipeline Schematic: Contact fills and original face queries</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (5 Checkpoints: 96zzzzzzi-share-one-frame-across-color-and-ink → 96zzzzzzm-query-original-faces-under-contact-overlays)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Existing renderer</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">frame</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">borrowed surface</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and ink groups;</text>
-    <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">existing…</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">separate borrowed</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">pick group</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Original versus</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">derived row</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">existing CPU mesh</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">eligibility</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 22.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/surface_view.rs  ·  src/triangle.wgsl  ·  src/renderer.rs  ·  src/pick_gpu.rs  ·  src/stroke_gpu.rs  ·  src/finite_ink.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">5 Checkpoints: 96zzzzzzi-share-one-frame-across-color-and-ink → 96zzzzzzm-query-original-faces-under-contact-overlays — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzzzzzi-share-one-frame-across-color-and-ink`](#checkpoint-96zzzzzzi-share-one-frame-across-color-and-ink) | Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking. | `src/surface_view.rs`, `src/triangle.wgsl`, `src/renderer.rs`, `src/pick_gpu.rs` | `Existing renderer frame → borrowed surface and ink groups; existing pick request → separate borrowed pick group` |
-| **2** | [`96zzzzzzj-fill-original-contact-polygons`](#checkpoint-96zzzzzzj-fill-original-contact-polygons) | Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth. | `src/source_mesh_topology.rs`, `src/feature_display.rs`, `src/contact_feature_tests.rs`, `src/renderer.rs` | `Original Element contact → one derived polygon/perimeter → bounded color/ID surface layer → original object owner` |
-| **3** | [`96zzzzzzk-broadcast-ordinary-ink-metadata`](#checkpoint-96zzzzzzk-broadcast-ordinary-ink-metadata) | Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches. | `src/stroke_gpu.rs`, `src/finite_ink.rs`, `src/renderer.rs`, `src/highlight.rs` | `One existing ink lane → fixed constant or indexed metadata mode → zero or four-byte vertex stride → unchanged color and GPU IDs` |
-| **4** | [`96zzzzzzl-layer-original-contact-boundaries`](#checkpoint-96zzzzzzl-layer-original-contact-boundaries) | Keep original contact borders complete at steep angles when the projection budget falls back to physical depth. | `src/stroke_gpu.rs`, `src/finite_ink.rs`, `src/finite_sources.rs`, `src/renderer.rs` | `Original contact normal → existing indexed ink metadata → shared contact layer → matching finite visibility tolerance` |
-| **5** | [`96zzzzzzm-query-original-faces-under-contact-overlays`](#checkpoint-96zzzzzzm-query-original-faces-under-contact-overlays) | Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon. | `src/gpu_mesh.rs`, `src/renderer.rs`, `src/pick_sources.rs`, `src/face_pick.rs` | `Original versus derived row → existing CPU mesh eligibility → original depth and source-face passes → actual source key` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzzzzzi-share-one-frame-across-color-and-ink"></a>
 
 ### Step 1 of 5 · Share one frame across color and ink (`96zzzzzzi-share-one-frame-across-color-and-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/5 Visual Trace (96zzzzzzi-share-one-frame-across-color-and-ink): Share one frame across color and ink</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surface_view.rs, src/triangle.wgsl, src/renderer.rs, src/pick_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing renderer frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">borrowed surface and ink groups;</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing…</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">separate borrowed pick group</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surface_view.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">borrowed surface and in…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">separate borrowed pick…</text>
 </svg>
-</div>
-
-- **Goal:** Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
-- **Data Flow Trace:** `Existing renderer frame → borrowed surface and ink groups; existing pick request → separate borrowed pick group`
-- **Files You Touch:** `src/surface_view.rs` (*Give existing ink shaders their unchanged viewport prefix, followed by surface settings and the existing kernel-derived eye.*) · `src/triangle.wgsl` (*Read surface settings after the shared ink prefix.*) · `src/renderer.rs` (*Encode the correct full physical viewport and density once for this frame owner.*) · `src/pick_gpu.rs` (*Encode the correct full physical viewport and density once for this frame owner.*) · `src/stroke_gpu.rs` (*Remove duplicated per-lane presentation state.*) · `src/finite_ink.rs` (*Keep finite color and integer pipelines compatible with the same frame.*) · `src/pick_encode.rs` (*Draw every ordinary ink ID with the request-owned group.*) · `src/highlight.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/tool_preview.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/measure_gpu.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/guide_gpu.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/surface_lighting_tests.rs` (*Retain the exact camera/display test and extend its actual viewport-prefix contract.*) · `src/shared_view_tests.rs` (*Supply real mixed-original color/request/pick restoration controls.*)
 
 Every ordinary ink lane currently builds and uploads another copy of the camera and viewport. These copies also belong to selection, preview, measurement and guide wrappers. Put the physical viewport, density and opacity immediately after the matrix in the shared frame. Existing ink shaders can read that eighty-byte prefix; surface display settings and the eye follow it. Use one explicit layout and pass borrowed groups into drawing. Color uses the renderer frame, and integer picking uses its existing request frame. The sheet lane has a different projection-scale field: keep that calibrated frame separate. This also makes the real viewport available for the coming contact-depth work without another camera owner.
 
-> **Self-Check Question:** *Why keep the request frame independent if all ordinary ink shares a layout?*  
-> **Answer:** Layout compatibility does not make the latest color camera the owner of an asynchronous pick. The pick uses its captured full physical viewport, density and transform until its readback completes.
-
-- **What You Should See:** Original surfaces and ink retain their actual pixels and owners while the ink lanes stop allocating and updating duplicate frame uniforms.
-- **Hands-On Lab Experiment:** Navigate the same original mixed scene, select original ink, and change opacity or display density. Compare restored pixels and source geometry. Inspect actual GPU buffer writes before and after the change; do not infer frame rate from the number of removed writes.
-
-<details>
-<summary>Implementation 96zzzzzzi-share-one-frame-across-color-and-ink: Share one frame across color and ink</summary>
-
-Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
-
-Data flow: Existing renderer frame → borrowed surface and ink groups; existing pick request → separate borrowed pick group.
+> **Check:** *Why keep the request frame independent if all ordinary ink shares a layout?* — Layout compatibility does not make the latest color camera the owner of an asynchronous pick. The pick uses its captured full physical viewport, density and transform until its readback completes.
 
 ### 1. `src/surface_view.rs`
 
 Give existing ink shaders their unchanged viewport prefix, followed by surface settings and the existing kernel-derived eye.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const BYTES:u64=96;
-pub fn layout(device:&wgpu::Device)->wgpu::BindGroupLayout {crate::gpu_layout::uniform(device,BYTES)}
-pub fn bytes(matrix:[f32;16],display:[f32;4])->[u8;96] {
-    let frame=session_rust::Xform::from_matrix(matrix.map(f64::from));let eye=frame.eye();
-    let mut values=[0.;24];values[..16].copy_from_slice(&matrix);values[16..20].copy_from_slice(&display);
-    values[20..].copy_from_slice(&[eye[0]as f32,eye[1]as f32,eye[2]as f32,frame.ortho_half_height()as f32]);
-    let mut bytes=[0;96];for (out,value) in bytes.chunks_exact_mut(4).zip(values) {out.copy_from_slice(&value.to_ne_bytes());}bytes
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -231,31 +104,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Read surface settings after the shared ink prefix.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, eye:vec4<f32>, }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, viewport:vec4<f32>, display: vec4<f32>, eye:vec4<f32>, }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-02.rs"
-```
-
-</details>
 
 ### 3. `src/renderer.rs`
 
@@ -263,8 +116,7 @@ Encode the correct full physical viewport and density once for this frame owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.prepare_clouds(*transform);
@@ -275,8 +127,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.strokes.view(&self.queue, transform, self.size, self.density);
         self.sheets.view(&self.queue,transform,self.size,self.density);
 ```
-
-</details>
 
 Replace it with:
 
@@ -290,8 +140,7 @@ Replace it with:
         self.sheets.view(&self.queue,transform,self.size,self.density);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.prepare_clouds(transform);
@@ -302,8 +151,6 @@ Replace it with:
             self.picker.submit_finite(&self.device, &self.queue, request,
             &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -317,8 +164,7 @@ Replace it with:
             &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -943,35 +789,9 @@ mod surface_lighting_tests;
 mod surface_controls_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-04.rs"
-```
-
-</details>
-
 ### 4. `src/pick_gpu.rs`
 
 Encode the correct full physical viewport and density once for this frame owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let bytes=crate::surface_view::bytes(request.transform,[0.;4]);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -979,25 +799,13 @@ Edit the existing block to match this code; keep unchanged lines:
         let bytes=crate::surface_view::bytes(request.transform,[0.;4],window.full,request.density);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-05.rs"
-```
-
-</details>
-
 ### 5. `src/stroke_gpu.rs`
 
 Remove duplicated per-lane presentation state. Borrow a frame group instead of owning another uniform. The renderer and request owners perform the only frame writes. Borrow the color frame at draw time. Use the same borrowed group in the finite path. Use the borrowed frame in the base ink path. Borrow the actual request frame for original IDs. Keep the base integer path on the request frame. Pass the request frame through finite picking. Share the captured frame with finite original IDs. Retain the same request in the base fallback. Use the same explicit layout even when a shader reads only its prefix. Remove the redundant buffer and bind-group allocations. Keep settings in their existing renderer owner. Keep only lane geometry, pipelines and finite bindings.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 targets: &[Some(wgpu::TextureFormat::Rg32Uint.into())] }), primitive: Default::default(),
@@ -1014,8 +822,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1028,8 +834,7 @@ Replace it with:
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn layout_target(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
@@ -1040,8 +845,6 @@ Replace it with:
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("ink settings"), bind_group_layouts: &[Some(&view_layout)], immediate_size: 0 });
 ```
-
-</details>
 
 Replace it with:
 
@@ -1055,8 +858,7 @@ Replace it with:
             label: Some("ink settings"), bind_group_layouts: &[Some(&view_layout)], immediate_size: 0 });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.id_data = data; Ok(())
@@ -1074,8 +876,6 @@ Replace it with:
     }
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1096,8 +896,7 @@ Replace it with:
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn clipping_bytes(&self)->[u64;2]{[self.flags.as_ref().map_or(0,wgpu::Buffer::size),self.flag_data.capacity()as u64*4]}
@@ -1111,8 +910,6 @@ Replace it with:
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1129,8 +926,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.data = data; if self.finite.is_some(){self.set_flags(device,vec![0;self.data.len()/self.stride as usize])?;} Ok(())
@@ -1149,8 +945,6 @@ Replace it with:
         if flags==self.flag_data{return Ok(())}use wgpu::util::DeviceExt;self.flags=if flags.is_empty(){None}else{let bytes=flags.iter().copied().flat_map(u32::to_ne_bytes).collect::<Vec<_>>();Some(device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("original ink clipping flags"),contents:&bytes,usage:wgpu::BufferUsages::VERTEX}))};self.flag_data=flags;Ok(())
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1162,8 +956,7 @@ Replace it with:
         if flags==self.flag_data{return Ok(())}use wgpu::util::DeviceExt;self.flags=if flags.is_empty(){None}else{let bytes=flags.iter().copied().flat_map(u32::to_ne_bytes).collect::<Vec<_>>();Some(device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("original ink clipping flags"),contents:&bytes,usage:wgpu::BufferUsages::VERTEX}))};self.flag_data=flags;Ok(())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pick_pipeline: Option<wgpu::RenderPipeline>,
@@ -1176,8 +969,6 @@ Replace it with:
     stride: u64,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1189,8 +980,7 @@ Replace it with:
     stride: u64,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -1199,8 +989,6 @@ pub struct Lane {
     finite:Option<crate::finite_ink::Ink>,
     strict_depth:bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1211,8 +999,7 @@ pub struct Lane {
     strict_depth:bool,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -1409,67 +1196,9 @@ impl Lane {
 mod pick_pipeline_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-20.rs"
-```
-
-</details>
-
 ### 6. `src/finite_ink.rs`
 
 Keep finite color and integer pipelines compatible with the same frame.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let view=crate::gpu_layout::uniform(device,80);let crop=crate::gpu_layout::uniform(device,80);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1477,30 +1206,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let view=crate::surface_view::layout(device);let crop=crate::gpu_layout::uniform(device,80);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-21.rs"
-```
-
-</details>
-
 ### 7. `src/pick_gpu.rs`
 
 Stop overwriting individual lane frames for a pick.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        if let Some(sheets)=sheets {sheets.view(queue,&request.transform,window.full,request.density);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1508,25 +1216,9 @@ Edit the existing block to match this code; keep unchanged lines:
         if let Some(sheets)=sheets {sheets.view(queue,&request.transform,window.full,request.density);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 8. `src/pick_encode.rs`
 
 Draw every ordinary ink ID with the request-owned group.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            for lane in ink {lane.pick_finite(device,&mut pass,crop_group,tables.as_ref(),&image.depth);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1534,25 +1226,13 @@ Edit the existing block to match this code; keep unchanged lines:
             for lane in ink {lane.pick_finite(device,&mut pass,view_group,crop_group,tables.as_ref(),&image.depth);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-23.rs"
-```
-
-</details>
-
 ### 9. `src/highlight.rs`
 
 Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Ok(())
@@ -1570,14 +1250,11 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         + self.strokes.usage()[1] + self.paths.usage()[1] + self.markers.usage()[1] }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
         Ok(())
     }
-
 
     pub fn mesh(&self, pass: &mut wgpu::RenderPass<'_>) { if let Some(mesh) = &self.mesh { mesh.draw_pulled(pass); } }
     pub fn ink(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup) { self.strokes.draw(pass,view); self.paths.draw(pass,view); }
@@ -1587,8 +1264,7 @@ Replace it with:
         + self.strokes.usage()[1] + self.paths.usage()[1] + self.markers.usage()[1] }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_sources::{Part, Target}, scene::Scene, stroke_gpu::Lane};
@@ -1680,7 +1356,6 @@ impl Highlight {
         Ok(())
     }
 
-
     pub fn mesh(&self, pass: &mut wgpu::RenderPass<'_>) { if let Some(mesh) = &self.mesh { mesh.draw_pulled(pass); } }
     pub fn ink(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup) { self.strokes.draw(pass,view); self.paths.draw(pass,view); }
     pub fn points(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup) { self.markers.draw(pass,view); }
@@ -1690,71 +1365,9 @@ impl Highlight {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-29.rs"
-```
-
-</details>
-
 ### 10. `src/tool_preview.rs`
 
 Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{stroke_gpu::Lane, tool::Draft};
-
-pub struct Preview { strokes: Lane, markers: Lane }
-
-impl Preview {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self { strokes: Lane::new(device, format), markers: Lane::markers(device, format) }
-    }
-    pub fn set(&mut self,device:&wgpu::Device,draft:Option<&Draft>)->Result<(),&'static str>{self.set_at(device,draft,[0.;3])}
-    pub fn set_at(&mut self,device:&wgpu::Device,draft:Option<&Draft>,anchor:[f64;3])->Result<(),&'static str>{
-        let yellow = crate::colour::selection(); let mut strokes = Vec::new(); let mut markers = Vec::new();
-        if let Some(draft) = draft {
-            for wire in if draft.extend.is_some(){Vec::new()}else{draft.outlines()} {for pair in wire.windows(2) {if pair[0]!=pair[1] {strokes.push(crate::stroke::Stroke {start:crate::render_space::relative(pair[0],anchor),end:crate::render_space::relative(pair[1],anchor),width:2.,colour:yellow});}}}
-            if let Some(cursor) = draft.cursor {
-                markers.push(crate::marker::Marker { center: crate::render_space::relative(cursor,anchor), diameter: 8., colour: yellow });
-
-        } }
-        self.strokes.set(device, strokes)?; self.markers.set_points(device, markers)?; Ok(())
-    }
-    pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
-        self.strokes.view(queue, transform, size, density); self.markers.view(queue, transform, size, density);
-    }
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) { self.strokes.draw(pass); self.markers.draw(pass); }
-    pub fn bytes(&self) -> u64 { self.strokes.usage()[1] + self.markers.usage()[1] }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1783,81 +1396,9 @@ impl Preview {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-33.rs"
-```
-
-</details>
-
 ### 11. `src/measure_gpu.rs`
 
 Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{measure_mark::Mark, stroke_gpu::Lane};
-pub struct Measurement {
-    pub mark: Option<Mark>,
-    anchor:[f64;3],
-    strokes: Lane,
-}
-impl Measurement {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self {
-            mark: None,anchor:[0.;3],
-            strokes: Lane::overlay(device, format),
-        }
-    }
-    pub fn set(&mut self,device:&wgpu::Device,mark:Option<&Mark>)->Result<(),&'static str>{self.set_at(device,mark,[0.;3]).map(|_|())}
-    pub fn set_at(&mut self,device:&wgpu::Device,mark:Option<&Mark>,anchor:[f64;3])->Result<bool,&'static str>{
-        if self.mark.as_ref() == mark&&self.anchor==anchor {
-            return Ok(false);
-        }
-        let mut strokes = Vec::new();
-        if let Some(mark) = mark {
-            for p in mark.points.windows(2) {
-                if p[0] != p[1] {
-                    strokes.push(crate::stroke::Stroke {
-                        start: crate::render_space::relative(p[0],anchor),
-                        end: crate::render_space::relative(p[1],anchor),
-                        width: 1.5,
-                        colour: [20. / 255., 20. / 255., 20. / 255., 1.],
-                    });
-                }
-            }
-        }
-        self.strokes.set(device, strokes)?;
-        self.mark = mark.cloned();self.anchor=anchor;
-        Ok(true)
-    }
-    pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
-        self.strokes.view(queue, transform, size, density)
-    }
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        self.strokes.draw(pass)
-    }
-    pub fn bytes(&self) -> u64 {
-        self.strokes.usage()[1]
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1906,51 +1447,9 @@ impl Measurement {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-36.rs"
-```
-
-</details>
-
 ### 12. `src/guide_gpu.rs`
 
 Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{stroke::Stroke,marker::Marker,stroke_gpu::Lane};
-#[derive(Clone,Debug,PartialEq)]
-pub struct Segment{pub stroke:Stroke,pub dashed:bool}
-#[derive(Clone,Debug,Default,PartialEq)]
-pub struct Overlay{pub anchor:[f64;3],pub segments:Vec<Segment>,pub marks:Vec<Marker>,pub label:Option<([f64;3],String)>}
-impl Overlay{
-    pub fn at(anchor:[f64;3])->Self {Self {anchor,..Default::default()}}
-    pub fn mark(&mut self,point:[f64;3],diameter:f32,colour:[f32;4]){self.marks.push(Marker{center:crate::render_space::relative(point,self.anchor),diameter,colour});}
-    pub fn wire(&mut self,points:&[[f64;3]],colour:[f32;4],dashed:bool){for p in points.windows(2){if p[0]!=p[1]{self.segments.push(Segment{stroke:Stroke{start:crate::render_space::relative(p[0],self.anchor),end:crate::render_space::relative(p[1],self.anchor),colour,width:2.},dashed})}}}
-    pub fn labels(&self,existing:&[crate::text::TextLabel])->Vec<crate::text::TextLabel>{self.label.as_ref().map_or_else(Vec::new,|(point,label)|crate::measure_mark::Mark{points:vec![*point],label:label.clone()}.labels(existing))}
-}
-pub struct Guide{pub overlay:Overlay,segments:Lane,marks:Lane}
-impl Guide{
-    pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{overlay:Default::default(),segments:Lane::guides(device,format),marks:Lane::markers(device,format)}}
-    pub fn set(&mut self,device:&wgpu::Device,overlay:&Overlay)->Result<bool,&'static str>{if &self.overlay==overlay{return Ok(false)}self.segments.set_guides(device,&overlay.segments)?;self.marks.set_points(device,overlay.marks.iter().copied())?;self.overlay=overlay.clone();Ok(true)}
-    pub fn view(&self,queue:&wgpu::Queue,matrix:&[f32;16],size:[u32;2],density:f32){self.segments.view(queue,matrix,size,density);self.marks.view(queue,matrix,size,density)}
-    pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>){self.segments.draw(pass);self.marks.draw(pass)}
-    pub fn bytes(&self)->u64{self.segments.usage()[1]+self.marks.usage()[1]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1975,37 +1474,9 @@ impl Guide{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-40.rs"
-```
-
-</details>
-
 ### 13. `src/highlight.rs`
 
 Selection reads the existing shared opacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn set_opacity(&self,value:f32){for lane in [&self.strokes,&self.paths,&self.markers]{lane.set_opacity(value);}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2013,21 +1484,13 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 14. `src/renderer.rs`
 
 Keep the single renderer opacity owner. One shared frame replaces this lane or wrapper update. Measurement and guides borrow the same color frame. Borrow the existing color group for this draw.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         {
@@ -2046,8 +1509,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             let ctx=self.text_context();
             let mut global=self.global_outline.borrow_mut();let global=global.get_or_insert_with(||crate::outline_gpu::Outline::new(&ctx,self.format));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2069,8 +1530,7 @@ Replace it with:
             let mut global=self.global_outline.borrow_mut();let global=global.get_or_insert_with(||crate::outline_gpu::Outline::new(&ctx,self.format));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 })],
@@ -2081,8 +1541,6 @@ Replace it with:
             pass.set_pipeline(&self.pipeline);
             pass.set_bind_group(0, &self.view_group, &[]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2096,8 +1554,7 @@ Replace it with:
             pass.set_bind_group(0, &self.view_group, &[]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let display=[f32::from(normals),self.opacity.get(),if self.ambient_enabled.get(){2.}else{f32::from(options[0])},f32::from(options[1])];
@@ -2117,8 +1574,6 @@ Replace it with:
         let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);tiles.encode(&self.device,&mut encoder,&self.view_group,*transform);
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2131,8 +1586,7 @@ Replace it with:
         let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);tiles.encode(&self.device,&mut encoder,&self.view_group,*transform);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn prepare_clouds(&self,transform:[f32;16]) {
@@ -2143,8 +1597,6 @@ Replace it with:
     pub fn set_outlines(&self,on:bool){self.outlines_enabled.set(on);if !on{self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();}}
     pub fn global_outline_usage(&self)->[u64;4]{self.global_outline.borrow().as_ref().map_or([0;4],|o|o.usage())}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2158,8 +1610,7 @@ Replace it with:
     pub fn global_outline_usage(&self)->[u64;4]{self.global_outline.borrow().as_ref().map_or([0;4],|o|o.usage())}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2776,57 +2227,7 @@ mod surface_lighting_tests;
 mod surface_controls_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-51.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-52.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-53.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-54.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-55.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-56.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-57.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-58.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-59.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-60.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2834,89 +2235,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the exact camera/display test and extend its actual viewport-prefix contract.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{camera::{Camera,Projection,Unit},cap_gpu_tests::{renderer,pixels_at,at},scene::Scene};
-use session_rust::{Point,Vector,Xform};
-
-fn original() -> session_rust::Mesh {
-    let mut mesh=session_rust::Mesh::from_vertices_and_faces(vec![Point::new(0.,-800.,-800.),Point::new(0.,800.,-800.),Point::new(0.,800.,800.),Point::new(0.,-800.,800.)],vec![vec![0,1,2,3]]);
-    mesh.set_objectcolor(session_rust::Color::new(0.2,0.4,0.6,1.));mesh
-}
-fn camera()->Camera {let mut c=Camera::default();c.projection=Projection::Orthographic;c.aspect=4./3.;c}
-
-#[test]
-fn surface_frame_bytes_preserve_camera_and_display_domains() {
-    assert_eq!(crate::surface_view::BYTES,96);
-    for unit in [Unit::Millimeters,Unit::Meters] {for projection in [Projection::Perspective,Projection::Orthographic] {
-        let mut c=camera();c.unit=unit;c.distance=3./unit.to_meters();c.projection=projection;c.target=[1e9,-1e9,1e9];
-        let matrix=c.view_projection_anchored(c.target).to_f32();
-        let bytes=crate::surface_view::bytes(matrix,[1.,0.7,2.,1.]);
-        let values=bytes.chunks_exact(4).map(|b|f32::from_ne_bytes(b.try_into().unwrap())).collect::<Vec<_>>();
-        assert_eq!(&values[..16],&matrix);assert_eq!(&values[16..20],&[1.,0.7,2.,1.]);
-        assert!(values.iter().all(|v|v.is_finite()));
-        if projection==Projection::Perspective {
-            assert_eq!(values[23],0.);let forward=c.orientation.rotate_vector(Vector::y_axis());
-            for i in 0..3 {let expected=-forward[i]*c.distance;assert!((values[20+i]as f64-expected).abs()<c.distance*2e-6);}
-        }else{assert!(values[23]>0.);}
-    }}
-}
-
-#[test]
-fn scaled_camera_inverse_keeps_wide_views_and_invalid_guards() {
-    for unit in [Unit::Millimeters,Unit::Meters] {for projection in [Projection::Perspective,Projection::Orthographic] {
-        let mut c=camera();c.unit=unit;c.distance=24./unit.to_meters();c.projection=projection;
-        let matrix=c.view_projection().to_f32();let transform=Xform::from_matrix(matrix.map(f64::from));
-        let inverse=crate::clipping_uniform::inverse(&transform).unwrap();let identity=&transform*&inverse;
-        for i in 0..16 {assert!((identity.m[i]-if i%5==0{1.}else{0.}).abs()<1e-7);}
-        assert!(crate::ambient_camera::uniform(matrix,[320,240],[128,96],[0.,1.]).is_some());
-        if unit==Unit::Millimeters&&projection==Projection::Orthographic {assert!(transform.inverse().is_none(),"The real unscaled-kernel regression control must fail");}
-    }}
-    for value in [0.,f64::NAN,f64::INFINITY] {assert!(crate::clipping_uniform::inverse(&Xform::from_matrix([value;16])).is_none());}
-}
-
-#[test]
-fn actual_unlit_and_sky_preserve_original_records() {
-    let mut scene=Scene::empty();let owner=scene.insert(crate::prepared::PreparedMesh::new(original()).unwrap()).unwrap();
-    let source=scene.objects()[0].geometry().unwrap().to_proto();let matrix=camera().uniform();let mut r=renderer(&scene);let uploads=r.stats()[0];
-    let flat=pixels_at(&r,matrix);assert_eq!(at(&flat,160,120),&[51,102,153,255],"Unlit fill retains exact original color");
-    // Isolate the actual sky fragment mode from the separate ambient compositor.
-    r.ambient_enabled.set(true);assert!(r.ambient.borrow().is_none());let sky=pixels_at(&r,matrix);
-    assert_eq!(at(&sky,160,120),&[44,88,132,255],"Current vertical-face sky factor is0.86");
-    r.ambient_enabled.set(false);
-    for uniform in [true,false] {
-        if uniform {r.use_uniform_surface_records();}else{r.set_scene(&scene,None);}
-        assert_eq!(pixels_at(&r,matrix),flat);
-        r.ambient_enabled.set(true);assert_eq!(pixels_at(&r,matrix),sky);r.ambient_enabled.set(false);
-    }
-    assert_eq!(pixels_at(&r,matrix),flat);assert_eq!(r.stats()[0],uploads);assert_eq!(scene.objects()[0].id,owner);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),source);
-}
-
-#[test]
-fn wide_ambient_and_depth_pyramid_keep_real_passes_without_geometry_uploads() {
-    let mut scene=Scene::empty();let source=session_rust::Mesh::create_box(6000.,4000.,1000.);scene.insert(crate::prepared::PreparedMesh::new(source).unwrap()).unwrap();
-    let original=scene.objects()[0].geometry().unwrap().to_proto();let mut c=camera();c.set_view(crate::camera::View::Top);c.distance=24000.;let r=renderer(&scene);r.grow_camera(&mut c);
-    r.set_ambient(true);r.set_depth_pyramid(true);let uploads=r.stats()[0];let first=pixels_at(&r,c.uniform());
-    assert_eq!(r.ambient_error(),None);assert_eq!(r.depth_pyramid_error(),None);assert!(r.ambient_usage()[4]>0);assert_eq!(r.depth_pyramid_usage()[3],6);
-    let ambient=r.ambient_usage();let pyramid=r.depth_pyramid_usage();assert_eq!(pixels_at(&r,c.uniform()),first);assert_eq!(r.ambient_usage()[3],ambient[3]);assert_eq!(r.depth_pyramid_usage(),pyramid);
-    c.zoom(2.);let _=pixels_at(&r,c.uniform());assert_eq!(r.ambient_error(),None);assert_eq!(r.depth_pyramid_error(),None);assert_eq!(r.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-61.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2930,10 +2255,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-62.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2941,78 +2263,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register optional native GPU controls outside the browser graph.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod surface_controls_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzi-share-one-frame-across-color-and-ink-63.rs" skip=27
 ```
 
-</details>
+**Result after `96zzzzzzi-share-one-frame-across-color-and-ink`:** Original surfaces and ink retain their actual pixels and owners while the ink lanes stop allocating and updating duplicate frame uniforms.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzj-fill-original-contact-polygons"></a>
 
 ### Step 2 of 5 · Fill original contact polygons (`96zzzzzzj-fill-original-contact-polygons`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/5 Visual Trace (96zzzzzzj-fill-original-contact-polygons): Fill original contact polygons</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_mesh_topology.rs, src/feature_display.rs, src/contact_feature_tests.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original Element contact</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one derived</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">polygon/perimeter</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded color/ID surface</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">layer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original object owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_mesh_topology.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded color/ID surfac…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original object owner</text>
 </svg>
-</div>
-
-- **Goal:** Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth.
-- **Data Flow Trace:** `Original Element contact → one derived polygon/perimeter → bounded color/ID surface layer → original object owner`
-- **Files You Touch:** `src/source_mesh_topology.rs` (*Reuse the existing full-ring Newell sum without per-face coordinate allocations.*) · `src/feature_display.rs` (*Try actual area before the existing float-collapsed point/path fallback.*) · `src/contact_feature_tests.rs` (*Supply actual Element-source, concave perimeter, original-owner GPU and depth/occlusion controls.*) · `src/renderer.rs` (*Keep optional native GPU validation outside the browser implementation.*) · `src/gpu_mesh.rs` (*Carry the original integer owner, including zero for an unpickable display.*) · `src/global_outline_tests.rs` (*Retain every exact original record/pixel/anchor assertion with the explicit owner field.*) · `src/contact_depth.wgsl` (*Pull the contact toward the eye by the current bounded depth/slope layer, leaving screen position and source coordinates fixed.*) · `src/clipping_gpu.rs` (*Expand the shared helper only in shaders which explicitly include it.*) · `src/triangle.wgsl` (*Share contact placement between ordinary, pulled and integer surface entries.*) · `src/face_pick.wgsl` (*Supply the actual normal to the same source-face vertex function.*)
 
 A contact outline is an area on its original Element. Reuse the existing full-ring normal and kernel polygon triangulation, retaining mesh Parts so the existing source-ink collector supplies the complete black one-pixel perimeter. Keep contact preparation in the existing feature module; another retained boundary Polyline is unnecessary. Apply the contact marker explicitly to the derived display, because ordinary kernel conversion makes an opaque mesh. Surface records carry the original integer owner through the existing feature adapter. Color and integer vertex entries share the bounded camera-depth layer, leaving screen positions and original coordinates unchanged. Degenerate outlines retain their point/path fallback. Boundary depth, current ambient inputs and multisampling remain unfinished.
 
-> **Self-Check Question:** *Why keep Parts instead of building a second boundary Polyline?*  
-> **Answer:** The prepared mesh already retains its original polygon edges independently of triangulation. Existing mesh ink can draw those edges and remap their picks to the Element, avoiding duplicate boundary coordinates, display pieces and uploads.
-
-- **What You Should See:** The original concave contact has an opaque unlit red fill, its complete existing perimeter, an open notch and the original Element object owner. Coplanar host depth stays behind it and real nearer geometry still occludes it.
-- **Hands-On Lab Experiment:** Inspect the actual concave contact on its host, including the initially collinear corners and open notch. Toggle interactions, select the fill, clear selection, Move and Undo its original parent. Verify saved original features and placements; compare actual color and ID behavior at both display densities.
-
-<details>
-<summary>Implementation 96zzzzzzj-fill-original-contact-polygons: Fill original contact polygons</summary>
-
-Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth.
-
-Data flow: Original Element contact → one derived polygon/perimeter → bounded color/ID surface layer → original object owner.
+> **Check:** *Why keep Parts instead of building a second boundary Polyline?* — The prepared mesh already retains its original polygon edges independently of triangulation. Existing mesh ink can draw those edges and remap their picks to the Element, avoiding duplicate boundary coordinates, display pieces and uploads.
 
 ### 1. `src/source_mesh_topology.rs`
 
@@ -3020,8 +2310,7 @@ Reuse the existing full-ring Newell sum without per-face coordinate allocations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3031,8 +2320,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 fn face_key(face: &(usize, &Vec<usize>)) -> usize {
     face.0
 ```
-
-</details>
 
 Replace it with:
 
@@ -3049,8 +2336,7 @@ fn face_key(face: &(usize, &Vec<usize>)) -> usize {
     face.0
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -3071,8 +2357,6 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
         n[1] += (a[2] - b[2]) * (a[0] + b[0]);
         n[2] += (a[0] - b[0]) * (a[1] + b[1]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3096,8 +2380,7 @@ pub fn polygon_normal(count: usize, point: impl Fn(usize) -> [f64; 3]) -> Option
         n[2] += (a[0] - b[0]) * (a[1] + b[1]);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::source_topology_colour::{BLACK,pack_rgba};
@@ -3150,7 +2433,6 @@ impl SlotMap {
     }
 }
 
-
 /// Edges, faces and normals of one mesh.
 pub struct MeshTopo {
     pub edges: Vec<(usize, usize, u32)>, // (low key, high key, pen colour)
@@ -3194,7 +2476,6 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
 fn face_key(face: &(usize, &Vec<usize>)) -> usize {
     face.0
 }
-
 
 struct EdgeTable {
     edges: Vec<(usize, usize, u32)>,
@@ -3311,7 +2592,6 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3394,39 +2674,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-03.rs"
-```
-
-</details>
-
 ### 2. `src/feature_display.rs`
 
 Try actual area before the existing float-collapsed point/path fallback.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    let point = outline.get_point(0).filter(|p| outline.coords.chunks_exact(3)
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3438,19 +2688,7 @@ Edit the existing block to match this code; keep unchanged lines:
                     let point = outline.get_point(0).filter(|p| outline.coords.chunks_exact(3)
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3464,10 +2702,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-14.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3475,22 +2710,11 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep optional native GPU validation outside the browser implementation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod shared_view_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-15.rs" skip=22
 ```
-
-</details>
 
 ### 5. `src/gpu_mesh.rs`
 
@@ -3498,8 +2722,7 @@ Carry the original integer owner, including zero for an unpickable display. Writ
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3510,8 +2733,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3525,8 +2746,7 @@ Replace it with:
     pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3537,8 +2757,6 @@ Replace it with:
     let flags=if matches!(&object.original,Some(session_rust::Geometry::Plane(p)) if crate::clipping_geometry::is_clipping(p)){4096u32}else{0};bytes[72..76].copy_from_slice(&(flags|cap_flags).to_ne_bytes());bytes[76..80].copy_from_slice(&cap_token.to_ne_bytes());
     let normals = crate::normals::matrix(&object.model).expect("Scene placements are checked before insertion or editing");
 ```
-
-</details>
 
 Replace it with:
 
@@ -3552,8 +2770,7 @@ Replace it with:
     let normals = crate::normals::matrix(&object.model).expect("Scene placements are checked before insertion or editing");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -3564,8 +2781,6 @@ pub struct Style {pub selected:bool,pub pickable:bool,pub colour:Option<[f32;4]>
 fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_base:u32,index_start:u32,anchor:[f64;3]) -> Record {
     let mut bytes = [0; BYTES];
 ```
-
-</details>
 
 Replace it with:
 
@@ -3579,8 +2794,7 @@ fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_b
     let mut bytes = [0; BYTES];
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -3709,39 +2923,9 @@ impl GpuMesh {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-owner-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-owner-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-owner-3.rs"
-```
-
-</details>
-
 ### 6. `src/renderer.rs`
 
 Use the existing feature adapter for color and request-specific surface records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,pickable:scene.pick_id(id.value()).is_some(),colour:scene.face_rgba(id)}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3749,19 +2933,7 @@ Edit the existing block to match this code; keep unchanged lines:
 fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,owner:crate::feature_owner::display_owner(scene,id).map_or(0,ObjectId::value),colour:scene.face_rgba(id)}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-owner-4.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3769,368 +2941,11 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain every exact original record/pixel/anchor assertion with the explicit owner field.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{scene::Scene,prepared::PreparedMesh,cap_gpu_tests::{renderer,pixels,matrix,wait}};
-use std::rc::Rc;
-fn width_pixels(r:&super::Renderer){let texture=r.device.create_texture(&wgpu::TextureDescriptor{label:Some("global CSS width"),size:wgpu::Extent3d{width:320,height:240,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});r.draw(&texture.create_view(&Default::default()),&Default::default(),&session_rust::Xform::identity().m.map(|v|v as f32));wait(r);}
-#[test]
-fn actual_global_curved_and_flat_silhouettes_keep_the_same_css_width_at_two_densities() {
-    let mut widths=Vec::new();
-    for curved in [false,true] {
-        let mut scene=Scene::demo();scene.clear();let id=if curved {scene.insert_cad(Rc::new(session_rust::BRep::create_cylinder(0.4,0.8))).unwrap()} else {let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.8,0.8,0.2)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,0.5);scene.insert(prepared).unwrap()};let mut renderer=renderer(&scene);renderer.set_outlines(true);assert!(!renderer.meshes.iter().any(crate::gpu_mesh::GpuMesh::selected));let _=id;let geometry=renderer.stats();let mut css=Vec::new();
-        for density in [1.,2.] {renderer.set_density(density);width_pixels(&renderer);let alpha=renderer.global_outline_alpha();assert!(alpha.iter().any(|v|*v==255));let row=&alpha[120*320..121*320];let width=row[160..].iter().map(|v|*v as f64/255.).sum::<f64>()/density as f64;assert!((0.7..1.7).contains(&width),"Actual outer silhouette CSS coverage remains bounded: {width}");css.push(width);assert_eq!(&renderer.stats()[..2],&geometry[..2]);}
-        assert!((css[0]-css[1]).abs()<0.5,"DPI keeps the outline in CSS units: {css:?}");widths.push(css);
-    }
-    for i in 0..2 {assert!((widths[0][i]-widths[1][i]).abs()<0.25,"A smooth cylinder and flat box use one coverage width: {widths:?}");}
-}
-
-#[test]
-fn actual_global_and_selected_outlines_share_alpha_and_one_black_blend(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();
- let original=scene.objects()[0].geometry().unwrap().to_proto();let mut r=renderer(&scene);let plain=pixels(&r);let uploads=r.stats()[0];r.set_outlines(true);let global=pixels(&r);let alpha=r.global_outline_alpha();assert!(alpha.iter().filter(|v|**v>0).count()>300);let usage=r.global_outline_usage();assert_eq!(pixels(&r),global);assert_eq!(r.global_outline_usage()[1],usage[1]);assert!(r.global_outline_usage()[2]>usage[2]);
- r.select_objects(&scene,&[owner]).unwrap();let both=pixels(&r);assert_eq!(r.outline_alpha(),r.global_outline_alpha(),"same source and CSS width yield identical masks");
- let mut boundary=0;for(i,(&coverage,(a,b)))in alpha.iter().zip(global.chunks_exact(4).zip(both.chunks_exact(4))).enumerate(){if coverage>0&&plain[i*4..i*4+3]==[255,255,255]{boundary+=1;assert_eq!(a,b,"selected plus global uses max alpha in one blend");}}
- assert!(boundary>200);assert_eq!(r.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);
- r.request_pick([0.,0.],matrix()).unwrap();wait(&r);let hit=r.take_pick(matrix()).expect("mapped original pick").unwrap();assert_eq!(hit.unwrap()[0],owner.value());
- r.select_objects(&scene,&[]).unwrap();r.set_outlines(false);assert_eq!(r.global_outline_usage(),[0;4]);assert_eq!(pixels(&r),plain);
- scene.clear();r.set_scene(&scene,None);r.set_outlines(true);pixels(&r);assert_eq!(r.global_outline_usage(),[0;4]);
-}
-#[test]
-fn actual_visible_cap_coverage_keeps_selected_and_global_masks_equal(){
- let(mut scene,owner)=crate::cap_gpu_tests::scene(false);let mut r=renderer(&scene);r.set_outlines(true);let global=pixels(&r);let alpha=r.global_outline_alpha();assert!(alpha.iter().any(|v|*v==255));
- r.select_objects(&scene,&[owner]).unwrap();let selected=pixels(&r);assert_eq!(r.outline_alpha(),r.global_outline_alpha(),"selected visible cap marker joins original coverage");
- for(i,v)in alpha.iter().enumerate(){if *v==255{assert!(global[i*4..i*4+3].iter().all(|v|*v<12));assert!(selected[i*4..i*4+3].iter().all(|v|*v<12));}}
- r.set_clipping(false,true);pixels(&r);assert_eq!(r.global_outline_alpha(),alpha,"horizontal cut and uncut original share the same outer XY silhouette");assert_eq!(r.cap_usage()[0],16);
- let side=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Yz,&[[0.,0.,0.]],0.9).unwrap();crate::plane_original::insert(&mut scene,Rc::new(side)).unwrap();r.set_scene(&scene,Some(owner));r.set_clipping(true,true);pixels(&r);assert_ne!(r.global_outline_alpha(),alpha,"changed section inputs cannot reuse stale coverage");
-}
-#[test]
-fn actual_global_outline_includes_locked_and_releases_hidden_originals(){
- let mut scene=Scene::empty();let mut source=crate::cap_gpu_tests::source(false);source.is_locked=true;let owner=scene.insert(PreparedMesh::new(source).unwrap()).unwrap();let mut r=renderer(&scene);r.set_outlines(true);pixels(&r);assert!(r.global_outline_alpha().iter().any(|v|*v==255));assert_eq!(scene.pick_id(owner.value()),None);
- Rc::make_mut(&mut scene.view).hidden.insert(owner);r.set_scene(&scene,None);pixels(&r);assert!(r.global_outline_alpha().is_empty());assert_eq!(r.global_outline_usage(),[0;4]);
-}
-
-#[test]
-fn actual_triangle_ranges_keep_selection_updates_visibility_and_original_owners(){
-    let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle([[-0.2,-0.4,-0.4],[0.2,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let b=scene.copy_row(a,false).unwrap();scene.translate(a,[-0.5,0.,0.]).unwrap();scene.translate(b,[0.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);
-    let bases=|gpu:&super::Renderer|gpu.meshes.iter().map(|row|u32::from_ne_bytes(row.packed()[crate::object_record::RANGE+4..crate::object_record::RANGE+8].try_into().unwrap())).collect::<Vec<_>>();assert_eq!(bases(&gpu),vec![1,2]);assert!(gpu.meshes.iter().all(|row|!row.selected()));let baseline=pixels(&gpu);
-    gpu.select_objects(&scene,&[b]).unwrap();assert_eq!(bases(&gpu),vec![1,2]);assert_eq!(gpu.meshes.iter().map(|row|row.selected()).collect::<Vec<_>>(),vec![false,true]);let selected=pixels(&gpu);assert_ne!(selected,baseline);
-    scene.translate(b,[0.,0.1,0.]).unwrap();gpu.set_scene(&scene,Some(b));assert_eq!(bases(&gpu),vec![1,2]);assert!(gpu.meshes[1].selected());for(position,owner)in[([-0.5,-0.1],a),([0.5,0.],b)]{gpu.request_pick(position,matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());}
-    let before=gpu.meshes[1].packed();assert!(gpu.meshes[1].set_primitive_base(&gpu.queue,crate::primitive_image::CAP_START).is_err());assert_eq!(gpu.meshes[1].packed(),before);
-    Rc::make_mut(&mut scene.view).hide(&[a],true);gpu.set_scene(&scene,Some(b));assert_eq!(bases(&gpu),vec![1]);assert_eq!(gpu.meshes[0].id,b);assert!(gpu.meshes[0].selected());pixels(&gpu);
-}
-
-fn primitive_pixels(gpu:&super::Renderer,texture:&wgpu::Texture)->Vec<u32>{
-        let width=texture.width();let height=texture.height();let pitch=(width*4+255)/256*256;
-        let read=gpu.device.create_buffer(&wgpu::BufferDescriptor{label:Some("actual primitive addresses"),size:u64::from(pitch)*u64::from(height),usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let mut encoder=gpu.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo{buffer:&read,layout:wgpu::TexelCopyBufferLayout{offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},texture.size());gpu.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();read.slice(..).map_async(wgpu::MapMode::Read,move|result|tx.send(result).unwrap());wait(gpu);rx.recv().unwrap().unwrap();let bytes=read.slice(..).get_mapped_range();let values=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..width as usize*4].chunks_exact(4).map(|v|u32::from_le_bytes(v.try_into().unwrap()))).collect();drop(bytes);read.unmap();values
-    }
-#[test]
-fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses(){
-
-    let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle([[-0.2,-0.4,-0.4],[0.2,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let b=scene.copy_row(a,false).unwrap();scene.translate(a,[-0.5,0.,0.]).unwrap();scene.translate(b,[0.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);
-    for density in [1.,2.]{gpu.set_density(density);pixels(&gpu);let before=primitive_pixels(&gpu,&gpu.primitive.texture);assert_eq!(before[0],0);assert_eq!(before[120*320+80],2);assert_eq!(before[120*320+240],3);assert_eq!(gpu.primitive.texture.format(),crate::primitive_image::FORMAT);
-        let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();gpu.set_highlight(&scene,Some(crate::pick_sources::Target{owner:a,part:crate::pick_sources::Part::Face(key)})).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),before,"A derived selected-face mesh must retain original triangle addresses");
-        gpu.set_highlight(&scene,None).unwrap();
-    }
-    let mut instances=Scene::empty();crate::scene_document::import(&mut instances,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).unwrap();gpu.set_scene(&instances,None);pixels(&gpu);let placed=primitive_pixels(&gpu,&gpu.primitive.texture);let ids=gpu.meshes.iter().map(|mesh|mesh.primitive_base()+1).collect::<Vec<_>>();assert_eq!(ids.len(),2);assert_ne!(ids[0],ids[1]);assert!(ids.iter().all(|id|*id>0&&*id<crate::primitive_image::CAP_START));assert_eq!(placed[120*320+64],ids[0]);assert_eq!(placed[120*320+256],ids[1]);
-    gpu.resize(crate::viewport::Viewport{width:640,height:480});assert_eq!([gpu.primitive.texture.width(),gpu.primitive.texture.height()],[640,480]);gpu.resize(crate::viewport::Viewport{width:320,height:240});gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|id|*id==0));
-}
-
-#[test]
-fn actual_first_pick_primitives_match_current_cropped_owners_before_color(){
-    let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle([[-0.2,-0.4,-0.4],[0.2,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let b=scene.copy_row(a,false).unwrap();scene.translate(a,[-0.5,0.,0.]).unwrap();scene.translate(b,[0.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);
-    assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|word|*word==0));
-    for density in [1u32,2]{gpu.set_density(density as f32);gpu.resize(crate::viewport::Viewport{width:320*density,height:240*density});
-        for(position,owner,primitive)in[([-0.5,0.],a,2u32),([0.5,0.],b,3)]{gpu.request_pick(position,matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());let(texture,window)=gpu.picker.primitive_for_tests().unwrap();assert_eq!([texture.width(),texture.height()],window.draw[2..]);assert!(texture.width()<window.full[0]&&texture.height()<window.full[1]);let pixels=primitive_pixels(&gpu,&texture);let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];assert_eq!(pixels[(y*texture.width()+x)as usize],primitive);}
-    }
-    Rc::make_mut(&mut scene.view).hide(&[a],true);gpu.set_scene(&scene,None);gpu.request_pick([0.5,0.],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],b.value());let(texture,window)=gpu.picker.primitive_for_tests().unwrap();let pixels=primitive_pixels(&gpu,&texture);let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];assert_eq!(pixels[(y*texture.width()+x)as usize],2,"Visible survivor uses its current retained run without a color frame");
-}
-
-fn cap_primitive_frame(gpu:&super::Renderer){
- let texture=gpu.device.create_texture(&wgpu::TextureDescriptor{label:Some("cap primitive fixture"),size:wgpu::Extent3d{width:gpu.size[0],height:gpu.size[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});
- gpu.draw(&texture.create_view(&Default::default()),&Default::default(),&matrix());wait(gpu);
-}
-#[test]
-fn actual_cap_color_primitives_keep_plane_selection_and_empty_pixels(){
- let(scene,owner)=crate::cap_gpu_tests::scene(false);let mut gpu=renderer(&scene);
- for density in [1u32,2]{gpu.set_density(density as f32);gpu.resize(crate::viewport::Viewport{width:320*density,height:240*density});cap_primitive_frame(&gpu);
-  let words=primitive_pixels(&gpu,&gpu.primitive.texture);let at=(96*density*320*density+208*density)as usize;
-  assert_eq!(words[at],0xfffffff0);assert_eq!(words[0],0);
-  gpu.select_objects(&scene,&[owner]).unwrap();cap_primitive_frame(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture)[at],0xfffffff1);
-  gpu.select_objects(&scene,&[]).unwrap();
- }
- gpu.set_scene(&Scene::empty(),None);cap_primitive_frame(&gpu);assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|word|*word==0));
-}
-
-#[test]
-fn actual_first_cap_pick_has_reserved_primitive_and_exact_original_owner(){
- let(scene,owner)=crate::cap_gpu_tests::scene(false);let mut gpu=renderer(&scene);
- for density in [1u32,2]{gpu.set_density(density as f32);gpu.resize(crate::viewport::Viewport{width:320*density,height:240*density});
-  assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|word|*word==0));
-  gpu.request_pick([0.3,0.2],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());
-  let(texture,window)=gpu.picker.primitive_for_tests().unwrap();let words=primitive_pixels(&gpu,&texture);
-  let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];
-  assert_eq!(words[(y*texture.width()+x)as usize],0xfffffff0);
-  assert!(texture.width()<window.full[0]&&texture.height()<window.full[1]);
- }
-}
-
-#[test]
-fn actual_compact_surface_upload_uses_twenty_bytes_per_vertex_and_releases(){
- let scene=Scene::demo();let mut gpu=renderer(&scene);let source=scene.objects()[0].mesh.clone();let original=source.vertices().to_vec();
- let buffers=gpu.meshes[0].geometry.buffers();
- assert_eq!(gpu.meshes[0].geometry.allocated_bytes(),0);
- assert_eq!(gpu.usage()[1],buffers.0.size()+buffers.1.size(),"One arena owner accounts for the actual shared buffers");
- let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let mut cache=crate::geometry_cache::GeometryCache::default();let uploaded=cache.get(&ctx,&source);
- assert_eq!(uploaded.buffers().0.size(),source.vertices().len()as u64*20);
- assert_eq!(cache.uploaded_bytes,cache.allocated_bytes(),"The first nonempty compact upload matches actual GPU allocation");
- let written=cache.uploaded_bytes;cache.get(&ctx,&source);assert_eq!(cache.uploads,1);assert_eq!(cache.uploaded_bytes,written);
- let empty=crate::gpu_geometry::GpuGeometry::upload(&gpu.device,std::rc::Rc::new(crate::mesh::Mesh::new(vec![],vec![]).unwrap()));assert_eq!(empty.allocated_bytes(),24);
- pixels(&gpu);assert_eq!(source.vertices(),original);let uploads=gpu.stats();pixels(&gpu);assert_eq!(gpu.stats(),uploads);
- gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);assert_eq!(gpu.arena_cpu_bytes(),0);
-}
-#[test]
-fn actual_nonzero_shared_ranges_keep_surface_face_picks_projection_outlines_and_caps() {
-    use std::cell::RefCell;
-    use crate::{gpu_geometry::GpuGeometry,gpu_mesh::GpuMesh,text_gpu_support::GpuCtx};
-    for clipped in [false,true] {
-        let scene=if clipped {crate::cap_gpu_tests::scene(false).0} else {
-            let mut scene=Scene::empty();scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();scene
-        };
-        let mut r=renderer(&scene);r.set_outlines(true);
-        let expected=pixels(&r);
-        let mut hits=Vec::new();
-        for mode in [crate::pick_sources::Mode::Object,crate::pick_sources::Mode::Face] {
-            r.set_pick_mode(mode);r.request_pick([0.,0.],matrix()).unwrap();wait(&r);
-            hits.push(r.take_pick(matrix()).unwrap().unwrap());
-        }
-        assert!(hits.iter().all(Option::is_some));
-        if !clipped {assert_ne!(hits[1].unwrap()[1],0,"The uncut source returns an original face address");}
-        let ctx=GpuCtx::new(&r.device,&r.queue);
-        let arena=Rc::new(RefCell::new(crate::mesh_arena::Arena::new(&ctx)));
-        let decoy=Rc::new(crate::mesh::Mesh::new(vec![[0.7,0.7,-0.6,0.,1.,0.],[0.9,0.7,-0.6,0.,1.,0.],[0.8,0.9,-0.6,0.,1.,0.]],vec![0,1,2]).unwrap());
-        arena.borrow_mut().upload(&ctx,&decoy).unwrap();
-        let layout=r.pipeline.get_bind_group_layout(1);
-        for mesh in &mut r.meshes {
-            let object=scene.objects().iter().find(|object|object.id==mesh.id).unwrap();
-            let geometry=Rc::new(GpuGeometry::shared(&ctx,object.mesh.clone(),arena.clone()).unwrap());
-            assert!(geometry.index_start>=3);
-            *mesh=GpuMesh::with_geometry(&r.device,&layout,object,super::style(&scene,object.id,false),geometry);
-        }
-        r.caps.borrow_mut().set_scene(&r.queue,&scene,&mut r.meshes,&r.clipping.borrow().rows);
-        let mut base=0;for mesh in &mut r.meshes {mesh.set_primitive_base(&r.queue,base).unwrap();base+=mesh.geometry.index_count/3;}
-        r.tiles.borrow_mut().set(&r.device,&r.meshes);r.faces.clear();
-        if let Some(outline)=r.global_outline.borrow_mut().as_mut(){outline.invalidate();}
-        assert_eq!(pixels(&r),expected,"Nonzero shared ranges preserve actual color, clipping and outline pixels");
-        for (mode,expected) in [crate::pick_sources::Mode::Object,crate::pick_sources::Mode::Face].into_iter().zip(hits) {
-            r.set_pick_mode(mode);r.request_pick([0.,0.],matrix()).unwrap();wait(&r);
-            assert_eq!(r.take_pick(matrix()).unwrap().unwrap(),expected,"Shared source addressing preserves original picks");
-        }
-        assert!(r.tiles.borrow().usage()[3]>0);
-        if clipped {assert_eq!(r.cap_usage()[1],1);}
-    }
-}
-
-#[test]
-fn actual_contact_marker_is_opaque_unlit_selected_and_keeps_original_ownership(){
- let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap();let original=prepared.geometry.to_proto();
- let vertices=prepared.display.vertices().len();prepared.display=prepared.display.with_alphas(vec![1./255.;vertices]).unwrap();let owner=scene.insert(prepared).unwrap();let mut gpu=renderer(&scene);
- let source=scene.objects()[0].mesh.clone();let color=source.vertices()[0][3..6].to_vec();let expected=color.iter().map(|v|(v.clamp(0.,1.)*255.).round()as u8).collect::<Vec<_>>();
- let uploads=gpu.stats()[0];for opacity in [1.,0.5,0.] {gpu.set_opacity(opacity);let image=pixels(&gpu);assert_eq!(&crate::cap_gpu_tests::at(&image,160,90)[..3],expected.as_slice());gpu.request_pick([0.,0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());}
- gpu.select_objects(&scene,&[owner]).unwrap();let image=pixels(&gpu);assert_eq!(&crate::cap_gpu_tests::at(&image,160,90)[..3],&[255,255,0]);
- assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);assert_eq!(gpu.stats()[0],uploads);assert_eq!(source.alphas(),vec![1./255.;vertices]);
- scene.clear();gpu.set_scene(&scene,None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn current_palette_is_shared_by_surface_shader_and_preserves_original_picks_and_color(){
- use wgpu::naga;
- let rgba=crate::colour::selection();assert_eq!(rgba,session_rust::Color::yellow().to_unified_array());assert_eq!(rgba,[1.,1.,0.,1.]);
- let shader=crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0);assert!(shader.contains(&crate::colour::selection_shader()));naga::valid::Validator::new(naga::valid::ValidationFlags::all(),naga::valid::Capabilities::all()).validate(&naga::front::wgsl::parse_str(&shader).unwrap()).unwrap();
- let mut scene=Scene::empty();let prepared=PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap();let original=prepared.geometry.to_proto();let owner=scene.insert(prepared).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);let plain=pixels(&gpu);let uploads=gpu.stats()[0];
- gpu.select_objects(&scene,&[owner]).unwrap();let selected=pixels(&gpu);assert!(selected.chunks_exact(4).any(|p|p[0]>10&&p[0]==p[1]&&p[2]==0));assert_ne!(plain,selected);gpu.request_pick([0.,0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());
- gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),plain);assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);scene.clear();gpu.set_scene(&scene,None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn full_primitive_base_survives_surface_selection_and_reserved_range_checks(){
- assert!(include_str!("clip.wgsl").contains(&format!("const CAP_PRIMITIVE: u32 = 0x{:08x}u;",crate::primitive_image::CAP_START)));
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.4,-0.4,-0.4],[0.4,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let mut gpu=renderer(&scene);let original=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- for base in [0x8000_0000,crate::primitive_image::CAP_START-2]{
-  gpu.meshes[0].set_primitive_base(&gpu.queue,base).unwrap();pixels(&gpu);let plain=primitive_pixels(&gpu,&gpu.primitive.texture);assert_eq!(plain[120*320+160],base+1);
-  gpu.select_objects(&scene,&[owner]).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),plain);assert_eq!(u32::from_ne_bytes(gpu.meshes[0].packed()[64..68].try_into().unwrap()),1);
-  gpu.select_objects(&scene,&[]).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),plain);let before=gpu.meshes[0].packed();for invalid in [crate::primitive_image::CAP_START-1,crate::primitive_image::CAP_START,u32::MAX]{assert!(gpu.meshes[0].set_primitive_base(&gpu.queue,invalid).is_err());assert_eq!(gpu.meshes[0].packed(),before);}
- }
- assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);
-}
-
-#[test]
-fn actual_ordinary_surfaces_keep_one_own_row_slot_through_instances_highlights_and_release(){
- let mut scene=Scene::empty();crate::scene_document::import(&mut scene,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).unwrap();let mut gpu=renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let bytes=[crate::draw_slots::OWN_ROW,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>();assert!(gpu.instances.slots.allocated_bytes()>=8);assert_eq!(crate::growing_buffer_tests::read(&ctx,&gpu.instances.slots.buffer.buf,8),bytes);let originals=scene.objects().iter().map(|o|o.geometry().unwrap().to_proto()).collect::<Vec<_>>();let owner=scene.objects()[0].id;
- for opacity in [1.,0.5]{gpu.set_opacity(opacity);let plain=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();gpu.set_highlight(&scene,Some(crate::pick_sources::Target{owner,part:crate::pick_sources::Part::Face(key)})).unwrap();assert_ne!(pixels(&gpu),plain);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_highlight(&scene,None).unwrap();assert_eq!(pixels(&gpu),plain);}
- assert_eq!(scene.objects().iter().map(|o|o.geometry().unwrap().to_proto()).collect::<Vec<_>>(),originals);gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert_eq!(gpu.usage(),[0;4]);assert_eq!(gpu.instances.slots.allocated_bytes(),8);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);assert_eq!(crate::growing_buffer_tests::read(&ctx,&gpu.instances.slots.buffer.buf,8),bytes);
-}
-
-#[test]
-fn actual_surface_batches_share_one_slot_owner_and_restore_ordinary_drawing(){
- use prost::Message;let mut source=crate::instance_specimen::message();let mut second=source.definitions.as_ref().unwrap().meshes[0].clone();second.guid="other-definition".into();source.definitions.as_mut().unwrap().meshes.push(second);source.objects.as_mut().unwrap().instances[1].definition_guid="other-definition".into();source.objects.as_mut().unwrap().instances[0].xform=None;source.objects.as_mut().unwrap().instances[1].flags=0;source.xforms=vec![session_rust::proto::XformEntry {guid:"first".into(),xform:Some(session_rust::Xform::translation(-0.6,0.,0.).to_proto())},session_rust::proto::XformEntry {guid:"second".into(),xform:Some(session_rust::Xform::translation(0.6,0.,0.).to_proto())}];
- let mut scene=crate::scene::Scene::empty();crate::scene_document::import(&mut scene,&source.encode_to_vec(),"",&session_rust::Xform::identity(),0.).unwrap();let mut gpu=crate::cap_gpu_tests::renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);
- assert_eq!(&gpu.instance_usage()[..3],&[2,2,16760]);assert_eq!(gpu.instance_allocations(),[352,24,16384]);assert_eq!(gpu.instances.slots.instances(),2);let slots=crate::growing_buffer_tests::read(&ctx,&gpu.instances.slots.buffer.buf,24);assert_eq!(&slots[..8],&[u32::MAX,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>());assert_eq!(u32::from_ne_bytes(slots[8..12].try_into().unwrap()),0);assert_eq!(u32::from_ne_bytes(slots[16..20].try_into().unwrap()),1);
- let records=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),2*crate::object_record::BYTES as u64);
- let mut actual=records.chunks_exact(crate::object_record::BYTES).map(|r|r.to_vec()).collect::<Vec<_>>();actual.sort_unstable();let mut expected=gpu.meshes.iter().map(|m|m.packed().to_vec()).collect::<Vec<_>>();expected.sort_unstable();assert_eq!(actual,expected,"global records retain both original placements, IDs and ranges");
- let baseline=crate::cap_gpu_tests::pixels(&gpu);
- for half in 0..2 {let blue=baseline.chunks_exact(4).enumerate().filter(|(i,p)|(*i%320)/160==half&&p[2]>p[0].saturating_add(50)&&p[2]>p[1].saturating_add(30)).count();assert!(blue>100,"placed original blue triangles in half {half}: {blue}");}
- let uploads=gpu.stats()[0];let owner=scene.objects()[0].id;gpu.select_objects(&scene,&[owner]).unwrap();assert_ne!(crate::cap_gpu_tests::pixels(&gpu),baseline);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(crate::cap_gpu_tests::pixels(&gpu),baseline);assert_eq!(gpu.stats()[0],uploads);
- gpu.set_opacity(0.5);crate::cap_gpu_tests::pixels(&gpu);gpu.set_opacity(1.);assert_eq!(crate::cap_gpu_tests::pixels(&gpu),baseline);gpu.set_scene(&crate::scene::Scene::empty(),None);assert_eq!(&gpu.instance_usage()[..3],&[0,0,0]);assert_eq!(gpu.instances.slots.allocated_bytes(),8);
-}
-
-#[test]
-fn actual_projected_records_follow_physical_gaps_clear_old_ranges_and_bound_fallback(){
- let mut scene=Scene::empty();scene.insert(PreparedMesh::triangle([[-0.4,-0.4,0.],[0.4,-0.4,0.],[0.,0.4,0.]],[0.2,0.4,0.8]).unwrap()).unwrap();let mut gpu=renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);gpu.meshes[0].set_primitive_base(&gpu.queue,0).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);let baseline=pixels(&gpu);let triangles=gpu.meshes[0].geometry.index_count/3;assert_eq!(gpu.meshes.len(),1);let initial=crate::growing_buffer_tests::read(&ctx,&gpu.tile_buffers()[0],u64::from(triangles)*96);let uploads=gpu.stats()[0];
- gpu.meshes[0].set_primitive_base(&gpu.queue,7).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.tile_usage()[3],u64::from(triangles+7));let projected=gpu.tile_buffers()[0].clone();let data=crate::growing_buffer_tests::read(&ctx,&projected,u64::from(triangles+7)*96);assert!(data[..7*96].iter().all(|v|*v==0));assert_eq!(&data[7*96..],initial);let projections=gpu.tile_usage()[5];pixels(&gpu);assert_eq!(gpu.tile_usage()[5],projections);
- gpu.meshes[0].set_primitive_base(&gpu.queue,3).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.tile_usage()[3],u64::from(triangles+3));assert_eq!(gpu.tile_buffers()[0],projected);let data=crate::growing_buffer_tests::read(&ctx,&gpu.tile_buffers()[0],projected.size());assert!(data[..3*96].iter().all(|v|*v==0));assert_eq!(&data[3*96..(triangles as usize+3)*96],initial);assert!(data[(triangles as usize+3)*96..].iter().all(|v|*v==0));
- gpu.meshes[0].set_primitive_base(&gpu.queue,0).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.tile_usage()[3],u64::from(triangles));let current=gpu.tile_buffers()[0].clone();assert_eq!(current.size(),initial.len()as u64);assert_eq!(crate::growing_buffer_tests::read(&ctx,&current,current.size()),initial);assert_eq!(gpu.stats()[0],uploads);
- gpu.meshes[0].set_primitive_base(&gpu.queue,0x80000000).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);pixels(&gpu);assert!(gpu.tiles.borrow().fallback);assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);
- gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);
-}
-
-#[test]
-fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_growth_selection_and_release() {
- let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);
- assert_eq!(gpu.instances.ordinary.len(),1);assert_eq!(crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),crate::object_record::BYTES as u64),gpu.meshes[0].packed());let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);
- gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),1);
- let b=scene.insert(PreparedMesh::triangle([[-0.2,-0.2,-0.4],[0.2,-0.2,-0.4],[0.,0.2,-0.4]],[0.1,0.4,0.9]).unwrap()).unwrap();scene.translate(b,[0.6,0.,0.]).unwrap();gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),2);let wanted=gpu.meshes.iter().flat_map(|m|m.packed()).collect::<Vec<_>>();assert_eq!(crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),wanted.len()as u64),wanted);
- let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);gpu.select_objects(&scene,&[a]).unwrap();assert_ne!(pixels(&gpu),stored);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),stored);gpu.set_opacity(0.5);pixels(&gpu);gpu.set_opacity(1.);assert_eq!(pixels(&gpu),stored);
- for opacity in [0.,0.5,0.95,1.] {gpu.set_opacity(opacity);gpu.set_scene(&scene,None);let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored,"Exact ordinary blend at {opacity}");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);}
- let copy=scene.copy_row(b,false).unwrap();scene.translate(copy,[0.3,0.1,0.]).unwrap();let source=scene.objects().iter().find(|o|o.id==b).unwrap().geometry().unwrap().to_proto();gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),3);let uploads=gpu.stats()[0];
- for opacity in [0.,0.5,0.95] {gpu.set_opacity(opacity);gpu.set_scene(&scene,None);let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored,"Exact transparent placements at {opacity}");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);gpu.select_objects(&scene,&[copy]).unwrap();if opacity>0. {assert_ne!(pixels(&gpu),stored);}gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),stored);assert_eq!(gpu.stats()[0],uploads);}
- assert_eq!(scene.objects().iter().find(|o|o.id==b).unwrap().geometry().unwrap().to_proto(),source);gpu.set_opacity(1.);gpu.set_scene(&scene,None);pixels(&gpu);
- let location=|gpu:&super::Renderer,id:crate::scene::ObjectId|{let space=gpu.instances.space.as_ref().unwrap();let row=gpu.instances.ordinary[&id].1;space.draws().into_iter().flat_map(|draw|draw.slots).find(|slot|space.local_slot(*slot)[0]==row).unwrap()};let first_slot=location(&gpu,a);
- let retained=gpu.instances.ordinary.clone();assert!(scene.remove(b));gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary[&a].1,retained[&a].1);assert_eq!(gpu.instances.ordinary[&copy].1,retained[&copy].1);assert_eq!(location(&gpu,a),first_slot);
- let fresh=scene.insert(PreparedMesh::triangle([[0.7,-0.3,-0.4],[0.9,-0.3,-0.4],[0.8,-0.1,-0.4]],[0.1,0.4,0.9]).unwrap()).unwrap();gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary[&fresh].1,retained[&b].1);assert_eq!(gpu.instances.ordinary[&a].1,retained[&a].1);assert_eq!(gpu.instances.ordinary[&copy].1,retained[&copy].1);assert_eq!(location(&gpu,a),first_slot);
- for mesh in &gpu.meshes {let row=gpu.instances.ordinary[&mesh.id].1;let bytes=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),(row as u64+1)*crate::object_record::BYTES as u64);assert_eq!(&bytes[row as usize*crate::object_record::BYTES..],&mesh.packed());}pixels(&gpu);
- let projected=gpu.tiles.borrow().projected.clone();let expected=crate::growing_buffer_tests::read(&ctx,&projected,projected.size());let image=pixels(&gpu);gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),image);let uniform=gpu.tiles.borrow().projected.clone();assert_eq!(crate::growing_buffer_tests::read(&ctx,&uniform,uniform.size()),expected);gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),image);let restored=gpu.tiles.borrow().projected.clone();assert_eq!(crate::growing_buffer_tests::read(&ctx,&restored,restored.size()),expected);
- scene.clear();gpu.set_scene(&scene,None);assert!(gpu.instances.ordinary.is_empty());assert!(gpu.instances.space.is_none());assert_eq!(&gpu.instance_usage()[..3],&[0,0,0]);assert_eq!(gpu.instances.slots.allocated_bytes(),8);
-}
-
-#[test]
-fn actual_lookup_projection_groups_reuse_current_inputs_and_replace_output_bindings() {
- let mut scene=Scene::empty();scene.insert(PreparedMesh::triangle([[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]],[0.1,0.4,0.9]).unwrap()).unwrap();let mut gpu=renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let count=gpu.meshes[0].primitive_base()+1;assert_eq!(count,2);
- let mut state=crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),count).unwrap();assert_eq!(state.bytes(),16);assert_eq!(crate::growing_buffer_tests::read(&ctx,&state.parameters,16),[2u32,1,0,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>());
- let pipes=crate::tile_pipelines::Pipelines::new(&gpu.device,&gpu.pipeline.get_bind_group_layout(0));let output=|size|gpu.device.create_buffer(&wgpu::BufferDescriptor{label:Some("lookup projection output witness"),size,usage:wgpu::BufferUsages::STORAGE,mapped_at_creation:false});let first=output(192);let group=state.group(&gpu.device,&pipes.lookup_project_layout,&first);assert_eq!(state.group(&gpu.device,&pipes.lookup_project_layout,&first),group);let larger=output(384);let next=state.group(&gpu.device,&pipes.lookup_project_layout,&larger);assert_ne!(next,group);assert_eq!(state.group(&gpu.device,&pipes.lookup_project_layout,&larger),next);
- assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,None,count).is_none());assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),0).is_none());gpu.instances.ordinary.clear();assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),count).is_none());scene.clear();gpu.set_scene(&scene,None);assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),0).is_none());
-}
-
-#[test]
-fn actual_lookup_projection_matches_legacy_bytes_keeps_selection_cache_and_releases() {
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();let other=scene.insert(PreparedMesh::triangle([[0.1,0.1,-0.3],[0.3,0.1,-0.3],[0.2,0.3,-0.3]],[0.1,0.4,0.9]).unwrap()).unwrap();let copy=scene.copy_row(other,false).unwrap();scene.translate(copy,[0.4,0.,0.]).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(0.95);gpu.set_scene(&scene,None);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);
- let image=pixels(&gpu);assert!(gpu.tiles.borrow().lookup.is_some());let output=gpu.tiles.borrow().projected.clone();let wanted=crate::growing_buffer_tests::read(&ctx,&output,output.size());let uploads=gpu.stats()[0];gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert!(gpu.tiles.borrow().lookup.is_none());assert_eq!(pixels(&gpu),image);let output=gpu.tiles.borrow().projected.clone();assert_eq!(crate::growing_buffer_tests::read(&ctx,&output,output.size()),wanted);
- gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),image);assert!(gpu.tiles.borrow().lookup.is_some());let projections=gpu.tile_usage()[5];gpu.select_objects(&scene,&[owner]).unwrap();assert_ne!(pixels(&gpu),image);assert_eq!(gpu.tile_usage()[5],projections);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),image);assert_eq!(gpu.tile_usage()[5],projections);assert_eq!(gpu.stats()[0],uploads);
- scene.clear();gpu.set_scene(&scene,None);pixels(&gpu);assert!(gpu.tiles.borrow().lookup.is_none());assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);
-}
-
-#[test]
-fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_owners(){
- let left=[[-0.8,-0.4,-0.4],[-0.4,-0.4,-0.4],[-0.6,0.4,-0.4]];let right=[[0.4,-0.4,-0.4],[0.8,-0.4,-0.4],[0.6,0.4,-0.4]];let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle(left,[0.9,0.1,0.1]).unwrap()).unwrap();let b=scene.insert(PreparedMesh::triangle(right,[0.1,0.8,0.2]).unwrap()).unwrap();let source=Rc::clone(&scene.objects()[0].mesh);let precise=scene.objects()[0].geometry().unwrap().to_proto();let mut history=crate::history::History::default();let mut gpu=renderer(&scene);gpu.set_opacity(1.);let first=pixels(&gpu);let expired=Rc::downgrade(&gpu.meshes[0].geometry);let survivor=gpu.meshes[1].geometry.index_start;assert_eq!((gpu.geometry.uploads,gpu.geometry.uploaded_bytes),(2,144));
- history.edit(&mut scene,|scene|{assert!(scene.remove(a));});gpu.set_scene(&scene,None);assert!(expired.upgrade().is_none());assert!(history.scenes().any(|saved|saved.contains(a)));assert!(Rc::strong_count(&source)>0);let mut c=None;history.edit(&mut scene,|scene|{c=Some(scene.insert(PreparedMesh::triangle(left,[0.1,0.3,0.9]).unwrap()).unwrap());});let c=c.unwrap();gpu.set_scene(&scene,None);let reused=gpu.meshes.iter().find(|mesh|mesh.id==c).unwrap();assert_eq!(reused.geometry.index_start,0);assert_eq!(gpu.meshes.iter().find(|mesh|mesh.id==b).unwrap().geometry.index_start,survivor);assert_eq!((gpu.geometry.uploads,gpu.geometry.uploaded_bytes),(3,216));let next=pixels(&gpu);let l=(120*320+64)*4;let r=(120*320+256)*4;assert!(next[l+2]>next[l].saturating_add(50));assert_eq!(&next[r..r+4],&first[r..r+4]);for(point,id)in[([-0.6,0.],c),([0.6,0.],b)]{gpu.request_pick(point,matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],id.value());}
- assert!(history.undo(&mut scene));gpu.set_scene(&scene,None);assert!(history.undo(&mut scene));gpu.set_scene(&scene,None);assert!(Rc::ptr_eq(&source,&scene.objects().iter().find(|row|row.id==a).unwrap().mesh));assert_eq!(scene.objects().iter().find(|row|row.id==a).unwrap().geometry().unwrap().to_proto(),precise);assert_eq!(pixels(&gpu),first);assert_eq!((gpu.geometry.uploads,gpu.geometry.uploaded_bytes),(4,288));scene.clear();gpu.set_scene(&scene,None);pixels(&gpu);assert_eq!(gpu.geometry.entries(),0);assert_eq!(gpu.geometry.allocated_bytes(),0);assert_eq!(gpu.usage(),[0;4]);assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);assert!(history.scenes().count()>0);
-}
-
-#[test]
-fn actual_precise_object_rebase_matches_local_pixels_records_selection_and_owners(){
- let mut local=Scene::empty();let owner=local.insert(PreparedMesh::triangle([[-0.2,-0.3,-0.4],[0.2,-0.3,-0.4],[0.,0.3,-0.4]],[0.1,0.3,0.9]).unwrap()).unwrap();local.translate(owner,[0.125,-0.25,0.]).unwrap();let mut gpu=renderer(&local);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(baseline.chunks_exact(4).filter(|p|p[2]>p[0].saturating_add(50)).count()>100);let source=local.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e12,-1e12,1e12];let mut far=local.clone();far.translate(owner,anchor).unwrap();gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[1,12]);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.stats()[0],uploads);
- let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let bytes=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),crate::object_record::BYTES as u64);assert_eq!(&bytes[48..60],&[0.125f32,-0.25,0.].into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());assert_eq!(&bytes[..crate::object_record::BYTES],&gpu.meshes[0].packed());
- gpu.select_objects(&far,&[owner]).unwrap();assert_ne!(pixels(&gpu),baseline);gpu.request_pick([0.125,-0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());gpu.select_objects(&far,&[]).unwrap();assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
- far.translate(owner,[0.001,0.,0.]).unwrap();gpu.set_scene(&far,None);let expected=crate::render_space::relative(far.objects()[0].model.m[12..15].try_into().unwrap(),anchor);assert_eq!(&gpu.meshes[0].packed()[48..60],&expected.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());assert!(expected[0]>0.125);assert_eq!(gpu.stats()[0],uploads);
-}
-
-#[test]
-fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_ground(){
- let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.5,0.5,0.5)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,-0.5);let owner=scene.insert(prepared).unwrap();let plane=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],1.).unwrap();let plane_id=crate::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(crate::cap_gpu_tests::at(&baseline,160,120)[..3].iter().all(|v|(150..=156).contains(v)));let ground=gpu.ambient_rows.ground_at([0.;3]);let source=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [owner,plane_id]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();assert!(gpu.space.update(anchor,1.,0.).unwrap().moved);for mesh in &mut gpu.meshes {mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(gpu.anchor(),anchor);assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);assert_eq!(gpu.ambient_rows.ground[0]-anchor[2],-0.75);let frame=gpu.text_frame(matrix());assert_eq!(frame.origin,anchor);assert!(!frame.cut([anchor[0],anchor[1],anchor[2]-0.75]));assert!(frame.cut([anchor[0],anchor[1],anchor[2]-0.25]));assert_eq!(pixels(&gpu),baseline);let writes=gpu.clipping.borrow().writes;assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.clipping.borrow().writes,writes);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
-}
-
-#[test]
-fn actual_cloud_and_sheet_origins_reuse_uploads_and_invalidate_equal_matrix_views(){
- let mut scene=Scene::empty();let mut source=session_rust::PointCloud::from_coords(vec![-0.5,0.,-0.5],vec![255,0,0,255],vec![]);source.point_size=16.;let source=Rc::new(source);let cloud=scene.insert_cloud(crate::cloud::Prepared::new(source.clone()).unwrap()).unwrap();let sheet=Rc::new(session_rust::proto::Sheet{guid:crate::sheet_example::source().guid,coords:vec![0.25,0.,-0.5,0.75,0.,-0.5],widths:vec![0.0625],colors:vec![0xff00_0000],segment_count:1,entity_count:1,source_ids:vec![0],..Default::default()});let drawing=scene.insert_sheet(Rc::new(crate::sheet_source::Prepared::new(sheet.clone()).unwrap())).unwrap();let original=source.to_proto();let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.distance=2.;camera.aspect=4./3.;camera.projection=crate::camera::Projection::Orthographic;gpu.cloud_camera(&camera);let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(baseline.chunks_exact(4).any(|p|p[0]>200&&p[1]<20&&p[2]<20));assert!(baseline.chunks_exact(4).filter(|p|p[..3].iter().all(|v|*v<20)).count()>20);let uploads=(gpu.cloud_usage()[2],gpu.sheet_usage()[3]);assert_eq!(uploads,(1,1));
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [cloud,drawing]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);assert!(gpu.space.update(anchor,2.,0.).unwrap().moved);let mut far_camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut far_camera,[0.;3]);far_camera.distance=camera.distance;far_camera.aspect=camera.aspect;far_camera.projection=camera.projection;far_camera.target=anchor;controlled_translation_plane(&mut far_camera,anchor);gpu.cloud_camera(&far_camera);gpu.sheets.set_anchored(&gpu.device,&gpu.queue,&far,&[],&gpu.sources.sheet_bases,anchor).unwrap();let local=far_camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!((gpu.cloud_usage()[2],gpu.sheet_usage()[3]),uploads);let prepared=gpu.cloud_usage()[3];assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.cloud_usage()[3],prepared);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];far_camera.target=moved;assert!(gpu.space.update(moved,2.,300.).unwrap().moved);gpu.cloud_camera(&far_camera);gpu.sheets.set_anchored(&gpu.device,&gpu.queue,&far,&[],&gpu.sources.sheet_bases,moved).unwrap();let same_matrix=far_camera.view_projection_anchored(moved).to_f32();assert_eq!(same_matrix,local);let panned=crate::cap_gpu_tests::pixels_at(&gpu,same_matrix);assert!(panned.chunks_exact(4).all(|p|p==&[255;4]));assert!(gpu.cloud_usage()[3]>prepared,"Origin alone invalidates the equal-matrix cloud view");assert_eq!((gpu.cloud_usage()[2],gpu.sheet_usage()[3]),uploads);
- far_camera.target=anchor;controlled_translation_plane(&mut far_camera,anchor);assert!(gpu.space.update(anchor,2.,600.).unwrap().moved);gpu.cloud_camera(&far_camera);gpu.sheets.set_anchored(&gpu.device,&gpu.queue,&far,&[],&gpu.sources.sheet_bases,anchor).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);for(point,id)in[([-0.5,0.,-0.5],cloud),([0.5,0.,-0.5],drawing)]{let point=camera.view_projection().transform_point(&session_rust::Point::new(point[0],point[1],point[2]));gpu.request_pick([point[0]as f32,point[1]as f32],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],id.value());}assert_eq!(source.to_proto(),original);assert!(Rc::ptr_eq(&far.sheets()[0].prepared.original,&sheet));assert_eq!((gpu.cloud_usage()[2],gpu.sheet_usage()[3]),uploads);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.cloud_usage(),[0;5]);assert_eq!(&gpu.sheet_usage()[..2],&[0,0]);
-}
-
-fn temporary_inputs(gpu:&mut super::Renderer,world:[f64;3]){
- let point=|p:[f64;3]|std::array::from_fn(|i|p[i]+world[i]);let mut guides=crate::guide_gpu::Overlay::at(gpu.anchor());guides.wire(&[point([-0.75,0.25,-0.5]),point([0.75,0.25,-0.5])],[210./255.,40./255.,40./255.,1.],true);guides.mark(point([0.5,0.25,-0.5]),6.,[0.,0.,1.,1.]);guides.label=Some((point([0.5,0.25,-0.5]),"guide".into()));gpu.set_guides(&guides).unwrap();let mark=crate::measure_mark::Mark{points:vec![point([-0.5,-0.25,-0.5]),point([0.5,-0.25,-0.5])],label:"distance".into()};gpu.set_measurement(Some(&mark)).unwrap();let mut draft=crate::tool::Draft::new(crate::tool::Shape::Line);draft.submit(point([0.,0.,-0.5])).unwrap();draft.hover(Some(point([0.5,0.,-0.5]))).unwrap();gpu.set_preview(Some(&draft)).unwrap();
-}
-#[test]
-fn actual_temporary_ink_origins_restore_pixels_invalidate_caches_and_release(){
- let scene=Scene::empty();let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();temporary_inputs(&mut gpu,[0.;3]);let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(baseline.chunks_exact(4).any(|p|p[0]>200&&p[1]>200&&p[2]<30));assert!(baseline.chunks_exact(4).any(|p|p[0]>150&&p[1]<80&&p[2]<80));assert!(baseline.chunks_exact(4).filter(|p|p[..3]!=[255;3]).count()>200);let bytes=(gpu.guide_bytes(),gpu.preview_bytes(),gpu.measurement.bytes());assert!(bytes.0>0&&bytes.1>0&&bytes.2>0);assert_eq!(gpu.text_error(),None);
- let anchor=[1e9,-1e9,1e9];assert!(gpu.space.update(anchor,2.,0.).unwrap().moved);camera.target=anchor;controlled_translation_plane(&mut camera,anchor);temporary_inputs(&mut gpu,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!((gpu.guide_bytes(),gpu.preview_bytes(),gpu.measurement.bytes()),bytes);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];camera.target=moved;assert!(gpu.space.update(moved,2.,300.).unwrap().moved);temporary_inputs(&mut gpu,anchor);assert_eq!(camera.view_projection_anchored(moved).to_f32(),local);assert!(crate::cap_gpu_tests::pixels_at(&gpu,local).chunks_exact(4).all(|p|p==&[255;4]));camera.target=anchor;controlled_translation_plane(&mut camera,anchor);assert!(gpu.space.update(anchor,2.,600.).unwrap().moved);temporary_inputs(&mut gpu,anchor);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert!(scene.all_ids().is_empty());gpu.request_pick([0.,0.],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap(),None);
- gpu.set_preview(None).unwrap();gpu.set_measurement(None).unwrap();gpu.set_guides(&crate::guide_gpu::Overlay::at(anchor)).unwrap();crate::cap_gpu_tests::pixels_at(&gpu,local);assert_eq!(gpu.preview_bytes(),0);assert_eq!(gpu.guide_bytes(),0);assert_eq!(gpu.measurement.bytes(),0);assert_eq!(gpu.text_usage()[0],0);
-}
-
-#[test]
-fn actual_source_grid_origin_cache_keeps_surface_pixels_owners_and_release(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let settings=Some(crate::grid::Settings{spacing:0.1,half_cells:5});let plane=|origin|crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]};gpu.set_grid_on(settings,plane([0.,0.,-0.75])).unwrap();let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let uploads=gpu.stats()[0];let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();far.translate(owner,anchor).unwrap();gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.space.update(anchor,2.,0.).unwrap();for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let far_plane=plane([anchor[0],anchor[1],anchor[2]-0.75]);gpu.set_grid_on(settings,far_plane).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);let grid_uploads=gpu.grid_usage()[2];gpu.set_grid_on(settings,far_plane).unwrap();assert_eq!(gpu.grid_usage()[2],grid_uploads);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];gpu.space.update(moved,2.,300.).unwrap();camera.target=moved;for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,moved);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_grid_on(settings,far_plane).unwrap();assert!(gpu.grid_usage()[2]>grid_uploads);assert_eq!(camera.view_projection_anchored(moved).to_f32(),local);assert!(crate::cap_gpu_tests::pixels_at(&gpu,local).chunks_exact(4).all(|p|p==&[255;4]));gpu.space.update(anchor,2.,600.).unwrap();for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_grid_on(settings,far_plane).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);gpu.request_pick([0.,0.],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],owner.value());assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_grid(None).unwrap();gpu.set_scene(&Scene::empty(),None);assert_eq!(&gpu.grid_usage()[..2],&[0,0]);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_initial_object_records_keep_precise_local_pixels_updates_and_sources(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.2,-0.25,-0.5],[0.3,-0.25,-0.5],[0.1,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let layout=gpu.pipeline.get_bind_group_layout(1);gpu.meshes[0]=crate::gpu_mesh::GpuMesh::upload(&gpu.device,&layout,&scene.objects()[0],false);gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let original=gpu.meshes[0].packed();let uploads=gpu.stats()[0];let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();far.translate(owner,anchor).unwrap();let layout=gpu.pipeline.get_bind_group_layout(1);gpu.meshes[0]=crate::gpu_mesh::GpuMesh::upload_at(&gpu.device,&layout,&far.objects()[0],false,anchor);assert_eq!(gpu.meshes[0].packed(),original);let geometry=gpu.meshes[0].geometry.clone();let style=crate::gpu_mesh::Style{selected:false,pickable:true,colour:None};gpu.meshes[0]=crate::gpu_mesh::GpuMesh::with_geometry_at(&gpu.device,&layout,&far.objects()[0],style,geometry.clone(),anchor);assert_eq!(gpu.meshes[0].packed(),original);assert!(Rc::ptr_eq(&gpu.meshes[0].geometry,&geometry));gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.meshes[0].update(&gpu.queue,&far.objects()[0],style),[0,0]);let selected=crate::gpu_mesh::Style{selected:true,..style};assert_eq!(gpu.meshes[0].update(&gpu.queue,&far.objects()[0],selected),[1,16]);assert_eq!(&gpu.meshes[0].packed()[..64],&original[..64]);assert_eq!(gpu.meshes[0].update(&gpu.queue,&far.objects()[0],style),[1,16]);assert_eq!(gpu.meshes[0].packed(),original);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);assert_eq!(gpu.stats()[0],uploads);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_rebasing(){
- use crate::pick_sources::{Part,Target};let mut scene=Scene::empty();let mesh=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let line=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(-0.4,0.5,-0.5,0.4,0.5,-0.5))).unwrap()).unwrap();let path=scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(session_rust::Polyline::new(vec![session_rust::Point::new(-0.4,-0.5,-0.5),session_rust::Point::new(0.,-0.3,-0.5),session_rust::Point::new(0.4,-0.5,-0.5)]))).unwrap()).unwrap();let point=scene.insert_point(crate::marker::PreparedPoint::new(Rc::new(session_rust::Point::new(0.75,0.,-0.5))).unwrap()).unwrap();let mut proto=session_rust::PointCloud::from_coords(vec![-0.75,0.,-0.5],vec![],vec![]).to_proto();proto.point_ids=vec![u32::MAX];let cloud=scene.insert_cloud(crate::cloud::Prepared::new(Rc::new(session_rust::PointCloud::from_proto(proto))).unwrap()).unwrap();scene.owner_controls(path).unwrap();scene.cloud_controls(Some(cloud));let curve=scene.insert_path(crate::chain::PreparedChain::curve(Rc::new(crate::freeform_curve::curve(&[session_rust::Point::new(-0.4,0.8,-0.5),session_rust::Point::new(0.,0.65,-0.5),session_rust::Point::new(0.4,0.8,-0.5)]))).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();let edge=scene.objects()[0].mesh.parts.edges[0];let control=scene.control_markers().into_iter().find(|c|c.parent==path).unwrap().part;let targets=[Target{owner:mesh,part:Part::Face(key)},Target{owner:mesh,part:Part::MeshEdge(edge.0,edge.1)},Target{owner:line,part:Part::Curve},Target{owner:curve,part:Part::Curve},Target{owner:path,part:Part::PathEdge(0)},Target{owner:path,part:control},Target{owner:cloud,part:Part::CloudPoint(u32::MAX)}];let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=3.;camera.aspect=4./3.;gpu.cloud_camera(&camera);let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let uploads=gpu.stats()[0];let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);let mut pixels=Vec::new();for target in targets{assert!(target.valid(&scene));gpu.set_highlight(&scene,Some(target)).unwrap();let selected=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(selected!=baseline,"A valid original highlight must change actual pixels: {target:?}");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);pixels.push(selected);}gpu.set_highlight(&scene,None).unwrap();gpu.select_objects(&scene,&[line,path,point]).unwrap();let objects=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert_ne!(objects,baseline);gpu.select_objects(&scene,&[]).unwrap();gpu.set_highlight(&scene,None).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,transform),baseline);
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [mesh,line,path,point,cloud,curve]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.space.update(anchor,3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_source_ink(&far);gpu.set_clouds(&far,&[]).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);gpu.cloud_camera(&camera);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);
- gpu.mesh_ink.set(&gpu.device,crate::pick_sources::Sources::anchored(&far,anchor).unwrap().mesh_ink).unwrap();for(target,expected)in targets.into_iter().zip(pixels){assert!(target.valid(&far));gpu.set_highlight(&far,Some(target)).unwrap();let actual=crate::cap_gpu_tests::pixels_at(&gpu,local);assert!(actual==expected,"Distant original highlight pixels must match exactly: {target:?}; differing bytes: {}",actual.iter().zip(&expected).filter(|(a,b)|a!=b).count());assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);}gpu.set_highlight(&far,None).unwrap();gpu.select_objects(&far,&[line,path,point]).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),objects);gpu.select_objects(&far,&[]).unwrap();gpu.set_highlight(&far,None).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_distant_widgets_keep_local_pixels_scale_picks_and_tile_release(){
- let scene=Scene::empty();let anchor=[1e12,-1e12,1e12];let pivot=[0.125,0.25,-0.5];let mut renderer=renderer(&scene);for projection in [crate::camera::Projection::Perspective,crate::camera::Projection::Orthographic]{for density in [1u32,2]{let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.isometric();camera.projection=projection;camera.aspect=4./3.;let size=[320*density,240*density];renderer.resize(crate::viewport::Viewport{width:size[0],height:size[1]});renderer.set_density(density as f32);renderer.space.forget();let scale=crate::widget_layout::camera_scale(&camera,pivot,240.).unwrap();renderer.set_gizmo(&camera,Some(pivot),-1.);let usage=renderer.gizmo_usage();let extent=renderer.gizmo_extent();let transform=camera.uniform();let baseline=crate::widget_tests::pixels(&mut renderer,&transform,size);assert!(baseline.chunks_exact(4).any(|p|p[..3]!=[255;3]));renderer.space.update(anchor,3.,0.).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let distant=std::array::from_fn(|i|anchor[i]+pivot[i]);assert_eq!(crate::widget_layout::camera_scale(&camera,distant,240.).unwrap(),scale);renderer.set_gizmo(&camera,Some(distant),-1.);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);let actual=crate::widget_tests::pixels(&mut renderer,&local,size);assert!(actual==baseline,"Precise distant widget pixels differ at density {density}");assert_eq!(renderer.gizmo_extent(),extent);assert_eq!(renderer.gizmo_usage()[2],usage[2]);renderer.request_pick([0.,0.],local).unwrap();crate::cap_gpu_tests::wait(&renderer);assert!(renderer.take_pick(local).unwrap().unwrap().is_none());renderer.set_gizmo(&camera,None,-1.);assert_eq!(renderer.gizmo_usage()[1],0);assert!(renderer.gizmo_extent().is_none());}}
-}
-
-#[test]
-fn actual_origin_only_pick_views_discard_old_hits_and_restore_owners(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.4,-0.4,-0.5],[0.4,-0.4,-0.5],[0.,0.4,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);let transform=matrix();let uploads=gpu.stats()[0];gpu.request_pick([0.,0.],transform).unwrap();wait(&gpu);gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,gpu.space.anchor());}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert!(gpu.take_pick(transform).is_none(),"Identical matrix in a new origin must not accept the old owner");assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert!(gpu.take_pick(transform).unwrap().unwrap().is_none(),"The automatic current-frame retry is empty");gpu.request_pick([0.,0.],transform).unwrap();wait(&gpu);assert!(gpu.take_pick(transform).unwrap().unwrap().is_none());gpu.space.update([0.;3],3.,300.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[0.;3]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.request_pick([0.,0.],transform).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(transform).unwrap().unwrap().unwrap()[0],owner.value());assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_rebased_pick_finishes_a_released_drag_without_reuploading_sources(){
- use crate::editor::{Editor,Action,Change};let mut editor=crate::camera_defaults_tests::editor_fixture();editor.scene.clear();let owner=editor.scene.insert(PreparedMesh::triangle([[-0.4,-0.4,-0.5],[0.4,-0.4,-0.5],[0.,0.4,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();editor.scene.translate(owner,[2000.,0.,0.]).unwrap();editor.camera.target=[2000.,0.,0.];let original=editor.scene.placement(owner).unwrap().m;let source=editor.scene.objects()[0].geometry().unwrap().clone();let mut gpu=renderer(&editor.scene);let uploads=gpu.stats()[0];let transform=editor.camera.uniform();let size=[320.,240.];editor.apply(Action::CanvasStart{from:[0.,0.],to:[0.2,0.],size,modified:false,pointer:1}).unwrap();gpu.request_pick([0.,0.],transform).unwrap();editor.apply(Action::CanvasRelease{screen:[0.4,0.],size,add:false,remove:false}).unwrap();assert_eq!(editor.scene.placement(owner).unwrap().m,original);gpu.space.update(editor.camera.target,editor.camera.distance,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,editor.camera.target);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let local=editor.camera.view_projection_anchored(gpu.anchor()).to_f32();assert_ne!(local,transform);wait(&gpu);assert!(gpu.take_pick(local).is_none());assert_eq!(&gpu.pick_usage()[..2],&[1,0]);assert_eq!(editor.scene.placement(owner).unwrap().m,original);wait(&gpu);let hit=gpu.take_pick(local).unwrap().unwrap().and_then(|pixel|gpu.resolve_pick(&editor.scene,pixel));assert_eq!(hit.unwrap().owner,owner);assert_eq!(editor.apply(Action::CanvasHit(hit.map(|target|target.owner))).unwrap(),Change::Scene);assert_ne!(editor.scene.placement(owner).unwrap().m,original);assert!(Rc::ptr_eq(&source,editor.scene.objects()[0].geometry().unwrap()));gpu.set_scene(&editor.scene,editor.selected);assert_eq!(gpu.stats()[0],uploads);editor.apply(Action::Undo).unwrap();assert_eq!(editor.scene.placement(owner).unwrap().m,original);
-}
-#[test]
-fn actual_rebased_pending_cursor_stays_newest_and_cancellation_never_revives_it(){
- let mut scene=Scene::empty();let make=||PreparedMesh::triangle([[-0.18,-0.18,-0.5],[0.18,-0.18,-0.5],[0.,0.18,-0.5]],[0.2,0.4,0.8]).unwrap();let a=scene.insert(make()).unwrap();let b=scene.insert(make()).unwrap();scene.translate(a,[1999.5,0.,0.]).unwrap();scene.translate(b,[2000.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);let mut old=matrix();old[12]=-2000.;let local=matrix();gpu.request_pick([-0.5,0.],old).unwrap();gpu.request_pick([0.5,0.],old).unwrap();assert_eq!(&gpu.pick_usage()[..2],&[1,1]);gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[2000.,0.,0.]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));wait(&gpu);assert!(gpu.take_pick(local).is_none());assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],b.value());assert_eq!(gpu.pick_usage()[3],2);assert!(gpu.take_pick(local).is_none());gpu.request_pick([-0.5,0.],local).unwrap();gpu.cancel_pick();gpu.space.update([0.;3],3.,300.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[0.;3]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));wait(&gpu);assert!(gpu.take_pick(old).is_none());assert_eq!(&gpu.pick_usage()[..2],&[0,0]);gpu.request_pick([-0.5,0.],old).unwrap();gpu.set_scene(&Scene::empty(),None);gpu.space.update([2000.,0.,0.],3.,600.).unwrap();wait(&gpu);assert!(gpu.take_pick(local).is_none());assert_eq!(&gpu.pick_usage()[..2],&[0,0]);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_origin_refresh_reuses_selected_face_geometry_and_original_ink(){
- use crate::pick_sources::{Part,Target};let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();scene.translate(owner,[2000.,0.,0.]).unwrap();let original=scene.objects()[0].geometry().unwrap().to_proto();let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();let target=Some(Target{owner,part:Part::Face(key)});let mut gpu=renderer(&scene);let mut old=matrix();old[12]=-2000.;gpu.set_highlight(&scene,target).unwrap();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,old);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);let geometry=gpu.highlight.geometry_for_test().unwrap().clone();let uploads=gpu.stats()[0];gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[2000.,0.,0.]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_source_ink(&scene);assert!(gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));assert!(Rc::ptr_eq(gpu.highlight.geometry_for_test().unwrap(),&geometry));let actual=crate::cap_gpu_tests::pixels_at(&gpu,matrix());assert!(actual==baseline,"Rebased original face and ink pixels must match exactly");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);assert!(gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));assert!(Rc::ptr_eq(gpu.highlight.geometry_for_test().unwrap(),&geometry));assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);drop(geometry);gpu.set_highlight(&scene,None).unwrap();assert!(gpu.highlight.geometry_for_test().is_none());assert!(!gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent(){
- let mut scene=Scene::empty();let mesh=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let line=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(-0.5,0.5,-0.5,0.5,0.5,-0.5))).unwrap()).unwrap();let path=scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(session_rust::Polyline::new(vec![session_rust::Point::new(-0.5,-0.5,-0.5),session_rust::Point::new(0.,-0.25,-0.5),session_rust::Point::new(0.5,-0.5,-0.5)]))).unwrap()).unwrap();let point=scene.insert_point(crate::marker::PreparedPoint::new(Rc::new(session_rust::Point::new(0.75,0.,-0.5))).unwrap()).unwrap();let cloud=scene.insert_cloud(crate::cloud::Prepared::new(Rc::new(session_rust::PointCloud::from_coords(vec![-0.75,0.,-0.5],vec![255,0,0,255],vec![]))).unwrap()).unwrap();let sheet=Rc::new(session_rust::proto::Sheet{guid:crate::sheet_example::source().guid,coords:vec![0.25,0.25,-0.5,0.75,0.25,-0.5],widths:vec![0.0625],colors:vec![0xff00_0000],segment_count:1,entity_count:1,source_ids:vec![0],..Default::default()});let drawing=scene.insert_sheet(Rc::new(crate::sheet_source::Prepared::new(sheet.clone()).unwrap())).unwrap();let text_source=Rc::new(crate::scene_label::example(crate::text::TextPlacement::Anchor{world:[-0.5,0.75,-0.5],offset:[0.;2]}));let text=scene.insert_text(crate::scene_label::Prepared::new(text_source.clone()).unwrap()).unwrap();let ids=[line,path,point,cloud,drawing,text];let original=scene.objects()[0].geometry().unwrap().to_proto();let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=3.;camera.aspect=4./3.;let mut gpu=renderer(&scene);gpu.select_objects(&scene,&ids).unwrap();let settings=Some(crate::grid::Settings{spacing:0.125,half_cells:4});let plane=|origin|crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]};gpu.set_grid_on(settings,plane([0.,0.,-0.75])).unwrap();assert!(!gpu.prepare_origin(&camera,&scene,None,&ids,0.).unwrap().moved);let transform=gpu.camera_matrix(&camera);let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(baseline.chunks_exact(4).any(|p|p[..3]!=[255;3]));let ground=gpu.ambient_rows.ground_at([0.;3]);let uploads=gpu.stats()[0];let anchor=[2000.,-2000.,2000.];let mut far=scene.clone();for id in [mesh,line,path,point,cloud,drawing,text]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);camera.target=anchor;controlled_translation_plane(&mut camera,anchor);gpu.set_grid_on(settings,plane([anchor[0],anchor[1],anchor[2]-0.75])).unwrap();let frame=gpu.prepare_origin(&camera,&far,None,&ids,300.).unwrap();assert!(frame.moved&&!frame.pending);assert_eq!(gpu.camera_matrix(&camera),transform);let actual=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(actual==baseline,"Shared original lanes must retain exact local/distant pixels");assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);let writes=gpu.stats();assert!(!gpu.prepare_origin(&camera,&far,None,&ids,301.).unwrap().moved);assert_eq!(gpu.stats(),writes);gpu.request_pick([0.,0.],transform).unwrap();camera.target[0]+=2000.;let pending=gpu.prepare_origin(&camera,&far,None,&ids,350.).unwrap();assert!(!pending.moved&&pending.pending);assert_eq!(gpu.rebase_delay(350.),Some(151));assert_eq!(&gpu.pick_usage()[..2],&[1,0]);let moved=gpu.prepare_origin(&camera,&far,None,&ids,501.).unwrap();assert!(moved.moved&&!moved.pending);assert_eq!(gpu.camera_matrix(&camera),transform);assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert!(gpu.take_pick(transform).is_none());assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert!(gpu.take_pick(transform).unwrap().unwrap().is_none());camera.target=anchor;controlled_translation_plane(&mut camera,anchor);assert!(gpu.prepare_origin(&camera,&far,None,&ids,802.).unwrap().moved);let restored=crate::cap_gpu_tests::pixels_at(&gpu,gpu.camera_matrix(&camera));assert!(restored==baseline,"Restored shared origin must restore exact pixels");assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),original);assert!(Rc::ptr_eq(&far.texts()[0].prepared.source,&text_source));assert!(Rc::ptr_eq(&far.sheets()[0].prepared.original,&sheet));gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-fn controlled_translation_plane(camera:&mut crate::camera::Camera,origin:[f64;3]){camera.grid_plane=Some(crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]});camera.radius=20000.;}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-owner-5.rs"
 ```
-
-</details>
 
 ### 8. `src/contact_depth.wgsl`
 
@@ -4146,31 +2961,11 @@ Create the file and type:
 
 Expand the shared helper only in shaders which explicitly include it.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn source(base:&str,group:u32,binding:u32)->String{format!("{}\n{}\n{}\n@group({group}) @binding({binding}) var<uniform> clipping:ClipUniform;\n{}\n{base}",crate::colour::selection_shader(),crate::draw_slots::sentinel_shader(),crate::object_record::shader(),concat!(include_str!("packed_vertex.wgsl"),"\n",include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 pub fn source(base:&str,group:u32,binding:u32)->String{let base=base.replace(r#"#include "contact_depth.wgsl""#,include_str!("contact_depth.wgsl"));format!("{}\n{}\n{}\n@group({group}) @binding({binding}) var<uniform> clipping:ClipUniform;\n{}\n{base}",crate::colour::selection_shader(),crate::draw_slots::sentinel_shader(),crate::object_record::shader(),concat!(include_str!("packed_vertex.wgsl"),"\n",include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-10.rs"
-```
-
-</details>
 
 ### 10. `src/triangle.wgsl`
 
@@ -4178,8 +2973,7 @@ Share contact placement between ordinary, pulled and integer surface entries. Us
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     output.world = world.xyz;
@@ -4188,8 +2982,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     return output;
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4202,8 +2994,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     @location(5) @interpolate(flat) primitive:u32,
@@ -4213,8 +3004,6 @@ const CONTACT_FLAG:u32=65536u;
 fn geometry(position: vec3<f32>, colour: vec4<f32>, normal: vec3<f32>, object: ObjectSettings) -> VertexOutput {
     var output: VertexOutput;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4228,8 +3017,7 @@ fn geometry(position: vec3<f32>, colour: vec4<f32>, normal: vec3<f32>, object: O
     var output: VertexOutput;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, viewport:vec4<f32>, display: vec4<f32>, eye:vec4<f32>, }
@@ -4321,35 +3109,9 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @location(0) row:u32,@location
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-12.rs"
-```
-
-</details>
-
 ### 11. `src/face_pick.wgsl`
 
 Supply the actual normal to the same source-face vertex function.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
- let placed=geometry(packed_position(vertex),unpack4x8unorm(vertex.color),vec3<f32>(0.),object);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4357,33 +3119,19 @@ Edit the existing block to match this code; keep unchanged lines:
  let placed=geometry(packed_position(vertex),unpack4x8unorm(vertex.color),oct32_decode(vertex.normal),object);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-13.rs"
-```
-
-</details>
-
 ### 12. `src/feature_display.rs`
 
 Keep contact display preparation in its existing feature module. Use the original kernel types already owned by feature preparation. Prepare one contact mesh, retaining its full normal, display marker and existing polygon Parts.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Rc::make_mut(&mut scene.view).current = current;
     crate::layer_edit::attach_features(scene, id, prepared?)
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4406,8 +3154,7 @@ pub(crate) fn contact_fill(outline:&Polyline)->Result<Option<PreparedMesh>,&'sta
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{scene::{Scene, ObjectId}, layer_edit::FeatureTree};
@@ -4416,8 +3163,6 @@ use std::rc::Rc;
 
 pub fn append(scene: &mut Scene, id: ObjectId, session: &Session, element: &Element) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4431,8 +3176,7 @@ use std::rc::Rc;
 pub fn append(scene: &mut Scene, id: ObjectId, session: &Session, element: &Element) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{Scene, ObjectId}, layer_edit::FeatureTree};
@@ -4524,85 +3268,42 @@ pub(crate) fn contact_fill(outline:&Polyline)->Result<Option<PreparedMesh>,&'sta
 }
 ```
 
-</details>
+**Result after `96zzzzzzj-fill-original-contact-polygons`:** The original concave contact has an opaque unlit red fill, its complete existing perimeter, an open notch and the original Element object owner. Coplanar host depth stays behind it and real nearer geometry still occludes it.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-inline-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-inline-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzj-fill-original-contact-polygons-inline-3.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzzzzzk-broadcast-ordinary-ink-metadata"></a>
 
 ### Step 3 of 5 · Broadcast ordinary ink metadata (`96zzzzzzk-broadcast-ordinary-ink-metadata`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/5 Visual Trace (96zzzzzzk-broadcast-ordinary-ink-metadata): Broadcast ordinary ink metadata</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/finite_ink.rs, src/renderer.rs, src/highlight.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">One existing ink lane</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fixed constant or indexed</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">metadata…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">zero or four-byte vertex</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stride</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged color and GPU</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">IDs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/fi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">zero or four-byte verte…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged color and GPU…</text>
 </svg>
-</div>
-
-- **Goal:** Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches.
-- **Data Flow Trace:** `One existing ink lane → fixed constant or indexed metadata mode → zero or four-byte vertex stride → unchanged color and GPU IDs`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Keep one metadata mode on the existing lane.*) · `src/finite_ink.rs` (*Use one selected layout per existing pipeline.*) · `src/renderer.rs` (*Mesh borders retain source-dependent clipping flags.*) · `src/highlight.rs` (*Mixed selected clipping-plane strokes retain indexed flags.*) · `src/ink_metadata_tests.rs` (*Supply real zero-stride GPU draws/IDs,8192-instance allocations, mixed indexed flags and complete release controls.*)
 
 Ordinary ink repeats a zero clipping flag for every instance. Choose metadata addressing when creating the lane: broadcast one record for lines, paths and markers; keep indexed records for mesh borders and mixed highlights. Color, picking and source geometry stay unchanged.
 
 Every ordinary line, path segment and marker currently stores its own zero clipping flag on both CPU and GPU. The value is constant across those batches. Choose the metadata mode once when enabling a lane: zero vertex stride broadcasts one record to every instance; mesh borders and mixed highlighted strokes retain indexed records. Keep color and cropped integer layouts identical, strict count validation and empty-scene release. This reduces metadata without another pipeline per mode, new scene owner or copied source geometry. The next contact-boundary correction will extend this same explicit record only where the visual consumer needs it.
 
-> **Self-Check Question:** *Why keep indexed metadata for mesh borders and highlighted strokes?*  
-> **Answer:** A batch can contain clipping-plane borders, ordinary mesh borders and highlighted originals with different flags. Those records vary by instance. Ordinary paths and markers share a constant zero flag and can broadcast one record.
-
-- **What You Should See:** Each nonempty ordinary batch owns four metadata bytes on CPU and GPU, regardless of instance count. Indexed clipping behavior, actual original picks and all existing drawing remain intact.
-- **Hands-On Lab Experiment:** Pick points near the beginning, middle and end of each original path at both display densities. For 8,192 line, path or marker instances, each ordinary metadata batch drops from 32,768 to 4 bytes on CPU and GPU. Clear the scene and verify release.
-
-<details>
-<summary>Implementation 96zzzzzzk-broadcast-ordinary-ink-metadata: Broadcast ordinary ink metadata</summary>
-
-Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches.
-
-Data flow: One existing ink lane → fixed constant or indexed metadata mode → zero or four-byte vertex stride → unchanged color and GPU IDs.
+> **Check:** *Why keep indexed metadata for mesh borders and highlighted strokes?* — A batch can contain clipping-plane borders, ordinary mesh borders and highlighted originals with different flags. Those records vary by instance. Ordinary paths and markers share a constant zero flag and can broadcast one record.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -4610,8 +3311,7 @@ Keep one metadata mode on the existing lane. Reset only the records actually add
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 targets: &[Some(wgpu::TextureFormat::Rg32Uint.into())] }), primitive: Default::default(),
@@ -4622,8 +3322,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4637,8 +3335,7 @@ Replace it with:
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 label: Some("stroke instances"), contents: &data, usage: wgpu::BufferUsages::VERTEX,
@@ -4657,8 +3354,6 @@ Replace it with:
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup) {
         let Some(vertices) = &self.vertices else { return; };
 ```
-
-</details>
 
 Replace it with:
 
@@ -4685,8 +3380,7 @@ Replace it with:
         let Some(vertices) = &self.vertices else { return; };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -4695,8 +3389,6 @@ pub struct Lane {
     strict_depth:bool,
     pipeline: wgpu::RenderPipeline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4708,8 +3400,7 @@ pub struct Lane {
     pipeline: wgpu::RenderPipeline,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -4911,82 +3602,9 @@ impl Lane {
 mod pick_pipeline_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-08.rs"
-```
-
-</details>
-
 ### 2. `src/finite_ink.rs`
 
 Use one selected layout per existing pipeline. Zero stride broadcasts the complete existing u32 record. Make metadata addressing explicit at construction. Preserve identical color and cropped integer addressing.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_style(stride,picking,grid);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let clipping=crate::clipping_gpu::layout(device);let groups=if picking{vec![Some(view),Some(crop),Some(layout),Some(&clipping)]}else{vec![Some(view),Some(layout),Some(&clipping)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let flags=wgpu::vertex_attr_array![8=>Uint32];buffers.push(wgpu::VertexBufferLayout{array_stride:4,step_mode:wgpu::VertexStepMode::Instance,attributes:&flags});
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("finite original ink"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(if picking{"pick_vertex"}else{"vertex"}),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(if picking{"pick_fragment"}else{"fragment"}),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:if picking{wgpu::TextureFormat::Rg32Uint}else{format},blend:if picking{None}else{Some(wgpu::BlendState::ALPHA_BLENDING)},write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(depth),multisample:Default::default(),multiview_mask:None,cache:None})
-  }
-use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)>>}
-#[derive(Clone)]
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer,pub primitive:wgpu::TextureView}
-impl Ink{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool)->Self{
-  let attributes=match stride{44=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32].to_vec(),72=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Float32x3,5=>Float32x3,6=>Uint32].to_vec(),32=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32,2=>Float32x4].to_vec(),_=>panic!("Unsupported finite ink layout")};
-  let view=crate::surface_view::layout(device);let crop=crate::gpu_layout::uniform(device,80);
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("finite ink coverage"),entries:&[crate::tile_pipelines::entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),wgpu::BindGroupLayoutEntry{binding:2,visibility:wgpu::ShaderStages::FRAGMENT,ty:wgpu::BindingType::Texture{sample_type:wgpu::TextureSampleType::Depth,view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None},crate::text_gpu_support::texture_entry(4,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Uint,false)]});
-let color=pipeline(device,format,stride,grid,false,&view,&crop,&layout,&attributes);let pick=pipeline(device,format,stride,grid,true,&view,&crop,&layout,&attributes);Self{color,pick,layout,bindings:RefCell::new(None)}
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&tables.primitive)}]})}
- pub fn set(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView){let mut bindings=self.bindings.borrow_mut();if bindings.as_ref().is_some_and(|(p,t,d,i,_)|p==&tables.projected&&t==&tables.tiles&&d==depth&&i==&tables.primitive){return}let group=self.group(device,tables,depth);*bindings=Some((tables.projected.clone(),tables.tiles.clone(),depth.clone(),tables.primitive.clone(),group));}
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,vertices:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32)->bool{let bindings=self.bindings.borrow();let Some((_,_,_,_,group))=bindings.as_ref()else{return false};pass.set_pipeline(&self.color);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,flags.slice(..));pass.draw(0..verts,0..count);true}
- pub fn pick(&self,device:&wgpu::Device,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,crop:&wgpu::BindGroup,vertices:&wgpu::Buffer,ids:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32,tables:&Tables,depth:&wgpu::TextureView){let group=self.group(device,tables,depth);pass.set_pipeline(&self.pick);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,crop,&[]);pass.set_bind_group(2,&group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,ids.slice(..));pass.set_vertex_buffer(2,flags.slice(..));pass.draw(0..verts,0..count);}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5017,41 +3635,13 @@ let color=pipeline(device,format,stride,grid,false,varying,&view,&crop,&layout,&
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-13.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Mesh borders retain source-dependent clipping flags. Ordinary original lines, paths and points broadcast one record.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut renderer = Self {surface_options:Default::default(),world_bounds:Default::default(),space:Default::default(),opacity:std::cell::Cell::new(1.),ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),global_outline:Default::default(),outlines_enabled:Default::default(),outline_composite:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
@@ -5062,8 +3652,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         renderer.set_scene(scene, None);
         renderer
 ```
-
-</details>
 
 Replace it with:
 
@@ -5078,8 +3666,7 @@ Replace it with:
         renderer
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5705,31 +4292,13 @@ mod shared_view_tests;
 mod contact_feature_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-15.rs"
-```
-
-</details>
-
 ### 4. `src/highlight.rs`
 
 Mixed selected clipping-plane strokes retain indexed flags. Selected paths and points use constant flags.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Self {target:None,mesh:None,strokes: Lane::new(device, format), paths: Lane::joined(device, format), markers: Lane::markers(device, format) }
@@ -5740,8 +4309,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn set(&mut self, device: &wgpu::Device, layout: &wgpu::BindGroupLayout, scene: &Scene, target: Option<Target>) -> Result<(), &'static str> {self.set_at(device,layout,scene,target,[0.;3])}
     pub fn set_at(&mut self,device:&wgpu::Device,layout:&wgpu::BindGroupLayout,scene:&Scene,target:Option<Target>,anchor:[f64;3])->Result<(),&'static str>{
 ```
-
-</details>
 
 Replace it with:
 
@@ -5755,8 +4322,7 @@ Replace it with:
     pub fn set_at(&mut self,device:&wgpu::Device,layout:&wgpu::BindGroupLayout,scene:&Scene,target:Option<Target>,anchor:[f64;3])->Result<(),&'static str>{
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_sources::{Part, Target}, scene::Scene, stroke_gpu::Lane};
@@ -5771,7 +4337,6 @@ impl Highlight {
         if self.target!=target||!target.is_some_and(|t|matches!(t.part,Part::Face(_))){return false;}
         let Some(mesh)=self.mesh.as_mut() else{return false;};mesh.rebase(queue,anchor);true
     }
-
 
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
         Self {target:None,mesh:None,strokes: Lane::new(device, format), paths: Lane::joined(device, format), markers: Lane::markers(device, format) }
@@ -5847,7 +4412,6 @@ impl Highlight {
         Ok(())
     }
 
-
     pub fn mesh(&self, pass: &mut wgpu::RenderPass<'_>) { if let Some(mesh) = &self.mesh { mesh.draw_pulled(pass); } }
     pub fn ink(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup) { self.strokes.draw(pass,view); self.paths.draw(pass,view); }
     pub fn points(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup) { self.markers.draw(pass,view); }
@@ -5857,25 +4421,7 @@ impl Highlight {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-17.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5889,10 +4435,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-18.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5900,80 +4443,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Connect optional native validation outside the browser runtime.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod contact_feature_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzk-broadcast-ordinary-ink-metadata-19.rs" skip=26
 ```
 
-</details>
+**Result after `96zzzzzzk-broadcast-ordinary-ink-metadata`:** Each nonempty ordinary batch owns four metadata bytes on CPU and GPU, regardless of instance count. Indexed clipping behavior, actual original picks and all existing drawing remain intact.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzl-layer-original-contact-boundaries"></a>
 
 ### Step 4 of 5 · Layer original contact boundaries (`96zzzzzzl-layer-original-contact-boundaries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/5 Visual Trace (96zzzzzzl-layer-original-contact-boundaries): Layer original contact boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/finite_ink.rs, src/finite_sources.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original contact normal</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing indexed ink</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">metadata</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared contact layer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matching finite visibility</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">tolerance</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/fi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared contact layer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching finite visibil…</text>
 </svg>
-</div>
-
-- **Goal:** Keep original contact borders complete at steep angles when the projection budget falls back to physical depth.
-- **Data Flow Trace:** `Original contact normal → existing indexed ink metadata → shared contact layer → matching finite visibility tolerance`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Keep existing flag callers and flatten only indexed [flag,normal] records.*) · `src/finite_ink.rs` (*Assemble only the lane’s chosen metadata interface.*) · `src/finite_sources.rs` (*Keep the existing constant shader validation entry meaningful.*) · `src/renderer.rs` (*Move metadata to the existing lane without retaining a duplicate CPU table.*) · `src/pick_sources.rs` (*Align explicit numeric records with the existing perimeter batch.*) · `src/finite_stroke.wgsl` (*Read the existing full shared frame.*) · `src/finite_stroke_pick.wgsl` (*Keep color and integer metadata layouts identical.*) · `src/finite_visibility.wgsl` (*Expose explicit sag only to segment visibility.*) · `src/finite_chain.wgsl` (*Ordinary connected paths have no contact rise.*) · `src/finite_chain_pick.wgsl` (*Ordinary connected paths have no contact rise.*) · `src/contact_feature_tests.rs` (*Expose the unchanged original-source validation fixture.*) · `src/ink_metadata_tests.rs` (*Indexed contact-capable records now carry two words; ordinary8192-instance assertions remain exactly4bytes.*) · `src/contact_boundary_tests.rs` (*Validate actual original contact pixels, complete projected fallback, transformed normals and owner picks.*)
 
 At steep angles, the contact fill can cover its own black border. Carry the original contact normal through the existing indexed mesh-ink record, apply the same bounded depth layer, and include that rise in the existing visibility tolerance. Ordinary ink keeps its four-byte record.
 
 The original polygon, parent identity and archive remain unchanged. Reuse the existing packed normal codec, shared frame, mesh perimeter and finite visibility owner. The added normal belongs only to indexed strokes; color and cropped integer picking use the same geometry. A nearby original occluder must still hide the border.
 
-> **Self-Check Question:** *Why must the border carry depth rise into its visibility test?*  
-> **Answer:** Moving its vertices toward the eye aligns the border with the contact fill. The physical plane-fit fallback also compares the border against the original host plane. Its existing sag tolerance must include the bounded rise so the host does not reject half the border.
-
-- **What You Should See:** The real concave contact retains its perimeter in full and bounded rendering, with unchanged ordinary ink allocation and original ownership.
-- **Hands-On Lab Experiment:** Rotate the parent through steep angles. Compare both projection budgets, projections, display densities and mirrored nonuniform placement. Check the actual cropped owner picks, nearer occluder and exact Undo/source restoration.
-
-<details>
-<summary>Implementation 96zzzzzzl-layer-original-contact-boundaries: Layer original contact boundaries</summary>
-
-Keep original contact borders complete at steep angles when the projection budget falls back to physical depth.
-
-Data flow: Original contact normal → existing indexed ink metadata → shared contact layer → matching finite visibility tolerance.
+> **Check:** *Why must the border carry depth rise into its visibility test?* — Moving its vertices toward the eye aligns the border with the contact fill. The physical plane-fit fallback also compares the border against the original host plane. Its existing sag tolerance must include the bounded rise so the host does not reject half the border.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -5981,8 +4492,7 @@ Keep existing flag callers and flatten only indexed [flag,normal] records. Valid
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.set_flags(device,vec![0;if self.varying{count}else{count.min(1)}])
@@ -5994,8 +4504,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
     pub fn clipping_bytes(&self)->[u64;2]{[self.flags.as_ref().map_or(0,wgpu::Buffer::size),self.flag_data.capacity()as u64*4]}
 ```
-
-</details>
 
 Replace it with:
 
@@ -6013,8 +4521,7 @@ Replace it with:
     pub fn clipping_bytes(&self)->[u64;2]{[self.flags.as_ref().map_or(0,wgpu::Buffer::size),self.flag_data.capacity()as u64*4]}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -6219,58 +4726,9 @@ impl Lane {
 mod pick_pipeline_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-02.rs"
-```
-
-</details>
-
 ### 2. `src/finite_ink.rs`
 
 Assemble only the lane’s chosen metadata interface. Use one or two explicit words in the existing attribute. Indexed strokes carry their contact normal; ordinary ink retains zero stride.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,varying:bool,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_style(stride,picking,grid);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let clipping=crate::clipping_gpu::layout(device);let groups=if picking{vec![Some(view),Some(crop),Some(layout),Some(&clipping)]}else{vec![Some(view),Some(layout),Some(&clipping)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let flags=wgpu::vertex_attr_array![8=>Uint32];buffers.push(wgpu::VertexBufferLayout{array_stride:if varying{4}else{0},step_mode:wgpu::VertexStepMode::Instance,attributes:&flags});
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("finite original ink"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(if picking{"pick_vertex"}else{"vertex"}),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(if picking{"pick_fragment"}else{"fragment"}),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:if picking{wgpu::TextureFormat::Rg32Uint}else{format},blend:if picking{None}else{Some(wgpu::BlendState::ALPHA_BLENDING)},write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(depth),multisample:Default::default(),multiview_mask:None,cache:None})
-  }
-use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)>>}
-#[derive(Clone)]
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer,pub primitive:wgpu::TextureView}
-impl Ink{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,varying:bool)->Self{
-  let attributes=match stride{44=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32].to_vec(),72=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Float32x3,5=>Float32x3,6=>Uint32].to_vec(),32=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32,2=>Float32x4].to_vec(),_=>panic!("Unsupported finite ink layout")};
-  let view=crate::surface_view::layout(device);let crop=crate::gpu_layout::uniform(device,80);
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("finite ink coverage"),entries:&[crate::tile_pipelines::entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),wgpu::BindGroupLayoutEntry{binding:2,visibility:wgpu::ShaderStages::FRAGMENT,ty:wgpu::BindingType::Texture{sample_type:wgpu::TextureSampleType::Depth,view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None},crate::text_gpu_support::texture_entry(4,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Uint,false)]});
-let color=pipeline(device,format,stride,grid,false,varying,&view,&crop,&layout,&attributes);let pick=pipeline(device,format,stride,grid,true,varying,&view,&crop,&layout,&attributes);Self{color,pick,layout,bindings:RefCell::new(None)}
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&tables.primitive)}]})}
- pub fn set(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView){let mut bindings=self.bindings.borrow_mut();if bindings.as_ref().is_some_and(|(p,t,d,i,_)|p==&tables.projected&&t==&tables.tiles&&d==depth&&i==&tables.primitive){return}let group=self.group(device,tables,depth);*bindings=Some((tables.projected.clone(),tables.tiles.clone(),depth.clone(),tables.primitive.clone(),group));}
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,vertices:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32)->bool{let bindings=self.bindings.borrow();let Some((_,_,_,_,group))=bindings.as_ref()else{return false};pass.set_pipeline(&self.color);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,flags.slice(..));pass.draw(0..verts,0..count);true}
- pub fn pick(&self,device:&wgpu::Device,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,crop:&wgpu::BindGroup,vertices:&wgpu::Buffer,ids:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32,tables:&Tables,depth:&wgpu::TextureView){let group=self.group(device,tables,depth);pass.set_pipeline(&self.pick);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,crop,&[]);pass.set_bind_group(2,&group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,ids.slice(..));pass.set_vertex_buffer(2,flags.slice(..));pass.draw(0..verts,0..count);}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6301,43 +4759,9 @@ let color=pipeline(device,format,stride,grid,false,varying,&view,&crop,&layout,&
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-05.rs"
-```
-
-</details>
-
 ### 3. `src/finite_sources.rs`
 
 Keep the existing constant shader validation entry meaningful. Declare explicit flag/facing accessors for the actual input type.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn source(stride:u64,pick:bool)->String{source_style(stride,pick,false)}
-pub fn source_style(stride:u64,pick:bool,grid:bool)->String{
- let(base,ids)=match stride{44=>(include_str!("finite_stroke.wgsl"),include_str!("finite_stroke_pick.wgsl")),72=>(include_str!("finite_chain.wgsl"),include_str!("finite_chain_pick.wgsl")),32=>(include_str!("finite_marker.wgsl"),include_str!("finite_marker_pick.wgsl")),_=>panic!("Unsupported finite ink layout")};
- let base=crate::finite_project_source::expand(base).replace("#include \"finite_visibility.wgsl\"",include_str!("finite_visibility.wgsl")).replace("#include \"ink_plane.wgsl\"",include_str!("ink_plane.wgsl"));
- let base=if grid{base.replace("const FINITE_GRID:bool=false;","const FINITE_GRID:bool=true;")}else{base};
- let source=if pick{format!("{}\n{}\n{ids}",base.replace("@group(1)","@group(2)").replace("return vec2<i32>(pixel);","return vec2<i32>(pixel)-vec2<i32>(i32(crop._a),i32(crop._b));"),include_str!("pick_crop.wgsl"))}else{base};crate::clipping_gpu::source(&source,if pick{3}else{2},0)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6354,33 +4778,9 @@ pub fn source_metadata(stride:u64,pick:bool,grid:bool,varying:bool)->String{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-07.rs"
-```
-
-</details>
-
 ### 4. `src/renderer.rs`
 
 Move metadata to the existing lane without retaining a duplicate CPU table.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let planes=crate::clipping_rows::owners(scene);let flags=self.sources.mesh_ids.iter().map(|id|crate::sub_id::decode(id[1]).and_then(|(_,address)|self.sources.edges.get(address)).map_or(0,|target|if planes.contains(&target.owner){4096}else{0})).collect();self.mesh_ink.set_flags(&self.device,flags).expect("Original plane ink flags match source addresses");
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6394,8 +4794,7 @@ Align explicit numeric records with the existing perimeter batch. Collect clippi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn bytes(&self) -> usize {
@@ -6405,8 +4804,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             + (self.mesh_ids.capacity() + self.line_ids.capacity() + self.path_ids.capacity() + self.marker_ids.capacity()) * 8
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6420,8 +4817,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for (owner, stroke) in scene.control_nets_at(anchor) {
@@ -6431,8 +4827,6 @@ Replace it with:
         for row in scene.control_markers_at(anchor) {
             let ids = append(&mut sources.controls, Kind::Control, Target { owner: row.parent, part: row.part })?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6446,8 +4840,7 @@ Replace it with:
             let ids = append(&mut sources.controls, Kind::Control, Target { owner: row.parent, part: row.part })?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let ends=ends.map(|p|model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32());
@@ -6457,8 +4850,6 @@ Replace it with:
         }
         for row in scene.lines().iter().filter(|row| scene.visible(row.id)) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6472,8 +4863,7 @@ Replace it with:
         for row in scene.lines().iter().filter(|row| scene.visible(row.id)) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut sources = Self::default();
@@ -6487,8 +4877,6 @@ Replace it with:
             let mut surface_edges=row.surface.as_ref().map(|surface|surface.edge_ids());
             for (&(a, b), ends) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6512,8 +4900,7 @@ Replace it with:
             for (&(a, b), ends) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub mesh_bases: Vec<(ObjectId, u32)>,
@@ -6523,8 +4910,6 @@ Replace it with:
     pub path_ids: Vec<[u32; 2]>,
     pub marker_ids: Vec<[u32; 2]>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6538,8 +4923,7 @@ Replace it with:
     pub marker_ids: Vec<[u32; 2]>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -6653,103 +5037,9 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-14.rs"
-```
-
-</details>
-
 ### 6. `src/finite_stroke.wgsl`
 
 Read the existing full shared frame. Reuse the surface depth owner; the normal decoder is already assembled. Read flags from the lane’s actual record. Layer both endpoints and retain the bounded depth rise before near clipping. Keep color and integer metadata layouts identical. Share geometry for cropped integer picking. Carry the same flat rise to color and pick fragments. Pass contact rise explicitly into existing visibility.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-#include "near_clip.wgsl"
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32 }
-@group(0) @binding(0) var<uniform> view: View;
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-
-fn hidden(colour: vec4<f32>,flags:u32) -> Output {
-    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0,flags,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0));
-}
-
-fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32,flags:u32) -> Output {
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    if (near_distance(a) < 0.0 && near_distance(b) < 0.0) { return hidden(colour,flags); }
-    a=near_endpoint(a,b);
-    b=near_endpoint(b,a);
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour,flags); }
-    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
-    let length2 = dot(delta, delta);
-    if (length2 < 0.000001) { return hidden(colour,flags); }
-    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index];
-    let half_width = width * view.density * 0.5;
-    let extent = half_width + 0.70711;
-    var position = select(a, b, corner.x > 0.5);
-    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
-    return Output(position, colour, corner.y * extent, half_width,flags,finite_axis(a,b),vec2<f32>(a.z/a.w,b.z/b.w),finite_screen(position));
-}
-
-#include "stroke_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(start, end, colour, width, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6810,96 +5100,14 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(input.rise,0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-22.rs"
-```
-
-</details>
-
 ### 7. `src/finite_stroke_pick.wgsl`
 
 Keep color and integer metadata layouts identical. Share geometry for cropped integer picking. Carry the same flat rise to color and pick fragments. Pass contact rise explicitly into existing visibility.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>,@location(8) flags:u32) -> PickOutput {
-    let source = geometry(start, end, colour, width, index,flags);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.clip_flags=source.clip_flags;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width,input.clip_flags,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true)<=0.){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6940,29 +5148,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     return input.id;
 }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-26.rs"
-```
-
-</details>
 
 ### 8. `src/finite_stroke.wgsl`
 
@@ -6970,8 +5155,7 @@ Hidden geometry carries no rise. Keep the actual bounded rise with the source ax
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     let extent = half_width + 0.70711;
@@ -6982,8 +5166,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 #include "stroke_coverage.wgsl"
 ```
-
-</details>
 
 Replace it with:
 
@@ -6997,8 +5179,7 @@ Replace it with:
 #include "stroke_coverage.wgsl"
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 }
@@ -7009,8 +5190,6 @@ fn hidden(colour: vec4<f32>,flags:u32) -> Output {
 
 fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32,metadata:InkRecord) -> Output {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7024,8 +5203,7 @@ fn hidden(colour: vec4<f32>,flags:u32) -> Output {
 fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32,metadata:InkRecord) -> Output {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 #include "near_clip.wgsl"
@@ -7084,75 +5262,14 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(input.rise,0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-28.rs"
-```
-
-</details>
-
 ### 9. `src/finite_stroke_pick.wgsl`
 
 Copy the geometry’s rise into the cropped output. Preserve the complete shared coverage interface.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-    @location(12) @interpolate(flat) rise:f32,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>,@location(8) metadata:InkRecord) -> PickOutput {
-    let source = geometry(start, end, colour, width, index,metadata);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.clip_flags=source.clip_flags;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width,input.clip_flags,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(input.rise,0.))<=0.){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7194,29 +5311,13 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-30.rs"
-```
-
-</details>
-
 ### 10. `src/finite_visibility.wgsl`
 
 Expose explicit sag only to segment visibility. Forward the existing axis tolerance. Keep grid behavior unchanged. Reuse existing sag-aware plane and projected-triangle predicates.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
  return finite_hidden_alpha(hidden,picking);
@@ -7229,8 +5330,6 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
  if(clip_active()&&clip_cut_ink_ndc(flags,clip_ndc(axis.at,view.size,axis.depth))){return false;}
  var fit_at=pixel;let source_at=floor(axis.at)+fract(pixel);
 ```
-
-</details>
 
 Replace it with:
 
@@ -7246,12 +5345,10 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32,sag:
  var fit_at=pixel;let source_at=floor(axis.at)+fract(pixel);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 }
-
 
 fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,picking:bool)->f32{
  let delta=axis.zw-axis.xy;let t=clamp(dot(pixel-axis.xy,delta)/max(dot(delta,delta),1e-20),0.,1.);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);
@@ -7262,13 +5359,10 @@ fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,pickin
 fn finite_disc_alpha(pixel:vec2<f32>,centre:vec2<f32>,depth:f32,flags:u32,picking:bool)->f32{
 ```
 
-</details>
-
 Replace it with:
 
 ```wgsl
 }
-
 
 fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,picking:bool,sag:vec2<f32>)->f32{
  let delta=axis.zw-axis.xy;let t=clamp(dot(pixel-axis.xy,delta)/max(dot(delta,delta),1e-20),0.,1.);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);
@@ -7279,8 +5373,7 @@ fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,pickin
 fn finite_disc_alpha(pixel:vec2<f32>,centre:vec2<f32>,depth:f32,flags:u32,picking:bool)->f32{
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 const FINITE_GRID:bool=false;
@@ -7316,7 +5409,6 @@ fn finite_grid_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32
  }
  return true;
 }
-
 
 fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,picking:bool,sag:vec2<f32>)->f32{
  let delta=axis.zw-axis.xy;let t=clamp(dot(pixel-axis.xy,delta)/max(dot(delta,delta),1e-20),0.,1.);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);
@@ -7363,43 +5455,9 @@ fn finite_hidden_alpha(hidden:bool,picking:bool)->f32{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-34.rs"
-```
-
-</details>
-
 ### 11. `src/finite_chain.wgsl`
 
 Ordinary connected paths have no contact rise.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7407,29 +5465,9 @@ Edit the existing block to match this code; keep unchanged lines:
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-35.rs"
-```
-
-</details>
-
 ### 12. `src/finite_chain_pick.wgsl`
 
 Ordinary connected paths have no contact rise.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true)<=0.){discard;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7437,19 +5475,7 @@ Edit the existing block to match this code; keep unchanged lines:
     if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(0.))<=0.){discard;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-36.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7457,25 +5483,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Expose the unchanged original-source validation fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn imported(reverse:bool)
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-37.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7483,25 +5497,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Share the unchanged fixture projection.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn project(matrix:[f32;16]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-38.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7509,25 +5511,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Indexed contact-capable records now carry two words; ordinary8192-instance assertions remain exactly4bytes.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-[12,12]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-39.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7541,10 +5531,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-40.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7552,81 +5539,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Connect optional native validation outside the browser runtime.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod ink_metadata_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzl-layer-original-contact-boundaries-41.rs" skip=23
 ```
 
-</details>
+**Result after `96zzzzzzl-layer-original-contact-boundaries`:** The real concave contact retains its perimeter in full and bounded rendering, with unchanged ordinary ink allocation and original ownership.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzm-query-original-faces-under-contact-overlays"></a>
 
 ### Step 5 of 5 · Query original faces under contact overlays (`96zzzzzzm-query-original-faces-under-contact-overlays`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/5 Visual Trace (96zzzzzzm-query-original-faces-under-contact-overlays): Query original faces under contact overlays</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/renderer.rs, src/pick_sources.rs, src/face_pick.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original versus derived</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">row</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing CPU mesh</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligibility</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original depth and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source-face…</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">actual source key</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_mesh.rs, src/rend…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original depth and sour…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">actual source key</text>
 </svg>
-</div>
-
-- **Goal:** Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
-- **Data Flow Trace:** `Original versus derived row → existing CPU mesh eligibility → original depth and source-face passes → actual source key`
-- **Files You Touch:** `src/gpu_mesh.rs` (*Retain source-query eligibility on the existing CPU mesh.*) · `src/renderer.rs` (*Instances and locked originals are not generated attribute display pieces.*) · `src/pick_sources.rs` (*Classify the source row once, then append only its actual original faces.*) · `src/face_pick.rs` (*Do not allocate generated display-face metadata; preserve one row per mesh.*) · `src/pick_encode.rs` (*Ignore derived depth only for source-face queries; keep all original occluders.*) · `src/global_outline_tests.rs` (*Preserve the unchanged original-source uniform/reference test.*) · `src/contact_feature_tests.rs` (*Reuse the unchanged original contact ring validation fixture.*) · `src/source_face_policy_tests.rs` (*Supply actual original face GPU/source/archive, locked occlusion, instance and BRep controls.*)
 
 The contact selects its original parent as an object, but its generated face address cannot resolve as an original face. Exclude derived display rows from the face query and its depth pass. Keep original locked geometry as an occluder and preserve real source keys.
 
 A contact can span several original faces or extend outside its host. Aliasing every generated polygon to parent face zero would invent source identity. Query the actual original beneath it instead. Instances retain their original face identities; selection does not grant permission to edit a readonly definition. The readonly red overlay can remain above the selected original-face highlight.
 
-> **Self-Check Question:** *Why must the original depth pass also ignore derived contact rows in Face mode?*  
-> **Answer:** The contact is layered nearer than its host. Skipping only its face-ID draw would leave that nearer generated depth blocking the original face beneath it. Original locked or missing-face-metadata geometry still retains depth and occlusion.
-
-- **What You Should See:** Face picks resolve the original Mesh or BRep face under the contact. Beyond the host and the cursor pick radius there is no original face to select. Object picking and the contact drawing are unchanged.
-- **Hands-On Lab Experiment:** Pick both wings of a contact spanning two sparse original face keys. Inspect the original-face highlight, outside-host clicks beyond the cursor pick radius, locked occlusion, shared instances, both projections/densities and exact source/archive/pixel restoration.
-
-<details>
-<summary>Implementation 96zzzzzzm-query-original-faces-under-contact-overlays: Query original faces under contact overlays</summary>
-
-Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
-
-Data flow: Original versus derived row → existing CPU mesh eligibility → original depth and source-face passes → actual source key.
+> **Check:** *Why must the original depth pass also ignore derived contact rows in Face mode?* — The contact is layered nearer than its host. Skipping only its face-ID draw would leave that nearer generated depth blocking the original face beneath it. Original locked or missing-face-metadata geometry still retains depth and occlusion.
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -7634,8 +5588,7 @@ Retain source-query eligibility on the existing CPU mesh. Classify original and 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn settings_bytes(&self) -> u64 { self.model.size() }
@@ -7645,8 +5598,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let mut next = settings(object, style,self.cap_flags|if self.xray&&self.cap_flags&8192!=0{32768}else{0},self.cap_token,self.primitive_base,self.geometry.index_start,self.anchor);
         next[RANGE+8..RANGE+12].copy_from_slice(&self.previous[RANGE+8..RANGE+12]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -7660,8 +5611,7 @@ Replace it with:
         next[RANGE+8..RANGE+12].copy_from_slice(&self.previous[RANGE+8..RANGE+12]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             layout,
@@ -7672,8 +5622,6 @@ Replace it with:
 
     pub fn rebase(&mut self,queue:&wgpu::Queue,anchor:[f64;3])->[usize;2] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7687,8 +5635,7 @@ Replace it with:
     pub fn rebase(&mut self,queue:&wgpu::Queue,anchor:[f64;3])->[usize;2] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -7699,8 +5646,6 @@ Replace it with:
 
     pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
 ```
-
-</details>
 
 Replace it with:
 
@@ -7714,8 +5659,7 @@ Replace it with:
     pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub geometry: Rc<GpuGeometry>,
@@ -7732,8 +5676,6 @@ pub struct Style {pub selected:bool,pub owner:u32,pub colour:Option<[f32;4]>}
 fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_base:u32,index_start:u32,anchor:[f64;3]) -> Record {
     let mut bytes = [0; BYTES];
 ```
-
-</details>
 
 Replace it with:
 
@@ -7754,8 +5696,7 @@ fn settings(object: &Object, style:Style,cap_flags:u32,cap_token:u32,primitive_b
     let mut bytes = [0; BYTES];
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -7886,47 +5827,9 @@ impl GpuMesh {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-05.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Instances and locked originals are not generated attribute display pieces.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,owner:crate::feature_owner::display_owner(scene,id).map_or(0,ObjectId::value),colour:scene.face_rgba(id)}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7934,29 +5837,9 @@ Edit the existing block to match this code; keep unchanged lines:
 fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {source_faces:!scene.forest.derived(id),selected,owner:crate::feature_owner::display_owner(scene,id).map_or(0,ObjectId::value),colour:scene.face_rgba(id)}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-06.rs"
-```
-
-</details>
-
 ### 3. `src/pick_sources.rs`
 
 Classify the source row once, then append only its actual original faces.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            for &key in &row.mesh.parts.faces { append(&mut sources.faces, Kind::Face, Target { owner: row.id, part: Part::Face(key) })?; }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7968,44 +5851,15 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Do not allocate generated display-face metadata; preserve one row per mesh.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if geometry.source.parts.triangles.is_empty() { self.rows.push(None); continue; }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
             if !mesh.source_faces||geometry.source.parts.triangles.is_empty() { self.rows.push(None); continue; }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-08.rs"
-```
-
-</details>
-
 ### 5. `src/pick_encode.rs`
 
 Ignore derived depth only for source-face queries; keep all original occluders.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            for mesh in meshes {if !records.is_some_and(|(rows,shared)|rows.draw_with(&mut pass,mesh,shared)){pass.set_pipeline(pipeline);mesh.draw_pulled(&mut pass);}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8013,19 +5867,7 @@ Edit the existing block to match this code; keep unchanged lines:
             for mesh in meshes {if mode==crate::pick_sources::Mode::Face&&!mesh.source_faces{continue;}if !records.is_some_and(|(rows,shared)|rows.draw_with(&mut pass,mesh,shared)){pass.set_pipeline(pipeline);mesh.draw_pulled(&mut pass);}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-09.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8033,25 +5875,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Preserve the unchanged original-source uniform/reference test.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-Style{selected:false,owner:owner.value(),colour:None}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-10.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8059,25 +5889,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Reuse the unchanged original contact ring validation fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn polygon()->Polyline
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-11.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8091,10 +5909,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-12.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8102,46 +5917,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Connect optional Native validation outside the browser runtime.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod contact_boundary_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzm-query-original-faces-under-contact-overlays-13.rs" skip=27
 ```
 
-</details>
-
-</details>
+**Result after `96zzzzzzm-query-original-faces-under-contact-overlays`:** Face picks resolve the original Mesh or BRep face under the contact. Beyond the host and the cursor pick radius there is no original face to select. Object picking and the contact drawing are unchanged.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzzzzzm-query-original-faces-under-contact-overlays
-npm --prefix ../session_tests run course -- check 96zzzzzzm-query-original-faces-under-contact-overlays
-npm --prefix ../session_tests run course -- save 96zzzzzzm-query-original-faces-under-contact-overlays
+npm --prefix ../session_tests run course -- dependencies 22.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 22.2
+npm --prefix ../session_tests run course -- save 22.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Face picks resolve the original Mesh or BRep face under the contact. Beyond the host and the cursor pick radius there is no original face to select. Object picking and the contact drawing are unchanged.
-
-- **Final Lesson Experiment:** Pick both wings of a contact spanning two sparse original face keys. Inspect the original-face highlight, outside-host clicks beyond the cursor pick radius, locked occlusion, shared instances, both projections/densities and exact source/archive/pixel restoration.
-
-Continue with [Original boundary pens, joins and vertex markers](../../consolidation/96zzzzzzn-respect-original-boundary-pens.md).
+Continue with [22.3 · Original boundary pens, joins and vertex markers](../../consolidation/96zzzzzzn-respect-original-boundary-pens.md).

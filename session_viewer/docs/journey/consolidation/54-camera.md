@@ -1,235 +1,97 @@
 # 8.4 · Navigation, delayed picks and direct dragging
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.4** (Redraft `5.10`) · **18 checkpoints (`54-camera` → `54p-navigation`)** · **Study time: 9–18 h**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Checkpoints:** `54-camera` → `54p-navigation` (18 steps) · **Production source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../src/state/drag.rs) · [state/box_select.rs](../../../src/state/box_select.rs)
 
-> **What You Will Learn & Build:** Navigate and fit inside the free canvas. By the final checkpoint (`54p-navigation`), you will exercise current navigation selection and delayed answers.
+> **Goal:** Exercise current navigation selection and delayed answers.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 8 Visual Explanation: Scene Tree Transform Hierarchy, Layer Lamp Restoration & Inspector UI</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Parent-to-child matrix composition M_world = M_parent * M_local. Center: Lamp visibility inheritance. Right: Focus lock.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Visual Scene Tree Graph -->
-    <rect x="18" y="64" width="270" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="153" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Scene Tree Matrix Hierarchy</text>
-    <!-- Root node -->
-    <rect x="103" y="94" width="100" height="28" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="153" y="112" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Root Assembly</text>
-    <!-- Branches to Child A and Child B -->
-    <line x1="133" y1="122" x2="83" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="173" y1="122" x2="223" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="33" y="148" width="100" height="32" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="83" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Child Frame A</text>
-    <text x="83" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_A</text>
-    <rect x="173" y="148" width="100" height="32" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="223" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Leaf Mesh B</text>
-    <text x="223" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_B</text>
-    <text x="153" y="206" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">M_world = M_parent * M_local</text>
-    <text x="153" y="222" text-anchor="middle" font-size="9" fill="#111111">Full path IDs disambiguate same names</text>
-
-    <line x1="288" y1="154" x2="310" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Lamp Visibility Inheritance & Restoration -->
-    <rect x="312" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="444" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Lamp Visibility Gate (Non-Destructive)</text>
-    <!-- 3 input switches feeding effective visibility -->
-    <rect x="328" y="98" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="114" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Layer Lamp</text>
-    <rect x="328" y="130" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="146" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parent Lamp</text>
-    <rect x="328" y="162" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="178" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Own Lamp</text>
-    <!-- AND gate box -->
-    <line x1="424" y1="110" x2="462" y2="134" stroke="#111111" stroke-width="1.2"/>
-    <line x1="424" y1="142" x2="462" y2="142" stroke="#111111" stroke-width="1.2"/>
-    <line x1="424" y1="174" x2="462" y2="150" stroke="#111111" stroke-width="1.2"/>
-    <rect x="462" y="122" width="98" height="40" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="511" y="140" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">AND Gate</text>
-    <text x="511" y="154" text-anchor="middle" font-size="9" fill="#111111">Drawn &amp; Pickable</text>
-    <text x="444" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Toggling Parent OFF hides child without</text>
-    <text x="444" y="223" text-anchor="middle" font-size="9" fill="#111111">overwriting stored Own Lamp state!</text>
-
-    <line x1="577" y1="154" x2="599" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Inspector Focus Adapter -->
-    <rect x="601" y="64" width="221" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="711" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Inspector &amp; Focus Adapter</text>
-    <rect x="617" y="98" width="189" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="627" y="115" font-size="9.5" font-weight="700" fill="#111111">[o] [L] Layer_01 (Renaming...)</text>
-    <text x="627" y="131" font-size="9" fill="#111111">Active egui text input has focus</text>
-    <line x1="711" y1="140" x2="711" y2="162" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="617" y="164" width="189" height="62" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="711" y="182" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">src/command_dock/mod.rs</text>
-    <text x="627" y="198" font-size="9" fill="#111111">Focus adapter pauses Command:</text>
-    <text x="627" y="212" font-size="9" fill="#111111">auto-capture until Enter/Escape</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 8.4 Pipeline Schematic: Navigation, delayed picks and direct dragging</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (18 Checkpoints: 54-camera → 54p-navigation)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">CSS cursor</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">target-plane offset</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">f64 camera</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">free-canvas</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">projection</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual input</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 8.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/camera.rs  ·  src/navigation.rs  ·  src/navigation_tests.rs  ·  src/editor.rs  ·  src/shortcuts.rs  ·  src/object_selection.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">18 Checkpoints: 54-camera → 54p-navigation — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Scene Tree</text>
+  <rect x="85" y="58" width="100" height="28" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Group (Mp)</text>
+  <line x1="115" y1="86" x2="80" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="155" y1="86" x2="190" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="38" y="122" width="84" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="80" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part A</text>
+  <rect x="148" y="122" width="84" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="190" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part B</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Mw = Mp * Ml</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Layer Lamps</text>
+  <rect x="330" y="66" width="178" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="350" cy="84" r="6" fill="#111111"/>
+  <text x="428" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Layer ON</text>
+  <rect x="330" y="114" width="178" height="36" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="350" cy="132" r="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="428" y="136" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Parent OFF (Masked)</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Preserves Child State</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Focus Adapter</text>
+  <rect x="614" y="66" width="180" height="36" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[Rename Layer_01|]</text>
+  <rect x="614" y="114" width="180" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="704" y="136" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Dock Shortcut Yielded</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">command_dock/mod.rs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
-| **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
-| **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
+| **Rust (`session_rust`)** | `M_world = M_parent * M_local` | Hierarchical scene-tree transforms with full tree-path identity. |
+| **Rust (Layers)** | `layer && parents && own_lamp` | Hiding a parent or layer masks children without losing child lamp state. |
+| **Rust (`command_dock`)** | Focus Yield Adapter | Yields Command Dock shortcuts while renaming a layer in the UI. |
 
-**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`54-camera`](#checkpoint-54-camera) | Navigate and fit inside the free canvas. | `src/camera.rs`, `src/navigation.rs`, `src/navigation_tests.rs` | `CSS cursor → target-plane offset → f64 camera → free-canvas projection` |
-| **2** | [`54aa-view-actions`](#checkpoint-54aa-view-actions) | Route camera changes without consuming document history. | `src/editor.rs` | `view action → preserved drawing draft → current camera → unchanged document history` |
-| **3** | [`54a-selection`](#checkpoint-54a-selection) | Apply visible selection and modifier precedence. | `src/shortcuts.rs`, `src/object_selection.rs`, `src/editor.rs` | `canvas-owned shortcut → live eligibility → unique ordered selection → preserved source` |
-| **4** | [`54b-finger`](#checkpoint-54b-finger) | Keep touch handles reachable without enlarging them. | `src/editor.rs` | `CSS finger cursor → 18-pixel reach → original handle → unchanged drawn geometry` |
-| **5** | [`54c-rectangle`](#checkpoint-54c-rectangle) | Distinguish window and crossing rectangles. | `src/rect_select.rs`, `src/lib.rs` | `drag direction → ordered bounds → f64 projection → segment clipping` |
-| **6** | [`54d-samples`](#checkpoint-54d-samples) | Select original projected geometry in one source pass. | `src/rect_select.rs`, `src/rect_select_tests.rs`, `src/lib.rs` | `eligible source → world placement → projected points and strokes → ordered unique identities` |
-| **7** | [`54e-drag`](#checkpoint-54e-drag) | Freeze a released drag until its pick answers. | `src/canvas_drag.rs`, `src/lib.rs` | `press probe → cursor updates → frozen release → late hit or miss → one result` |
-| **8** | [`54f-drag-state`](#checkpoint-54f-drag-state) | Own drag previews outside document history. | `src/editor.rs` | `saved scene → shared preview baseline → display scene → checked final commit` |
-| **9** | [`54g-drag-actions`](#checkpoint-54g-drag-actions) | Apply held released and cancelled drag outcomes. | `src/editor.rs` | `checked drag action → preserved pending pick → late answer → precise commit or rectangle` |
-| **10** | [`54h-mouse`](#checkpoint-54h-mouse) | Capture mouse gestures in CSS pixels. | `src/gesture.rs`, `src/gesture_tests.rs` | `captured pointer → four-pixel slop → orbit pan or probe → checked release` |
-| **11** | [`54i-touch`](#checkpoint-54i-touch) | Orbit with one finger and pan pinch with two. | `src/touch.rs`, `src/lib.rs` | `touch identities → one-finger orbit → two-finger centre and distance → ordered camera actions` |
-| **12** | [`54j-taps`](#checkpoint-54j-taps) | Finish taps double taps and touch cancellation. | `src/touch.rs` | `touch release → time and movement limits → tap or nearby double tap → all-fingers reset` |
-| **13** | [`54k-overlay`](#checkpoint-54k-overlay) | Draw a thin selection rectangle above the canvas. | `src/panel.rs` | `drag bounds → grey overlay → solid window or dashed crossing → panel-free frame` |
-| **14** | [`54l-navigation`](#checkpoint-54l-navigation) | Route mouse touch and wheel after panel input. | `src/browser.rs` | `measured UI ownership → CSS navigation → pointer capture → view action` |
-| **15** | [`54m-pick-release`](#checkpoint-54m-pick-release) | Retain the press pick through a quick release. | `src/browser.rs` | `press integer pick → pending cursor → frozen release → checked answer → move or rectangle` |
-| **16** | [`54n-cancellation`](#checkpoint-54n-cancellation) | Cancel owned gestures and preserve normal capture release. | `src/browser.rs` | `owned gesture → blur resize or cancel → dropped preview → no late mutation` |
-| **17** | [`54o-frame`](#checkpoint-54o-frame) | Expose drag ownership and centre the available drawing. | `src/browser.rs` | `measured panel layout → free camera frame → overlay update → inspectable ownership` |
-| **18** | [`54p-navigation`](#checkpoint-54p-navigation) | Exercise current navigation selection and delayed answers. | `src/navigation_complete_tests.rs`, `src/lib.rs`, `src/shortcut_focus_tests.rs`, `src/pick_gpu_tests.rs` | `actual input → current source eligibility → pending integer answer → exact history → two-density browser contract` |
+![Recorded visual output for Lesson 8.4 (54p-navigation)](../../screenshots/journey/54p-navigation.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-54-camera"></a>
 
 ### Step 1 of 18 · Navigate and fit inside the free canvas (`54-camera`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/18 Visual Trace (54-camera): Navigate and fit inside the free canvas</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/navigation.rs, src/navigation_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS cursor</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">target-plane offset</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">f64 camera</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">free-canvas projection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/camera.rs, src/naviga…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">f64 camera</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">free-canvas projection</text>
 </svg>
-</div>
-
-- **Goal:** Navigate and fit inside the free canvas.
-- **Data Flow Trace:** `CSS cursor → target-plane offset → f64 camera → free-canvas projection`
-- **Files You Touch:** `src/camera.rs` (*Keep cursor zoom, CSS pan, unbounded captured rays and panel-free fit in the camera.*) · `src/navigation.rs` (*Normalise wheel units and use the current bounded 0.9 zoom steps.*) · `src/navigation_tests.rs` (*Copy the preserved wheel, invalid-input and history checks with the current ten-step limit.*)
 
 Use CSS pixel camera rates, zoom around a cursor point and frame the selected geometry in the space left by panels.
 
-> **Self-Check Question:** *Why subtract the free-canvas shift while zooming?*  
-> **Answer:** The camera target is centred in the space left by panels. The cursor offset must use that same shifted projection to keep its target-plane point under the cursor.
-
-- **What You Should See:** Continue the blue Posts layer exercise. This preparation connects one navigation component; the complete canvas and touch exercise comes at the end of54.
-- **Hands-On Lab Experiment:** Project a target-plane point, zoom at its cursor and compare its screen position in both projections.
-
-<details>
-<summary>Implementation 54-camera: Navigate and fit inside the free canvas</summary>
-
-Navigate and fit inside the free canvas.
-
-Data flow: CSS cursor → target-plane offset → f64 camera → free-canvas projection.
+> **Check:** *Why subtract the free-canvas shift while zooming?* — The camera target is centred in the space left by panels. The cursor offset must use that same shifted projection to keep its target-plane point under the cursor.
 
 ### 1. `src/camera.rs`
 
@@ -237,8 +99,7 @@ Keep cursor zoom, CSS pan, unbounded captured rays and panel-free fit in the cam
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if screen.iter().any(|value| !value.is_finite() || value.abs() > 1.0) {
@@ -248,8 +109,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let origin = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 0.0));
         let end = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 1.0));
 ```
-
-</details>
 
 Replace it with:
 
@@ -267,8 +126,7 @@ Replace it with:
         let end = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 1.0));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 Xform::orthographic(-w, w, -h, h, -depth_range, depth_range)
@@ -279,8 +137,6 @@ Replace it with:
 
     pub fn uniform(&self) -> [f32; 16] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -316,8 +172,7 @@ Replace it with:
     pub fn uniform(&self) -> [f32; 16] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             aspect: 640.0 / 480.0,
@@ -341,8 +196,6 @@ impl Camera {
         self.distance = self.radius * 1.1 / opening;
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -370,8 +223,7 @@ impl Camera {
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub aspect: f64,
@@ -381,8 +233,6 @@ impl Camera {
 
 impl Default for Camera {
 ```
-
-</details>
 
 Replace it with:
 
@@ -396,8 +246,7 @@ Replace it with:
 impl Default for Camera {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use session_rust::{Point, Quaternion, Vector, Xform};
@@ -637,55 +486,9 @@ mod orthographic_range_tests{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54-camera-01.rs"
-```
-
-```text
---8<-- "journey/code/54-camera-02.rs"
-```
-
-```text
---8<-- "journey/code/54-camera-03.rs"
-```
-
-```text
---8<-- "journey/code/54-camera-04.rs"
-```
-
-```text
---8<-- "journey/code/54-camera-05.rs"
-```
-
-```text
---8<-- "journey/code/54-camera-06.rs"
-```
-
-</details>
-
 ### 2. `src/navigation.rs`
 
 Normalise wheel units and use the current bounded 0.9 zoom steps.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        _ => return None,
-    };
-    let pixels = (delta * unit).clamp(-600.0, 600.0);
-    Some(Action::Zoom((-0.002 * pixels).exp() as f32))
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -693,8 +496,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/54-camera-07.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -702,79 +504,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the preserved wheel, invalid-input and history checks with the current ten-step limit.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-    assert!(wheel(10.0, 99, 480.0).is_none());
-    assert_eq!(distance(f64::MAX, 2), distance(600.0, 0));
-    assert_eq!(distance(-f64::MAX, 2), distance(-600.0, 0));
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/54-camera-08.rs"
 ```
 
-</details>
+**Result after `54-camera`:** Continue the blue Posts layer exercise. This preparation connects one navigation component; the complete canvas and touch exercise comes at the end of54.
 
-</details>
+---
 
 <a id="checkpoint-54aa-view-actions"></a>
 
 ### Step 2 of 18 · Route camera changes without consuming document history (`54aa-view-actions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/18 Visual Trace (54aa-view-actions): Route camera changes without consuming document history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">view action</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserved drawing draft</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current camera</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged document history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current camera</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged document hist…</text>
 </svg>
-</div>
-
-- **Goal:** Route camera changes without consuming document history.
-- **Data Flow Trace:** `view action → preserved drawing draft → current camera → unchanged document history`
-- **Files You Touch:** `src/editor.rs` (*Route camera actions without consuming document history or cancelling a point tool.*)
 
 Connect CSS camera actions while keeping drawing tools and their previews alive. Fit targets the eligible selection, then falls back to the whole visible scene.
 
-> **Self-Check Question:** *Should wheel zoom cancel a partly drawn line?*  
-> **Answer:** No. A camera change updates the view while keeping the point-tool draft and its source-preserving preview. Document edits still own their own Undo transactions.
-
-- **Hands-On Lab Experiment:** Start a line, change the view, then finish it. Fit a selected object and compare its source and document history.
-
-<details>
-<summary>Implementation 54aa-view-actions: Route camera changes without consuming document history</summary>
-
-Route camera changes without consuming document history.
-
-Data flow: view action → preserved drawing draft → current camera → unchanged document history.
+> **Check:** *Should wheel zoom cancel a partly drawn line?* — No. A camera change updates the view while keeping the point-tool draft and its source-preserving preview. Document edits still own their own Undo transactions.
 
 ### 1. `src/editor.rs`
 
@@ -782,8 +551,7 @@ Route camera actions without consuming document history or cancelling a point to
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     }
@@ -794,8 +562,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     _ => unreachable!("Document actions were handled above"),
                 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -809,8 +575,7 @@ Replace it with:
                 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                         self.camera.grid = settings;
@@ -826,8 +591,6 @@ Replace it with:
                         }
                     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -848,8 +611,7 @@ Replace it with:
                     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
@@ -861,8 +623,6 @@ Replace it with:
         self.gizmo_hover=None;
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -877,8 +637,7 @@ Replace it with:
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -888,8 +647,6 @@ pub enum Action {
     LayerProperty {key:String,property:crate::layer_properties::Property},
     TreePick {ids:Vec<ObjectId>,additive:bool},
 ```
-
-</details>
 
 Replace it with:
 
@@ -903,8 +660,7 @@ pub enum Action {
     TreePick {ids:Vec<ObjectId>,additive:bool},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1594,122 +1350,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54aa-view-actions-01.rs"
-```
-
-```text
---8<-- "journey/code/54aa-view-actions-02.rs"
-```
-
-```text
---8<-- "journey/code/54aa-view-actions-03.rs"
-```
-
-```text
---8<-- "journey/code/54aa-view-actions-04.rs"
-```
-
-```text
---8<-- "journey/code/54aa-view-actions-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54a-selection"></a>
 
 ### Step 3 of 18 · Apply visible selection and modifier precedence (`54a-selection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/18 Visual Trace (54a-selection): Apply visible selection and modifier precedence</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/shortcuts.rs, src/object_selection.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canvas-owned shortcut</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">live eligibility</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique ordered selection</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">preserved source</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/shortcuts.rs, src/obj…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unique ordered selection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserved source</text>
 </svg>
-</div>
-
-- **Goal:** Apply visible selection and modifier precedence.
-- **Data Flow Trace:** `canvas-owned shortcut → live eligibility → unique ordered selection → preserved source`
-- **Files You Touch:** `src/shortcuts.rs` (*Add field-aware Select All alongside the already taught history and H/S/F keys.*) · `src/object_selection.rs` (*Remove unique identities while retaining current eligibility and pick order.*) · `src/editor.rs` (*Apply modifier selection as presentation and keep Select All out of document Undo.*)
 
 Teach Ctrl/Cmd+A while keeping focused fields in control. Remove takes precedence over adding, and current view flags decide eligibility.
 
-> **Self-Check Question:** *What does Ctrl plus Shift do when a selection ends?*  
-> **Answer:** Ctrl/Cmd removes. It takes precedence over Shift adding. Focused name and number fields keep their own Ctrl/Cmd+A; an empty command field forwards it to scene selection.
-
-- **Hands-On Lab Experiment:** Select all, lock one object, select all again, then remove an object. Compare original source identities and geometry.
-
-<details>
-<summary>Implementation 54a-selection: Apply visible selection and modifier precedence</summary>
-
-Apply visible selection and modifier precedence.
-
-Data flow: canvas-owned shortcut → live eligibility → unique ordered selection → preserved source.
+> **Check:** *What does Ctrl plus Shift do when a selection ends?* — Ctrl/Cmd removes. It takes precedence over Shift adding. Focused name and number fields keep their own Ctrl/Cmd+A; an empty command field forwards it to scene selection.
 
 ### 1. `src/shortcuts.rs`
 
 Add field-aware Select All alongside the already taught history and H/S/F keys.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Shortcut { Undo, Redo, Fit, Hide, Show, Delete }
-
-impl Shortcut {
-    pub fn command(self) -> &'static str {
-        match self { Self::Undo => "Undo", Self::Redo => "Redo", Self::Fit => "Fit", Self::Hide=>"Hide",Self::Show=>"Show",Self::Delete=>"Delete" }
-    }
-}
-
-pub fn key(text: &str, command: bool, shift: bool, alt: bool, composing: bool,
-    focused: bool, text_empty: bool) -> Option<Shortcut> {
-    if alt || composing { return None; }
-    if command {
-        if focused && !text_empty { return None; }
-        match text.to_ascii_lowercase().as_str() {
-            "z" if shift => Some(Shortcut::Redo),
-            "z" => Some(Shortcut::Undo),
-            "y" => Some(Shortcut::Redo),
-            _ => None,
-        }
-    } else if !focused {match text.to_ascii_lowercase().as_str() {"f"=>Some(Shortcut::Fit),"h"=>Some(Shortcut::Hide),"s"=>Some(Shortcut::Show),"delete"=>Some(Shortcut::Delete),_=>None}}
-    else {None}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1746,40 +1422,9 @@ pub fn context_key(context:&egui::Context,command_text:&str,text:&str,command:bo
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54a-selection-01.rs"
-```
-
-```text
---8<-- "journey/code/54a-selection-02.rs"
-```
-
-```text
---8<-- "journey/code/54a-selection-03.rs"
-```
-
-</details>
-
 ### 2. `src/object_selection.rs`
 
 Remove unique identities while retaining current eligibility and pick order.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    pub fn retain(&mut self, scene: &Scene) { self.order.retain(|id| scene.pick_id(id.value()).is_some()); }
-    pub fn rows(&self) -> &[ObjectId] { &self.order }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1793,8 +1438,7 @@ Apply modifier selection as presentation and keep Select All out of document Und
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::SelectAll => {
@@ -1806,8 +1450,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let target = target.filter(|target| target.valid(&self.scene));
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1820,8 +1462,7 @@ Replace it with:
                 let target = target.filter(|target| target.valid(&self.scene));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
@@ -1831,8 +1472,6 @@ Replace it with:
         let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
         let mut change=self.apply_action(action)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1846,8 +1485,7 @@ Replace it with:
         let mut change=self.apply_action(action)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.selected_part = None; self.objects.set(&self.scene, rows, additive); self.selected = self.objects.primary();
@@ -1857,8 +1495,6 @@ Replace it with:
         if self.objects.primary() == self.selected && self.selected_part.is_none() {
             self.objects.retain(&self.scene); self.selected = self.objects.primary();
 ```
-
-</details>
 
 Replace it with:
 
@@ -1876,8 +1512,7 @@ Replace it with:
             self.objects.retain(&self.scene); self.selected = self.objects.primary();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1887,8 +1522,6 @@ pub enum Action {
     LayerEdit {key:String,edit:crate::layer_edit::Edit},
     LayerProperty {key:String,property:crate::layer_properties::Property},
 ```
-
-</details>
 
 Replace it with:
 
@@ -1902,8 +1535,7 @@ pub enum Action {
     LayerProperty {key:String,property:crate::layer_properties::Property},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2600,83 +2232,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54a-selection-05.rs"
-```
-
-```text
---8<-- "journey/code/54a-selection-06.rs"
-```
-
-```text
---8<-- "journey/code/54a-selection-07.rs"
-```
-
-```text
---8<-- "journey/code/54a-selection-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54b-finger"></a>
 
 ### Step 4 of 18 · Keep touch handles reachable without enlarging them (`54b-finger`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/18 Visual Trace (54b-finger): Keep touch handles reachable without enlarging them</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS finger cursor</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">18-pixel reach</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original handle</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged drawn geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original handle</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged drawn geometry</text>
 </svg>
-</div>
-
-- **Goal:** Keep touch handles reachable without enlarging them.
-- **Data Flow Trace:** `CSS finger cursor → 18-pixel reach → original handle → unchanged drawn geometry`
-- **Files You Touch:** `src/editor.rs` (*Choose a finger hit aperture before starting the existing source-preserving handle preview.*)
 
 Use the existing handle hit test with a wider finger aperture while preserving its constant drawn size.
 
-> **Self-Check Question:** *Does the larger touch aperture scale the drawn handle?*  
-> **Answer:** No. The hit reach changes from eight to eighteen CSS pixels. The rendered axis and ball sizes remain unchanged.
-
-- **Hands-On Lab Experiment:** Compare mouse and finger reach around a scale ball; confirm that both begin the same precise handle preview.
-
-<details>
-<summary>Implementation 54b-finger: Keep touch handles reachable without enlarging them</summary>
-
-Keep touch handles reachable without enlarging them.
-
-Data flow: CSS finger cursor → 18-pixel reach → original handle → unchanged drawn geometry.
+> **Check:** *Does the larger touch aperture scale the drawn handle?* — No. The hit reach changes from eight to eighteen CSS pixels. The rendered axis and ball sizes remain unchanged.
 
 ### 1. `src/editor.rs`
 
@@ -2684,8 +2271,7 @@ Choose a finger hit aperture before starting the existing source-preserving hand
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::Hide=>{let ids=self.scene.with_descendants(&self.selected_objects());std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids,true);self.select_objects([],false);self.snap_index=None;return Ok(Change::Preview);},
@@ -2695,8 +2281,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
             Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2710,8 +2294,7 @@ Replace it with:
             Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2723,8 +2306,6 @@ Replace it with:
         self.gizmo_hover=None;
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2739,8 +2320,7 @@ Replace it with:
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2752,8 +2332,6 @@ Replace it with:
         let preview=crate::gizmo_edit::Preview::new(&self.scene,self.selected_objects(),self.selection().filter(|_|self.selected_part.is_some()))?;
         let ray=self.camera.ray(screen).ok_or("Invalid handle ray")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2772,8 +2350,7 @@ Replace it with:
         let ray=self.camera.ray(screen).ok_or("Invalid handle ray")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
@@ -2789,8 +2366,6 @@ Replace it with:
 
     pub fn number_prompt(&self,size:[f64;2])->Option<crate::number_box::NumberPrompt> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2811,8 +2386,7 @@ Replace it with:
     pub fn number_prompt(&self,size:[f64;2])->Option<crate::number_box::NumberPrompt> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     LayerProperty {key:String,property:crate::layer_properties::Property},
@@ -2822,8 +2396,6 @@ Replace it with:
     GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
     GizmoCancel,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2837,8 +2409,7 @@ Replace it with:
     GizmoCancel,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3543,87 +3114,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54b-finger-01.rs"
-```
-
-```text
---8<-- "journey/code/54b-finger-02.rs"
-```
-
-```text
---8<-- "journey/code/54b-finger-03.rs"
-```
-
-```text
---8<-- "journey/code/54b-finger-04.rs"
-```
-
-```text
---8<-- "journey/code/54b-finger-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54c-rectangle"></a>
 
 ### Step 5 of 18 · Distinguish window and crossing rectangles (`54c-rectangle`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/18 Visual Trace (54c-rectangle): Distinguish window and crossing rectangles</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/rect_select.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drag direction</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered bounds</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">f64 projection</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">segment clipping</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/rect_select.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">f64 projection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">segment clipping</text>
 </svg>
-</div>
-
-- **Goal:** Distinguish window and crossing rectangles.
-- **Data Flow Trace:** `drag direction → ordered bounds → f64 projection → segment clipping`
-- **Files You Touch:** `src/rect_select.rs` (*Define finite rectangles, direction, point containment, segment clipping and CSS projection.*) · `src/lib.rs` (*Register the source component.*)
 
 Track drag direction independently of ordered bounds, project original world points in CSS pixels and clip segments against the rectangle.
 
-> **Self-Check Question:** *Can a crossing find a line when both endpoints are outside?*  
-> **Answer:** Yes. Segment clipping finds an intersection with the rectangle even when neither endpoint lies inside. A window still requires every projected sample inside.
-
-- **Hands-On Lab Experiment:** Drag the same rectangle in opposite directions around the middle of a long line. Compare its window and crossing results.
-
-<details>
-<summary>Implementation 54c-rectangle: Distinguish window and crossing rectangles</summary>
-
-Distinguish window and crossing rectangles.
-
-Data flow: drag direction → ordered bounds → f64 projection → segment clipping.
+> **Check:** *Can a crossing find a line when both endpoints are outside?* — Yes. Segment clipping finds an intersection with the rectangle even when neither endpoint lies inside. A window still requires every projected sample inside.
 
 ### 1. `src/rect_select.rs`
 
@@ -3639,89 +3161,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod layer_ui_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/54c-rectangle-02.rs" skip=33
 ```
 
-</details>
+---
 
 <a id="checkpoint-54d-samples"></a>
 
 ### Step 6 of 18 · Select original projected geometry in one source pass (`54d-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/18 Visual Trace (54d-samples): Select original projected geometry in one source pass</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/rect_select.rs, src/rect_select_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected points and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">strokes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordered unique identities</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/rect_select.rs, src/r…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">projected points and st…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered unique identiti…</text>
 </svg>
-</div>
-
-- **Goal:** Select original projected geometry in one source pass.
-- **Data Flow Trace:** `eligible source → world placement → projected points and strokes → ordered unique identities`
-- **Files You Touch:** `src/rect_select.rs` (*Collect original mesh vertices and boundary strokes plus precise line, path and point samples.*) · `src/rect_select_tests.rs` (*Copy direction, segment, projection, mixed-geometry and current-eligibility checks.*) · `src/lib.rs` (*Register the source component.*)
 
 Test the precise original geometry already taught and exclude hidden, locked and read-only owners before collecting samples.
 
-> **Self-Check Question:** *Why avoid searching all rows again for each candidate identity?*  
-> **Answer:** It makes rectangle selection quadratic in the number of objects. One pass per geometry lane preserves original precision and checks each eligible owner directly.
-
-- **Hands-On Lab Experiment:** Select a line and point in a small rectangle, lock the point, hide the line, and compare all three results.
-
-<details>
-<summary>Implementation 54d-samples: Select original projected geometry in one source pass</summary>
-
-Select original projected geometry in one source pass.
-
-Data flow: eligible source → world placement → projected points and strokes → ordered unique identities.
+> **Check:** *Why avoid searching all rows again for each candidate identity?* — It makes rectangle selection quadratic in the number of objects. One pass per geometry lane preserves original precision and checks each eligible owner directly.
 
 ### 1. `src/rect_select.rs`
 
 Collect original mesh vertices and boundary strokes plus precise line, path and point samples.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let point=[(clip(0)/w+1.)*size[0]/2.,(1.-clip(1)/w)*size[1]/2.];point.iter().all(|value|value.is_finite()).then_some(point)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3729,8 +3210,7 @@ After that block, type:
 --8<-- "journey/code/54d-samples-01.rs" skip=131
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3744,10 +3224,7 @@ Copy this supplied file:
 --8<-- "journey/code/54d-samples-02.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3755,80 +3232,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod rect_select;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/54d-samples-03.rs" skip=22
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54e-drag"></a>
 
 ### Step 7 of 18 · Freeze a released drag until its pick answers (`54e-drag`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/18 Visual Trace (54e-drag): Freeze a released drag until its pick answers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/canvas_drag.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">press probe</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cursor updates</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">frozen release</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">late hit or miss</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/canvas_drag.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">frozen release</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one result</text>
 </svg>
-</div>
-
-- **Goal:** Freeze a released drag until its pick answers.
-- **Data Flow Trace:** `press probe → cursor updates → frozen release → late hit or miss → one result`
-- **Files You Touch:** `src/canvas_drag.rs` (*Store the captured drag and a fixed world plane without changing original geometry.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep the press, current cursor, release modifiers and source-preserving preview. A late hit moves by the entire drag; a late miss finishes rectangle selection.
 
-> **Self-Check Question:** *What survives when release comes before the pick answer?*  
-> **Answer:** The release cursor and its modifiers. A hit commits the full movement once; a miss applies the rectangle using those release modifiers. A new press discards the old request.
-
-- **Hands-On Lab Experiment:** Compare hit and miss answers while held and after release; then cancel before either answer arrives.
-
-<details>
-<summary>Implementation 54e-drag: Freeze a released drag until its pick answers</summary>
-
-Freeze a released drag until its pick answers.
-
-Data flow: press probe → cursor updates → frozen release → late hit or miss → one result.
+> **Check:** *What survives when release comes before the pick answer?* — The release cursor and its modifiers. A hit commits the full movement once; a miss applies the rectangle using those release modifiers. A new press discards the old request.
 
 ### 1. `src/canvas_drag.rs`
 
@@ -3844,74 +3285,44 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod rect_select_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/54e-drag-02.rs" skip=36
 ```
 
-</details>
+---
 
 <a id="checkpoint-54f-drag-state"></a>
 
 ### Step 8 of 18 · Own drag previews outside document history (`54f-drag-state`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/18 Visual Trace (54f-drag-state): Own drag previews outside document history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">saved scene</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared preview baseline</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display scene</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked final commit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">display scene</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked final commit</text>
 </svg>
-</div>
-
-- **Goal:** Own drag previews outside document history.
-- **Data Flow Trace:** `saved scene → shared preview baseline → display scene → checked final commit`
-- **Files You Touch:** `src/editor.rs` (*Prepare captured drag state, presentation ownership and the checked commit or rectangle finish.*)
 
 Include drag previews in display and memory ownership while keeping the saved scene unchanged until commit.
 
-> **Self-Check Question:** *Does moving a held preview change the saved placement?*  
-> **Answer:** No. The preview shares original geometry and owns temporary placements. Only a successful release or late released hit commits one history transaction.
-
-- **Hands-On Lab Experiment:** Watch temporary display placements, cancel, and verify saved geometry, placements and redo remain unchanged.
-
-<details>
-<summary>Implementation 54f-drag-state: Own drag previews outside document history</summary>
-
-Own drag previews outside document history.
-
-Data flow: saved scene → shared preview baseline → display scene → checked final commit.
+> **Check:** *Does moving a held preview change the saved placement?* — No. The preview shares original geometry and owns temporary placements. Only a successful release or late released hit commits one history transaction.
 
 ### 1. `src/editor.rs`
 
@@ -3919,8 +3330,7 @@ Prepare captured drag state, presentation ownership and the checked commit or re
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else {self.select_objects(ids,add);}
@@ -3930,8 +3340,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if self.objects.primary() == self.selected && self.selected_part.is_none() {
             self.objects.retain(&self.scene); self.selected = self.objects.primary();
 ```
-
-</details>
 
 Replace it with:
 
@@ -3952,8 +3360,7 @@ Replace it with:
             self.objects.retain(&self.scene); self.selected = self.objects.primary();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3964,8 +3371,6 @@ Replace it with:
 
     pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3979,8 +3384,7 @@ Replace it with:
     pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3995,8 +3399,6 @@ impl Editor {
         if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
-
-</details>
 
 Replace it with:
 
@@ -4014,8 +3416,7 @@ impl Editor {
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -4026,8 +3427,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4041,8 +3440,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -4052,8 +3450,6 @@ pub struct Editor {
     gizmo_hover:Option<crate::gizmo::Handle>,
     pub edit_preview: Option<crate::edit_preview::Preview>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4067,8 +3463,7 @@ pub struct Editor {
     pub edit_preview: Option<crate::edit_preview::Preview>,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4080,8 +3475,6 @@ pub enum Action {
     LayerProperty {key:String,property:crate::layer_properties::Property},
     TreePick {ids:Vec<ObjectId>,additive:bool},
 ```
-
-</details>
 
 Replace it with:
 
@@ -4101,8 +3494,7 @@ pub enum Action {
     TreePick {ids:Vec<ObjectId>,additive:bool},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4821,109 +4213,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54f-drag-state-01.rs"
-```
-
-```text
---8<-- "journey/code/54f-drag-state-02.rs"
-```
-
-```text
---8<-- "journey/code/54f-drag-state-03.rs"
-```
-
-```text
---8<-- "journey/code/54f-drag-state-04.rs"
-```
-
-```text
---8<-- "journey/code/54f-drag-state-05.rs"
-```
-
-```text
---8<-- "journey/code/54f-drag-state-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54g-drag-actions"></a>
 
 ### Step 9 of 18 · Apply held released and cancelled drag outcomes (`54g-drag-actions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/18 Visual Trace (54g-drag-actions): Apply held released and cancelled drag outcomes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked drag action</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preserved pending pick</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">late answer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">precise commit or</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rectangle</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">late answer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">precise commit or recta…</text>
 </svg>
-</div>
-
-- **Goal:** Apply held released and cancelled drag outcomes.
-- **Data Flow Trace:** `checked drag action → preserved pending pick → late answer → precise commit or rectangle`
-- **Files You Touch:** `src/editor.rs` (*Route captured drag actions, commit whole movement and invalidate snap caches after a document change.*)
 
 Update only the captured preview. Keep unanswered picks alive through movement and release, and discard previews on ordinary command or view changes.
 
-> **Self-Check Question:** *Why must pending movement return a view change rather than upload a scene?*  
-> **Answer:** Uploading the unchanged scene invalidates its pending pick. A pending drag only updates cursor state. A real placement preview can update display after its answer arrives.
-
-- **Hands-On Lab Experiment:** Release before answering, move the cursor again, then deliver the answer. Verify it uses the frozen release and one Undo restores the source placement.
-
-<details>
-<summary>Implementation 54g-drag-actions: Apply held released and cancelled drag outcomes</summary>
-
-Apply held released and cancelled drag outcomes.
-
-Data flow: checked drag action → preserved pending pick → late answer → precise commit or rectangle.
+> **Check:** *Why must pending movement return a view change rather than upload a scene?* — Uploading the unchanged scene invalidates its pending pick. A pending drag only updates cursor state. A real placement preview can update display after its answer arrives.
 
 ### 1. `src/editor.rs`
 
 Route captured drag actions, commit whole movement and invalidate snap caches after a document change.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {Action::SelectRows {ids,add,remove}=>{self.select_rows(ids,add,remove);return Ok(Change::View);},_=>{}}
-        let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoTouch {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::ZoomAt {..}|Action::PanScreen {..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
-        let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoTouch {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4931,154 +4256,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/54g-drag-actions-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-54h-mouse"></a>
 
 ### Step 10 of 18 · Capture mouse gestures in CSS pixels (`54h-mouse`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/18 Visual Trace (54h-mouse): Capture mouse gestures in CSS pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gesture.rs, src/gesture_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">captured pointer</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">four-pixel slop</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">orbit pan or probe</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gesture.rs, src/gestu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">orbit pan or probe</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked release</text>
 </svg>
-</div>
-
-- **Goal:** Capture mouse gestures in CSS pixels.
-- **Data Flow Trace:** `captured pointer → four-pixel slop → orbit pan or probe → checked release`
-- **Files You Touch:** `src/gesture.rs` (*Keep captured pointer ownership, full first delta, mouse navigation and released probes.*) · `src/gesture_tests.rs` (*Copy all preserved captured-pointer, CSS, cancellation and view-history checks for the new probe and middle pan.*)
 
 Use four-pixel slop before orbit or selection probes. Middle drag and Ctrl/Cmd-right drag pan; an unmoved right click requests command repetition.
 
-> **Self-Check Question:** *Can returning to the press turn a drag back into a click?*  
-> **Answer:** No. Once movement crosses the slop it remains a drag. Only the captured pointer may update or release it.
-
-- **Hands-On Lab Experiment:** Move right past the slop then back to the start. Confirm no command repeats; test middle pan and Ctrl-right pan separately.
-
-<details>
-<summary>Implementation 54h-mouse: Capture mouse gestures in CSS pixels</summary>
-
-Capture mouse gestures in CSS pixels.
-
-Data flow: captured pointer → four-pixel slop → orbit pan or probe → checked release.
+> **Check:** *Can returning to the press turn a drag back into a click?* — No. Once movement crosses the slop it remains a drag. Only the captured pointer may update or release it.
 
 ### 1. `src/gesture.rs`
 
 Keep captured pointer ownership, full first delta, mouse navigation and released probes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Debug, PartialEq)]
-pub enum Motion {
-    Pick([f64; 2]),
-    Orbit([f64; 2]),
-}
-
-impl Motion {
-    pub fn action(self, rect: [f64; 4]) -> Option<Action> {
-        let [left, top, width, height] = rect;
-        if rect.iter().any(|n| !n.is_finite()) || width <= 0.0 || height <= 0.0 {
-            return None;
-        }
-        Some(match self {
-            Self::Pick([x, y]) => Action::Pick([
-                (2.0 * (x - left) / width - 1.0) as f32,
-                (1.0 - 2.0 * (y - top) / height) as f32,
-            ]),
-            Self::Orbit([dx, dy]) => Action::Orbit(
-                -std::f64::consts::PI * dx / width,
-                -std::f64::consts::PI * dy / height,
-            ),
-        })
-    }
-}
-
-struct Drag {
-    id: i32,
-    button: i16,
-    start: [f64; 2],
-    last: [f64; 2],
-    moved: bool,
-}
-
-#[derive(Default)]
-pub struct Gesture {
-    active: Option<Drag>,
-}
-
-impl Gesture {
-    pub fn press(&mut self, id: i32, button: i16, position: [f64; 2]) -> bool {
-        if self.active.is_some() || !matches!(button, 0 | 2)
-            || position.iter().any(|n| !n.is_finite()) {
-            return false;
-        }
-        self.active = Some(Drag { id, button, start: position, last: position, moved: false });
-        true
-    }
-
-    pub fn move_to(&mut self, id: i32, position: [f64; 2]) -> Option<Motion> {
-        let drag = self.active.as_mut().filter(|drag| drag.id == id)?;
-        if position.iter().any(|n| !n.is_finite()) {
-            return None;
-        }
-        let delta = [position[0] - drag.last[0], position[1] - drag.last[1]];
-        drag.last = position;
-        let distance = (position[0] - drag.start[0]).hypot(position[1] - drag.start[1]);
-        // Once a press becomes a drag, returning to its start must not turn it into a click.
-        drag.moved |= distance > 4.0;
-        (drag.button == 2 && delta != [0.0, 0.0]).then_some(Motion::Orbit(delta))
-    }
-
-    pub fn release(&mut self, id: i32, position: [f64; 2]) -> Option<Motion> {
-        if self.active.as_ref()?.id != id {
-            return None;
-        }
-        let last_motion = self.move_to(id, position);
-        let drag = self.active.take()?;
-        if drag.button == 2 {
-            return last_motion;
-        }
-        (!drag.moved && position.iter().all(|n| n.is_finite()))
-            .then_some(Motion::Pick(position))
-    }
-
-    pub fn cancel(&mut self) {
-        self.active = None;
-    }
-
-    pub fn cancel_pointer(&mut self, id: i32) {
-        if self.active.as_ref().is_some_and(|drag| drag.id == id) {
-            self.cancel();
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5086,8 +4299,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/54h-mouse-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5095,36 +4307,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy all preserved captured-pointer, CSS, cancellation and view-history checks for the new probe and middle pan.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-#[test]
-fn a_click_selects_but_a_left_drag_does_not() {
-    let mut input = Gesture::default();
-    assert!(input.press(1, 0, [10.0, 20.0]));
-    assert_eq!(input.release(1, [12.0, 20.0]), Some(Motion::Pick([12.0, 20.0])));
-    input.press(1, 0, [10.0, 20.0]);
-    assert_eq!(input.move_to(1, [20.0, 20.0]), None);
-    assert_eq!(input.release(1, [10.0, 20.0]), None);
-    input.press(1, 0, [10.0, 20.0]);
-    assert_eq!(input.release(1, [30.0, 20.0]), None);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/54h-mouse-02.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5132,80 +4321,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy all preserved captured-pointer, CSS, cancellation and view-history checks for the new probe and middle pan.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    input.cancel();
-    assert_eq!(input.move_to(2, [20.0, 0.0]), None);
-    assert!(!input.press(1, 1, [0.0, 0.0]));
-    assert!(!input.press(1, 0, [f64::NAN, 0.0]));
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/54h-mouse-03.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54i-touch"></a>
 
 ### Step 11 of 18 · Orbit with one finger and pan pinch with two (`54i-touch`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/18 Visual Trace (54i-touch): Orbit with one finger and pan pinch with two</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/touch.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">touch identities</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one-finger orbit</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">two-finger centre and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">distance</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordered camera actions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/touch.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">two-finger centre and d…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered camera actions</text>
 </svg>
-</div>
-
-- **Goal:** Orbit with one finger and pan pinch with two.
-- **Data Flow Trace:** `touch identities → one-finger orbit → two-finger centre and distance → ordered camera actions`
-- **Files You Touch:** `src/touch.rs` (*Track active fingers, CSS orbit and ordered two-finger camera changes.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep touch identities, cancel first-finger editing when another finger arrives and apply pan before cursor-centred pinch zoom.
 
-> **Self-Check Question:** *What happens when one finger lifts after a pinch?*  
-> **Answer:** The remaining finger does not start a new orbit or select. The gesture waits until all fingers have lifted before accepting a new one-finger action.
-
-- **Hands-On Lab Experiment:** Move one finger, add another, pan and pinch, then lift one. Verify the remaining finger cannot begin an unintended orbit.
-
-<details>
-<summary>Implementation 54i-touch: Orbit with one finger and pan pinch with two</summary>
-
-Orbit with one finger and pan pinch with two.
-
-Data flow: touch identities → one-finger orbit → two-finger centre and distance → ordered camera actions.
+> **Check:** *What happens when one finger lifts after a pinch?* — The remaining finger does not start a new orbit or select. The gesture waits until all fingers have lifted before accepting a new one-finger action.
 
 ### 1. `src/touch.rs`
 
@@ -5221,90 +4374,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod canvas_drag;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/54i-touch-02.rs" skip=22
 ```
 
-</details>
+---
 
 <a id="checkpoint-54j-taps"></a>
 
 ### Step 12 of 18 · Finish taps double taps and touch cancellation (`54j-taps`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/18 Visual Trace (54j-taps): Finish taps double taps and touch cancellation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/touch.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">touch release</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">time and movement limits</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">tap or nearby double tap</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">all-fingers reset</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/touch.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">tap or nearby double tap</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">all-fingers reset</text>
 </svg>
-</div>
-
-- **Goal:** Finish taps double taps and touch cancellation.
-- **Data Flow Trace:** `touch release → time and movement limits → tap or nearby double tap → all-fingers reset`
-- **Files You Touch:** `src/touch.rs` (*Finish taps, nearby double-tap Fit and all-finger cancellation without changing document history.*)
 
 Use bounded tap time and distance, fit on a nearby double tap and clear all touch ownership when cancelled.
 
-> **Self-Check Question:** *Can a cancelled touch select when its release arrives later?*  
-> **Answer:** No. Cancellation removes every captured finger and the remembered tap. A later release has no gesture to finish.
-
-- **Hands-On Lab Experiment:** Tap to select, double tap nearby to fit, then cancel a touch before release and verify selection remains unchanged.
-
-<details>
-<summary>Implementation 54j-taps: Finish taps double taps and touch cancellation</summary>
-
-Finish taps double taps and touch cancellation.
-
-Data flow: touch release → time and movement limits → tap or nearby double tap → all-fingers reset.
+> **Check:** *Can a cancelled touch select when its release arrives later?* — No. Cancellation removes every captured finger and the remembered tap. A later release has no gesture to finish.
 
 ### 1. `src/touch.rs`
 
 Finish taps, nearby double-tap Fit and all-finger cancellation without changing document history.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if first>1.&&last>1. {if let Some(Action::Pick(screen))=Motion::Pick(after).action(rect) {actions.push(Action::ZoomAt {factor:(last/first).clamp(0.1,10.) as f32,screen});}}actions
-    }
-    pub fn contains(&self,id:i32)->bool {self.fingers.iter().any(|f|f.id==id)}
-    pub fn count(&self)->usize {self.fingers.len()}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5312,59 +4423,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/54j-taps-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-54k-overlay"></a>
 
 ### Step 13 of 18 · Draw a thin selection rectangle above the canvas (`54k-overlay`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/18 Visual Trace (54k-overlay): Draw a thin selection rectangle above the canvas</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drag bounds</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">grey overlay</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">solid window or dashed</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">crossing</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">panel-free frame</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">solid window or dashed…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">panel-free frame</text>
 </svg>
-</div>
-
-- **Goal:** Draw a thin selection rectangle above the canvas.
-- **Data Flow Trace:** `drag bounds → grey overlay → solid window or dashed crossing → panel-free frame`
-- **Files You Touch:** `src/panel.rs` (*Draw the non-pickable overlay, measure free canvas and obtain a repeated command from dock history.*)
 
 Draw one-CSS-pixel grey outlines with a light fill. Crossing uses dashes. Keep the overlay presentation-only and measure the panel-free canvas.
 
-> **Self-Check Question:** *Does the rectangle enter source geometry or document Undo?*  
-> **Answer:** No. It is a presentation overlay. Its bounds are CSS pixels and its direction changes only the outline style and selection rule.
-
-- **Hands-On Lab Experiment:** Compare solid and dashed rectangles at DPR1 and DPR2. Open Layers and confirm the camera uses the remaining canvas space.
-
-<details>
-<summary>Implementation 54k-overlay: Draw a thin selection rectangle above the canvas</summary>
-
-Draw a thin selection rectangle above the canvas.
-
-Data flow: drag bounds → grey overlay → solid window or dashed crossing → panel-free frame.
+> **Check:** *Does the rectangle enter source geometry or document Undo?* — No. It is a presentation overlay. Its bounds are CSS pixels and its direction changes only the outline style and selection rule.
 
 ### 1. `src/panel.rs`
 
@@ -5372,8 +4462,7 @@ Draw the non-pickable overlay, measure free canvas and obtain a repeated command
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.controls = Some(Vec::new());
@@ -5383,8 +4472,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             crate::number_box::draw(root,&mut self.number,&mut self.controls);
             command_dock::draw(root, &mut self.model, &mut self.controls, &mut line, &self.commands, true);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5408,8 +4495,7 @@ Replace it with:
             command_dock::draw(root, &mut self.model, &mut self.controls, &mut line, &self.commands, true);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         over
@@ -5419,8 +4505,6 @@ Replace it with:
         serde_json::json!({"tree_rect":self.tree.rect.map(|r|[r.min.x,r.min.y,r.max.x,r.max.y]),"tree_open":self.tree.open,"number":self.number.number,"number_error":self.number.number_error,"number_rect":self.number.number_rect.map(|r|[r.min.x,r.min.y,r.max.x,r.max.y]),"controls": self.controls, "command": self.model.command, "history": self.model.history, "status": self.model.status,
             "pointer_owned": self.pointer_owned,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5440,8 +4524,7 @@ Replace it with:
             "pointer_owned": self.pointer_owned,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.context.memory_mut(|memory| memory.surrender_focus(egui::Id::new("command-input")));
@@ -5459,8 +4542,6 @@ Replace it with:
 
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5485,8 +4566,7 @@ Replace it with:
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -5497,8 +4577,6 @@ Replace it with:
             focus_command: true,
             ..Default::default()
 ```
-
-</details>
 
 Replace it with:
 
@@ -5512,8 +4590,7 @@ Replace it with:
             ..Default::default()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -5523,8 +4600,6 @@ pub struct Panel {
     number:crate::number_box::NumberBox,
     commands: Commands,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5538,8 +4613,7 @@ pub struct Panel {
     commands: Commands,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -5835,91 +4909,38 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54k-overlay-01.rs"
-```
-
-```text
---8<-- "journey/code/54k-overlay-02.rs"
-```
-
-```text
---8<-- "journey/code/54k-overlay-03.rs"
-```
-
-```text
---8<-- "journey/code/54k-overlay-04.rs"
-```
-
-```text
---8<-- "journey/code/54k-overlay-05.rs"
-```
-
-```text
---8<-- "journey/code/54k-overlay-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54l-navigation"></a>
 
 ### Step 14 of 18 · Route mouse touch and wheel after panel input (`54l-navigation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/18 Visual Trace (54l-navigation): Route mouse touch and wheel after panel input</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measured UI ownership</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS navigation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pointer capture</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view action</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pointer capture</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">view action</text>
 </svg>
-</div>
-
-- **Goal:** Route mouse touch and wheel after panel input.
-- **Data Flow Trace:** `measured UI ownership → CSS navigation → pointer capture → view action`
-- **Files You Touch:** `src/browser.rs` (*Route real mouse and touch events, cursor-centred wheel and right-click repeat through the existing command path.*)
 
 Route canvas gestures only after UI ownership, keep CSS coordinates independent of device density and focus without scrolling.
 
-> **Self-Check Question:** *Should wheel input over a layer colour popup zoom the drawing?*  
-> **Answer:** No. Measured panels and popups own their pointer and wheel input first. Only unconsumed canvas input changes the camera.
-
-- **Hands-On Lab Experiment:** Scroll over a popup, then over the drawing. Compare camera changes and repeat at DPR1 and DPR2.
-
-<details>
-<summary>Implementation 54l-navigation: Route mouse touch and wheel after panel input</summary>
-
-Route mouse touch and wheel after panel input.
-
-Data flow: measured UI ownership → CSS navigation → pointer capture → view action.
+> **Check:** *Should wheel input over a layer colour popup zoom the drawing?* — No. Measured panels and popups own their pointer and wheel input first. Only unconsumed canvas input changes the camera.
 
 ### 1. `src/browser.rs`
 
@@ -5927,8 +4948,7 @@ Route real mouse and touch events, cursor-centred wheel and right-click repeat t
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         _ => None,
@@ -5939,8 +4959,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 fn resize(
 ```
-
-</details>
 
 Replace it with:
 
@@ -5958,8 +4976,7 @@ Replace it with:
 fn resize(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let position = [pointer.client_x() as f64, pointer.client_y() as f64];
@@ -5970,8 +4987,6 @@ fn resize(
                 let options = web_sys::FocusOptions::new();
                 options.set_prevent_scroll(true);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5985,8 +5000,7 @@ Replace it with:
                 options.set_prevent_scroll(true);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -5997,8 +5011,6 @@ Replace it with:
     event.prevent_default();
     Some(action)
 ```
-
-</details>
 
 Replace it with:
 
@@ -6023,8 +5035,7 @@ Replace it with:
     Some(action)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     event: &web_sys::Event,
@@ -6045,8 +5056,6 @@ Replace it with:
             let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -6068,8 +5077,7 @@ Replace it with:
             let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -6081,8 +5089,6 @@ Replace it with:
         };
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -6095,8 +5101,7 @@ Replace it with:
         };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -6106,8 +5111,6 @@ Replace it with:
             .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
             event.prevent_default(); gesture.cancel(); Some("Escape".into())
 ```
-
-</details>
 
 Replace it with:
 
@@ -6122,8 +5125,7 @@ Replace it with:
             event.prevent_default(); gesture.cancel(); Some("Escape".into())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let browser_window = window.clone();
@@ -6133,8 +5135,6 @@ Replace it with:
     let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
 ```
-
-</details>
 
 Replace it with:
 
@@ -6149,8 +5149,7 @@ Replace it with:
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -6885,103 +5884,38 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54l-navigation-01.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-02.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-03.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-04.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-05.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-06.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-07.rs"
-```
-
-```text
---8<-- "journey/code/54l-navigation-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54m-pick-release"></a>
 
 ### Step 15 of 18 · Retain the press pick through a quick release (`54m-pick-release`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/18 Visual Trace (54m-pick-release): Retain the press pick through a quick release</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">press integer pick</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending cursor</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">frozen release</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked answer</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">move or rectangle</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">frozen release</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">move or rectangle</text>
 </svg>
-</div>
-
-- **Goal:** Retain the press pick through a quick release.
-- **Data Flow Trace:** `press integer pick → pending cursor → frozen release → checked answer → move or rectangle`
-- **Files You Touch:** `src/browser.rs` (*Dispatch late GPU hits to drags, preserve pending picks and route tap points through an active drawing tool.*)
 
 Request the press position once, keep the pending readback through move and release and send its late answer to the captured drag.
 
-> **Self-Check Question:** *Why is a pick requested at the press rather than at release?*  
-> **Answer:** The press decides whether an object was grabbed. Release may lie elsewhere; retaining the original probe gives the correct object move or empty-canvas rectangle.
-
-- **Hands-On Lab Experiment:** Flick from an object and release immediately. Compare its full move with a flick from empty canvas, using release modifiers.
-
-<details>
-<summary>Implementation 54m-pick-release: Retain the press pick through a quick release</summary>
-
-Retain the press pick through a quick release.
-
-Data flow: press integer pick → pending cursor → frozen release → checked answer → move or rectangle.
+> **Check:** *Why is a pick requested at the press rather than at release?* — The press decides whether an object was grabbed. Release may lie elsewhere; retaining the original probe gives the correct object move or empty-canvas rectangle.
 
 ### 1. `src/browser.rs`
 
@@ -6989,8 +5923,7 @@ Dispatch late GPU hits to drags, preserve pending picks and route tap points thr
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     Action::ToolScreen { screen,size:[r.width(),r.height()],commit:false }
@@ -7001,8 +5934,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
                 None
 ```
-
-</details>
 
 Replace it with:
 
@@ -7034,8 +5965,7 @@ Replace it with:
                 None
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             renderer.cancel_pick();gesture.cancel();Some(handle_action)
@@ -7047,8 +5977,6 @@ Replace it with:
             }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -7066,8 +5994,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -7825,75 +6752,38 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54m-pick-release-01.rs"
-```
-
-```text
---8<-- "journey/code/54m-pick-release-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54n-cancellation"></a>
 
 ### Step 16 of 18 · Cancel owned gestures and preserve normal capture release (`54n-cancellation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/18 Visual Trace (54n-cancellation): Cancel owned gestures and preserve normal capture release</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned gesture</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">blur resize or cancel</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">dropped preview</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">no late mutation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">dropped preview</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">no late mutation</text>
 </svg>
-</div>
-
-- **Goal:** Cancel owned gestures and preserve normal capture release.
-- **Data Flow Trace:** `owned gesture → blur resize or cancel → dropped preview → no late mutation`
-- **Files You Touch:** `src/browser.rs` (*Preserve frozen release ownership and choose the larger finger aperture before canvas navigation.*)
 
 Cancel previews on blur, resize and pointer cancellation. Unexpected capture loss cancels a held drag; normal release preserves its unanswered result.
 
-> **Self-Check Question:** *Does every lostpointercapture event cancel a released pending drag?*  
-> **Answer:** No. Pointerup normally releases capture. An already released drag keeps its frozen cursor until its answer arrives. Unexpected capture loss while held cancels it.
-
-- **Hands-On Lab Experiment:** Release a pending drag and deliver its answer after capture loss; then lose capture while held and verify the late result cannot change the source.
-
-<details>
-<summary>Implementation 54n-cancellation: Cancel owned gestures and preserve normal capture release</summary>
-
-Cancel owned gestures and preserve normal capture release.
-
-Data flow: owned gesture → blur resize or cancel → dropped preview → no late mutation.
+> **Check:** *Does every lostpointercapture event cancel a released pending drag?* — No. Pointerup normally releases capture. An already released drag keeps its frozen cursor until its answer arrives. Unexpected capture loss while held cancels it.
 
 ### 1. `src/browser.rs`
 
@@ -7901,8 +6791,7 @@ Preserve frozen release ownership and choose the larger finger aperture before c
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -7915,8 +6804,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7933,8 +6820,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut editor = shared.borrow_mut();
@@ -7951,8 +6837,6 @@ Replace it with:
             event.prevent_default();
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -7977,8 +6861,7 @@ Replace it with:
             event.prevent_default();
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -8744,79 +7627,38 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54n-cancellation-01.rs"
-```
-
-```text
---8<-- "journey/code/54n-cancellation-02.rs"
-```
-
-```text
---8<-- "journey/code/54n-cancellation-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54o-frame"></a>
 
 ### Step 17 of 18 · Expose drag ownership and centre the available drawing (`54o-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/18 Visual Trace (54o-frame): Expose drag ownership and centre the available drawing</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measured panel layout</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">free camera frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">overlay update</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inspectable ownership</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">overlay update</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">inspectable ownership</text>
 </svg>
-</div>
-
-- **Goal:** Expose drag ownership and centre the available drawing.
-- **Data Flow Trace:** `measured panel layout → free camera frame → overlay update → inspectable ownership`
-- **Files You Touch:** `src/browser.rs` (*Expose actual pending drag state, refresh the overlay and cancel a stale camera projection.*)
 
 Update the overlay and camera frame after measured layout. Expose pending and released state for browser checks without fabricating acceptance.
 
-> **Self-Check Question:** *Why cancel a drag when the panel-free frame changes?*  
-> **Answer:** Its press and cursor used a different projection. Cancelling prevents a delayed answer from committing against a newly shifted camera.
-
-- **Hands-On Lab Experiment:** Open and close Layers, fit and compare the camera target with the free canvas. Inspect held and frozen drag state separately.
-
-<details>
-<summary>Implementation 54o-frame: Expose drag ownership and centre the available drawing</summary>
-
-Expose drag ownership and centre the available drawing.
-
-Data flow: measured panel layout → free camera frame → overlay update → inspectable ownership.
+> **Check:** *Why cancel a drag when the panel-free frame changes?* — Its press and cursor used a different projection. Cancelling prevents a delayed answer from committing against a newly shifted camera.
 
 ### 1. `src/browser.rs`
 
@@ -8824,8 +7666,7 @@ Expose actual pending drag state, refresh the overlay and cancel a stale camera 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
@@ -8835,8 +7676,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -8851,8 +7690,7 @@ Replace it with:
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 report(&format!("Cannot lay out commands: {error:?}"));
@@ -8862,8 +7700,6 @@ Replace it with:
                 let r=pointer_canvas.get_bounding_client_rect();
                 ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
 ```
-
-</details>
 
 Replace it with:
 
@@ -8877,8 +7713,7 @@ Replace it with:
                 ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
@@ -8888,8 +7723,6 @@ Replace it with:
         panel.tree.refresh(&editor.scene,editor.selected_objects());
         if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8903,8 +7736,7 @@ Replace it with:
         if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -9674,90 +8506,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/54o-frame-01.rs"
-```
-
-```text
---8<-- "journey/code/54o-frame-02.rs"
-```
-
-```text
---8<-- "journey/code/54o-frame-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-54p-navigation"></a>
 
 ### Step 18 of 18 · Exercise current navigation selection and delayed answers (`54p-navigation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/18 Visual Trace (54p-navigation): Exercise current navigation selection and delayed answers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/navigation_complete_tests.rs, src/lib.rs, src/shortcut_focus_tests.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual input</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current source</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligibility</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending integer</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">answer</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact history</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">two-density browser</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">contract</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/navigation_complete_t…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending integer answer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">two-density browser con…</text>
 </svg>
-</div>
-
-- **Goal:** Exercise current navigation selection and delayed answers.
-- **Data Flow Trace:** `actual input → current source eligibility → pending integer answer → exact history → two-density browser contract`
-- **Files You Touch:** `src/navigation_complete_tests.rs` (*Copy the camera, current eligibility, release, cold-source, touch and repeat regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/shortcut_focus_tests.rs` (*Copy actual egui command, name and popup ownership checks.*) · `src/pick_gpu_tests.rs` (*Copy the actual delayed integer-pick, full released movement, one-Undo and geometry-reuse regression.*)
 
 Copy the preserved and new camera, touch, selection and delayed GPU regressions. Exercise the full canvas contract at two device densities.
 
-> **Self-Check Question:** *What is still needed after native and WebAssembly checks pass?*  
-> **Answer:** Real browser acceptance, including pointer capture and touch event delivery. Native software-GPU checks do not establish Lenovo rotation or zoom performance.
+> **Check:** *What is still needed after native and WebAssembly checks pass?* — Real browser acceptance, including pointer capture and touch event delivery. Native software-GPU checks do not establish Lenovo rotation or zoom performance.
 
-- **What You Should See:** Navigation and delayed selection share the same original drawing and document history. The supplied regressions record the two-density input contract.
-- **Hands-On Lab Experiment:** Load Example Nested, Fit and show Layers All. Compare a left-to-right window with a right-to-left crossing selection, then use Shift to add. Orbit, pan and zoom at the cursor. Release an object drag promptly and Undo its completed move once; touch gestures are an additional device exercise.
-
-<details>
-<summary>Implementation 54p-navigation: Exercise current navigation selection and delayed answers</summary>
-
-Exercise current navigation selection and delayed answers.
-
-Data flow: actual input → current source eligibility → pending integer answer → exact history → two-density browser contract.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9771,10 +8553,7 @@ Copy this supplied file:
 --8<-- "journey/code/54p-navigation-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9782,26 +8561,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod touch;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/54p-navigation-02.rs" skip=16
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9815,10 +8581,7 @@ Copy this supplied file:
 --8<-- "journey/code/54p-navigation-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9826,26 +8589,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod navigation_complete_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/54p-navigation-04.rs" skip=44
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9853,47 +8603,27 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the actual delayed integer-pick, full released movement, one-Undo and geometry-reuse regression.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Rc::make_mut(&mut scene.view).edges.remove(&id);renderer.set_scene(&scene,None);assert_eq!(colour_pixels(&mut renderer),before);assert!(Rc::ptr_eq(&source,scene.objects()[0].geometry().unwrap()));
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/54p-navigation-05.rs" skip=203
 ```
 
-</details>
-
-</details>
+**Result after `54p-navigation`:** Navigation and delayed selection share the same original drawing and document history. The supplied regressions record the two-density input contract.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 54p-navigation
-npm --prefix ../session_tests run course -- check 54p-navigation
-npm --prefix ../session_tests run course -- save 54p-navigation
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 8.4
+npm --prefix ../session_tests run course -- save 8.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 8.4 (54p-navigation)](../../screenshots/journey/54p-navigation.png)
-
-Navigation and delayed selection share the same original drawing and document history. The supplied regressions record the two-density input contract.
-
-- **Final Lesson Experiment:** Load Example Nested, Fit and show Layers All. Compare a left-to-right window with a right-to-left crossing selection, then use Shift to add. Orbit, pan and zoom at the cursor. Release an object drag promptly and Undo its completed move once; touch gestures are an additional device exercise.
+Continue with [9.1 · Original surfaces, analytic normals and trim boundaries](55-validation.md).

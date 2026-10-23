@@ -1,221 +1,99 @@
 # 3.2 · One drawing size and one captured gesture
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.2** (Redraft `3.2`) · **8 checkpoints (`19a-viewport` → `22-shortcuts`)** · **Study time: 6.25–10.5 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `19a-viewport` → `22-shortcuts` (8 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions. By the final checkpoint (`22-shortcuts`), you will normalize wheel input and keep every keyboard feature command in the command dock.
+> **Goal:** Normalize wheel input and keep every keyboard feature command in the command dock.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 3 Visual Explanation: Local Kernel Mesh → 4x4 World Placement, AABB Fit & Incremental GPU Sync</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Local f64 mesh placed in world space by 4x4 matrix M. Center: Transactional .pb decode gate. Right: Dirty-flag GPU sync.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Local Space -> World Placement & AABB -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Local Source → World Placement</text>
-    <!-- Local mesh box at (0,0) -->
-    <rect x="38" y="128" width="54" height="44" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="38" y1="172" x2="98" y2="172" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <line x1="38" y1="172" x2="38" y2="115" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <text x="65" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Local</text>
-    <text x="65" y="186" text-anchor="middle" font-size="9" fill="#111111">(0,0,0) f64</text>
-    <!-- Transform arrow -->
-    <line x1="102" y1="145" x2="152" y2="132" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="127" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">M (4x4)</text>
-    <!-- Placed rotated box inside dashed World AABB -->
-    <rect x="164" y="96" width="108" height="86" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="4,3"/>
-    <polygon points="196,104 260,126 240,174 176,152" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="218" y="194" text-anchor="middle" font-size="9" font-weight="600" fill="#111111">Dashed: World AABB (Fit)</text>
-    <rect x="30" y="204" width="250" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="155" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Cold CPU source dropped after GPU upload;</text>
-    <text x="155" y="229" text-anchor="middle" font-size="9" fill="#111111">re-fetched by SHA/revision only when edited</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Transactional .pb Decode Gate -->
-    <rect x="317" y="64" width="235" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Transactional .pb Gate</text>
-    <rect x="333" y="96" width="203" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="434" y="113" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Async Fetch Ticket #N</text>
-    <text x="434" y="128" text-anchor="middle" font-size="9.5" fill="#111111">Cancels stale #N-1; checks byte cap</text>
-    <line x1="434" y1="138" x2="434" y2="154" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="333" y="156" width="203" height="78" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Atomic Validation Commit</text>
-    <text x="345" y="192" font-size="9.5" fill="#111111">• Valid topology -&gt; Replace Scene</text>
-    <text x="345" y="208" font-size="9.5" fill="#111111">• Corrupt bytes -&gt; Reject cleanly</text>
-    <text x="345" y="223" font-size="9.5" font-weight="600" fill="#111111">  (Zero partial scene corruption!)</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Incremental GPU Sync -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Incremental GPU Sync</text>
-    <rect x="590" y="96" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 1: Camera Orbit / Pan / Fit</text>
-    <text x="602" y="131" font-size="9.5" fill="#111111">• sync_scene = false, redraw = true</text>
-    <text x="602" y="147" font-size="9.5" font-weight="600" fill="#111111">• Writes 64-byte camera uniform ONLY</text>
-    <rect x="590" y="170" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="188" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 2: Mesh / Placement Edit</text>
-    <text x="602" y="205" font-size="9.5" fill="#111111">• sync_scene = true, redraw = true</text>
-    <text x="602" y="221" font-size="9.5" font-weight="600" fill="#111111">• Re-uploads dirty object buffers only</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 3.2 Pipeline Schematic: One drawing size and one captured gesture</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 19a-viewport → 22-shortcuts)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">CSS width and</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">height × display</text>
-    <text x="89" y="140" text-anchor="middle" font-size="11" fill="#111111">density</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">proportional</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">GPU-limit cap</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Viewport</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Wheel</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">navigation_action</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 3.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/viewport.rs  ·  src/lib.rs  ·  src/renderer.rs  ·  src/browser.rs  ·  src/gesture.rs  ·  src/gesture_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 19a-viewport → 22-shortcuts — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Protobuf (.pb)</text>
+  <rect x="46" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <rect x="108" y="64" width="54" height="36" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="170" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="73" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Hdr</text>
+  <text x="135" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Mesh</text>
+  <text x="197" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Xform</text>
+  <rect x="46" y="116" width="178" height="34" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="137" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Guardrail Check ✓</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Binary Decode</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Placed Mesh</text>
+  <polygon points="355,145 415,68 480,145" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="355" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="480" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="415" y1="68" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">session_rust + Mat4</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Incremental Sync</text>
+  <rect x="612" y="62" width="184" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="81" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = false</text>
+  <text x="704" y="96" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Camera Orbit Only (64 B)</text>
+  <rect x="612" y="116" width="184" height="42" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = true</text>
+  <text x="704" y="150" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Upload Dirty Geometry</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Change { sync, redraw }</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
-| **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
-| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
+| **Protobuf** | `session_proto` (`.pb`) | Validated binary `Session` stream with byte/count guardrails. |
+| **Rust (`session_rust`)** | Kernel `Mesh` + `Mat4` Placement | Exact `f64` kernel mesh paired with a `4×4` world placement matrix. |
+| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Camera orbit updates 64B uniform (`sync=false`); edits upload dirty buffers (`sync=true`). |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`19a-viewport`](#checkpoint-19a-viewport) | Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions. | `src/viewport.rs`, `src/lib.rs` | `CSS width and height × display density → proportional GPU-limit cap → Viewport` |
-| **2** | [`20-resize`](#checkpoint-20-resize) | Resize the drawing buffer, depth attachment and camera together, including on dense displays. | `src/renderer.rs`, `src/browser.rs` | `Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw` |
-| **3** | [`20a-press`](#checkpoint-20a-press) | Retain one pointer and produce movement relative to its previous position. | `src/gesture.rs`, `src/gesture_tests.rs`, `src/lib.rs` | `Press → Option<Drag> → matching move → Motion::Orbit` |
-| **4** | [`20b-release`](#checkpoint-20b-release) | Release an owned pointer or cancel it without inventing a click. | `src/gesture.rs`, `src/gesture_tests.rs` | `Release → final move → take stored Drag → click or orbit; cancel → no active drag` |
-| **5** | [`20c-motion`](#checkpoint-20c-motion) | Convert CSS pointer coordinates and movement into existing Pick and Orbit actions. | `src/gesture.rs`, `src/gesture_tests.rs` | `Motion + CSS rectangle → Action → Editor → selection or view change` |
-| **6** | [`21-gestures`](#checkpoint-21-gestures) | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. | `Cargo.toml`, `src/browser.rs` | `DOM pointer → Gesture → Motion::action → Editor → redraw` |
-| **7** | [`21a-wheel`](#checkpoint-21a-wheel) | Normalize pixels, lines and pages to bounded camera zoom without adding document history. | `src/navigation.rs`, `src/navigation_tests.rs`, `src/lib.rs` | `Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom` |
-| **8** | [`22-shortcuts`](#checkpoint-22-shortcuts) | Normalize wheel input and keep every keyboard feature command in the command dock. | `Cargo.toml`, `src/browser.rs` | `Wheel → navigation_action → Editor; printable key → command dock → typed Action` |
+![Recorded visual output for Lesson 3.2 (22-shortcuts)](../../../screenshots/journey/22-shortcuts-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-19a-viewport"></a>
 
 ### Step 1 of 8 · Measure a safe drawing size (`19a-viewport`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (19a-viewport): Measure a safe drawing size</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/viewport.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS width and height × display</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">proportional GPU-limit cap</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Viewport</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/viewport.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">proportional GPU-limit…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Viewport</text>
 </svg>
-</div>
-
-- **Goal:** Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
-- **Data Flow Trace:** `CSS width and height × display density → proportional GPU-limit cap → Viewport`
-- **Files You Touch:** `src/viewport.rs` (*Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies.*) · `src/lib.rs` (*Make the size calculation usable by browser code and Rust tests.*)
 
 Viewport converts CSS size and display density to GPU pixel dimensions. Reduce both dimensions together when they exceed the device limit. Reject hidden or invalid sizes.
 
 Viewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.
 
-> **Self-Check Question:** *Why cap width and height by the same scale?*  
-> **Answer:** Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.
-
-- **What You Should See:** Inspect the supplied state fixtures. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.
-- **Hands-On Lab Experiment:** Change the dense-display test ratio to 4.0 and lower the device limit to 1024. Predict the bounded dimensions before running the check.
-
-<details>
-<summary>Implementation 19a-viewport: Measure a safe drawing size</summary>
-
-Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
-
-Data flow: CSS width and height × display density → proportional GPU-limit cap → Viewport.
+> **Check:** *Why cap width and height by the same scale?* — Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.
 
 ### 1. `src/viewport.rs`
 
@@ -231,86 +109,48 @@ Create the file and type:
 
 Make the size calculation usable by browser code and Rust tests.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod picking;
-pub mod history;
-pub mod editor;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/20-resize-fullscreen-1.rs"
 ```
 
-</details>
+**Result after `19a-viewport`:** Inspect the supplied state fixtures. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.
+
+---
 
 <a id="checkpoint-20-resize"></a>
 
 ### Step 2 of 8 · Resize canvas, depth and camera together (`20-resize`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (20-resize): Resize canvas, depth and camera together</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Resize event</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Viewport</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canvas pixels,</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">surface,…</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command layout</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">draw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/brow…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">canvas pixels, surface,…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">draw</text>
 </svg>
-</div>
-
-- **Goal:** Resize the drawing buffer, depth attachment and camera together, including on dense displays.
-- **Data Flow Trace:** `Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw`
-- **Files You Touch:** `src/renderer.rs` (*Keep depth texture allocation in the existing depth helper.*) · `src/browser.rs` (*Import the viewport size type.*)
 
 Use Viewport to resize canvas pixels, the surface, depth attachment and camera aspect together. Read the current CSS rectangle and display density before drawing.
 
 The callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.
 
-> **Self-Check Question:** *Why resize the depth attachment with the canvas?*  
-> **Answer:** The colour and depth attachments in one render pass must have matching dimensions.
-
-- **What You Should See:** Resize the browser window. Geometry keeps its proportions and continues drawing across wide and tall sizes.
-- **Hands-On Lab Experiment:** Change the window from wide to tall, then type View Reset. The view should retain the current aspect.
-
-<details>
-<summary>Implementation 20-resize: Resize canvas, depth and camera together</summary>
-
-Resize the drawing buffer, depth attachment and camera together, including on dense displays.
-
-Data flow: Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw.
+> **Check:** *Why resize the depth attachment with the canvas?* — The colour and depth attachments in one render pass must have matching dimensions.
 
 ### 1. `src/renderer.rs`
 
@@ -318,8 +158,7 @@ Keep depth texture allocation in the existing depth helper. Recreate the depth v
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         depth_texture.create_view(&Default::default())
@@ -331,8 +170,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn draw(
 ```
-
-</details>
 
 Replace it with:
 
@@ -353,8 +190,7 @@ Replace it with:
     pub fn draw(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Self { device, queue, pipeline, meshes, uniform, view_group, depth }
@@ -371,8 +207,6 @@ Replace it with:
             label: Some("opaque depth"),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -384,8 +218,7 @@ Replace it with:
             label: Some("opaque depth"),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -531,31 +364,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/20-resize-fullscreen-8.rs"
-```
-
-```text
---8<-- "journey/code/20-resize-fullscreen-9.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Import the viewport size type. Size renderer attachments from the viewport. Handle initial resizing and retain the window for later resize events. Keep the event callback open for the resize path. Resize before handling input; refresh dock layout and drawing when dimensions change. Register resize events and update canvas pixels, surface configuration, attachments and camera aspect together.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "blur",
@@ -580,8 +395,6 @@ fn present(
     surface: &wgpu::Surface<'_>,
     renderer: &Renderer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -640,8 +453,7 @@ fn present(
     renderer: &Renderer,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -663,8 +475,6 @@ fn present(
     });
     for name in [
 ```
-
-</details>
 
 Replace it with:
 
@@ -698,8 +508,7 @@ Replace it with:
     for name in [
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 return;
@@ -710,8 +519,6 @@ Replace it with:
             let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
             (event.type_() == "click"
 ```
-
-</details>
 
 Replace it with:
 
@@ -724,8 +531,7 @@ Replace it with:
             (event.type_() == "click"
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ],
@@ -744,8 +550,6 @@ Replace it with:
             Ok(line) => line,
             Err(error) => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -778,8 +582,7 @@ Replace it with:
             Err(error) => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -797,8 +600,6 @@ Replace it with:
         &renderer,
         config.format.add_srgb_suffix(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -818,8 +619,7 @@ Replace it with:
         config.format.add_srgb_suffix(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::background::Background;
@@ -829,8 +629,6 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 pub fn report(message: &str) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -844,8 +642,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 pub fn report(message: &str) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -1119,94 +916,42 @@ fn present(
 }
 ```
 
-</details>
+**Result after `20-resize`:** Resize the browser window. Geometry keeps its proportions and continues drawing across wide and tall sizes.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/20-resize-window-1.rs"
-```
-
-```text
---8<-- "journey/code/20-resize-window-2.rs"
-```
-
-```text
---8<-- "journey/code/20-resize-window-3.rs"
-```
-
-```text
---8<-- "journey/code/20-resize-window-4.rs"
-```
-
-```text
---8<-- "journey/code/20-resize-window-5.rs"
-```
-
-```text
---8<-- "journey/code/20-resize-window-6.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-20a-press"></a>
 
 ### Step 3 of 8 · Remember the pointer that starts a drag (`20a-press`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (20a-press): Remember the pointer that starts a drag</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gesture.rs, src/gesture_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Press</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Option&lt;Drag&gt;</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching move</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Motion::Orbit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gesture.rs, src/gestu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching move</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Motion::Orbit</text>
 </svg>
-</div>
-
-- **Goal:** Retain one pointer and produce movement relative to its previous position.
-- **Data Flow Trace:** `Press → Option<Drag> → matching move → Motion::Orbit`
-- **Files You Touch:** `src/gesture.rs` (*Retain one pointer, track its starting position and return relative right-drag movement.*) · `src/gesture_tests.rs` (*Optional authoring fixture. Check rejected presses, pointer ownership and movement from the previous position.*) · `src/lib.rs` (*Expose the gesture module to the browser and compile its tests only in the test build.*)
 
 Gesture remembers one pointer ID, its button and its positions. Reject a second press while that pointer is active. Each move reports the change from the previous position.
 
 Option holds one Drag or none. as_mut borrows the stored drag; filter accepts only its pointer ID. The click threshold remembers whether any movement exceeded four CSS pixels.
 
-> **Self-Check Question:** *Why retain both the starting and previous positions?*  
-> **Answer:** The start distinguishes a click from a drag. The previous position gives the next orbit delta.
-
-- **What You Should See:** Inspect the supplied state fixtures. Another pointer cannot replace the press or move it; matching moves report relative deltas.
-- **Hands-On Lab Experiment:** Trace a matching pointer moving from [20.0, 25.0] to [30.0, 28.0] through the supplied press fixture. Predict the delta before reading its expected result.
-
-<details>
-<summary>Implementation 20a-press: Remember the pointer that starts a drag</summary>
-
-Retain one pointer and produce movement relative to its previous position.
-
-Data flow: Press → Option<Drag> → matching move → Motion::Orbit.
+> **Check:** *Why retain both the starting and previous positions?* — The start distinguishes a click from a drag. The previous position gives the next orbit delta.
 
 ### 1. `src/gesture.rs`
 
@@ -1218,8 +963,7 @@ Create the file and type:
 --8<-- "journey/code/20a-press-state.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1233,25 +977,9 @@ Copy this supplied file:
 --8<-- "journey/code/20a-press-tests.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Expose the gesture module to the browser and compile its tests only in the test build.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod history;
-pub mod editor;
-pub mod viewport;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1259,82 +987,46 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/21-gestures-fullscreen-1.rs"
 ```
 
-</details>
+**Result after `20a-press`:** Inspect the supplied state fixtures. Another pointer cannot replace the press or move it; matching moves report relative deltas.
+
+---
 
 <a id="checkpoint-20b-release"></a>
 
 ### Step 4 of 8 · Finish or cancel a drag (`20b-release`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (20b-release): Finish or cancel a drag</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gesture.rs, src/gesture_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Release</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">final move</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">take stored Drag</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">click or orbit;</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancel</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">no active drag</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gesture.rs, src/gestu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">take stored Drag</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">no active drag</text>
 </svg>
-</div>
-
-- **Goal:** Release an owned pointer or cancel it without inventing a click.
-- **Data Flow Trace:** `Release → final move → take stored Drag → click or orbit; cancel → no active drag`
-- **Files You Touch:** `src/gesture.rs` (*Finish the owned pointer, preserve drag classification and clear cancelled input.*) · `src/gesture_tests.rs` (*Optional authoring fixture. Check left-click classification, final motion, pointer ownership and cancellation.*)
 
 Release processes the final position, then takes the remembered drag out of Gesture. A left release picks only if the press never crossed the movement threshold. Right release may supply one final orbit delta.
 
 Cancellation clears the state without selecting. cancel_pointer checks ownership first; another pointer cannot end the active drag.
 
-> **Self-Check Question:** *What does Option::take do on release?*  
-> **Answer:** It returns the stored Drag and leaves None, so later movement cannot continue the finished gesture.
-
-- **What You Should See:** Inspect the supplied state fixtures. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.
-- **Hands-On Lab Experiment:** Read the return-to-start test. Predict the result if release checked only its final distance instead of the remembered moved flag.
-
-<details>
-<summary>Implementation 20b-release: Finish or cancel a drag</summary>
-
-Release an owned pointer or cancel it without inventing a click.
-
-Data flow: Release → final move → take stored Drag → click or orbit; cancel → no active drag.
+> **Check:** *What does Option::take do on release?* — It returns the stored Drag and leaves None, so later movement cannot continue the finished gesture.
 
 ### 1. `src/gesture.rs`
 
 Finish the owned pointer, preserve drag classification and clear cancelled input.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        (drag.button == 2 && delta != [0.0, 0.0]).then_some(Motion::Orbit(delta))
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1342,8 +1034,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/20b-release-methods.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1351,90 +1042,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Check left-click classification, final motion, pointer ownership and cancellation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::gesture::{Gesture, Motion};
-
-#[test]
-fn a_press_retains_one_pointer_and_reports_relative_motion() {
-    let mut gesture = Gesture::default();
-    assert!(!gesture.press(1, 1, [0.0, 0.0]));
-    assert!(!gesture.press(1, 0, [f64::NAN, 0.0]));
-    assert!(gesture.press(1, 2, [10.0, 20.0]));
-    assert!(!gesture.press(2, 0, [10.0, 20.0]));
-    assert_eq!(gesture.move_to(2, [30.0, 25.0]), None);
-    assert_eq!(gesture.move_to(1, [20.0, 25.0]), Some(Motion::Orbit([10.0, 5.0])));
-    assert_eq!(gesture.move_to(1, [24.0, 28.0]), Some(Motion::Orbit([4.0, 3.0])));
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/20b-release-tests.rs"
 ```
 
-</details>
+**Result after `20b-release`:** Inspect the supplied state fixtures. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.
 
-</details>
+---
 
 <a id="checkpoint-20c-motion"></a>
 
 ### Step 5 of 8 · Convert pointer motion to editor actions (`20c-motion`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (20c-motion): Convert pointer motion to editor actions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gesture.rs, src/gesture_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Motion + CSS rectangle</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Action</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">selection or view change</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gesture.rs, src/gestu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Editor</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selection or view change</text>
 </svg>
-</div>
-
-- **Goal:** Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.
-- **Data Flow Trace:** `Motion + CSS rectangle → Action → Editor → selection or view change`
-- **Files You Touch:** `src/gesture.rs` (*Import the editor action used by motion conversion.*) · `src/gesture_tests.rs` (*Optional authoring fixture. Import editor actions for motion and history checks.*)
 
 Motion::action uses the canvas CSS rectangle to convert a pick to normalized screen coordinates or a drag delta to orbit angles. Reject an invalid rectangle before dividing.
 
 The method consumes Motion. Option<Action> permits invalid input to produce no editor request. Orbit changes the view while leaving document history unchanged.
 
-> **Self-Check Question:** *Why use CSS dimensions instead of the GPU drawing size?*  
-> **Answer:** Pointer positions use CSS pixels. Mixing them with denser GPU pixels would change picking and sensitivity when display density changes.
-
-- **What You Should See:** Inspect the supplied state fixtures. A CSS centre maps to [0, 0]; orbit changes the camera, and Undo restores the document without rewinding it.
-- **Hands-On Lab Experiment:** Double the rectangle dimensions and the pointer offsets in the centre test. Predict the same [0, 0] pick before running it.
-
-<details>
-<summary>Implementation 20c-motion: Convert pointer motion to editor actions</summary>
-
-Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.
-
-Data flow: Motion + CSS rectangle → Action → Editor → selection or view change.
+> **Check:** *Why use CSS dimensions instead of the GPU drawing size?* — Pointer positions use CSS pixels. Mixing them with denser GPU pixels would change picking and sensitivity when display density changes.
 
 ### 1. `src/gesture.rs`
 
@@ -1442,8 +1091,7 @@ Import the editor action used by motion conversion. Convert CSS position or moti
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -1456,8 +1104,6 @@ struct Drag {
     id: i32,
     button: i16,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1494,8 +1140,7 @@ struct Drag {
     button: i16,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -1586,25 +1231,7 @@ impl Gesture {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/20c-motion-import.rs"
-```
-
-```text
---8<-- "journey/code/20c-motion-action.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1612,25 +1239,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Import editor actions for motion and history checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::gesture::{Gesture, Motion};
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/20c-motion-test-imports.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1638,102 +1253,52 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Check CSS coordinate conversion and camera movement outside document history.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(!input.press(1, 0, [f64::NAN, 0.0]));
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/20c-motion-tests.rs" skip=53
 ```
 
-</details>
+**Result after `20c-motion`:** Inspect the supplied state fixtures. A CSS centre maps to [0, 0]; orbit changes the camera, and Undo restores the document without rewinding it.
 
-</details>
+---
 
 <a id="checkpoint-21-gestures"></a>
 
 ### Step 6 of 8 · Connect captured pointers to the editor (`21-gestures`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (21-gestures): Connect captured pointers to the editor</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">DOM pointer</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Gesture</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Motion::action</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">redraw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Motion::action</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">redraw</text>
 </svg>
-</div>
-
-- **Goal:** Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.
-- **Data Flow Trace:** `DOM pointer → Gesture → Motion::action → Editor → redraw`
-- **Files You Touch:** `Cargo.toml` (*Enable the browser event bindings used by the command dock.*) · `src/browser.rs` (*Import the gesture state.*)
 
 Deliver canvas pointer events to Gesture when the command dock has not consumed them. Capture the accepted pointer so events keep arriving outside the canvas. Apply any returned action through Editor.
 
 Release capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.
 
-> **Self-Check Question:** *Why do we need both browser pointer capture and our own active pointer ID?*  
-> **Answer:** Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.
-
-- **What You Should See:** Right-drag the scene, then release. Further movement must stop orbiting; a left click still selects a face.
-- **Hands-On Lab Experiment:** Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.
-
-<details>
-<summary>Implementation 21-gestures: Connect captured pointers to the editor</summary>
-
-Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.
-
-Data flow: DOM pointer → Gesture → Motion::action → Editor → redraw.
+> **Check:** *Why do we need both browser pointer capture and our own active pointer ID?* — Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.
 
 ### 1. `Cargo.toml`
 
 Enable the browser event bindings used by the command dock.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "DomRect", "HtmlElement"] }
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1747,8 +1312,7 @@ Import the gesture state. Retain the canvas and one gesture across pointer event
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &options,
@@ -1764,8 +1328,6 @@ fn resize(
     window: &web_sys::Window,
     canvas: &web_sys::HtmlCanvasElement,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1830,8 +1392,7 @@ fn resize(
     canvas: &web_sys::HtmlCanvasElement,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "keydown",
@@ -1842,8 +1403,6 @@ fn resize(
         canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1856,8 +1415,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -1868,8 +1426,6 @@ Replace it with:
             &mut config,
             &mut renderer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1883,8 +1439,7 @@ Replace it with:
             &mut renderer,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 "view reset" => Action::ResetView,
@@ -1894,8 +1449,6 @@ Replace it with:
                 Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),
                 Ok(Change::View) => {}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1915,8 +1468,7 @@ Replace it with:
                 Ok(Change::View) => {}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 return;
@@ -1952,8 +1504,6 @@ Replace it with:
                 "select next" => Action::SelectNext,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1967,8 +1517,7 @@ Replace it with:
                 "select next" => Action::SelectNext,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1978,8 +1527,6 @@ Replace it with:
         let line = match panel.update(Some(&event), &input_canvas) {
             Ok(line) => line,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1994,8 +1541,7 @@ Replace it with:
             Ok(line) => line,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::background::Background;
@@ -2004,8 +1550,6 @@ use crate::renderer::Renderer;
 use crate::viewport::Viewport;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
-
-</details>
 
 Replace it with:
 
@@ -2018,8 +1562,7 @@ use crate::viewport::Viewport;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2325,98 +1868,42 @@ fn present(
 }
 ```
 
-</details>
+**Result after `21-gestures`:** Right-drag the scene, then release. Further movement must stop orbiting; a left click still selects a face.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/21-gestures-window-1.rs"
-```
-
-```text
---8<-- "journey/code/21-gestures-window-2.rs"
-```
-
-```text
---8<-- "journey/code/21-gestures-window-3.rs"
-```
-
-```text
---8<-- "journey/code/21-gestures-window-4.rs"
-```
-
-```text
---8<-- "journey/code/21-gestures-window-5.rs"
-```
-
-```text
---8<-- "journey/code/21-gestures-window-6.rs"
-```
-
-```text
---8<-- "journey/code/21-gestures-window-7.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-21a-wheel"></a>
 
 ### Step 7 of 8 · Convert wheel units to camera zoom (`21a-wheel`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (21a-wheel): Convert wheel units to camera zoom</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/navigation.rs, src/navigation_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Wheel delta and units</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS pixels</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded exponential</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Action::Zoom</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/navigation.rs, src/na…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded exponential</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Action::Zoom</text>
 </svg>
-</div>
-
-- **Goal:** Normalize pixels, lines and pages to bounded camera zoom without adding document history.
-- **Data Flow Trace:** `Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom`
-- **Files You Touch:** `src/navigation.rs` (*Normalize wheel units into the existing Zoom action. Zero or invalid input returns None.*) · `src/navigation_tests.rs` (*Optional authoring fixture. Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history.*) · `src/lib.rs` (*Register the small input translator and its tests.*)
 
 navigation::wheel converts pixels, lines or pages to CSS pixels, caps one event at 600 pixels, then returns a positive exponential zoom factor. Invalid input returns None.
 
 The stateless function borrows no editor. Its checks apply the returned Zoom through Editor and verify that camera movement stays outside document history.
 
-> **Self-Check Question:** *Why use an exponential for the zoom factor?*  
-> **Answer:** It stays positive and lets equal opposite movements restore the earlier distance, subject to the camera limits.
-
-- **What You Should See:** Inspect the supplied state fixtures. Equivalent pixel, line and page deltas give the same zoom; Undo restores geometry while retaining the camera.
-- **Hands-On Lab Experiment:** Compare 48 pixels, three lines and 0.1 pages at height 480. Predict the same result before running the unit check.
-
-<details>
-<summary>Implementation 21a-wheel: Convert wheel units to camera zoom</summary>
-
-Normalize pixels, lines and pages to bounded camera zoom without adding document history.
-
-Data flow: Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom.
+> **Check:** *Why use an exponential for the zoom factor?* — It stays positive and lets equal opposite movements restore the earlier distance, subject to the camera limits.
 
 ### 1. `src/navigation.rs`
 
@@ -2428,8 +1915,7 @@ Create the file and type:
 --8<-- "journey/code/22-shortcuts-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2443,25 +1929,9 @@ Copy this supplied file:
 --8<-- "journey/code/22-shortcuts-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the small input translator and its tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod editor;
-pub mod viewport;
-pub mod gesture;
-#[cfg(test)]
-mod gesture_tests;
-pub mod gpu_mesh;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2469,85 +1939,46 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/22-shortcuts-fullscreen-1.rs"
 ```
 
-</details>
+**Result after `21a-wheel`:** Inspect the supplied state fixtures. Equivalent pixel, line and page deltas give the same zoom; Undo restores geometry while retaining the camera.
+
+---
 
 <a id="checkpoint-22-shortcuts"></a>
 
 ### Step 8 of 8 · Deliver wheel input without keyboard feature shortcuts (`22-shortcuts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (22-shortcuts): Deliver wheel input without keyboard feature shortcuts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Wheel</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">navigation_action</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor; printable</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">key</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command dock</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">typed Action</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Editor; printable key</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Action</text>
 </svg>
-</div>
-
-- **Goal:** Normalize wheel input and keep every keyboard feature command in the command dock.
-- **Data Flow Trace:** `Wheel → navigation_action → Editor; printable key → command dock → typed Action`
-- **Files You Touch:** `Cargo.toml` (*Enable the browser event bindings used by the command dock.*) · `src/browser.rs` (*Route unconsumed canvas input through navigation_action.*)
 
 Route wheel events through navigation::wheel, prevent page scrolling when zoom is handled, and keep printable keyboard input in the command dock. Focus the canvas when a pointer press starts navigation.
 
 There is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.
 
-> **Self-Check Question:** *Why request a non-passive wheel listener?*  
-> **Answer:** Handled wheel navigation must call prevent_default so the browser does not scroll the page.
-
-- **What You Should See:** Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
-- **Hands-On Lab Experiment:** Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
-
-<details>
-<summary>Implementation 22-shortcuts: Deliver wheel input without keyboard feature shortcuts</summary>
-
-Normalize wheel input and keep every keyboard feature command in the command dock.
-
-Data flow: Wheel → navigation_action → Editor; printable key → command dock → typed Action.
+> **Check:** *Why request a non-passive wheel listener?* — Handled wheel navigation must call prevent_default so the browser does not scroll the page.
 
 ### 1. `Cargo.toml`
 
 Enable the browser event bindings used by the command dock.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "FocusOptions", "HtmlElement"] }
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2561,8 +1992,7 @@ Route unconsumed canvas input through navigation_action. Retain the shared callb
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "pointerdown" => {
@@ -2573,8 +2003,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 }
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2592,8 +2020,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
@@ -2607,8 +2034,6 @@ fn pointer_action(
     event: &web_sys::Event,
     canvas: &web_sys::HtmlCanvasElement,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2658,8 +2083,7 @@ fn pointer_action(
     canvas: &web_sys::HtmlCanvasElement,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             };
@@ -2670,8 +2094,6 @@ fn pointer_action(
             None
         };
 ```
-
-</details>
 
 Replace it with:
 
@@ -2685,8 +2107,7 @@ Replace it with:
         };
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -3029,52 +2450,21 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/22-shortcuts-window-1.rs"
-```
-
-```text
---8<-- "journey/code/22-shortcuts-window-2.rs"
-```
-
-```text
---8<-- "journey/code/22-shortcuts-window-3.rs"
-```
-
-</details>
-
-</details>
+**Result after `22-shortcuts`:** Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 22-shortcuts
-npm --prefix ../session_tests run course -- check 22-shortcuts
-npm --prefix ../session_tests run course -- save 22-shortcuts
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 3.2
+npm --prefix ../session_tests run course -- save 3.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 3.2 (22-shortcuts)](../../../screenshots/journey/22-shortcuts-browser.png)
-
-Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
-
-- **Final Lesson Experiment:** Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
-
-Continue with [Validated files, bounds and useful projections](../../consolidation/22a-records.md).
+Continue with [3.3 · Validated files, bounds and useful projections](../../consolidation/22a-records.md).

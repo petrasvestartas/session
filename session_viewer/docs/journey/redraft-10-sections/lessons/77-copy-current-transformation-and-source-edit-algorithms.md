@@ -1,242 +1,95 @@
 # 15.1 · Original transforms, part edits and solid recipes
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.1** (Redraft `8.7`) · **49 checkpoints (`77-copy-current-transformation-and-source-edit-algorithms` → `77zzo-revolve-original-profiles-around-an-axis`)** · **Study time: 29.00000000000001–49 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `77-copy-current-transformation-and-source-edit-algorithms` → `77zzo-revolve-original-profiles-around-an-axis` (49 steps) · **Production source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../../src/app/walk/brep.rs)
 
-> **What You Will Learn & Build:** Build directional scale transforms. By the final checkpoint (`77zzo-revolve-original-profiles-around-an-axis`), you will turn original curves into exact kernel surfaces around a chosen axis.
+> **Goal:** Turn original curves into exact kernel surfaces around a chosen axis.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 15.1 Pipeline Schematic: Original transforms, part edits and solid recipes</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (49 Checkpoints: 77-copy-current-transformation-and-source-edit-algorithms → 77zzo-revolve-original-profiles-around-an-axis)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original f64 CAD</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">source</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">pure transform or</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">original control</text>
-    <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">addresses</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">later edit preview</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and GPU display</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original profile</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">axis and angle</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 15.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/transform_scale.rs  ·  src/lib.rs  ·  src/transform_rotate.rs  ·  src/source_controls.rs  ·  src/source_deform.rs  ·  src/source_topology_colour.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">49 Checkpoints: 77-copy-current-transformation-and-source-edit-algorithms → 77zzo-revolve-original-profiles-around-an-axis — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`77-copy-current-transformation-and-source-edit-algorithms`](#checkpoint-77-copy-current-transformation-and-source-edit-algorithms) | Build directional scale transforms. | `src/transform_scale.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **2** | [`77sa-compute-signed-construction-plane-rotation`](#checkpoint-77sa-compute-signed-construction-plane-rotation) | Compute signed construction-plane rotation. | `src/transform_rotate.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **3** | [`77sb-address-original-controls-and-exclusive-part-selections`](#checkpoint-77sb-address-original-controls-and-exclusive-part-selections) | Address original controls and exclusive part selections. | `src/source_controls.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **4** | [`77sc-collect-finite-original-controls-and-mesh-vertices`](#checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices) | Collect finite original controls and mesh vertices. | `src/source_controls.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **5** | [`77sd-connect-curve-polygons-and-surface-control-nets`](#checkpoint-77sd-connect-curve-polygons-and-surface-control-nets) | Connect curve polygons and surface control nets. | `src/source_controls.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **6** | [`77se-reuse-control-collectors-across-original-geometry-families`](#checkpoint-77se-reuse-control-collectors-across-original-geometry-families) | Reuse control collectors across original geometry families. | `src/source_controls.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **7** | [`77sf-represent-original-geometry-edit-targets`](#checkpoint-77sf-represent-original-geometry-edit-targets) | Represent original geometry edit targets. | `src/source_deform.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **8** | [`77sg-resolve-original-mesh-vertices-for-part-edits`](#checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits) | Resolve original mesh vertices for part edits. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **9** | [`77sh-resolve-surface-grids-and-individual-source-controls`](#checkpoint-77sh-resolve-surface-grids-and-individual-source-controls) | Resolve surface grids and individual source controls. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **10** | [`77si-collect-affected-points-across-cad-geometry-families`](#checkpoint-77si-collect-affected-points-across-cad-geometry-families) | Collect affected points across CAD geometry families. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **11** | [`77sj-preserve-rational-weights-and-validate-brep-boundaries`](#checkpoint-77sj-preserve-rational-weights-and-validate-brep-boundaries) | Preserve rational weights and validate BRep boundaries. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **12** | [`77sk-transform-original-mesh-and-surface-controls`](#checkpoint-77sk-transform-original-mesh-and-surface-controls) | Transform original mesh and surface controls. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **13** | [`77sl-transform-original-line-polyline-point-and-curve-controls`](#checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls) | Transform original line polyline point and curve controls. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **14** | [`77sm-transform-shared-brep-boundary-positions-coherently`](#checkpoint-77sm-transform-shared-brep-boundary-positions-coherently) | Transform shared BRep boundary positions coherently. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **15** | [`77sn-dispatch-original-part-edits-and-retain-element-ownership`](#checkpoint-77sn-dispatch-original-part-edits-and-retain-element-ownership) | Dispatch original part edits and retain Element ownership. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **16** | [`77so-map-sparse-original-vertex-keys-to-display-slots`](#checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots) | Map sparse original vertex keys to display slots. | `src/source_topology_colour.rs`, `src/source_mesh_topology.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **17** | [`77sp-compute-polygon-normals-from-original-boundaries`](#checkpoint-77sp-compute-polygon-normals-from-original-boundaries) | Compute polygon normals from original boundaries. | `src/source_mesh_topology.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **18** | [`77sq-build-one-original-edge-table-and-record-incident-faces`](#checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces) | Build one original edge table and record incident faces. | `src/source_mesh_topology.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **19** | [`77sr-preserve-hole-winding-and-complete-original-mesh-topology`](#checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology) | Preserve hole winding and complete original mesh topology. | `src/source_mesh_topology.rs`, `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
-| **20** | [`77a-own-transformation-questions-and-the-selected-original-targets`](#checkpoint-77a-own-transformation-questions-and-the-selected-original-targets) | Own transformation questions and the selected original targets. | `src/transform_draft.rs`, `src/lib.rs` | `current selection and plane → frozen targets → pending transform questions` |
-| **21** | [`77b-validate-point-and-number-transformation-answers`](#checkpoint-77b-validate-point-and-number-transformation-answers) | Validate point and number transformation answers. | `src/transform_draft.rs` | `point or number answer → checked references → current original transform` |
-| **22** | [`77c-resolve-typed-batches-and-temporary-transformation-previews`](#checkpoint-77c-resolve-typed-batches-and-temporary-transformation-previews) | Resolve typed batches and temporary transformation previews. | `src/transform_draft.rs` | `typed batch → candidate owner → checked transforms or temporary preview` |
-| **23** | [`77d-resolve-original-cad-parts-and-complete-selected-bounds`](#checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds) | Resolve original CAD parts and complete selected bounds. | `src/source_part.rs`, `src/lib.rs`, `src/scene.rs` | `selected original part or owner → source geometry and world bounds → checked target` |
-| **24** | [`77e-rebuild-an-edited-original-cad-source-before-adoption`](#checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption) | Rebuild an edited original CAD source before adoption. | `src/scene.rs`, `src/part_preview.rs` | `world edit → local original deformation → validated source → derived display` |
-| **25** | [`77f-copy-original-rows-beside-their-existing-parents`](#checkpoint-77f-copy-original-rows-beside-their-existing-parents) | Copy original rows beside their existing parents. | `src/layer_edit.rs` | `selected original rows → checked copy plan → new identities and world placement` |
-| **26** | [`77g-carry-transformation-state-through-the-existing-drawing-owner`](#checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner) | Carry transformation state through the existing drawing owner. | `src/tool.rs`, `src/editor.rs` | `current Draft → frozen transform owner → temporary scene and resource accounting` |
-| **27** | [`77h-validate-selected-originals-before-beginning-or-committing-a-transform`](#checkpoint-77h-validate-selected-originals-before-beginning-or-committing-a-transform) | Validate selected originals before beginning or committing a transform. | `src/editor.rs` | `selected original targets → checked preview → current tool or one commit` |
-| **28** | [`77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions`](#checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions) | Adopt validated outcomes and preserve repeat copy transactions. | `src/editor.rs` | `complete candidate batch → checked temporary scene → individual Copy transactions` |
-| **29** | [`77j-route-transform-input-cancellation-and-current-plane-changes`](#checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes) | Route transform input cancellation and current plane changes. | `src/editor.rs` | `owned event or typed input → current transform question → preview or cancellation` |
-| **30** | [`77k-connect-transformation-lifecycle-and-part-move-dispatch`](#checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch) | Connect transformation lifecycle and part Move dispatch. | `src/editor.rs`, `src/selection_tests.rs`, `src/edit_preview_tests.rs` | `transform lifecycle action → current plane and selected part → checked original preview` |
-| **31** | [`77l-register-copy-scale-rotate-and-their-current-aliases`](#checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases) | Register Copy Scale Rotate and their current aliases. | `src/transform_commands.rs`, `src/lib.rs`, `src/commands.rs`, `src/editor.rs` | `current verb or alias → checked parameter parser → Editor action` |
-| **32** | [`77m-apply-direct-scale-and-rotate-about-the-current-selection-center`](#checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center) | Apply direct Scale and Rotate about the current selection center. | `src/editor.rs` | `typed current factor or world axis → selection center → original transform` |
-| **33** | [`77n-retain-earlier-selection-checks-with-source-part-support`](#checkpoint-77n-retain-earlier-selection-checks-with-source-part-support) | Retain earlier selection checks with source part support. | `src/edit_preview_tests.rs` | `current selection → validated source-part preview → unchanged history on cancel` |
-| **34** | [`77o-exercise-original-copy-transforms-history-and-exact-persistence`](#checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence) | Exercise original copy transforms history and exact persistence. | `src/transform_tests.rs`, `src/lib.rs` | `original selection → current Copy Scale Rotate → history → original Save/Open` |
-| **35** | [`77zza-describe-curve-gathering-answers`](#checkpoint-77zza-describe-curve-gathering-answers) | Describe ordered curve questions and typed answers. | `src/gather_input.rs`, `src/lib.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **36** | [`77zzb-read-curve-gathering-values`](#checkpoint-77zzb-read-curve-gathering-values) | Read finite numbers, absolute points and distance vectors through the existing coordinate reader. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **37** | [`77zzc-connect-gathering-recipes`](#checkpoint-77zzc-connect-gathering-recipes) | Connect typed input to a recipe, its questions and kernel builder. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **38** | [`77zzd-parse-gathering-command-words`](#checkpoint-77zzd-parse-gathering-command-words) | Read options anywhere in a command and consume other answers in order. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **39** | [`77zze-track-ordered-curve-picks`](#checkpoint-77zze-track-ordered-curve-picks) | Track preselected curve rows and skip answers already typed. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **40** | [`77zzf-advance-and-cancel-curve-picks`](#checkpoint-77zzf-advance-and-cancel-curve-picks) | Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **41** | [`77zzg-prepare-placed-kernel-curves`](#checkpoint-77zzg-prepare-placed-kernel-curves) | Convert lines, polylines and NURBS curves to placed kernel curves. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
-| **42** | [`77zzh-check-original-loops-and-surface-controls`](#checkpoint-77zzh-check-original-loops-and-surface-controls) | Find a loop’s unit normal and scale-aware planarity tolerance. | `src/surfacing.rs`, `src/lib.rs` | `original curves → consistent section frames → validated kernel surface` |
-| **43** | [`77zzi-align-original-sections-and-loft-through-them`](#checkpoint-77zzi-align-original-sections-and-loft-through-them) | Align open curve directions and closed curve seams before asking the Session kernel for a loft. | `src/surfacing.rs` | `original curves → consistent section frames → validated kernel surface` |
-| **44** | [`77zzj-find-extrusion-axes-and-cap-eligibility`](#checkpoint-77zzj-find-extrusion-axes-and-cap-eligibility) | Reuse the original loop normal and planarity helpers to choose an extrusion axis. | `src/extrude_geometry.rs`, `src/lib.rs` | `original curves → offset and cap rules → shared BRep topology` |
-| **45** | [`77zzk-map-cap-curves-to-surface-parameters`](#checkpoint-77zzk-map-cap-curves-to-surface-parameters) | Build a planar cap patch around the original control points. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
-| **46** | [`77zzl-build-closed-curved-extrusion-topology`](#checkpoint-77zzl-build-closed-curved-extrusion-topology) | Build the side surface from an oriented original curve. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
-| **47** | [`77zzm-extrude-original-corners-and-curves`](#checkpoint-77zzm-extrude-original-corners-and-curves) | Dispatch original corner chains and curved sections through the shared extrusion helpers. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
-| **48** | [`77zzn-connect-the-original-extrusion-recipe`](#checkpoint-77zzn-connect-the-original-extrusion-recipe) | Complete the original recipe with curve selection, signed distance and cap choices. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
-| **49** | [`77zzo-revolve-original-profiles-around-an-axis`](#checkpoint-77zzo-revolve-original-profiles-around-an-axis) | Turn original curves into exact kernel surfaces around a chosen axis. | `src/revolve_geometry.rs`, `src/lib.rs` | `original profile → axis and angle → kernel surface → one result` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-77-copy-current-transformation-and-source-edit-algorithms"></a>
 
 ### Step 1 of 49 · Build directional scale transforms (`77-copy-current-transformation-and-source-edit-algorithms`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/49 Visual Trace (77-copy-current-transformation-and-source-edit-algorithms): Build directional scale transforms</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_scale.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_scale.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Build directional scale transforms.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/transform_scale.rs` (*Build directional scale transforms.*) · `src/lib.rs` (*Register the source transformation component.*)
 
 Measure scale reach in space, in the construction plane or along one chosen axis.
 
 factor rejects a degenerate reference or nonpositive result. stretch writes a column-major transform as I+(k−1)Σaaᵀ, then chooses translation so the fixed origin maps to itself. Reuse the Session Xform owner; later Scale tools connect these pure calculations to previews and history.
 
-> **Self-Check Question:** *How does directional scale preserve the other directions?*  
-> **Answer:** Add (k−1) times each chosen axis outer product to the identity matrix.
-
-- **What You Should See:** This preparation compiles in the cumulative browser application and preserves the current drawing. Its transforms and control views connect to the later editing tools.
-- **Hands-On Lab Experiment:** For k=2 along the x axis, predict the images of [1,0,0] and [0,1,0]. Repeat about origin [5,0,0]; explain the translation term.
-
-<details>
-<summary>Implementation 77-copy-current-transformation-and-source-edit-algorithms: Build directional scale transforms</summary>
-
-Build directional scale transforms.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *How does directional scale preserve the other directions?* — Add (k−1) times each chosen axis outer product to the identity matrix.
 
 ### 1. `src/transform_scale.rs`
 
@@ -252,24 +105,13 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod freeform_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77-copy-current-transformation-and-source-edit-algorithms-02.rs" skip=33
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -277,93 +119,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply independent original-source and fixed-origin regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ion.
-fn stretch(origin: &Point, axes: &[Vector], k: f64) -> Xform {
-    let mut xform = Xform::identity();
-
-    for a in axes {
-        for col in 0..3 {
-            for row in 0..3 {
-                xform.m[col * 4 + row] += (k - 1.0) * a[row] * a[col];
-            }
-        }
-    }
-
-    // the origin stays where it is
-    for row in 0..3 {
-        let moved: f64 = (0..3).map(|col| xform.m[col * 4 + row] * origin[col]).sum();
-        xform.m[12 + row] = origin[row] - moved;
-    }
-
-    xform
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77-copy-current-transformation-and-source-edit-algorithms-typed-03.rs" skip=500
 ```
 
-</details>
+**Result after `77-copy-current-transformation-and-source-edit-algorithms`:** This preparation compiles in the cumulative browser application and preserves the current drawing. Its transforms and control views connect to the later editing tools.
 
-</details>
+---
 
 <a id="checkpoint-77sa-compute-signed-construction-plane-rotation"></a>
 
 ### Step 2 of 49 · Compute signed construction-plane rotation (`77sa-compute-signed-construction-plane-rotation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/49 Visual Trace (77sa-compute-signed-construction-plane-rotation): Compute signed construction-plane rotation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_rotate.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_rotate.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Compute signed construction-plane rotation.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/transform_rotate.rs` (*Compute signed construction-plane rotation.*) · `src/lib.rs` (*Register the source transformation component.*)
 
 Project the two reference vectors onto the construction plane axes.
 
 The 2D cross and dot products give a signed angle; a point on the centre has no defined angle. Compose translation to the centre, rotation about the plane normal and translation back. The rightmost transform acts first. This remains f64 CAD math; the renderer converts final display placements for the GPU.
 
-> **Self-Check Question:** *Why use atan2 of the planar cross and dot products?*  
-> **Answer:** It preserves the rotation sign and quadrant without dividing by a potentially zero dot product.
-
-- **Hands-On Lab Experiment:** Predict the signed angle from the plane x axis to its y axis and in the reverse direction. Verify that rotating about [5,5,0] keeps that centre fixed.
-
-<details>
-<summary>Implementation 77sa-compute-signed-construction-plane-rotation: Compute signed construction-plane rotation</summary>
-
-Compute signed construction-plane rotation.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why use atan2 of the planar cross and dot products?* — It preserves the rotation sign and quadrant without dividing by a potentially zero dot product.
 
 ### 1. `src/transform_rotate.rs`
 
@@ -379,24 +176,13 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod transform_scale;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77-copy-current-transformation-and-source-edit-algorithms-04.rs" skip=26
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -404,88 +190,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply independent original-source and fixed-origin regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ot(&y));
-
-    if ax.hypot(ay) <= 1e-12 || bx.hypot(by) <= 1e-12 {
-        return None;
-    }
-
-    Some((ax * by - ay * bx).atan2(ax * bx + ay * by))
-}
-
-/// A turn of `radians` about the plane normal through `center`.
-pub fn rotation(center: &Point, radians: f64, plane: &Plane) -> Xform {
-    let to = Xform::translation(center[0], center[1], center[2]);
-    let back = Xform::translation(-center[0], -center[1], -center[2]);
-    &(&to * &Xform::rotation(&plane.z_axis(), radians, false)) * &back
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77sa-compute-signed-construction-plane-rotation-typed-03.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sb-address-original-controls-and-exclusive-part-selections"></a>
 
 ### Step 3 of 49 · Address original controls and exclusive part selections (`77sb-address-original-controls-and-exclusive-part-selections`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/49 Visual Trace (77sb-address-original-controls-and-exclusive-part-selections): Address original controls and exclusive part selections</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_controls.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_controls.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Address original controls and exclusive part selections.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_controls.rs` (*Address original controls and exclusive part selections.*) · `src/lib.rs` (*Register the source transformation component.*)
 
 Define stable source addresses for vertices, curve controls, surface controls and cloud points.
 
 SelectionMode owns one original parent and one exclusive part mode; changing parents replaces the specialized state. Escape returns the parent while leaving part mode. SelectionTool describes what the next click should pick, separately from what is already selected.
 
-> **Self-Check Question:** *Why does a control ID contain both a surface and two grid indices?*  
-> **Answer:** It identifies an original control within one source surface rather than a displayed tessellation vertex.
-
-- **Hands-On Lab Experiment:** Trace Object → Edge on parent4 → Controls on parent4 → Edge on parent9 → Escape. Predict the retained parent at each transition.
-
-<details>
-<summary>Implementation 77sb-address-original-controls-and-exclusive-part-selections: Address original controls and exclusive part selections</summary>
-
-Address original controls and exclusive part selections.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why does a control ID contain both a surface and two grid indices?* — It identifies an original control within one source surface rather than a displayed tessellation vertex.
 
 ### 1. `src/source_controls.rs`
 
@@ -501,109 +245,50 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod transform_rotate;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77-copy-current-transformation-and-source-edit-algorithms-06.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices"></a>
 
 ### Step 4 of 49 · Collect finite original controls and mesh vertices (`77sc-collect-finite-original-controls-and-mesh-vertices`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/49 Visual Trace (77sc-collect-finite-original-controls-and-mesh-vertices): Collect finite original controls and mesh vertices</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_controls.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_controls.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Collect finite original controls and mesh vertices.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_controls.rs` (*Collect finite original controls and mesh vertices.*)
 
 A control keeps its original address and f64 position.
 
 push rejects non-finite positions before assigning a contiguous display index. Mesh controls come from original vertex keys, without inventing addresses from tessellation triangles. Cloud control display stays on the existing GPU cloud owner rather than copying every source point into this CPU vector.
 
-> **Self-Check Question:** *Why return the inserted display index separately from the original vertex key?*  
-> **Answer:** A sparse original key identifies the source; contiguous display indices connect the control net.
-
-- **Hands-On Lab Experiment:** Predict the display indices for valid source keys2 and100 with an invalid position between them. Explain why neither display index may replace the original key.
-
-<details>
-<summary>Implementation 77sc-collect-finite-original-controls-and-mesh-vertices: Collect finite original controls and mesh vertices</summary>
-
-Collect finite original controls and mesh vertices.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why return the inserted display index separately from the original vertex key?* — A sparse original key identifies the source; contiguous display indices connect the control net.
 
 ### 1. `src/source_controls.rs`
 
 Collect finite original controls and mesh vertices.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        *self = Self::Controls {
-            parent,
-            selected: None,
-            cloud,
-        };
-        true
-    }
-
-    /// Back to object selection; returns the parent.
-    pub fn escape(&mut self) -> Option<u32> {
-        let parent = self.parent();
-        *self = Self::Object;
-        parent
-    }
-}
-
-/// What a click picks.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum SelectionTool {
-    #[default]
-    Object, // whole objects
-    Edge, // edges
-    Face, // faces
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -660,100 +345,44 @@ impl Controls {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sc-collect-finite-original-controls-and-mesh-vertices-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sd-connect-curve-polygons-and-surface-control-nets"></a>
 
 ### Step 5 of 49 · Connect curve polygons and surface control nets (`77sd-connect-curve-polygons-and-surface-control-nets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/49 Visual Trace (77sd-connect-curve-polygons-and-surface-control-nets): Connect curve polygons and surface control nets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_controls.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_controls.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Connect curve polygons and surface control nets.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_controls.rs` (*Connect curve polygons and surface control nets.*)
 
 Reuse push for finite positions and original addresses.
 
 A curve links successive accepted controls. A surface keeps one previous index per v column plus the previous point in the current u row, producing both grid directions with bounded temporary storage. Missing controls clear the corresponding continuation; links use contiguous display indices while edits retain source u/v addresses.
 
-> **Self-Check Question:** *Should a control net connect across a missing or invalid control?*  
-> **Answer:** No. Clearing the previous index at that point breaks the link rather than bridging a gap.
-
-- **Hands-On Lab Experiment:** Draw the links of a2×3 control grid. Remove its middle control and predict which horizontal and vertical links disappear.
-
-<details>
-<summary>Implementation 77sd-connect-curve-polygons-and-surface-control-nets: Connect curve polygons and surface control nets</summary>
-
-Connect curve polygons and surface control nets.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Should a control net connect across a missing or invalid control?* — No. Clearing the previous index at that point breaks the link rather than bridging a gap.
 
 ### 1. `src/source_controls.rs`
 
 Connect curve polygons and surface control nets.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            return None;
-        }
-
-        let index = self.points.len();
-        self.points.push(Control { id, position });
-        Some(index)
-    }
-
-    /// Every mesh vertex.
-    fn mesh(&mut self, mesh: &session_rust::Mesh) {
-        for key in mesh.vertices() {
-            if let Some(vertex) = mesh.vertex.get(&key) {
-                self.push(
-                    ControlId::Vertex(key),
-                    &Point::new(vertex.x, vertex.y, vertex.z),
-                );
-            }
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -821,100 +450,44 @@ impl Controls {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sd-connect-curve-polygons-and-surface-control-nets-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77se-reuse-control-collectors-across-original-geometry-families"></a>
 
 ### Step 6 of 49 · Reuse control collectors across original geometry families (`77se-reuse-control-collectors-across-original-geometry-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/49 Visual Trace (77se-reuse-control-collectors-across-original-geometry-families): Reuse control collectors across original geometry families</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_controls.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_controls.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Reuse control collectors across original geometry families.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_controls.rs` (*Reuse control collectors across original geometry families.*)
 
 BRep controls retain vertex, curve and surface addresses.
 
 Geometry dispatch reuses those collectors for Element source payloads and handles original line, polyline and point controls directly. A point cloud enables its GPU control mode; Plane and OBB have no controls here. from_geometry builds one fresh control view without mutating the original Session geometry.
 
-> **Self-Check Question:** *Does an Element need a second mesh control algorithm?*  
-> **Answer:** No. Dispatch its original Mesh or BRep to the collectors already written.
-
-- **Hands-On Lab Experiment:** Compare a Mesh with an Element containing that same Mesh. Their control positions and vertex addresses should agree; a line should supply exactly two controls and one link.
-
-<details>
-<summary>Implementation 77se-reuse-control-collectors-across-original-geometry-families: Reuse control collectors across original geometry families</summary>
-
-Reuse control collectors across original geometry families.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Does an Element need a second mesh control algorithm?* — No. Dispatch its original Mesh or BRep to the collectors already written.
 
 ### 1. `src/source_controls.rs`
 
 Reuse control collectors across original geometry families.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                        },
-                        &position,
-                    ),
-                    None => None,
-                };
-
-                if let (Some(start), Some(end)) = (*above, current) {
-                    self.links.push([start, end]);
-                }
-
-                if let (Some(start), Some(end)) = (last, current) {
-                    self.links.push([start, end]);
-                }
-
-                *above = current;
-                last = current;
-            }
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -989,19 +562,7 @@ impl Controls {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77se-reuse-control-collectors-across-original-geometry-families-typed-01.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1009,87 +570,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply independent original-source and fixed-origin regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-,
-            Geometry::PointCloud(_) => self.cloud = true,
-            Geometry::Point(point) => {
-                self.push(ControlId::Vertex(0), point);
-            }
-            Geometry::Element(element) => match element.geometry() {
-                ElementGeometry::Mesh(mesh) => self.mesh(mesh),
-                ElementGeometry::BRep(brep) => self.brep(brep),
-                ElementGeometry::None => {}
-            },
-            Geometry::Plane(_) | Geometry::OBB(_) => {}
-        }
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77se-reuse-control-collectors-across-original-geometry-families-typed-02.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sf-represent-original-geometry-edit-targets"></a>
 
 ### Step 7 of 49 · Represent original geometry edit targets (`77sf-represent-original-geometry-edit-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/49 Visual Trace (77sf-represent-original-geometry-edit-targets): Represent original geometry edit targets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Represent original geometry edit targets.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Represent original geometry edit targets.*) · `src/lib.rs` (*Register the source transformation component.*)
 
 Target translates the exclusive selection mode into a source edit request.
 
 Keep the original control IDs from the preceding collector lessons. A whole-object selection has no part target; its placement is edited through the existing scene transform path. The following helpers resolve the source points affected by each part request.
 
-> **Self-Check Question:** *Does a displayed triangle identify an editable source face?*  
-> **Answer:** No. Edits use original vertex, edge, face or control addresses.
-
-- **Hands-On Lab Experiment:** Trace a surface-control selection and a whole-object selection into Target::selected.
-
-<details>
-<summary>Implementation 77sf-represent-original-geometry-edit-targets: Represent original geometry edit targets</summary>
-
-Represent original geometry edit targets.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Does a displayed triangle identify an editable source face?* — No. Edits use original vertex, edge, face or control addresses.
 
 ### 1. `src/source_deform.rs`
 
@@ -1105,99 +625,48 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_controls;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77-copy-current-transformation-and-source-edit-algorithms-08.rs" skip=26
 ```
 
-</details>
+---
 
 <a id="checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits"></a>
 
 ### Step 8 of 49 · Resolve original mesh vertices for part edits (`77sg-resolve-original-mesh-vertices-for-part-edits`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/49 Visual Trace (77sg-resolve-original-mesh-vertices-for-part-edits): Resolve original mesh vertices for part edits</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Resolve original mesh vertices for part edits.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Resolve original mesh vertices for part edits.*)
 
 Resolve a selected vertex directly by key. A face collects its outer and hole vertices, then sorts and deduplicates them. Mesh edge numbering follows first appearance of an unordered vertex pair across original faces. This reproduces the source edge convention instead of numbering tessellation edges.
 
-> **Self-Check Question:** *Should a face edit leave its hole rim behind?*  
-> **Answer:** No. Include the original hole vertices with the outer face boundary.
-
-- **Hands-On Lab Experiment:** Draw two faces sharing one edge. Predict the first-appearance edge numbers and the vertex keys affected by moving either face.
-
-<details>
-<summary>Implementation 77sg-resolve-original-mesh-vertices-for-part-edits: Resolve original mesh vertices for part edits</summary>
-
-Resolve original mesh vertices for part edits.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Should a face edit leave its hole rim behind?* — No. Include the original hole vertices with the outer face boundary.
 
 ### 1. `src/source_deform.rs`
 
 Resolve original mesh vertices for part edits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Face(usize),        // one face by key
-}
-
-impl Target {
-    /// The target the current selection names, if any.
-    pub fn selected(mode: &SelectionMode) -> Option<Self> {
-        match *mode {
-            SelectionMode::Controls {
-                selected: Some(id), ..
-            } => Some(Self::Control(id)),
-            SelectionMode::Edge { edge, .. } => Some(Self::Edge(edge)),
-            SelectionMode::Face { face, .. } => Some(Self::Face(face)),
-            _ => None,
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1247,96 +716,42 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sg-resolve-original-mesh-vertices-for-part-edits-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sh-resolve-surface-grids-and-individual-source-controls"></a>
 
 ### Step 9 of 49 · Resolve surface grids and individual source controls (`77sh-resolve-surface-grids-and-individual-source-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/49 Visual Trace (77sh-resolve-surface-grids-and-individual-source-controls): Resolve surface grids and individual source controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Resolve surface grids and individual source controls.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Resolve surface grids and individual source controls.*)
 
 A surface control uses its original u/v address. Face0 selects the complete control grid; edges0–3 choose its four sides. For other geometry families, control_point reuses Controls::from_geometry and its stable IDs. There is one control collector, so picking and source editing agree about the addressed point.
 
-> **Self-Check Question:** *What does a surface boundary edit select?*  
-> **Answer:** One side of the original u/v control grid, not a chain of sampled display vertices.
-
-- **Hands-On Lab Experiment:** For a3×2 control grid, list the u/v pairs affected by each boundary and by its complete face.
-
-<details>
-<summary>Implementation 77sh-resolve-surface-grids-and-individual-source-controls: Resolve surface grids and individual source controls</summary>
-
-Resolve surface grids and individual source controls.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *What does a surface boundary edit select?* — One side of the original u/v control grid, not a chain of sampled display vertices.
 
 ### 1. `src/source_deform.rs`
 
 Resolve surface grids and individual source controls.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    let (a, b) = (keys[i], keys[(i + 1) % keys.len()]);
-                    let pair = (a.min(b), a.max(b));
-
-                    if seen.insert(pair) {
-                        if at == index {
-                            return Ok(vec![pair.0, pair.1]);
-                        }
-
-                        at += 1;
-                    }
-                }
-            }
-
-            Err("Unknown mesh edge".into())
-        }
-        _ => Err("Select a mesh vertex, edge or face".into()),
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1377,96 +792,44 @@ fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sh-resolve-surface-grids-and-individual-source-controls-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77si-collect-affected-points-across-cad-geometry-families"></a>
 
 ### Step 10 of 49 · Collect affected points across CAD geometry families (`77si-collect-affected-points-across-cad-geometry-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/49 Visual Trace (77si-collect-affected-points-across-cad-geometry-families): Collect affected points across CAD geometry families</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Collect affected points across CAD geometry families.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Collect affected points across CAD geometry families.*)
 
 Dispatch the selected target to the existing source key and control helpers.
 
 A BRep face uses its incident surface controls and an edge uses its original3D curve controls. Element payloads reuse the same Mesh/BRep resolvers. This collects edit anchors without changing source geometry or display placement.
 
-> **Self-Check Question:** *Does editing an Element require flattening its source payload?*  
-> **Answer:** No. Reuse the Mesh or BRep point resolver while retaining the original Element wrapper.
-
-- **Hands-On Lab Experiment:** Compare points returned for a Mesh and an Element containing that Mesh. Predict the rejection for a face request on an original Line.
-
-<details>
-<summary>Implementation 77si-collect-affected-points-across-cad-geometry-families: Collect affected points across CAD geometry families</summary>
-
-Collect affected points across CAD geometry families.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Does editing an Element require flattening its source payload?* — No. Reuse the Mesh or BRep point resolver while retaining the original Element wrapper.
 
 ### 1. `src/source_deform.rs`
 
 Collect affected points across CAD geometry families.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                _ => v + 1 == nv,
-            })
-            .collect()),
-        _ => Err("Unknown surface control, boundary or face".into()),
-    }
-}
-
-/// One control point of any geometry.
-fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
-    Controls::from_geometry(geometry)
-        .points
-        .into_iter()
-        .find(|p| p.id == id)
-        .map(|p| Point::new(p.position[0], p.position[1], p.position[2]))
-        .ok_or("Unknown source control".into())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1525,93 +888,44 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77si-collect-affected-points-across-cad-geometry-families-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sj-preserve-rational-weights-and-validate-brep-boundaries"></a>
 
 ### Step 11 of 49 · Preserve rational weights and validate BRep boundaries (`77sj-preserve-rational-weights-and-validate-brep-boundaries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/49 Visual Trace (77sj-preserve-rational-weights-and-validate-brep-boundaries): Preserve rational weights and validate BRep boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Preserve rational weights and validate BRep boundaries.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Preserve rational weights and validate BRep boundaries.*)
 
 For rational curves, store the moved Euclidean point multiplied by its unchanged weight.
 
 Before committing a BRep edit, validate topology and sample changed incident3D edges against their2D trim curves on the adjacent surfaces. Reject an edit that requires trim rebuilding; the caller can then retain the original solid atomically. This bounded check is not a general trim reconstruction algorithm.
 
-> **Self-Check Question:** *Why preserve a rational control weight when moving its point?*  
-> **Answer:** The Euclidean point changes, while its original rational weighting remains part of the curve definition.
-
-- **Hands-On Lab Experiment:** Explain why translating one boundary curve without its adjacent surface may be rejected. Predict the homogeneous coordinates for point[2,3,4] with weight2.
-
-<details>
-<summary>Implementation 77sj-preserve-rational-weights-and-validate-brep-boundaries: Preserve rational weights and validate BRep boundaries</summary>
-
-Preserve rational weights and validate BRep boundaries.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why preserve a rational control weight when moving its point?* — The Euclidean point changes, while its original rational weighting remains part of the curve definition.
 
 ### 1. `src/source_deform.rs`
 
 Preserve rational weights and validate BRep boundaries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                points(&Geometry::Mesh(Rc::new(mesh.clone())), target)
-            }
-            session_rust::element::ElementGeometry::BRep(brep) => {
-                points(&Geometry::BRep(Rc::new(brep.clone())), target)
-            }
-            _ => Err("Element has no source geometry".into()),
-        },
-        _ => match target {
-            Target::Control(id) => control_point(geometry, id).map(|p| vec![p]),
-            _ => Err("This source has no editable faces or edges".into()),
-        },
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1684,95 +998,44 @@ fn validate_boundaries(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sj-preserve-rational-weights-and-validate-brep-boundaries-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sk-transform-original-mesh-and-surface-controls"></a>
 
 ### Step 12 of 49 · Transform original mesh and surface controls (`77sk-transform-original-mesh-and-surface-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/49 Visual Trace (77sk-transform-original-mesh-and-surface-controls): Transform original mesh and surface controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Transform original mesh and surface controls.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Transform original mesh and surface controls.*)
 
 Clone the original source before changing addressed points.
 
 Mesh edits update only resolved vertex keys and clear the triangle BVH. Surface edits update original controls and drop the cached mesh. The original source object remains available for rollback and Undo; later display preparation regenerates geometry from the edited source.
 
-> **Self-Check Question:** *Why clear derived acceleration and tessellation caches after source controls move?*  
-> **Answer:** Those caches describe the previous source positions and must be regenerated.
-
-- **Hands-On Lab Experiment:** Move one face of two adjacent mesh faces. List the shared vertices that change and the untouched vertices that remain identical.
-
-<details>
-<summary>Implementation 77sk-transform-original-mesh-and-surface-controls: Transform original mesh and surface controls</summary>
-
-Transform original mesh and surface controls.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why clear derived acceleration and tessellation caches after source controls move?* — Those caches describe the previous source positions and must be regenerated.
 
 ### 1. `src/source_deform.rs`
 
 Transform original mesh and surface controls.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    let actual = surface
-                        .point_at(q[0], q[1])
-                        .ok_or("Cannot evaluate incident surface")?;
-                    let tolerance = edge.tolerance.max(1e-6) * 10.0;
-
-                    if (0..3).any(|i| (p[i] - actual[i]).abs() > tolerance) {
-                        return Err("This BRep edit requires rebuilding adjacent trims; the original solid was preserved".into());
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1815,97 +1078,44 @@ fn transform_nurbssurface(source: &Rc<session_rust::NurbsSurface>, target: Targe
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sk-transform-original-mesh-and-surface-controls-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls"></a>
 
 ### Step 13 of 49 · Transform original line polyline point and curve controls (`77sl-transform-original-line-polyline-point-and-curve-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/49 Visual Trace (77sl-transform-original-line-polyline-point-and-curve-controls): Transform original line polyline point and curve controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Transform original line polyline point and curve controls.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Transform original line polyline point and curve controls.*)
 
 Use each original control address to move one point in a cloned source.
 
 Reuse the rational curve setter from the preceding lesson. Rebuilding a Line from its two endpoints must restore its original identity and display metadata; changing its shape does not create a new object. Point and polyline edits retain their corresponding source owners.
 
-> **Self-Check Question:** *Which Line metadata must survive an endpoint edit?*  
-> **Answer:** Its original GUID, name, width, dash, colour and arrowhead remain unchanged.
-
-- **Hands-On Lab Experiment:** Predict the changed endpoint and unchanged metadata when only Line vertex1 moves. Compare a rational curve edit with a polyline vertex edit.
-
-<details>
-<summary>Implementation 77sl-transform-original-line-polyline-point-and-curve-controls: Transform original line polyline point and curve controls</summary>
-
-Transform original line polyline point and curve controls.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Which Line metadata must survive an endpoint edit?* — Its original GUID, name, width, dash, colour and arrowhead remain unchanged.
 
 ### 1. `src/source_deform.rs`
 
 Transform original line polyline point and curve controls.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn transform_nurbssurface(source: &Rc<session_rust::NurbsSurface>, target: Target, delta: &Xform) -> Result<Geometry, String> {
-    let mut surface = (**source).clone();
-
-    for (u, v) in surface_keys(&surface, target)? {
-        let p = surface
-            .get_cv(u, v)
-            .ok_or("Missing surface control")?
-            .transformed(delta);
-
-        if !surface.set_cv(u, v, &p) {
-            return Err("Cannot set surface control".into());
-        }
-    }
-
-    surface.m_mesh = None; // drop the cached mesh
-    Ok(Geometry::NurbsSurface(Rc::new(surface)))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1965,94 +1175,44 @@ fn transform_point(source: &Rc<session_rust::Point>, target: Target, delta: &Xfo
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sl-transform-original-line-polyline-point-and-curve-controls-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sm-transform-shared-brep-boundary-positions-coherently"></a>
 
 ### Step 14 of 49 · Transform shared BRep boundary positions coherently (`77sm-transform-shared-brep-boundary-positions-coherently`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/49 Visual Trace (77sm-transform-shared-brep-boundary-positions-coherently): Transform shared BRep boundary positions coherently</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Transform shared BRep boundary positions coherently.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Transform shared BRep boundary positions coherently.*)
 
 Collect the selected source positions and clone the BRep.
 
 Move coincident vertex, curve and surface controls within the source tolerance; record touched curves and surfaces, and invalidate changed surface meshes. Validate affected boundaries before returning the new solid. A failed validation returns an error and leaves the original geometry available to the transaction.
 
-> **Self-Check Question:** *Why move coincident BRep vertices curve controls and surface controls together?*  
-> **Answer:** They describe connected parts of the same original boundary, so moving only one representation can break consistency.
-
-- **Hands-On Lab Experiment:** Trace a boundary point present in a vertex, curve and surface. Predict which caches and incident-boundary checks must run when it moves.
-
-<details>
-<summary>Implementation 77sm-transform-shared-brep-boundary-positions-coherently: Transform shared BRep boundary positions coherently</summary>
-
-Transform shared BRep boundary positions coherently.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why move coincident BRep vertices curve controls and surface controls together?* — They describe connected parts of the same original boundary, so moving only one representation can break consistency.
 
 ### 1. `src/source_deform.rs`
 
 Transform shared BRep boundary positions coherently.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    next.name = source.name.clone();
-    next.width = source.width;
-    next.dash = source.dash.clone();
-    next.linecolor = source.linecolor.clone();
-    next.arrowhead = source.arrowhead;
-    Ok(Geometry::Line(Rc::new(next)))
-}
-
-fn transform_point(source: &Rc<session_rust::Point>, target: Target, delta: &Xform) -> Result<Geometry, String> {
-    let Target::Control(ControlId::Vertex(0)) = target else {
-        return Err("Unknown point".into());
-    };
-    Ok(Geometry::Point(Rc::new(source.transformed(delta))))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2112,97 +1272,44 @@ fn transform_brep(geometry: &Geometry, source: &Rc<session_rust::BRep>, target: 
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sm-transform-shared-brep-boundary-positions-coherently-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sn-dispatch-original-part-edits-and-retain-element-ownership"></a>
 
 ### Step 15 of 49 · Dispatch original part edits and retain Element ownership (`77sn-dispatch-original-part-edits-and-retain-element-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/49 Visual Trace (77sn-dispatch-original-part-edits-and-retain-element-ownership): Dispatch original part edits and retain Element ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_deform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Dispatch original part edits and retain Element ownership.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_deform.rs` (*Dispatch original part edits and retain Element ownership.*)
 
 Validate the requested transform once, then dispatch to the source helpers written in the preceding lessons.
 
 Element editing recursively reuses Mesh/BRep transformations and retains the Element wrapper and original feature payload. The independent regressions are registered after the original mesh-topology helpers are complete, because their hole/winding checks depend on that module. These helpers connect to the existing preview and history tools afterward.
 
-> **Self-Check Question:** *Does moving an Element control create a separate editable display mesh?*  
-> **Answer:** No. Update its original Mesh/BRep payload inside the cloned Element.
-
-- **Hands-On Lab Experiment:** Predict the before/after owner identity when one Element mesh control moves. Trace an invalid transform through the dispatcher without mutating the source.
-
-<details>
-<summary>Implementation 77sn-dispatch-original-part-edits-and-retain-element-ownership: Dispatch original part edits and retain Element ownership</summary>
-
-Dispatch original part edits and retain Element ownership.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Does moving an Element control create a separate editable display mesh?* — No. Update its original Mesh/BRep payload inside the cloned Element.
 
 ### 1. `src/source_deform.rs`
 
 Dispatch original part edits and retain Element ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                if let Some(p) = surface.get_cv(u, v)
-                    && matches(&p)
-                {
-                    surface.set_cv(u, v, &p.transformed(delta));
-                    changed_surfaces.insert(surface_index);
-                }
-            }
-        }
-
-        if changed_surfaces.contains(&surface_index) {
-            surface.m_mesh = None; // drop the cached mesh
-        }
-    }
-
-    validate_boundaries(&next, &changed_curves, &changed_surfaces)?;
-    Ok(Geometry::BRep(Rc::new(next)))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2253,68 +1360,40 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sn-dispatch-original-part-edits-and-retain-element-ownership-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots"></a>
 
 ### Step 16 of 49 · Map sparse original vertex keys to display slots (`77so-map-sparse-original-vertex-keys-to-display-slots`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/49 Visual Trace (77so-map-sparse-original-vertex-keys-to-display-slots): Map sparse original vertex keys to display slots</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_topology_colour.rs, src/source_mesh_topology.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_topology_colou…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Map sparse original vertex keys to display slots.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_topology_colour.rs` (*Pack original edge pen colours into the existing RGBA word convention.*) · `src/source_mesh_topology.rs` (*Map sparse original vertex keys to display slots.*) · `src/lib.rs` (*Register the shared source colour helper and original edge topology owner.*)
 
 Choose a dense slot lookup only when sorted original keys are close enough together; otherwise use a sparse map.
 
 The lookup maps original identity to contiguous display storage without changing the source keys. Pack source pen colours once with the small shared RGBA helper; edge topology will reuse that packed format.
 
-> **Self-Check Question:** *Why not allocate a GPU slot array up to the largest original vertex key?*  
-> **Answer:** Sparse original keys can be enormous even when the mesh has few vertices.
-
-- **Hands-On Lab Experiment:** Compare original keys[0,1,2] with[2,1000000]. Predict which lookup stores each mesh and which GPU slot belongs to its last original vertex.
-
-<details>
-<summary>Implementation 77so-map-sparse-original-vertex-keys-to-display-slots: Map sparse original vertex keys to display slots</summary>
-
-Map sparse original vertex keys to display slots.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why not allocate a GPU slot array up to the largest original vertex key?* — Sparse original keys can be enormous even when the mesh has few vertices.
 
 ### 1. `src/source_topology_colour.rs`
 
@@ -2340,109 +1419,50 @@ Create the file and type:
 
 Register the shared source colour helper and original edge topology owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_deform;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77so-map-sparse-original-vertex-keys-to-display-slots-typed-03.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-77sp-compute-polygon-normals-from-original-boundaries"></a>
 
 ### Step 17 of 49 · Compute polygon normals from original boundaries (`77sp-compute-polygon-normals-from-original-boundaries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/49 Visual Trace (77sp-compute-polygon-normals-from-original-boundaries): Compute polygon normals from original boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_mesh_topology.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_mesh_topology.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Compute polygon normals from original boundaries.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_mesh_topology.rs` (*Compute polygon normals from original boundaries.*)
 
 MeshTopo separates original edges, their incident face slots, winding agreement, face normals and closure.
 
 Newell normals use all polygon boundary positions through the original-key slot lookup. Reject a degenerate normal instead of dividing by zero. Sorting face keys gives stable face slots for edge incidence and later GPU ownership.
 
-> **Self-Check Question:** *Why sum every polygon edge instead of using its first triangle?*  
-> **Answer:** The polygon may have collinear initial vertices; the complete Newell sum uses the original boundary.
-
-- **Hands-On Lab Experiment:** Draw a planar polygon whose first three vertices are collinear. Predict why the full boundary still gives a usable normal.
-
-<details>
-<summary>Implementation 77sp-compute-polygon-normals-from-original-boundaries: Compute polygon normals from original boundaries</summary>
-
-Compute polygon normals from original boundaries.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why sum every polygon edge instead of using its first triangle?* — The polygon may have collinear initial vertices; the complete Newell sum uses the original boundary.
 
 ### 1. `src/source_mesh_topology.rs`
 
 Compute polygon normals from original boundaries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            };
-        }
-
-        let mut sparse = std::collections::HashMap::with_capacity(keys.len());
-
-        for (s, &k) in keys.iter().enumerate() {
-            sparse.insert(k, s as u32);
-        }
-
-        Self {
-            dense: Vec::new(),
-            sparse,
-        }
-    }
-
-    /// The slot of key `k`.
-    pub fn slot(&self, k: usize) -> usize {
-        if self.dense.is_empty() {
-            self.sparse[&k] as usize
-        } else {
-            self.dense[k] as usize
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2489,100 +1509,44 @@ fn face_key(face: &(usize, &Vec<usize>)) -> usize {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sp-compute-polygon-normals-from-original-boundaries-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces"></a>
 
 ### Step 18 of 49 · Build one original edge table and record incident faces (`77sq-build-one-original-edge-table-and-record-incident-faces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/49 Visual Trace (77sq-build-one-original-edge-table-and-record-incident-faces): Build one original edge table and record incident faces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_mesh_topology.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_mesh_topology.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Build one original edge table and record incident faces.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_mesh_topology.rs` (*Build one original edge table and record incident faces.*)
 
 Each low-vertex slot owns a linked list of edge indices.
 
 Insert a new unordered edge once, using its first-appearance colour index. Record at most two distinct incident face slots and whether their traversal directions oppose. The sentinel u32::MAX marks an absent list link or incident face. This preserves original edge ordering for display and picking.
 
-> **Self-Check Question:** *How do adjacent faces reuse the same original edge?*  
-> **Answer:** Search the linked edge list at the lower vertex slot for the same upper key.
-
-- **Hands-On Lab Experiment:** Walk two adjacent faces across the same edge in opposite directions. Predict one stored edge, two incident faces and its opposed flag.
-
-<details>
-<summary>Implementation 77sq-build-one-original-edge-table-and-record-incident-faces: Build one original edge table and record incident faces</summary>
-
-Build one original edge table and record incident faces.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *How do adjacent faces reuse the same original edge?* — Search the linked edge list at the lower vertex slot for the same upper key.
 
 ### 1. `src/source_mesh_topology.rs`
 
 Build one original edge table and record incident faces.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let a = vpos[slots.slot(vs[i])];
-        let b = vpos[slots.slot(vs[(i + 1) % vs.len()])];
-        n[0] += (a[1] - b[1]) * (a[2] + b[2]);
-        n[1] += (a[2] - b[2]) * (a[0] + b[0]);
-        n[2] += (a[0] - b[0]) * (a[1] + b[1]);
-    }
-
-    let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
-
-    if len > Tolerance::ZERO_TOLERANCE {
-        Some([n[0] / len, n[1] / len, n[2] / len])
-    } else {
-        None
-    }
-}
-
-/// Sort key of a face.
-fn face_key(face: &(usize, &Vec<usize>)) -> usize {
-    face.0
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2641,97 +1605,44 @@ impl EdgeTable {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sq-build-one-original-edge-table-and-record-incident-faces-typed-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology"></a>
 
 ### Step 19 of 49 · Preserve hole winding and complete original mesh topology (`77sr-preserve-hole-winding-and-complete-original-mesh-topology`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/49 Visual Trace (77sr-preserve-hole-winding-and-complete-original-mesh-topology): Preserve hole winding and complete original mesh topology</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_mesh_topology.rs, src/source_deform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 CAD source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure transform or original control</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">addresses</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later edit preview and GPU display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_mesh_topology.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure transform or origi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
-</div>
-
-- **Goal:** Preserve hole winding and complete original mesh topology.
-- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
-- **Files You Touch:** `src/source_mesh_topology.rs` (*Preserve hole winding and complete original mesh topology.*) · `src/source_deform.rs` (*Supply independent original-source and fixed-origin regressions.*)
 
 Collect sorted original faces and their normals.
 
 Visit outer rings first, then hole rings; normalize hole traversal against the face normal before recording edge direction. Reuse EdgeTable::add for both passes. Closure requires a nonempty source mesh and a second incident face on every edge. The supplied regressions cover holes, winding, sparse keys and source pen ordering before part picking is connected.
 
-> **Self-Check Question:** *Why visit outer borders before hole rings?*  
-> **Answer:** It keeps the kernel’s existing outer-edge order for source colours widths and picking IDs.
-
-- **Hands-On Lab Experiment:** Compare a closed box with a face removed. Then add a hole rim and predict its direction relative to the outer border.
-
-<details>
-<summary>Implementation 77sr-preserve-hole-winding-and-complete-original-mesh-topology: Preserve hole winding and complete original mesh topology</summary>
-
-Preserve hole winding and complete original mesh topology.
-
-Data flow: original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
+> **Check:** *Why visit outer borders before hole rings?* — It keeps the kernel’s existing outer-edge order for source colours widths and picking IDs.
 
 ### 1. `src/source_mesh_topology.rs`
 
 Preserve hole winding and complete original mesh topology.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            self.opposed.push(true);
-            self.next.push(self.head[ls]);
-            self.head[ls] = ei;
-        }
-
-        // record this face on the edge, first free slot
-        let ef = &mut self.edge_faces[ei as usize];
-
-        if ef[0] == u32::MAX {
-            ef[0] = face as u32;
-            self.dir0[ei as usize] = dir;
-        } else if ef[1] == u32::MAX && ef[0] != face as u32 {
-            ef[1] = face as u32;
-            self.opposed[ei as usize] = dir != self.dir0[ei as usize];
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2801,19 +1712,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77sr-preserve-hole-winding-and-complete-original-mesh-topology-typed-01.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2821,48 +1720,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply independent original-source and fixed-origin regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-rom(reverse);
-                    table.add(slots.slot(lo), lo, hi, dir, fs, cols);
-                }
-            }
-        }
-    }
-
-    // closed when no edge is missing its second face
-    let mut closed = !m.vertex.is_empty();
-
-    for f in table.edge_faces.iter() {
-        if f[1] == u32::MAX {
-            closed = false;
-        }
-    }
-
-    MeshTopo {
-        edges: table.edges,
-        edge_faces: table.edge_faces,
-        opposed: table.opposed,
-        normals,
-        closed,
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77sr-preserve-hole-winding-and-complete-original-mesh-topology-typed-02.rs" skip=500
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2870,80 +1734,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply independent original-source and fixed-origin regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ne(source, target, delta),
-        Geometry::NurbsCurve(source) => transform_nurbscurve(source, target, delta),
-        Geometry::Line(source) => transform_line(source, target, delta),
-        Geometry::Point(source) => transform_point(source, target, delta),
-        Geometry::BRep(source) => transform_brep(geometry, source, target, delta),
-        Geometry::Element(source) => transform_element(source, target, delta),
-        _ => Err("This source control cannot be transformed".into()),
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77sn-dispatch-original-part-edits-and-retain-element-ownership-typed-02.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77a-own-transformation-questions-and-the-selected-original-targets"></a>
 
 ### Step 20 of 49 · Own transformation questions and the selected original targets (`77a-own-transformation-questions-and-the-selected-original-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/49 Visual Trace (77a-own-transformation-questions-and-the-selected-original-targets): Own transformation questions and the selected original targets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_draft.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current selection and plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">frozen targets</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending transform questions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_draft.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">frozen targets</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending transform quest…</text>
 </svg>
-</div>
-
-- **Goal:** Own transformation questions and the selected original targets.
-- **Data Flow Trace:** `current selection and plane → frozen targets → pending transform questions`
-- **Files You Touch:** `src/transform_draft.rs` (*Own current transformation questions, modes, accepted points and original targets.*) · `src/lib.rs` (*Register the source transformation component.*)
 
 Keep the tool kind, scale mode, accepted points, current plane and frozen original targets in one owner.
 
-> **Self-Check Question:** *Can hover become saved placement?*  
-> **Answer:** No. The question owner and temporary preview remain separate from scene placement and its history.
-
-- **What You Should See:** The five original curve families remain visible while source transformations connect. The final exercise copies and independently scales and rotates original boxes.
-- **Hands-On Lab Experiment:** Compare Copy target prompts, Scale1D reference prompts and Rotate center/angle prompts.
-
-<details>
-<summary>Implementation 77a-own-transformation-questions-and-the-selected-original-targets: Own transformation questions and the selected original targets</summary>
-
-Own transformation questions and the selected original targets.
-
-Data flow: current selection and plane → frozen targets → pending transform questions.
+> **Check:** *Can hover become saved placement?* — No. The question owner and temporary preview remain separate from scene placement and its history.
 
 ### 1. `src/transform_draft.rs`
 
@@ -2959,85 +1787,50 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_topology_colour;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77a-own-transformation-questions-and-the-selected-original-targets-02.rs" skip=33
 ```
 
-</details>
+**Result after `77a-own-transformation-questions-and-the-selected-original-targets`:** The five original curve families remain visible while source transformations connect. The final exercise copies and independently scales and rotates original boxes.
+
+---
 
 <a id="checkpoint-77b-validate-point-and-number-transformation-answers"></a>
 
 ### Step 21 of 49 · Validate point and number transformation answers (`77b-validate-point-and-number-transformation-answers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/49 Visual Trace (77b-validate-point-and-number-transformation-answers): Validate point and number transformation answers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">point or number answer</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked references</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current original transform</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked references</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current original transf…</text>
 </svg>
-</div>
-
-- **Goal:** Validate point and number transformation answers.
-- **Data Flow Trace:** `point or number answer → checked references → current original transform`
-- **Files You Touch:** `src/transform_draft.rs` (*Validate current transform points and numbers without adopting an invalid reference.*)
 
 Resolve a valid factor, reference reach or signed plane angle before adopting the candidate points.
 
-> **Self-Check Question:** *Can Scale1D take a factor before its direction?*  
-> **Answer:** No. Its first reference point determines the direction. Scale 2D and3D can take a factor after the origin.
-
-- **Hands-On Lab Experiment:** Try a repeated reference point, a nonpositive factor and valid1D reference/new-length input.
-
-<details>
-<summary>Implementation 77b-validate-point-and-number-transformation-answers: Validate point and number transformation answers</summary>
-
-Validate point and number transformation answers.
-
-Data flow: point or number answer → checked references → current original transform.
+> **Check:** *Can Scale1D take a factor before its direction?* — No. Its first reference point determines the direction. Scale 2D and3D can take a factor after the origin.
 
 ### 1. `src/transform_draft.rs`
 
 Validate current transform points and numbers without adopting an invalid reference.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        };format!("{} · {question} · Esc cancels{}",self.kind.name(),if self.kind==Kind::Scale{format!(" · {}D",self.mode)}else{String::new()})
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3045,70 +1838,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77b-validate-point-and-number-transformation-answers-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77c-resolve-typed-batches-and-temporary-transformation-previews"></a>
 
 ### Step 22 of 49 · Resolve typed batches and temporary transformation previews (`77c-resolve-typed-batches-and-temporary-transformation-previews`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/49 Visual Trace (77c-resolve-typed-batches-and-temporary-transformation-previews): Resolve typed batches and temporary transformation previews</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed batch</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">candidate owner</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked transforms or temporary</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">preview</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">candidate owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked transforms or t…</text>
 </svg>
-</div>
-
-- **Goal:** Resolve typed batches and temporary transformation previews.
-- **Data Flow Trace:** `typed batch → candidate owner → checked transforms or temporary preview`
-- **Files You Touch:** `src/transform_draft.rs` (*Resolve current options and atomic batches, temporary preview matrices and tool buttons.*)
 
 Validate all typed words before replacing the owner. Copy repeats after a target; other transforms finish after their result.
 
-> **Self-Check Question:** *Does extra input after Scale completion create a partial edit?*  
-> **Answer:** No. Reject the entire typed batch before adopting any transform or answer.
-
-- **Hands-On Lab Experiment:** Try Scale with origin, factor and an extra word. Compare Copy with two targets and Enter with the same tool cancelled by Escape.
-
-<details>
-<summary>Implementation 77c-resolve-typed-batches-and-temporary-transformation-previews: Resolve typed batches and temporary transformation previews</summary>
-
-Resolve typed batches and temporary transformation previews.
-
-Data flow: typed batch → candidate owner → checked transforms or temporary preview.
+> **Check:** *Does extra input after Scale completion create a partial edit?* — No. Reject the entire typed batch before adopting any transform or answer.
 
 ### 1. `src/transform_draft.rs`
 
 Resolve current options and atomic batches, temporary preview matrices and tool buttons.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3116,54 +1881,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77c-resolve-typed-batches-and-temporary-transformation-previews-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds"></a>
 
 ### Step 23 of 49 · Resolve original CAD parts and complete selected bounds (`77d-resolve-original-cad-parts-and-complete-selected-bounds`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/49 Visual Trace (77d-resolve-original-cad-parts-and-complete-selected-bounds): Resolve original CAD parts and complete selected bounds</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_part.rs, src/lib.rs, src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original part or owner</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source geometry and world bounds</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked target</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_part.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source geometry and wor…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked target</text>
 </svg>
-</div>
-
-- **Goal:** Resolve original CAD parts and complete selected bounds.
-- **Data Flow Trace:** `selected original part or owner → source geometry and world bounds → checked target`
-- **Files You Touch:** `src/source_part.rs` (*Resolve existing CAD face and boundary targets against original kernel geometry.*) · `src/lib.rs` (*Register the source transformation component.*) · `src/scene.rs` (*Connect current transformation behavior to the existing input and history owner.*)
 
 Map displayed CAD face/boundary identities back to original geometry. Include Line, Point and Curve in precise selected bounds.
 
-> **Self-Check Question:** *Why does direct rotation need selected line bounds?*  
-> **Answer:** Its gizmo center comes from the selected bounds. Without them a line incorrectly rotates about the world origin.
-
-- **Hands-On Lab Experiment:** Select a line from 1,0,0 to2,0,0; its center is1.5,0,0. Compare that with a selected surface boundary’s original points.
-
-<details>
-<summary>Implementation 77d-resolve-original-cad-parts-and-complete-selected-bounds: Resolve original CAD parts and complete selected bounds</summary>
-
-Resolve original CAD parts and complete selected bounds.
-
-Data flow: selected original part or owner → source geometry and world bounds → checked target.
+> **Check:** *Why does direct rotation need selected line bounds?* — Its gizmo center comes from the selected bounds. Without them a line incorrectly rotates about the world origin.
 
 ### 1. `src/source_part.rs`
 
@@ -3179,16 +1928,6 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod transform_draft;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -3199,94 +1938,48 @@ After that block, type:
 
 Connect current transformation behavior to the existing input and history owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if let Some(row)=self.texts.iter().find(|row|row.id==id) {return row.bounds();}
-        if let Some(row)=self.sheets.iter().find(|row|row.id==id) {return row.bounds();}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/77d-resolve-original-cad-parts-and-complete-selected-bounds-03.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption"></a>
 
 ### Step 24 of 49 · Rebuild an edited original CAD source before adoption (`77e-rebuild-an-edited-original-cad-source-before-adoption`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/49 Visual Trace (77e-rebuild-an-edited-original-cad-source-before-adoption): Rebuild an edited original CAD source before adoption</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/part_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world edit</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local original deformation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated source</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/part_pr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated source</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived display</text>
 </svg>
-</div>
-
-- **Goal:** Rebuild an edited original CAD source before adoption.
-- **Data Flow Trace:** `world edit → local original deformation → validated source → derived display`
-- **Files You Touch:** `src/scene.rs` (*Connect current transformation behavior to the existing input and history owner.*) · `src/part_preview.rs` (*Connect current transformation behavior to the existing input and history owner.*)
 
 Apply the world delta in the original local frame, validate adjacent trims, and prepare the edited source before changing the row.
 
-> **Self-Check Question:** *What happens if an edit breaks incident trims?*  
-> **Answer:** Refuse the result and keep the original source, row placement and history unchanged.
-
-- **Hands-On Lab Experiment:** Move a box face, Undo, then inspect original source identity and face boundaries after Save/Open.
-
-<details>
-<summary>Implementation 77e-rebuild-an-edited-original-cad-source-before-adoption: Rebuild an edited original CAD source before adoption</summary>
-
-Rebuild an edited original CAD source before adoption.
-
-Data flow: world edit → local original deformation → validated source → derived display.
+> **Check:** *What happens if an edit breaks incident trims?* — Refuse the result and keep the original source, row placement and history unchanged.
 
 ### 1. `src/scene.rs`
 
 Connect current transformation behavior to the existing input and history owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3300,8 +1993,7 @@ Connect current transformation behavior to the existing input and history owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3312,8 +2004,6 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
     a.paths().iter().find(|r|r.id==id).zip(b.paths().iter().find(|r|r.id==id)).is_some_and(|(a,b)|a.prepared.source.owner()==b.prepared.source.owner())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3327,8 +2017,7 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
@@ -3341,8 +2030,6 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
         let row=scene.paths().iter().find(|r|r.id==target.owner).ok_or("Select a mesh face, edge or curve control")?;
         let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
 ```
-
-</details>
 
 Replace it with:
 
@@ -3358,8 +2045,7 @@ Replace it with:
         let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{Scene,ObjectId},pick_sources::{Part,Target}};
@@ -3436,85 +2122,42 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77e-rebuild-an-edited-original-cad-source-before-adoption-02.rs"
-```
-
-```text
---8<-- "journey/code/77e-rebuild-an-edited-original-cad-source-before-adoption-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77f-copy-original-rows-beside-their-existing-parents"></a>
 
 ### Step 25 of 49 · Copy original rows beside their existing parents (`77f-copy-original-rows-beside-their-existing-parents`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/49 Visual Trace (77f-copy-original-rows-beside-their-existing-parents): Copy original rows beside their existing parents</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original rows</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked copy plan</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">new identities and world placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked copy plan</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">new identities and worl…</text>
 </svg>
-</div>
-
-- **Goal:** Copy original rows beside their existing parents.
-- **Data Flow Trace:** `selected original rows → checked copy plan → new identities and world placement`
-- **Files You Touch:** `src/layer_edit.rs` (*Copy checked original rows under their existing parent with current attributes, new identities and placed source sharing.*)
 
 Stage checked copies with new row and tree identities, retain names/colours and copy attached attributes under the same parent.
 
-> **Self-Check Question:** *Does copying a selected parent also copy every ordinary child?*  
-> **Answer:** Only the explicit selected objects are copied; attached attributes follow their owner. Ordinary child objects keep their existing original parent.
-
-- **Hands-On Lab Experiment:** Compare Copy under duplicate named groups, copied row GUIDs, retained source allocation and inverse-derived saved local placement.
-
-<details>
-<summary>Implementation 77f-copy-original-rows-beside-their-existing-parents: Copy original rows beside their existing parents</summary>
-
-Copy original rows beside their existing parents.
-
-Data flow: selected original rows → checked copy plan → new identities and world placement.
+> **Check:** *Does copying a selected parent also copy every ordinary child?* — Only the explicit selected objects are copied; attached attributes follow their owner. Ordinary child objects keep their existing original parent.
 
 ### 1. `src/layer_edit.rs`
 
 Copy checked original rows under their existing parent with current attributes, new identities and placed source sharing.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3522,55 +2165,38 @@ After that block, type:
 --8<-- "journey/code/77f-copy-original-rows-beside-their-existing-parents-01.rs" skip=8
 ```
 
-</details>
+---
 
 <a id="checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner"></a>
 
 ### Step 26 of 49 · Carry transformation state through the existing drawing owner (`77g-carry-transformation-state-through-the-existing-drawing-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/49 Visual Trace (77g-carry-transformation-state-through-the-existing-drawing-owner): Carry transformation state through the existing drawing owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Draft</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">frozen transform owner</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary scene and resource</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accounting</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs, src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">frozen transform owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary scene and res…</text>
 </svg>
-</div>
-
-- **Goal:** Carry transformation state through the existing drawing owner.
-- **Data Flow Trace:** `current Draft → frozen transform owner → temporary scene and resource accounting`
-- **Files You Touch:** `src/tool.rs` (*Carry current transform question owners and buttons through the existing Draft.*) · `src/editor.rs` (*Own temporary original-part and whole-placement transformation previews.*)
 
 Keep transformation questions beside the current Draft and include their temporary scene owners in display and memory reporting.
 
-> **Self-Check Question:** *Can a temporary transformed scene outlive cancellation?*  
-> **Answer:** Cancellation drops its owner. The saved scene and history still retain only their original placements and sources.
-
-- **Hands-On Lab Experiment:** Compare display_scene with scene during a rotation preview, and inspect presentation_scenes before and after Escape.
-
-<details>
-<summary>Implementation 77g-carry-transformation-state-through-the-existing-drawing-owner: Carry transformation state through the existing drawing owner</summary>
-
-Carry transformation state through the existing drawing owner.
-
-Data flow: current Draft → frozen transform owner → temporary scene and resource accounting.
+> **Check:** *Can a temporary transformed scene outlive cancellation?* — Cancellation drops its owner. The saved scene and history still retain only their original placements and sources.
 
 ### 1. `src/tool.rs`
 
@@ -3578,8 +2204,7 @@ Carry current transform question owners and buttons through the existing Draft.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub const MAX_POINTS: usize = 4096;
@@ -3594,8 +2219,6 @@ impl Draft {
         let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
             else if self.tool.count()==0 {format!("{} point {} · Enter finishes · Esc cancels",self.tool.name(),self.points.len()+1)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3614,8 +2237,7 @@ impl Draft {
             else if self.tool.count()==0 {format!("{} point {} · Enter finishes · Esc cancels",self.tool.name(),self.points.len()+1)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Self::Polygon {sides} if points.len()==2=>crate::planar::points("polygon",plane,*sides,points).unwrap_or_default(),_=>points.to_vec()}
@@ -3625,8 +2247,6 @@ impl Draft {
         let mut buttons=vec![("Cancel".into(),"Escape".into())];
         if matches!(self,Self::Polyline|Self::Rectangle|Self::Polygon {..}) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3640,8 +2260,7 @@ Replace it with:
         if matches!(self,Self::Polyline|Self::Rectangle|Self::Polygon {..}) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -3656,8 +2275,6 @@ impl Tool for Shape {
     fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3675,8 +2292,7 @@ impl Tool for Shape {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -3798,35 +2414,13 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-01.rs"
-```
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-02.rs"
-```
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-03.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Own temporary original-part and whole-placement transformation previews. Connect current transformation behavior to the existing input and history owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3838,8 +2432,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3852,8 +2444,7 @@ Replace it with:
     pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3863,8 +2454,6 @@ Replace it with:
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
         preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?; Ok(Change::Preview)
 ```
-
-</details>
 
 Replace it with:
 
@@ -3881,8 +2470,7 @@ Replace it with:
         preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?; Ok(Change::Preview)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3894,8 +2482,6 @@ impl Editor {
     pub fn gizmo_origin(&self)->Option<[f64;3]> {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3908,8 +2494,7 @@ impl Editor {
     pub fn gizmo_origin(&self)->Option<[f64;3]> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn default() -> Self {
@@ -3921,8 +2506,6 @@ impl Editor {
             camera: Camera::default(),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3935,8 +2518,7 @@ Replace it with:
             camera: Camera::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
@@ -3946,8 +2528,6 @@ Replace it with:
     snap_index: Option<crate::snap_index::Index>,
     pub draft: Option<crate::tool::Draft>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3961,8 +2541,7 @@ Replace it with:
     pub draft: Option<crate::tool::Draft>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4871,99 +3450,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-04.rs"
-```
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-05.rs"
-```
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-06.rs"
-```
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-07.rs"
-```
-
-```text
---8<-- "journey/code/77g-carry-transformation-state-through-the-existing-drawing-owner-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77h-validate-selected-originals-before-beginning-or-committing-a-transform"></a>
 
 ### Step 27 of 49 · Validate selected originals before beginning or committing a transform (`77h-validate-selected-originals-before-beginning-or-committing-a-transform`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/49 Visual Trace (77h-validate-selected-originals-before-beginning-or-committing-a-transform): Validate selected originals before beginning or committing a transform</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original targets</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked preview</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current tool or one commit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked preview</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current tool or one com…</text>
 </svg>
-</div>
-
-- **Goal:** Validate selected originals before beginning or committing a transform.
-- **Data Flow Trace:** `selected original targets → checked preview → current tool or one commit`
-- **Files You Touch:** `src/editor.rs` (*Connect checked original transformations to the current Editor transaction boundary.*)
 
 Freeze the selected targets and prepare their original preview before replacing any active input owner.
 
-> **Self-Check Question:** *Can Copy on a control point replace a valid unfinished tool?*  
-> **Answer:** No. Copy requires whole objects and validates them before adopting its owner.
-
-- **Hands-On Lab Experiment:** Try Copy on a curve control, an unavailable source and a locked row. Compare direct source-part Move with whole-object placement.
-
-<details>
-<summary>Implementation 77h-validate-selected-originals-before-beginning-or-committing-a-transform: Validate selected originals before beginning or committing a transform</summary>
-
-Validate selected originals before beginning or committing a transform.
-
-Data flow: selected original targets → checked preview → current tool or one commit.
+> **Check:** *Can Copy on a control point replace a valid unfinished tool?* — No. Copy requires whole objects and validates them before adopting its owner.
 
 ### 1. `src/editor.rs`
 
 Connect checked original transformations to the current Editor transaction boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if let Some(geometry)=geometry {return self.commit_tool(crate::tool::Built::Geometry(geometry));}
-        self.tool_status=draft.prompt();Ok(Change::View)
-    }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4971,70 +3493,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77h-validate-selected-originals-before-beginning-or-committing-a-transform-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions"></a>
 
 ### Step 28 of 49 · Adopt validated outcomes and preserve repeat copy transactions (`77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/49 Visual Trace (77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions): Adopt validated outcomes and preserve repeat copy transactions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">complete candidate batch</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked temporary scene</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">individual Copy transactions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked temporary scene</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">individual Copy transac…</text>
 </svg>
-</div>
-
-- **Goal:** Adopt validated outcomes and preserve repeat copy transactions.
-- **Data Flow Trace:** `complete candidate batch → checked temporary scene → individual Copy transactions`
-- **Files You Touch:** `src/editor.rs` (*Connect checked original transformations to the current Editor transaction boundary.*)
 
 Preflight the full typed batch against a temporary scene, then record each Copy target as one transaction.
 
-> **Self-Check Question:** *Does Escape undo completed Copy targets?*  
-> **Answer:** No. It ends the unfinished tool; Undo removes each completed target copy in reverse order.
-
-- **Hands-On Lab Experiment:** Enter a Copy base and two targets, finish, then Undo twice and Redo twice. Cancel another unfinished target and verify Redo remains.
-
-<details>
-<summary>Implementation 77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions: Adopt validated outcomes and preserve repeat copy transactions</summary>
-
-Adopt validated outcomes and preserve repeat copy transactions.
-
-Data flow: complete candidate batch → checked temporary scene → individual Copy transactions.
+> **Check:** *Does Escape undo completed Copy targets?* — No. It ends the unfinished tool; Undo removes each completed target copy in reverse order.
 
 ### 1. `src/editor.rs`
 
 Connect checked original transformations to the current Editor transaction boundary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let mut draft=crate::tool::Draft::new(crate::tool::Shape::Transform(kind));draft.frame=frame;let transform=draft.transform.as_mut().unwrap();transform.frame=frame;transform.owners=owners;transform.target=target;
-        self.edit_preview=None;self.transform_preview=preview;self.draft=Some(draft);self.snap_index=None;self.tool_status=self.draft.as_ref().unwrap().prompt();Ok(Change::Preview)
-    }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5042,54 +3536,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes"></a>
 
 ### Step 29 of 49 · Route transform input cancellation and current plane changes (`77j-route-transform-input-cancellation-and-current-plane-changes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/49 Visual Trace (77j-route-transform-input-cancellation-and-current-plane-changes): Route transform input cancellation and current plane changes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned event or typed input</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current transform question</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">preview or cancellation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current transform quest…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preview or cancellation</text>
 </svg>
-</div>
-
-- **Goal:** Route transform input cancellation and current plane changes.
-- **Data Flow Trace:** `owned event or typed input → current transform question → preview or cancellation`
-- **Files You Touch:** `src/editor.rs` (*Connect current transformation behavior to the existing input and history owner.*)
 
 Connect clicked and typed answers, current-plane changes and cancellation while keeping Polyline Close separate from transformation completion.
 
-> **Self-Check Question:** *Can a transform click close a Polyline collector?*  
-> **Answer:** No. Only the open point collector owns start-point closure. Transform questions determine their own completion.
-
-- **Hands-On Lab Experiment:** Hover Scale and Rotate, change CPlane, type an invalid answer, cancel, and verify saved originals remain unchanged.
-
-<details>
-<summary>Implementation 77j-route-transform-input-cancellation-and-current-plane-changes: Route transform input cancellation and current plane changes</summary>
-
-Route transform input cancellation and current plane changes.
-
-Data flow: owned event or typed input → current transform question → preview or cancellation.
+> **Check:** *Can a transform click close a Polyline collector?* — No. Only the open point collector owns start-point closure. Transform questions determine their own completion.
 
 ### 1. `src/editor.rs`
 
@@ -5097,8 +3575,7 @@ Connect current transformation behavior to the existing input and history owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
@@ -5110,8 +3587,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5124,8 +3599,7 @@ Replace it with:
             ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let outcome=next.text(text,draft.cursor,self.construction_plane).map_err(|message|self.primitive_failure(message))?;self.transform_outcome(next,outcome)
@@ -5135,8 +3609,6 @@ Replace it with:
         let draft=self.draft.as_ref().ok_or("No point tool is running")?;
         let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5151,8 +3623,7 @@ Replace it with:
         let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -5162,8 +3633,6 @@ Replace it with:
         if let Some(points)=draft.plane_points.as_mut() {
             let point=crate::tool_coords::checked(point)?;let mut picked=points.clone();picked.push(point);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5178,8 +3647,7 @@ Replace it with:
             let point=crate::tool_coords::checked(point)?;let mut picked=points.clone();picked.push(point);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if text.trim().is_empty() || primitive.shape.option_in(&words).is_some() || words.first().is_some_and(|word|word.parse::<f64>().is_ok() || crate::drawing_coords::parse_world(word).is_some() || word.contains(',') || word.contains('<') || word.starts_with('@')) {return Some(Ok(Action::ToolText(text.to_owned())));}
@@ -5189,8 +3657,6 @@ Replace it with:
         if text.trim().is_empty() {return Some(Ok(if draft.tool.count()==0 && !self.plane_only {Action::FinishTool}else{Action::CancelTool}));}
         let word=text.trim();
 ```
-
-</details>
 
 Replace it with:
 
@@ -5206,8 +3672,7 @@ Replace it with:
         let word=text.trim();
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6157,79 +4622,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77j-route-transform-input-cancellation-and-current-plane-changes-01.rs"
-```
-
-```text
---8<-- "journey/code/77j-route-transform-input-cancellation-and-current-plane-changes-02.rs"
-```
-
-```text
---8<-- "journey/code/77j-route-transform-input-cancellation-and-current-plane-changes-03.rs"
-```
-
-```text
---8<-- "journey/code/77j-route-transform-input-cancellation-and-current-plane-changes-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch"></a>
 
 ### Step 30 of 49 · Connect transformation lifecycle and part Move dispatch (`77k-connect-transformation-lifecycle-and-part-move-dispatch`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/49 Visual Trace (77k-connect-transformation-lifecycle-and-part-move-dispatch): Connect transformation lifecycle and part Move dispatch</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/selection_tests.rs, src/edit_preview_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">transform lifecycle action</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current plane and selected part</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked original preview</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/select…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current plane and selec…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked original preview</text>
 </svg>
-</div>
-
-- **Goal:** Connect transformation lifecycle and part Move dispatch.
-- **Data Flow Trace:** `transform lifecycle action → current plane and selected part → checked original preview`
-- **Files You Touch:** `src/editor.rs` (*Register transform lifecycle actions before connecting current input dispatch.*) · `src/selection_tests.rs` (*Keep invalid Move and parent-deletion guards when source-part Move becomes available.*) · `src/edit_preview_tests.rs` (*Allow part Move previews and cancellation while retaining locked, cold and stale target guards.*)
 
 Connect current plane updates and successful cancellation while routing part Move through its original source preview.
 
-> **Self-Check Question:** *Does changing CPlane rewrite the accepted world points?*  
-> **Answer:** No. Keep accepted points in the world and use the new plane for subsequent reference measurements.
-
-- **Hands-On Lab Experiment:** Begin a part Move, accept a base point, change CPlane, preview a target and cancel. Compare saved source and placement before and after.
-
-<details>
-<summary>Implementation 77k-connect-transformation-lifecycle-and-part-move-dispatch: Connect transformation lifecycle and part Move dispatch</summary>
-
-Connect transformation lifecycle and part Move dispatch.
-
-Data flow: transform lifecycle action → current plane and selected part → checked original preview.
+> **Check:** *Does changing CPlane rewrite the accepted world points?* — No. Keep accepted points in the world and use the new plane for subsequent reference measurements.
 
 ### 1. `src/editor.rs`
 
@@ -6237,8 +4661,7 @@ Register transform lifecycle actions before connecting current input dispatch. C
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::AddBox => {
@@ -6249,8 +4672,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::SelectNext => { let id = self.scene.next(self.selected); self.select_objects(id, false); }
             Action::Delete => return self.delete_selection(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -6267,8 +4688,7 @@ Replace it with:
             Action::Delete => return self.delete_selection(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -6279,8 +4699,6 @@ Replace it with:
             Action::PickedMany { target, additive } => {
                 if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6294,8 +4712,7 @@ Replace it with:
                 if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let hit = self.snap_point(screen,size);
@@ -6312,8 +4729,6 @@ Replace it with:
                     if self.selected_part.is_some() { return Err("Use Select Object before Move"); }
                     Some(crate::edit_preview::Preview::new(&self.scene,self.selected_objects())?)
 ```
-
-</details>
 
 Replace it with:
 
@@ -6335,8 +4750,7 @@ Replace it with:
                     Some(crate::edit_preview::Preview::new(&self.scene,self.selected_objects())?)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::ConstructionPlane(plane)=>{
@@ -6346,8 +4760,6 @@ Replace it with:
                 let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
                 if let Some(draft)=self.draft.as_mut() {draft.frame=frame;draft.cursor=None;draft.snapped=None;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -6361,8 +4773,7 @@ Replace it with:
                 if let Some(draft)=self.draft.as_mut() {draft.frame=frame;draft.cursor=None;draft.snapped=None;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -6372,8 +4783,6 @@ Replace it with:
                 let frame=self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
                 let mut primitive=crate::primitive_draft::Draft::new(shape,frame,option).map_err(|message|self.primitive_failure(message))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6388,8 +4797,7 @@ Replace it with:
                 let mut primitive=crate::primitive_draft::Draft::new(shape,frame,option).map_err(|message|self.primitive_failure(message))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -6403,8 +4811,6 @@ Replace it with:
         if change==Change::Scene { self.snap_index=None; }
         Ok(change)
 ```
-
-</details>
 
 Replace it with:
 
@@ -6422,8 +4828,7 @@ Replace it with:
         Ok(change)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -6433,8 +4838,6 @@ pub enum Action {
     ToolSides(usize),
     ConstructionPlane(Option<crate::cplane::CPlane>), PlaneMenu, Plane3,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6449,8 +4852,7 @@ pub enum Action {
     ConstructionPlane(Option<crate::cplane::CPlane>), PlaneMenu, Plane3,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -7411,49 +5813,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-01.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-02.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-03.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-04.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-05.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-06.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-07.rs"
-```
-
-```text
---8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7461,29 +5821,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep invalid Move and parent-deletion guards when source-part Move becomes available.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    editor.apply(Action::PickMode(Mode::Face)).unwrap(); editor.apply(Action::PickedTarget(Some(target))).unwrap();
-    assert_eq!(editor.selection(), Some(target)); assert_eq!(editor.whole_selection(), None);
-    assert!(editor.apply(Action::Translate([1., 0., 0.])).is_err());
-    assert!(editor.apply(Action::Delete).is_err()); assert_eq!(editor.scene.objects().len(), 1);
-    assert!(std::rc::Rc::ptr_eq(&source, &editor.scene.objects()[0].geometry().unwrap()));
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-09.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7491,71 +5835,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Allow part Move previews and cancellation while retaining locked, cold and stale target guards.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    e.apply(Action::SelectAll).unwrap(); e.selected_part=Some(crate::pick_sources::Part::Face(0)); assert!(e.apply(Action::BeginTool(Shape::Move)).is_err());
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/77k-connect-transformation-lifecycle-and-part-move-dispatch-10.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases"></a>
 
 ### Step 31 of 49 · Register Copy Scale Rotate and their current aliases (`77l-register-copy-scale-rotate-and-their-current-aliases`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/49 Visual Trace (77l-register-copy-scale-rotate-and-their-current-aliases): Register Copy Scale Rotate and their current aliases</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_commands.rs, src/lib.rs, src/commands.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current verb or alias</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked parameter parser</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Editor action</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_commands.rs…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked parameter parser</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Editor action</text>
 </svg>
-</div>
-
-- **Goal:** Register Copy Scale Rotate and their current aliases.
-- **Data Flow Trace:** `current verb or alias → checked parameter parser → Editor action`
-- **Files You Touch:** `src/transform_commands.rs` (*Parse current direct and interactive transform names, options and aliases.*) · `src/lib.rs` (*Register the source transformation component.*) · `src/commands.rs` (*Register current transforms and preserve longest-name matching and typed aliases.*) · `src/editor.rs` (*Carry typed scale factors and world-axis rotation angles to the existing Editor.*)
 
 Expose current transformation names, world-axis Rotate options and typed aliases through the same longest-name command registry.
 
-> **Self-Check Question:** *Does the typed alias s mean the canvas shortcut S?*  
-> **Answer:** Typed s invokes Scale. When the canvas owns the key, S runs Show; focused text input owns its own letters.
-
-- **Hands-On Lab Experiment:** Try Copy 1,0,0, Scale 2, Rotate z 45, m 1,0,0, s 2 and rot z 45, with spaces separating the verb and parameters.
-
-<details>
-<summary>Implementation 77l-register-copy-scale-rotate-and-their-current-aliases: Register Copy Scale Rotate and their current aliases</summary>
-
-Register Copy Scale Rotate and their current aliases.
-
-Data flow: current verb or alias → checked parameter parser → Editor action.
+> **Check:** *Does the typed alias s mean the canvas shortcut S?* — Typed s invokes Scale. When the canvas owns the key, S runs Show; focused text input owns its own letters.
 
 ### 1. `src/transform_commands.rs`
 
@@ -7571,16 +5888,6 @@ Create the file and type:
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_part;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -7593,8 +5900,7 @@ Register current transforms and preserve longest-name matching and typed aliases
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -7606,8 +5912,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
     if name=="CPlane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
     if matches!(name,"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7624,8 +5928,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
     if matches!(name,"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -7635,8 +5938,6 @@ pub fn canonical(line: &str) -> String {
     matched(&words).map_or_else(|| line.trim().to_owned(), |(name, count)| {
         std::iter::once(name).chain(words[count..].iter().copied()).collect::<Vec<_>>().join(" ")
 ```
-
-</details>
 
 Replace it with:
 
@@ -7650,8 +5951,7 @@ pub fn canonical(line: &str) -> String {
         std::iter::once(name).chain(words[count..].iter().copied()).collect::<Vec<_>>().join(" ")
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 ];
@@ -7662,8 +5962,6 @@ pub fn names() -> Vec<&'static str> {
 
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
-
-</details>
 
 Replace it with:
 
@@ -7677,8 +5975,7 @@ pub fn names() -> Vec<&'static str> {
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -7841,42 +6138,9 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77l-register-copy-scale-rotate-and-their-current-aliases-03.rs"
-```
-
-```text
---8<-- "journey/code/77l-register-copy-scale-rotate-and-their-current-aliases-04.rs"
-```
-
-```text
---8<-- "journey/code/77l-register-copy-scale-rotate-and-their-current-aliases-05.rs"
-```
-
-</details>
-
 ### 4. `src/editor.rs`
 
 Carry typed scale factors and world-axis rotation angles to the existing Editor.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    StreamRefresh,
-    BeginTransformation(crate::transform_draft::Kind),
-    Transformation {kind:crate::transform_draft::Kind,delta:session_rust::Xform},
-    PrimitiveBegin {shape:&'static crate::primitive_shape::Shape,option:usize,text:String},
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7884,70 +6148,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77l-register-copy-scale-rotate-and-their-current-aliases-06.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center"></a>
 
 ### Step 32 of 49 · Apply direct Scale and Rotate about the current selection center (`77m-apply-direct-scale-and-rotate-about-the-current-selection-center`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/49 Visual Trace (77m-apply-direct-scale-and-rotate-about-the-current-selection-center): Apply direct Scale and Rotate about the current selection center</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed current factor or world axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selection center</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original transform</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selection center</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original transform</text>
 </svg>
-</div>
-
-- **Goal:** Apply direct Scale and Rotate about the current selection center.
-- **Data Flow Trace:** `typed current factor or world axis → selection center → original transform`
-- **Files You Touch:** `src/editor.rs` (*Apply direct current Scale and Rotate about the selection gizmo center.*)
 
 Validate the direct factor or world-axis angle and apply it about the current gizmo center, falling back to the world origin when absent.
 
-> **Self-Check Question:** *Does Rotate z90 use the construction plane normal?*  
-> **Answer:** The explicit z form uses the world Z axis. Interactive Rotate uses the current construction plane normal.
-
-- **Hands-On Lab Experiment:** Rotate a selected line about its center, then compare an interactive XZ reference turn and Undo each independently.
-
-<details>
-<summary>Implementation 77m-apply-direct-scale-and-rotate-about-the-current-selection-center: Apply direct Scale and Rotate about the current selection center</summary>
-
-Apply direct Scale and Rotate about the current selection center.
-
-Data flow: typed current factor or world axis → selection center → original transform.
+> **Check:** *Does Rotate z90 use the construction plane normal?* — The explicit z form uses the world Z axis. Interactive Rotate uses the current construction plane normal.
 
 ### 1. `src/editor.rs`
 
 Apply direct current Scale and Rotate about the selection gizmo center.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        match action {
-            Action::BeginTransformation(kind)=>return self.begin_transform(kind),
-            Action::Transformation {kind,delta}=>{let ids=self.selected_objects();let target=self.selection().filter(|_|self.selected_part.is_some());return self.apply_transform(kind,&delta,&ids,target);},
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7955,57 +6191,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77m-apply-direct-scale-and-rotate-about-the-current-selection-center-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77n-retain-earlier-selection-checks-with-source-part-support"></a>
 
 ### Step 33 of 49 · Retain earlier selection checks with source part support (`77n-retain-earlier-selection-checks-with-source-part-support`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/49 Visual Trace (77n-retain-earlier-selection-checks-with-source-part-support): Retain earlier selection checks with source part support</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/edit_preview_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current selection</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated source-part preview</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged history on cancel</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/edit_preview_tests.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated source-part p…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged history on ca…</text>
 </svg>
-</div>
-
-- **Goal:** Retain earlier selection checks with source part support.
-- **Data Flow Trace:** `current selection → validated source-part preview → unchanged history on cancel`
-- **Files You Touch:** `src/edit_preview_tests.rs` (*Copy retained selection/preview fixtures with current source-part Move support.*)
 
 Strengthen the earlier part-preview check: cancellation must restore the original placements. The selection and parent-deletion guards now change in 77k, alongside part Move.
 
-> **Self-Check Question:** *Does enabling part Move allow Delete to remove its parent implicitly?*  
-> **Answer:** No. Delete still requires whole-object selection. Invalid edits and cancelled previews leave selection history unchanged.
+> **Check:** *Does enabling part Move allow Delete to remove its parent implicitly?* — No. Delete still requires whole-object selection. Invalid edits and cancelled previews leave selection history unchanged.
 
-- **Hands-On Lab Experiment:** Select an original part, start Move and cancel with Escape. Confirm its placement is restored, then select its parent and compare Delete/Undo. Read the retained cold, locked and stale-owner cases as optional boundary validation.
-
-<details>
-<summary>Implementation 77n-retain-earlier-selection-checks-with-source-part-support: Retain earlier selection checks with source part support</summary>
-
-Retain earlier selection checks with source part support.
-
-Data flow: current selection → validated source-part preview → unchanged history on cancel.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8013,88 +6232,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy retained selection/preview fixtures with current source-part Move support.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-#[test]
-fn preview_rejects_parts_locked_or_cold_sources_and_stale_targets() {
-    let mut e=editor(); let id=e.scene.objects()[0].id;
-    assert!(Preview::new(&e.scene,vec![]).is_err()); let mut preview=Preview::new(&e.scene,vec![id,id]).unwrap(); assert_eq!(preview.ids(),&[id]);
-    preview.set(Xform::translation(1.,0.,0.)).unwrap(); e.scene.translate(id,[2.,0.,0.]).unwrap();
-    assert!(preview.commit(&mut e.scene,&mut crate::history::History::default()).is_err());
-    e.apply(Action::SelectAll).unwrap(); e.selected_part=Some(crate::pick_sources::Part::Face(0)); e.apply(Action::BeginTool(Shape::Move)).unwrap(); assert!(e.transform_preview.is_some()); e.apply(Action::CancelTool).unwrap();
-    let mut mesh=session_rust::Mesh::create_box(1.,1.,1.); mesh.is_locked=true;
-    let locked=e.scene.insert(crate::prepared::PreparedMesh::new(mesh).unwrap()).unwrap(); assert!(Preview::new(&e.scene,vec![locked]).is_err());
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/77n-retain-earlier-selection-checks-with-source-part-support-02.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence"></a>
 
 ### Step 34 of 49 · Exercise original copy transforms history and exact persistence (`77o-exercise-original-copy-transforms-history-and-exact-persistence`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/49 Visual Trace (77o-exercise-original-copy-transforms-history-and-exact-persistence): Exercise original copy transforms history and exact persistence</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/transform_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original selection</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Copy Scale Rotate</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">history</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original Save/Open</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/transform_tests.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">history</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original Save/Open</text>
 </svg>
-</div>
-
-- **Goal:** Exercise original copy transforms history and exact persistence.
-- **Data Flow Trace:** `original selection → current Copy Scale Rotate → history → original Save/Open`
-- **Files You Touch:** `src/transform_tests.rs` (*Copy integrated current copy/transform/original-edit/history/nested SaveOpen fixtures.*) · `src/lib.rs` (*Register the source transformation component.*)
 
 Copy the current integrated creation, preview, source edit and nested placement fixtures, then use the registered commands to create the rendered exercise.
 
-> **Self-Check Question:** *What survives a whole-object Copy and rotation?*  
-> **Answer:** Keep the original geometry allocation and its source data. The new row has a distinct identity and placement; its parent, name and colours remain.
+> **Check:** *What survives a whole-object Copy and rotation?* — Keep the original geometry allocation and its source data. The new row has a distinct identity and placement; its parent, name and colours remain.
 
-- **What You Should See:** Three original boxes retain their shared source and independent placements. Copy repeats with separate target transactions; Scale modes and Rotate references preserve original geometry. Source-part edits retain rational weights, knots and validated CAD boundaries. Undo/Redo and Save/Open preserve original identity and nested placement.
-- **Hands-On Lab Experiment:** Type Close, CPlane XY, Box w0,0,0 1 1 1, Select All, Copy 2,0,0, Scale 0.8, Rotate z 30, Copy -2,0,0, View Isometric, Select None and Fit, with spaces after Copy, Scale and Rotate. Try repeated Copy targets, Scale1D/2D/3D, a failed input, Escape and Undo/Redo. Save and reopen.
-
-<details>
-<summary>Implementation 77o-exercise-original-copy-transforms-history-and-exact-persistence: Exercise original copy transforms history and exact persistence</summary>
-
-Exercise original copy transforms history and exact persistence.
-
-Data flow: original selection → current Copy Scale Rotate → history → original Save/Open.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8108,10 +6285,7 @@ Copy this supplied file:
 --8<-- "journey/code/77o-exercise-original-copy-transforms-history-and-exact-persistence-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8119,72 +6293,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source transformation component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod transform_commands;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77o-exercise-original-copy-transforms-history-and-exact-persistence-02.rs" skip=29
 ```
 
-</details>
+**Result after `77o-exercise-original-copy-transforms-history-and-exact-persistence`:** Three original boxes retain their shared source and independent placements. Copy repeats with separate target transactions; Scale modes and Rotate references preserve original geometry. Source-part edits retain rational weights, knots and validated CAD boundaries. Undo/Redo and Save/Open preserve original identity and nested placement.
 
-</details>
+---
 
 <a id="checkpoint-77zza-describe-curve-gathering-answers"></a>
 
 ### Step 35 of 49 · Describe curve gathering answers (`77zza-describe-curve-gathering-answers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/49 Visual Trace (77zza-describe-curve-gathering-answers): Describe curve gathering answers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Describe ordered curve questions and typed answers.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Type the shared curve-gathering declarations.*) · `src/lib.rs` (*Register these helpers for the later kernel surfacing recipes.*)
 
 Describe ordered curve questions and typed answers. Keep original curves and their placed corner data separate from command progress.
 
-> **Self-Check Question:** *Why preserve both a NURBS curve and optional corners?*  
-> **Answer:** Kernel builders use the curve; line and polyline previews can retain their exact corners.
-
-- **Hands-On Lab Experiment:** Trace a curve-pick step followed by two point answers. Identify which values belong to original geometry.
-
-<details>
-<summary>Implementation 77zza-describe-curve-gathering-answers: Describe curve gathering answers</summary>
-
-Describe ordered curve questions and typed answers.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why preserve both a NURBS curve and optional corners?* — Kernel builders use the curve; line and polyline previews can retain their exact corners.
 
 ### 1. `src/gather_input.rs`
 
@@ -8200,85 +6348,48 @@ Create the file and type:
 
 Register these helpers for the later kernel surfacing recipes.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod transform_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/77zza-describe-curve-gathering-answers-2.rs" skip=34
 ```
 
-</details>
+---
 
 <a id="checkpoint-77zzb-read-curve-gathering-values"></a>
 
 ### Step 36 of 49 · Read curve gathering values (`77zzb-read-curve-gathering-values`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/49 Visual Trace (77zzb-read-curve-gathering-values): Read curve gathering values</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Read finite numbers, absolute points and distance vectors through the existing coordinate reader.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
 
 Read finite numbers, absolute points and distance vectors through the existing coordinate reader. Reject curve picks supplied as words.
 
-> **Self-Check Question:** *Why does a distance accept either a number or a vector?*  
-> **Answer:** A number follows the recipe axis; a vector states the displacement directly.
-
-- **Hands-On Lab Experiment:** Try a finite angle, an out-of-range angle and a distance vector. Predict the accepted answer variants.
-
-<details>
-<summary>Implementation 77zzb-read-curve-gathering-values: Read curve gathering values</summary>
-
-Read finite numbers, absolute points and distance vectors through the existing coordinate reader.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why does a distance accept either a number or a vector?* — A number follows the recipe axis; a vector states the displacement directly.
 
 ### 1. `src/gather_input.rs`
 
 Insert the next gathering behavior after its existing declarations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }, // low < value <= high; Enter takes the default
-    Distance(&'static str), // along the recipe's axis: a click, a signed number or a typed vector
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -8327,80 +6438,42 @@ impl Step {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzb-read-curve-gathering-values-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzc-connect-gathering-recipes"></a>
 
 ### Step 37 of 49 · Connect gathering recipes (`77zzc-connect-gathering-recipes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/49 Visual Trace (77zzc-connect-gathering-recipes): Connect gathering recipes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Connect typed input to a recipe, its questions and kernel builder.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
 
 Connect typed input to a recipe, its questions and kernel builder. Reuse the existing option matcher and expose typed point, number and axis helpers.
 
-> **Self-Check Question:** *Why reuse the option matcher?*  
-> **Answer:** Solid and gathering commands use the same labels and case-insensitive multiword matching rules.
-
-- **Hands-On Lab Experiment:** Trace a numeric distance along an axis and compare it with an explicit vector.
-
-<details>
-<summary>Implementation 77zzc-connect-gathering-recipes: Connect gathering recipes</summary>
-
-Connect typed input to a recipe, its questions and kernel builder.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why reuse the option matcher?* — Solid and gathering commands use the same labels and case-insensitive multiword matching rules.
 
 ### 1. `src/gather_input.rs`
 
 Insert the next gathering behavior after its existing declarations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub choice: &'static str,     // the chosen option, empty when none
-    pub normal: Vector,           // the construction plane the camera faces
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -8471,82 +6544,42 @@ impl Recipe {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzc-connect-gathering-recipes-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzd-parse-gathering-command-words"></a>
 
 ### Step 38 of 49 · Parse gathering command words (`77zzd-parse-gathering-command-words`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 38/49 Visual Trace (77zzd-parse-gathering-command-words): Parse gathering command words</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Read options anywhere in a command and consume other answers in order.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
 
 Read options anywhere in a command and consume other answers in order. Apply remaining numeric defaults only when the typed prefix permits it.
 
-> **Self-Check Question:** *Why cannot an omitted point receive a numeric default?*  
-> **Answer:** The remaining sequence must consist entirely of number questions before default completion is valid.
-
-- **Hands-On Lab Experiment:** Compare a partially typed revolve command with a missing axis point. Explain which can complete from defaults.
-
-<details>
-<summary>Implementation 77zzd-parse-gathering-command-words: Parse gathering command words</summary>
-
-Read options anywhere in a command and consume other answers in order.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why cannot an omitted point receive a numeric default?* — The remaining sequence must consist entirely of number questions before default completion is valid.
 
 ### 1. `src/gather_input.rs`
 
 Insert the next gathering behavior after its existing declarations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    /// The steps that are not curve picks.
-    pub fn others(&self) -> impl Iterator<Item = &'static Step> {
-        self.steps.iter().filter(|step| !step.curves())
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -8598,82 +6631,42 @@ pub fn read(recipe: &Recipe, words: &[&str]) -> Result<(usize, Vec<Answer>), Str
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzd-parse-gathering-command-words-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zze-track-ordered-curve-picks"></a>
 
 ### Step 39 of 49 · Track ordered curve picks (`77zze-track-ordered-curve-picks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 39/49 Visual Trace (77zze-track-ordered-curve-picks): Track ordered curve picks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Track preselected curve rows and skip answers already typed.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Add the next gathering behavior to the existing helpers.*)
 
 Track preselected curve rows and skip answers already typed. Keep curve-pick order while advancing only after the required minimum.
 
-> **Self-Check Question:** *Why retain a separate count of typed answers?*  
-> **Answer:** Curve picks and other answers occupy different sequences; the count lets progress skip already supplied values.
-
-- **Hands-On Lab Experiment:** Trace two preselected rows through separate rail and profile steps. Identify where progress waits.
-
-<details>
-<summary>Implementation 77zze-track-ordered-curve-picks: Track ordered curve picks</summary>
-
-Track preselected curve rows and skip answers already typed.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why retain a separate count of typed answers?* — Curve picks and other answers occupy different sequences; the count lets progress skip already supplied values.
 
 ### 1. `src/gather_input.rs`
 
 Add the next gathering behavior to the existing helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// A picked curve in world coordinates.
-#[derive(Clone, Debug)]
-pub struct Picked {
-    pub curve: NurbsCurve,           // clamped, domain 0..1
-    pub corners: Option<Vec<Point>>, // a line's or polyline's points
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8681,70 +6674,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77zze-track-ordered-curve-picks-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-77zzf-advance-and-cancel-curve-picks"></a>
 
 ### Step 40 of 49 · Advance and cancel curve picks (`77zzf-advance-and-cancel-curve-picks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 40/49 Visual Trace (77zzf-advance-and-cancel-curve-picks): Advance and cancel curve picks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
 
 Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter. Accept defaults and typed answers through one progress state.
 
-> **Self-Check Question:** *Why truncate answers before adding a new one?*  
-> **Answer:** The current progress position defines the accepted prefix; a replacement must discard later stale answers.
-
-- **Hands-On Lab Experiment:** Trace picking the same row twice, picking it in another group and pressing Enter below the minimum.
-
-<details>
-<summary>Implementation 77zzf-advance-and-cancel-curve-picks: Advance and cancel curve picks</summary>
-
-Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why truncate answers before adding a new one?* — The current progress position defines the accepted prefix; a replacement must discard later stale answers.
 
 ### 1. `src/gather_input.rs`
 
 Insert the next gathering behavior after its existing declarations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    /// Every row picked so far, in step and pick order.
-    pub fn picked(&self) -> Vec<u32> {
-        self.rows.iter().flatten().copied().collect()
-    }
-```
-
-</details>
 
 After that block, type:
 
@@ -8810,86 +6775,42 @@ After that block, type:
     }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzf-advance-and-cancel-curve-picks-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzg-prepare-placed-kernel-curves"></a>
 
 ### Step 41 of 49 · Prepare placed kernel curves (`77zzg-prepare-placed-kernel-curves`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 41/49 Visual Trace (77zzg-prepare-placed-kernel-curves): Prepare placed kernel curves</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve picks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Session kernel recipe</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered answers</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
-</div>
-
-- **Goal:** Convert lines, polylines and NURBS curves to placed kernel curves.
-- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
-- **Files You Touch:** `src/gather_input.rs` (*Add the next gathering behavior to the existing helpers.*)
 
 Convert lines, polylines and NURBS curves to placed kernel curves. Remove repeated polyline corners, clamp periodic input and normalize the domain for shared surfacing recipes.
 
-> **Self-Check Question:** *Why normalize every gathered curve to the same domain?*  
-> **Answer:** Loft and sweep need compatible input conventions even when the original curves use different parameter ranges.
-
-- **Hands-On Lab Experiment:** Compare a placed polyline with a periodic NURBS curve. Trace their distinct preparation paths and shared validity checks.
-
-<details>
-<summary>Implementation 77zzg-prepare-placed-kernel-curves: Prepare placed kernel curves</summary>
-
-Convert lines, polylines and NURBS curves to placed kernel curves.
-
-Data flow: original curve picks → ordered answers → Session kernel recipe.
+> **Check:** *Why normalize every gathered curve to the same domain?* — Loft and sweep need compatible input conventions even when the original curves use different parameter ranges.
 
 ### 1. `src/gather_input.rs`
 
 Add the next gathering behavior to the existing helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// "1 curve" or "3 curves".
-pub fn count(count: usize, noun: &str) -> String {
-    match count {
-        1 => format!("1 {noun}"),
-        _ => format!("{count} {noun}s"),
-    }
-}
-
-pub const SAMPLES: usize = 48; // points per curve for normals and previews
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8897,8 +6818,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77zzg-prepare-placed-kernel-curves-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8906,71 +6826,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the original gathering-input validation fixtures separately.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub const SAMPLES: usize = 48; // points per curve for normals and previews
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77zzg-prepare-placed-kernel-curves-2.rs" skip=76
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzh-check-original-loops-and-surface-controls"></a>
 
 ### Step 42 of 49 · Check original loops and surface controls (`77zzh-check-original-loops-and-surface-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 42/49 Visual Trace (77zzh-check-original-loops-and-surface-controls): Check original loops and surface controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surfacing.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">consistent section frames</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">validated kernel surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surfacing.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">consistent section fram…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated kernel surface</text>
 </svg>
-</div>
-
-- **Goal:** Find a loop’s unit normal and scale-aware planarity tolerance.
-- **Data Flow Trace:** `original curves → consistent section frames → validated kernel surface`
-- **Files You Touch:** `src/surfacing.rs` (*Type loop geometry, planarity and finite surface validation.*) · `src/lib.rs` (*Compile the shared surfacing owner while its recipes are prepared.*)
 
 Find a loop’s unit normal and scale-aware planarity tolerance. Check that a resulting surface is valid and has finite control points before wrapping it as original geometry. Reuse the curve collector instead of another sampling path.
 
-> **Self-Check Question:** *Why scale the planarity tolerance by the loop bounds?*  
-> **Answer:** A fixed tolerance would behave differently for small and large CAD outlines.
-
-- **Hands-On Lab Experiment:** Trace a planar loop, a collapsed loop and a surface with a non-finite control point through their separate checks.
-
-<details>
-<summary>Implementation 77zzh-check-original-loops-and-surface-controls: Check original loops and surface controls</summary>
-
-Find a loop’s unit normal and scale-aware planarity tolerance.
-
-Data flow: original curves → consistent section frames → validated kernel surface.
+> **Check:** *Why scale the planarity tolerance by the loop bounds?* — A fixed tolerance would behave differently for small and large CAD outlines.
 
 ### 1. `src/surfacing.rs`
 
@@ -8986,21 +6879,6 @@ Create the file and type:
 
 Compile the shared surfacing owner while its recipes are prepared.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn validate_source_json(text: &str) -> Result<(), JsValue> {
-    source_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -9008,99 +6886,42 @@ After that block, type:
 pub mod surfacing;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzh-check-original-loops-and-surface-controls-2.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzi-align-original-sections-and-loft-through-them"></a>
 
 ### Step 43 of 49 · Align original sections and loft through them (`77zzi-align-original-sections-and-loft-through-them`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 43/49 Visual Trace (77zzi-align-original-sections-and-loft-through-them): Align original sections and loft through them</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surfacing.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">consistent section frames</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">validated kernel surface</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surfacing.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">consistent section fram…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated kernel surface</text>
 </svg>
-</div>
-
-- **Goal:** Align open curve directions and closed curve seams before asking the Session kernel for a loft.
-- **Data Flow Trace:** `original curves → consistent section frames → validated kernel surface`
-- **Files You Touch:** `src/surfacing.rs` (*Add section alignment and lofting before the existing result validator.*)
 
 Align open curve directions and closed curve seams before asking the Session kernel for a loft. Keep section count and degree rules in the same helper. Supply the original validation fixtures separately; the construction recipes connect this owner next.
 
-> **Self-Check Question:** *Why align sections before building the loft?*  
-> **Answer:** Opposite directions or mismatched closed seams can twist the surface between otherwise valid original curves.
-
-- **Hands-On Lab Experiment:** Trace two open sections with opposite directions, then a closed section with a shifted seam. The existing browser drawing remains unchanged until the following recipe connection.
-
-<details>
-<summary>Implementation 77zzi-align-original-sections-and-loft-through-them: Align original sections and loft through them</summary>
-
-Align open curve directions and closed curve seams before asking the Session kernel for a loft.
-
-Data flow: original curves → consistent section frames → validated kernel surface.
+> **Check:** *Why align sections before building the loft?* — Opposite directions or mismatched closed seams can twist the surface between otherwise valid original curves.
 
 ### 1. `src/surfacing.rs`
 
 Add section alignment and lofting before the existing result validator.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// The surface as a named geometry, when valid with finite control points.
-pub fn checked(mut surface: NurbsSurface, name: &str) -> Result<Geometry, String> {
-    let finite = (0..surface.cv_count(0)).all(|i| {
-        (0..surface.cv_count(1)).all(|j| {
-            surface
-                .get_cv(i, j)
-                .is_some_and(|p| (0..3).all(|k| p[k].is_finite()))
-        })
-    });
-
-    if !surface.is_valid() || !finite {
-        return Err(format!("The {name} surface could not be built"));
-    }
-
-    surface.name = name.into();
-    Ok(Geometry::NurbsSurface(Rc::new(surface)))
-}
-
-/// The world curves of one step.
-pub fn curves(picked: &[Picked]) -> Vec<NurbsCurve> {
-    picked.iter().map(|picked| picked.curve.clone()).collect()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9108,8 +6929,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/77zzi-align-original-sections-and-loft-through-them-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9117,77 +6937,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the five original surfacing validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-))
-}
-
-/// The world curves of one step.
-pub fn curves(picked: &[Picked]) -> Vec<NurbsCurve> {
-    picked.iter().map(|picked| picked.curve.clone()).collect()
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77zzi-align-original-sections-and-loft-through-them-2.rs" skip=160
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzj-find-extrusion-axes-and-cap-eligibility"></a>
 
 ### Step 44 of 49 · Find extrusion axes and cap eligibility (`77zzj-find-extrusion-axes-and-cap-eligibility`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 44/49 Visual Trace (77zzj-find-extrusion-axes-and-cap-eligibility): Find extrusion axes and cap eligibility</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extrude_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">offset and cap rules</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared BRep topology</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extrude_geometry.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">offset and cap rules</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the original loop normal and planarity helpers to choose an extrusion axis.
-- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
-- **Files You Touch:** `src/extrude_geometry.rs` (*Type the shared extrusion axis, orientations and cap eligibility.*) · `src/lib.rs` (*Compile the original extrusion helpers before their command registration.*)
 
 Reuse the original loop normal and planarity helpers to choose an extrusion axis. Orient that axis with the construction plane. Classify open, bent and flat outlines before building a cap, keeping the reason separate from geometry construction.
 
-> **Self-Check Question:** *Why retain the reason an outline cannot be capped?*  
-> **Answer:** An open extrusion may still be valid. The command can report the missing cap without discarding its side geometry.
-
-- **Hands-On Lab Experiment:** Trace an open curve, a bent loop and an offset parallel to the outline plane.
-
-<details>
-<summary>Implementation 77zzj-find-extrusion-axes-and-cap-eligibility: Find extrusion axes and cap eligibility</summary>
-
-Reuse the original loop normal and planarity helpers to choose an extrusion axis.
-
-Data flow: original curves → offset and cap rules → shared BRep topology.
+> **Check:** *Why retain the reason an outline cannot be capped?* — An open extrusion may still be valid. The command can report the missing cap without discarding its side geometry.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -9203,23 +6990,6 @@ Create the file and type:
 
 Compile the original extrusion helpers before their command registration.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn validate_source_json(text: &str) -> Result<(), JsValue> {
-    source_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-
-pub mod surfacing;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -9227,85 +6997,42 @@ After that block, type:
 pub mod extrude_geometry;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzj-find-extrusion-axes-and-cap-eligibility-2.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzk-map-cap-curves-to-surface-parameters"></a>
 
 ### Step 45 of 49 · Map cap curves to surface parameters (`77zzk-map-cap-curves-to-surface-parameters`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 45/49 Visual Trace (77zzk-map-cap-curves-to-surface-parameters): Map cap curves to surface parameters</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extrude_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">offset and cap rules</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared BRep topology</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extrude_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">offset and cap rules</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
-</div>
-
-- **Goal:** Build a planar cap patch around the original control points.
-- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
-- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
 
 Build a planar cap patch around the original control points. Map its boundary into surface parameters, determine its winding and attach the boundary’s pcurve to the existing BRep edge. Reuse that edge when creating the cap face.
 
-> **Self-Check Question:** *Why reuse the existing boundary edge?*  
-> **Answer:** The side and cap must share one topological boundary. Two coincident edges would leave separate faces rather than a connected shell.
-
-- **Hands-On Lab Experiment:** Sketch one shared edge and its two surface-parameter curves. Trace the cap orientation through its winding.
-
-<details>
-<summary>Implementation 77zzk-map-cap-curves-to-surface-parameters: Map cap curves to surface parameters</summary>
-
-Build a planar cap patch around the original control points.
-
-Data flow: original curves → offset and cap rules → shared BRep topology.
+> **Check:** *Why reuse the existing boundary edge?* — The side and cap must share one topological boundary. Two coincident edges would leave separate faces rather than a connected shell.
 
 ### 1. `src/extrude_geometry.rs`
 
 Extend this original owner with the day’s whole extrusion helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let along = normal.dot(offset);
-
-    if along.abs() <= 1e-9 * offset.magnitude() {
-        return Err(Skip::Flat);
-    }
-
-    Ok(if along < 0.0 { -normal } else { normal })
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9394,81 +7121,42 @@ fn cap_face(brep: &mut BRep, patch: &NurbsSurface, curve: &NurbsCurve, edge: usi
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzk-map-cap-curves-to-surface-parameters-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzl-build-closed-curved-extrusion-topology"></a>
 
 ### Step 46 of 49 · Build closed curved extrusion topology (`77zzl-build-closed-curved-extrusion-topology`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 46/49 Visual Trace (77zzl-build-closed-curved-extrusion-topology): Build closed curved extrusion topology</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extrude_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">offset and cap rules</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared BRep topology</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extrude_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">offset and cap rules</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
-</div>
-
-- **Goal:** Build the side surface from an oriented original curve.
-- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
-- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
 
 Build the side surface from an oriented original curve. Share the lower, upper and seam edges, attach their surface-parameter curves, and join the side and both caps into one solid. Preserve the original curve precision throughout.
 
-> **Self-Check Question:** *Why does the seam edge need two parameter curves?*  
-> **Answer:** The periodic side meets the same three-dimensional seam at both ends of its surface domain. Each side of that seam needs its own parameter location.
-
-- **Hands-On Lab Experiment:** Trace the seam through the side wire twice, once forward and once reversed. These helpers remain preparatory until the recipe connects.
-
-<details>
-<summary>Implementation 77zzl-build-closed-curved-extrusion-topology: Build closed curved extrusion topology</summary>
-
-Build the side surface from an oriented original curve.
-
-Data flow: original curves → offset and cap rules → shared BRep topology.
+> **Check:** *Why does the seam edge need two parameter curves?* — The periodic side meets the same three-dimensional seam at both ends of its surface domain. Each side of that seam needs its own parameter location.
 
 ### 1. `src/extrude_geometry.rs`
 
 Extend this original owner with the day’s whole extrusion helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    brep.add_pcurve(edge, surface, pcurve as i32, -1);
-    let wire = brep.add_wire(&[BRepRef::new(edge as i32, orientation)]);
-    brep.add_face(surface as i32, &[BRepRef::new(wire as i32, F)], 0.0)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9546,85 +7234,42 @@ fn capped(curve: &NurbsCurve, offset: &Vector, normal: &Vector) -> Result<BRep, 
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzl-build-closed-curved-extrusion-topology-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzm-extrude-original-corners-and-curves"></a>
 
 ### Step 47 of 49 · Extrude original corners and curves (`77zzm-extrude-original-corners-and-curves`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 47/49 Visual Trace (77zzm-extrude-original-corners-and-curves): Extrude original corners and curves</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extrude_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">offset and cap rules</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared BRep topology</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extrude_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">offset and cap rules</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
-</div>
-
-- **Goal:** Dispatch original corner chains and curved sections through the shared extrusion helpers.
-- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
-- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
 
 Dispatch original corner chains and curved sections through the shared extrusion helpers. Build polygon sides from their original points, add eligible caps and validate the resulting BRep. Curved inputs use the kernel surface or the closed topology builder.
 
-> **Self-Check Question:** *Why preserve the original curve when building a curved extrusion?*  
-> **Answer:** Sampling it into a polygon would change the source geometry and its later editable control points.
-
-- **Hands-On Lab Experiment:** Compare a polygon outline with a curved outline and trace Cap On and Cap Off through each branch.
-
-<details>
-<summary>Implementation 77zzm-extrude-original-corners-and-curves: Extrude original corners and curves</summary>
-
-Dispatch original corner chains and curved sections through the shared extrusion helpers.
-
-Data flow: original curves → offset and cap rules → shared BRep topology.
+> **Check:** *Why preserve the original curve when building a curved extrusion?* — Sampling it into a polygon would change the source geometry and its later editable control points.
 
 ### 1. `src/extrude_geometry.rs`
 
 Extend this original owner with the day’s whole extrusion helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let along = normal.dot(offset);
-
-    if along.abs() <= 1e-9 * offset.magnitude() {
-        return Err(Skip::Flat);
-    }
-
-    Ok(if along < 0.0 { -normal } else { normal })
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9686,65 +7331,38 @@ fn extrude(picked: &Picked, offset: &Vector, cap: bool) -> Result<(Geometry, Ski
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzm-extrude-original-corners-and-curves-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzn-connect-the-original-extrusion-recipe"></a>
 
 ### Step 48 of 49 · Connect the original extrusion recipe (`77zzn-connect-the-original-extrusion-recipe`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 48/49 Visual Trace (77zzn-connect-the-original-extrusion-recipe): Connect the original extrusion recipe</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/extrude_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">offset and cap rules</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared BRep topology</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/extrude_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">offset and cap rules</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
-</div>
-
-- **Goal:** Complete the original recipe with curve selection, signed distance and cap choices.
-- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
-- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
 
 Complete the original recipe with curve selection, signed distance and cap choices. Validate the offset before building every selected original as one result. Keep omitted-cap messages and the full output in the same undo transaction.
 
-> **Self-Check Question:** *Why validate the offset before building any selected curve?*  
-> **Answer:** A non-finite or zero offset must reject the whole candidate before any partial result can be published.
-
-- **Hands-On Lab Experiment:** Trace two selected curves through one extrusion result and one Undo. The existing command registry connects this prepared recipe in the following checkpoint.
-
-<details>
-<summary>Implementation 77zzn-connect-the-original-extrusion-recipe: Connect the original extrusion recipe</summary>
-
-Complete the original recipe with curve selection, signed distance and cap choices.
-
-Data flow: original curves → offset and cap rules → shared BRep topology.
+> **Check:** *Why validate the offset before building any selected curve?* — A non-finite or zero offset must reject the whole candidate before any partial result can be published.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -9752,16 +7370,13 @@ Extend this original owner with the day’s whole extrusion helpers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ]);
     brep.add_solid(&[BRepRef::new(shell as i32, F)]);
     Ok(brep)
 ```
-
-</details>
 
 Replace it with:
 
@@ -9825,15 +7440,12 @@ fn build(input: &Input) -> Result<Made, String> {
     })
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 const F: BRepOrientation = BRepOrientation::Forward;
 const R: BRepOrientation = BRepOrientation::Reversed;
 ```
-
-</details>
 
 Replace it with:
 
@@ -9862,17 +7474,13 @@ const F: BRepOrientation = BRepOrientation::Forward;
 const R: BRepOrientation = BRepOrientation::Reversed;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 --8<-- "journey/code/77zzn-connect-the-original-extrusion-recipe-1.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9880,127 +7488,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the four original extrusion validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// Every picked curve extruded by the answered distance, as one undo step.
-fn build(input: &Input) -> Result<Made, String> {
-    let (_, direction) = axis(input);
-    let offset = input
-        .along(0, &direction)
-        .ok_or("Extrude needs a distance")?;
-
-    if !(offset.magnitude() > 1e-12 && (0..3).all(|i| offset[i].is_finite())) {
-        return Err("The extrusion distance must not be zero".into());
-    }
-
-    let cap = input.choice != "Cap Off";
-    let mut geometries = Vec::new();
-    let mut skipped = [0; 3];
-
-    for picked in &input.curves[0] {
-        let (geometry, skip) = extrude(picked, &offset, cap)?;
-
-        match skip {
-            Skip::Open if cap => skipped[0] += 1,
-            Skip::Bent if cap => skipped[1] += 1,
-            Skip::Flat if cap => skipped[2] += 1,
-            _ => {}
-        }
-
-        geometries.push(geometry);
-    }
-
-    let solids = geometries
-        .iter()
-        .filter(|geometry| matches!(geometry, Geometry::BRep(brep) if brep.is_solid()))
-        .count();
-    let mut message = format!(
-        "Extruded {}: {}, {}",
-        count(geometries.len(), "curve"),
-        count(solids, "solid"),
-        count(geometries.len() - solids, "open surface")
-    );
-
-    for (number, why) in skipped
-        .iter()
-        .zip(["open", "not planar", "along its plane"])
-    {
-        if *number > 0 {
-            message.push_str(&format!(" · no cap on {} ({why})", count(*number, "curve")));
-        }
-    }
-
-    Ok(Made {
-        geometries,
-        message,
-    })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77zzn-connect-the-original-extrusion-recipe-2.rs" skip=1531
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-77zzo-revolve-original-profiles-around-an-axis"></a>
 
 ### Step 49 of 49 · Revolve original profiles around an axis (`77zzo-revolve-original-profiles-around-an-axis`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 49/49 Visual Trace (77zzo-revolve-original-profiles-around-an-axis): Revolve original profiles around an axis</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/revolve_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original profile</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">axis and angle</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kernel surface</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/revolve_geometry.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">kernel surface</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one result</text>
 </svg>
-</div>
-
-- **Goal:** Turn original curves into exact kernel surfaces around a chosen axis.
-- **Data Flow Trace:** `original profile → axis and angle → kernel surface → one result`
-- **Files You Touch:** `src/revolve_geometry.rs` (*Type the original axis validation, exact revolution and complete recipe result.*) · `src/lib.rs` (*Compile the prepared original revolution recipe.*)
 
 Describe one shared recipe for profile selection, two axis points and a bounded angle. Reject a zero-length axis before calling the kernel. Convert degrees to radians once, validate every resulting surface, and return all selected profiles in one undo transaction.
 
-> **Self-Check Question:** *Why revolve the original curve instead of its display polyline?*  
-> **Answer:** The kernel retains its exact rational surface and editable source geometry. The display polyline is only a tessellation for drawing.
-
-- **Hands-On Lab Experiment:** Trace a 90-degree turn and a complete turn of a straight profile. Compare the surface seam and radius. The following registry checkpoint connects this prepared recipe to the browser command.
-
-<details>
-<summary>Implementation 77zzo-revolve-original-profiles-around-an-axis: Revolve original profiles around an axis</summary>
-
-Turn original curves into exact kernel surfaces around a chosen axis.
-
-Data flow: original profile → axis and angle → kernel surface → one result.
+> **Check:** *Why revolve the original curve instead of its display polyline?* — The kernel retains its exact rational surface and editable source geometry. The display polyline is only a tessellation for drawing.
 
 ### 1. `src/revolve_geometry.rs`
 
@@ -10016,24 +7541,6 @@ Create the file and type:
 
 Compile the prepared original revolution recipe.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    source_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-
-pub mod surfacing;
-
-pub mod extrude_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -10041,19 +7548,7 @@ After that block, type:
 pub mod revolve_geometry;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/77zzo-revolve-original-profiles-around-an-axis-2.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -10061,112 +7556,26 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the unchanged original radius, seam and axis validation fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::gather_input::{Input, Made, Recipe, Step};
-use crate::surfacing::{checked, count};
-use session_rust::{NurbsCurve, NurbsSurface, Point, Primitives};
-
-pub static RECIPE: Recipe = Recipe {
-    name: "Nurbs Surface Revolve",
-    chips: &[("Finish", ""), ("Cancel", "Escape")],
-    steps: &[
-        Step::Curves {
-            prompt: "select profile curves",
-            min: 1,
-            max: usize::MAX,
-        },
-        Step::Point("axis start"),
-        Step::Point("axis end"),
-        Step::Number {
-            prompt: "angle",
-            default: 360.0,
-            low: 0.0,
-            high: 360.0,
-        },
-    ],
-    axis: crate::gather_input::no_axis,
-    build,
-};
-
-/// `profile` turned `degrees` right-handed about the axis from `start` to `end`.
-pub fn revolve(
-    profile: &NurbsCurve,
-    start: &Point,
-    end: &Point,
-    degrees: f64,
-) -> Result<NurbsSurface, String> {
-    let axis = end - start;
-
-    if axis.magnitude() <= 1e-12 {
-        return Err("The axis start and end must differ".into());
-    }
-
-    if !(degrees > 0.0 && degrees <= 360.0) {
-        return Err("The angle must be above 0 and at most 360".into());
-    }
-
-    Ok(Primitives::create_revolve(
-        profile,
-        start,
-        &axis,
-        degrees.to_radians(),
-    ))
-}
-
-/// One surface per profile, all in one undo step.
-fn build(input: &Input) -> Result<Made, String> {
-    let (Some(start), Some(end), Some(degrees)) = (input.point(0), input.point(1), input.number(2))
-    else {
-        return Err("Nurbs Surface Revolve needs an axis and an angle".into());
-    };
-    let geometries = input.curves[0]
-        .iter()
-        .map(|picked| checked(revolve(&picked.curve, &start, &end, degrees)?, "revolve"))
-        .collect::<Result<Vec<_>, String>>()?;
-    Ok(Made {
-        message: format!(
-            "Revolved {} by {degrees}°",
-            count(geometries.len(), "curve")
-        ),
-        geometries,
-    })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/77zzo-revolve-original-profiles-around-an-axis-3.rs" skip=1946
 ```
 
-</details>
-
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 77zzo-revolve-original-profiles-around-an-axis
-npm --prefix ../session_tests run course -- check 77zzo-revolve-original-profiles-around-an-axis
-npm --prefix ../session_tests run course -- save 77zzo-revolve-original-profiles-around-an-axis
+npm --prefix ../session_tests run course -- dependencies 15.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 15.1
+npm --prefix ../session_tests run course -- save 15.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-- **Final Lesson Experiment:** Trace a 90-degree turn and a complete turn of a straight profile. Compare the surface seam and radius. The following registry checkpoint connects this prepared recipe to the browser command.
-
-Continue with [Profile collection and one surfacing transaction](../../consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md).
+Continue with [15.2 · Profile collection and one surfacing transaction](../../consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md).

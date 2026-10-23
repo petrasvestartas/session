@@ -1,103 +1,63 @@
 # Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity
 
-> **Gemini Notebook Student Guide** · **Absorbs:** Chapter 19 (*Integration and original ownership*), Chapter 20 (*Shared GPU rendering*), Chapter 21 (*Precise camera and browser coordinates*), Chapter 22 (*Surface lighting, contact and display quality*) · **Lessons:** 21 (`19.1`–`22.6`) · **Checkpoints:** 198 (`96-retain-non-drawing-originals-and-validate-raw-planes` → `96zzzzzzzq-draw-original-cad-wire-curves` + `97-finish-with-the-maintained-browser-runtime`)
+**Absorbs:** Ch 19 (*Integration and original ownership*), Ch 20 (*Shared GPU rendering*), Ch 21 (*Precise camera and browser coordinates*), Ch 22 (*Surface lighting, contact and display quality*) · **Lessons:** 21 · **Checkpoints:** 198 (`96-retain-non-drawing-originals-and-validate-raw-planes` → `96zzzzzzzq-draw-original-cad-wire-curves`)
 
-## 1. Learning Outcome
-
-Complete the production Session Viewer architecture: resolve hosted `Element` feature trees and family-aware control edits (`Ch 19`); replace per-object vertex buffers with one shared GPU storage arena, 8-byte draw slots, `ObjectRecord` tables (`slot_table.wgsl`), and vertex pulling (`Ch 20`); eliminate jitter at 10^12-unit coordinates via `f64` floating-origin camera anchoring and reversed-Z (`1.0 -> 0.0`) depth (`Ch 21`); and integrate production surface lighting, contact fills, boundary pens, 1x/4x MSAA sample coherence, semantic family visibility ranges, the **Matrix** procedural digit/cell shader (`matrix.wgsl`), coalesced frame scheduling, and live reload camera/grid preservation (`Ch 22` + Reference `97`).
-
-## 2. WebGPU & Architecture Schematic (First-Year Student Guide)
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-```
-+---------------------------------------------------------------------------------------------------+
-|      SHARED GPU ARENA, FLOATING-ORIGIN PRECISION & MATRIX SHADER (CHAPTERS 19, 20, 21 & 22)      |
-+---------------------------------------------------------------------------------------------------+
-  1. Double-Precision Floating Origin (Ch 21):
-     World f64 (e.g. 10^12 + 0.125m) --(Subtract f64 Camera Anchor)--> Local f32 (0.125m) -> Zero Jitter!
-     Depth Buffer: Reversed-Z [Near = 1.0  ======(GreaterEqual)======>  Far = 0.0]
+> **Learning Outcome:** Complete the production Session Viewer architecture: resolve hosted `Element` feature trees and family-aware control edits (`Ch 19`); replace per-object vertex buffers with one shared GPU storage arena, 8-byte draw slots, `ObjectRecord` tables (`slot_table.wgsl`), and vertex pulling (`Ch 20`); eliminate jitter at 10^12-unit coordinates via `f64` floating-origin camera anchoring and reversed-Z (`1.0 -> 0.0`) depth (`Ch 21`); and integrate production surface lighting, contact fills, boundary pens, 1x/4x MSAA sample coherence, semantic family visibility ranges, the **Matrix** procedural digit/cell shader (`matrix.wgsl`), coalesced frame scheduling, and live reload camera/grid preservation (`Ch 22` + Reference `97`).
 
-  2. Bindless-Style Shared GPU Arena & Vertex Pulling (Ch 20):
-     +-------------------------+     +------------------------+     +-------------------------------+
-     | Draw Slot (8 Bytes)     | --> | ObjectRecord Table     | --> | Shared Vertex/Index Arena     |
-     | [record_idx, flags/sub] |     | Transform, Color, Radii|     | Pulled via @builtin(vertex_id)|
-     +-------------------------+     +------------------------+     +-------------------------------+
-                   |
-                   v
-     [Primitive ID Texture (Rg32Uint)] + [slot_table.wgsl] ===> Exact Face / Ink / Cap / Matrix Pick!
+## 1. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-  3. Matrix Procedural Shader (matrix.wgsl in 22.6) & Coalesced Frame Scheduler:
-     [16-word Header + 3 words/cell] ---> Cell Color Ramp + Procedural 3-Decimal SDF/Segment Digits
-                                          (Zero cells blank; plate-less world title; yellow select)
-     Input Burst (Wheel/Drag) ---> Update State Immediately ---> Coalesce into 1 Single-Flight Frame!
-```
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | What It Does in Plain English |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-## 3. Existing Chapters & Lessons Absorbed
+## 2. Lessons in This Section
 
-| Redraft Lesson | Existing Lesson | Title | Checkpoints | Range (`first` → `last`) | Consolidated Lesson Page |
+| Redraft | Existing | Lesson Title | Checkpoints | Range | Open Lesson |
 | :--- | :--- | :--- | ---: | :--- | :--- |
 | `10.1` | `19.1` | **Complete source metadata and the actual command contract** | 9 | `96-retain-non-drawing-originals-and-validate-raw-planes` → `96h-prove-current-source-grammar-and-explicit-differences` | [96-retain-non-drawing-originals-and-validate-raw-planes.md](../../consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md) · [Redraft](../lessons/96-retain-non-drawing-originals-and-validate-raw-planes.md) |
 | `10.2` | `19.2` | **Original Element ancestry and derived feature trees** | 10 | `96i-separate-own-and-hosted-element-features` → `96r-preserve-exact-command-completions` | [96i-separate-own-and-hosted-element-features.md](../../consolidation/96i-separate-own-and-hosted-element-features.md) · [Redraft](../lessons/96i-separate-own-and-hosted-element-features.md) |
@@ -122,49 +82,10 @@ Complete the production Session Viewer architecture: resolve hosted `Element` fe
 | `10.21` | `22.6` | **Original display controls and remaining integration boundaries** | 5 | `96zzzzzzzm-retain-visible-instance-ranges` → `96zzzzzzzq-draw-original-cad-wire-curves` | [96zzzzzzzm-retain-visible-instance-ranges.md](../../consolidation/96zzzzzzzm-retain-visible-instance-ranges.md) · [Redraft](../lessons/96zzzzzzzm-retain-visible-instance-ranges.md) |
 | `10.ref` | `Ref` | **Compare with the maintained browser runtime** | 1 | `97-finish-with-the-maintained-browser-runtime` | [97-finish-with-the-maintained-browser-runtime.md](../../97-finish-with-the-maintained-browser-runtime.md) |
 
-## 4. Rendering, Geometry, Interaction, and Runtime Features Covered
+## 3. Core Features & Exercises
 
-### Rendering & Shaders
-- Shared GPU storage arena (`engine/gpu/arena.rs`): packed position/normal/color storage buffers, vertex pulling (`scene.wgsl`, `triangle.wgsl`), 8-byte draw slots, `ObjectRecord` tables, and `Rg32Uint` primitive-to-slot lookup (`shaders/slot_table.wgsl`)
-- Reversed-Z (`CompareFunction::GreaterEqual`, clear `0.0`, near `1.0`) floating-point depth buffer and homogeneous near-plane ink clipping
-- Production surface lighting (`headlight` & `backface` controls), printed fills (read-only depth when a mesh has a single zero line width), contact polygon fills (`96zzzzzzj`) with joined outline walk, boundary pens/joins, and tapered mesh vertex dots (`shaders/sphere.wgsl`)
-- Coherent 1x/4x MSAA multisampling across color, depth, primitive IDs, section crossings, clouds, outlines, and ambient occlusion (`96zzzzzzu`..`96zzzzzzzl`)
-- Production **Matrix** renderer (`shaders/matrix.wgsl` in `22.6`): 16-word header + 3 words/cell storage packing, value color interpolation, procedural 3-decimal digit rendering (omitting digits on zero cells), whole-object `Rg32Uint` picking, yellow selected borders, and independent plate-less world title
-
-### Geometry & Data Structures
-- Own vs hosted `Element` feature trees (`96i`), family-aware control keys (`96za`), and free-list arena span reclamation after GPU lease completion (`96zzzzw`)
-- Double-precision (`f64`) world coordinates & camera target anchored to a throttled local render origin (`gpu_pos_f32 = (world_pos_f64 - anchor_f64) as f32`), preserving sub-millimeter precision even at `10^12` units from world zero
-
-### User Interaction & Selection
-- Origin-stamped asynchronous GPU picks (automatically retrying with the latest cursor if a floating-origin rebase occurred while in flight)
-- Semantic family visibility controls (`show_points`, `show_lines`, `show_mesh_edges`, `markers`, `Attributes`, `Interactions`) filtering contiguous CPU instance ranges (`src/ink_ranges.rs`) without copying GPU buffers or shifting pick IDs
-- Reload camera & held base grid guarantee: live Session reload retains the latest camera pose (including user motion during loading), and the world base grid updates only on an explicit plane-changing construction command
-
-### Browser Runtime & Production Authority (`session_viewer/src`)
-- Coalesced single-flight animation frame scheduling (bursts of input events update camera/state immediately and share one pending GPU presentation after queue completion)
-- Detachment of the maintained `session_viewer` crate from normal learner library dependencies (used only in dev/reference comparison `97-finish-with-the-maintained-browser-runtime`)
-- Production authority: `src/engine/gpu/{arena,objects,render,pass,targets,frame,view}.rs`, `src/engine/pipelines/mod.rs`, `src/shaders/{scene,triangle,slot_table,matrix,ribbon,vector,ink_visibility,sphere,grid}.wgsl`
-
-## 5. Practical Exercises & Expected Visible Results
-
-| Checkpoint(s) | Practical Student Exercise | Expected Visible Result |
+| Checkpoint | Exercise | Expected Result |
 | :--- | :--- | :--- |
 | `96zg / 96zzzzx` | Load `interaction-96p.pb`, select a hosted `Element` feature vs its parent owner, deform a family-keyed control point, and delete/re-add meshes to observe arena span reclamation. | Feature rows resolve to their original `Element` owner; control edits rebuild in place; deleted arena spans are reused after the last GPU lease completes. |
 | `96zzzzzi / 96zzzzzz / 96zzzzzzf` | Translate a scene and construction grid to `10^12` world units plus a fractional offset, orbit closely, and return to the origin. | The fractional grid lines and geometry render with zero vertex jitter (`0` pixel difference between near, `10^12`, and return frames), and reversed-Z prevents far-plane z-fighting. |
 | `96zzzzzzzl / 96zzzzzzzq / 97` | Render the original `Matrix` (`[-2, 1.2, 5; 0, 1.005, 5]`) at 1x and 4x MSAA, click to select the Matrix, toggle `Hide Lines` / `Show Lines`, and orbit while a live Session reload is in flight. | Non-zero Matrix cells display procedural 3-decimal digits while the `0` cell has no digit and the title has no background plate; selection turns Matrix borders yellow; reload keeps your live camera pose and held base grid. |
-
-## 6. Verified Work vs. Remaining Implementation or Validation
-
-### Verified in Repository Evidence
-- [x] All 21 consolidated lessons (`19.1`–`19.4`, `20.1`–`20.6`, `21.1`–`21.5`, `22.1`–`22.6`) and all 198 checkpoints (197 coding checkpoints + reference comparison `97-finish-with-the-maintained-browser-runtime`) are integrated and pass `checkpoints.test.ts`, strict Vite docs build, and all 26 `check-consolidated-course.cjs` browser route/layout inspections (`current-state.json` lines 17–21).
-- [x] `slot_table.wgsl` matches production 100% after comment/whitespace normalization.
-- [x] Matrix shader (`matrix.wgsl` in `22.6`): all 5 new native Matrix tests + 2 normal-matrix tests + 3 compact-Matrix tests pass; all 4 unselected/selected 1x/4x native frames individually inspected (`current-state.json` lines 41, 52).
-- [x] Production Mesh parity: 8/8 full-frame production/course pairs across DPR 1/2, samples 1/4, and selection match with zero changed RGBA pixels (`current-state.json` line 61).
-- [x] Printed fills (3/3 tests), bounded contacts (all perimeter pixels & picks across projections/angles/mirrored placements/densities), and terminal fixture (51.7s) pass (`current-state.json` lines 57, 68, 71).
-- [x] Reload camera & held base grid: 4/4 course native regressions and 3/3 maintained CPU/GPU grid checks at `10^12` + fractional origin pass (`current-state.json` lines 58, 163).
-- [x] Scheduler & dependency detachment: 3/3 CPU frame-coalescing scheduler tests pass; normal native dependency tree excludes `session_viewer` (`current-state.json` lines 49–50).
-- [x] Full native suite: 1,055 PASS / 4 FAIL in complete run, and all 4 subsequently PASS in focused run `native-owner-sheet-focused.json` (`current-state.json` lines 76, 86).
-
-### Remaining Implementation or Validation
-- [ ] Clean final full-suite rerun of all 1,059 native tests from viewer root cwd after source freeze (`current-state.json` lines 86, 97).
-- [ ] Browser acceptance of `course-feature-pick.pb`, 4 route/live reload-grid browser combinations, 5 performance measurement categories, and the final `96zzzzzzzq` / `97` release gates (`current-state.json` lines 98–100).

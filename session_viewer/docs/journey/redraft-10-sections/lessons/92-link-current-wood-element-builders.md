@@ -1,220 +1,103 @@
 # 18.4 · Original Wood Elements and portable source records
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.4** (Redraft `9.8`) · **17 checkpoints (`92-link-current-wood-element-builders` → `92o-prove-element-recipes-source-history-and-archives`)** · **Study time: 8.5–17 h**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Checkpoints:** `92-link-current-wood-element-builders` → `92o-prove-element-recipes-source-history-and-archives` (17 steps) · **Production source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs)
 
-> **What You Will Learn & Build:** Link current Wood element builders. By the final checkpoint (`92o-prove-element-recipes-source-history-and-archives`), you will prove Element recipes source history and archives.
+> **Goal:** Prove Element recipes source history and archives.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
-    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
-    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
-    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
-    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="706" cy="175" r="4" fill="#111111"/>
-    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 18.4 Pipeline Schematic: Original Wood Elements and portable source records</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (17 Checkpoints: 92-link-current-wood-element-builders → 92o-prove-element-recipes-source-history-and-archives)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="110" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="192" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">original ordered picks</text>
-    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="224" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="234" y1="90" x2="398" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">current Wood builders</text>
-    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="430" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="522" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="440" y1="90" x2="604" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">typed Element and</text>
-    <text x="522" y="124" text-anchor="middle" font-size="11" fill="#111111">attributes</text>
-    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="636" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="728" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="646" y1="90" x2="810" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">one history edit</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 18.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">Cargo.toml  ·  src/element_values.rs  ·  src/lib.rs  ·  src/element_beam.rs  ·  src/element_column.rs  ·  src/element_plate.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">17 Checkpoints: 92-link-current-wood-element-builders → 92o-prove-element-recipes-source-history-and-archives — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`92-link-current-wood-element-builders`](#checkpoint-92-link-current-wood-element-builders) | Link current Wood element builders. | `Cargo.toml` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **2** | [`91zza-write-original-beam-column-and-plate-builders`](#checkpoint-91zza-write-original-beam-column-and-plate-builders) | Parse positive finite lengths while retaining omitted defaults. | `src/element_values.rs`, `src/lib.rs`, `src/element_beam.rs`, `src/element_column.rs` | `original picks → positive dimensions → existing Wood kernel → typed element` |
-| **3** | [`92a-retain-current-positive-lengths-and-six-builders`](#checkpoint-92a-retain-current-positive-lengths-and-six-builders) | Add the remaining original Support, Beam Variable and Block wrappers. | `src/element_support.rs`, `src/lib.rs`, `src/element_beam_variable.rs`, `src/element_block.rs` | `original picks → positive dimensions → existing Wood kernel → typed element` |
-| **4** | [`92b-own-original-element-geometry`](#checkpoint-92b-own-original-element-geometry) | Own original Element geometry. | `src/element_original.rs`, `src/lib.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **5** | [`92c-read-current-element-command-defaults`](#checkpoint-92c-read-current-element-command-defaults) | Read current Element command defaults. | `src/element_input.rs`, `src/lib.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **6** | [`92d-build-typed-elements-from-ordered-world-picks`](#checkpoint-92d-build-typed-elements-from-ordered-world-picks) | Build typed Elements from ordered world picks. | `src/element_input.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **7** | [`92e-capture-original-picks-while-the-tool-runs`](#checkpoint-92e-capture-original-picks-while-the-tool-runs) | Capture original picks while the tool runs. | `src/element_draft.rs`, `src/lib.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **8** | [`92f-teach-named-and-bare-element-values`](#checkpoint-92f-teach-named-and-bare-element-values) | Teach named and bare Element values. | `src/element_draft.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **9** | [`92g-make-element-input-batches-atomic`](#checkpoint-92g-make-element-input-batches-atomic) | Make Element input batches atomic. | `src/element_draft.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **10** | [`92h-attach-readonly-element-attributes`](#checkpoint-92h-attach-readonly-element-attributes) | Attach readonly Element attributes. | `src/layer_edit.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **11** | [`92i-adopt-elements-and-consume-sources-once`](#checkpoint-92i-adopt-elements-and-consume-sources-once) | Adopt Elements and consume sources once. | `src/element_adopt.rs`, `src/lib.rs`, `src/source_edit.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **12** | [`92j-save-and-open-original-element-records`](#checkpoint-92j-save-and-open-original-element-records) | Save and open original Element records. | `src/geometry_snapshot.rs`, `src/archive_identity.rs`, `src/document_source.rs`, `src/document_geometry.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **13** | [`92k-own-independent-element-tool-state`](#checkpoint-92k-own-independent-element-tool-state) | Own independent Element tool state. | `src/editor.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **14** | [`92l-commit-one-element-creation-and-retry-errors`](#checkpoint-92l-commit-one-element-creation-and-retry-errors) | Commit one Element creation and retry errors. | `src/editor.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **15** | [`92m-route-current-element-commands-and-feature-visibility`](#checkpoint-92m-route-current-element-commands-and-feature-visibility) | Toggle Element Attributes and Element Interactions independently. | `src/editor.rs`, `src/commands.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **16** | [`92n-pick-elements-through-the-real-command-dock`](#checkpoint-92n-pick-elements-through-the-real-command-dock) | Pick Elements through the real command dock. | `src/browser.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-| **17** | [`92o-prove-element-recipes-source-history-and-archives`](#checkpoint-92o-prove-element-recipes-source-history-and-archives) | Prove Element recipes source history and archives. | `src/element_tests.rs`, `src/lib.rs`, `src/element_beam.rs`, `src/element_column.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-92-link-current-wood-element-builders"></a>
 
 ### Step 1 of 17 · Link current Wood element builders (`92-link-current-wood-element-builders`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/17 Visual Trace (92-link-current-wood-element-builders): Link current Wood element builders</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Link current Wood element builders.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `Cargo.toml` (*Link current Wood element builders beside the original kernel.*)
 
 Link current Wood element builders.
 
-> **Self-Check Question:** *Should the viewer invent a second beam solid builder?*  
-> **Answer:** No. Link the maintained Wood crate beside Session. Keep its shared kernel and the supplied dependency lock.
-
-- **Hands-On Lab Experiment:** Inspect the relative path from the reconstructed lesson and the unchanged dependency versions.
-
-<details>
-<summary>Implementation 92-link-current-wood-element-builders: Link current Wood element builders</summary>
-
-Link current Wood element builders.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Should the viewer invent a second beam solid builder?* — No. Link the maintained Wood crate beside Session. Keep its shared kernel and the supplied dependency lock.
 
 ### 1. `Cargo.toml`
 
 Link current Wood element builders beside the original kernel.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "ReadableWritablePair", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -222,59 +105,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/92-link-current-wood-element-builders-01-console.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-91zza-write-original-beam-column-and-plate-builders"></a>
 
 ### Step 2 of 17 · Write original beam column and plate builders (`91zza-write-original-beam-column-and-plate-builders`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/17 Visual Trace (91zza-write-original-beam-column-and-plate-builders): Write original beam column and plate builders</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_values.rs, src/lib.rs, src/element_beam.rs, src/element_column.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">positive dimensions</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing Wood kernel</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">typed element</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_values.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing Wood kernel</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed element</text>
 </svg>
-</div>
-
-- **Goal:** Parse positive finite lengths while retaining omitted defaults.
-- **Data Flow Trace:** `original picks → positive dimensions → existing Wood kernel → typed element`
-- **Files You Touch:** `src/element_values.rs` (*Adapt the maintained positive-length recipe to the earlier number parser.*) · `src/lib.rs` (*Register the completed Element component.*) · `src/element_beam.rs` (*Type the whole original helpers introduced today.*) · `src/element_column.rs` (*Type the whole original helpers introduced today.*) · `src/element_plate.rs` (*Type the whole original helpers introduced today.*)
 
 Parse positive finite lengths while retaining omitted defaults. Build original beams from selected axes, columns from points and plates from profiles using the existing Wood kernel.
 
-> **Self-Check Question:** *Why keep the untyped defaults?*  
-> **Answer:** A short dimension list overrides only its supplied values. Excess, nonfinite and nonpositive values are refused.
-
-- **What You Should See:** Beam, column and plate source builders are prepared before their values and command routing are connected.
-- **Hands-On Lab Experiment:** Trace a partial dimension override and compare empty or invalid axis, point and profile selections.
-
-<details>
-<summary>Implementation 91zza-write-original-beam-column-and-plate-builders: Write original beam column and plate builders</summary>
-
-Parse positive finite lengths while retaining omitted defaults.
-
-Data flow: original picks → positive dimensions → existing Wood kernel → typed element.
+> **Check:** *Why keep the untyped defaults?* — A short dimension list overrides only its supplied values. Excess, nonfinite and nonpositive values are refused.
 
 ### 1. `src/element_values.rs`
 
@@ -289,16 +151,6 @@ Create the file and type:
 ### 2. `src/lib.rs`
 
 Register the completed Element component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod global_outline_command_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -320,16 +172,6 @@ Create the file and type:
 
 Register this original element builder.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_values;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -349,16 +191,6 @@ Create the file and type:
 ### 6. `src/lib.rs`
 
 Register this original element builder.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_beam;
-```
-
-</details>
 
 After that block, type:
 
@@ -380,75 +212,46 @@ Create the file and type:
 
 Register this original element builder.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_column;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-8.rs" skip=25
 ```
 
-</details>
+**Result after `91zza-write-original-beam-column-and-plate-builders`:** Beam, column and plate source builders are prepared before their values and command routing are connected.
+
+---
 
 <a id="checkpoint-92a-retain-current-positive-lengths-and-six-builders"></a>
 
 ### Step 3 of 17 · Write original support variable beam and block builders (`92a-retain-current-positive-lengths-and-six-builders`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/17 Visual Trace (92a-retain-current-positive-lengths-and-six-builders): Write original support variable beam and block builders</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_support.rs, src/lib.rs, src/element_beam_variable.rs, src/element_block.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">positive dimensions</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing Wood kernel</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">typed element</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_support.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing Wood kernel</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed element</text>
 </svg>
-</div>
-
-- **Goal:** Add the remaining original Support, Beam Variable and Block wrappers.
-- **Data Flow Trace:** `original picks → positive dimensions → existing Wood kernel → typed element`
-- **Files You Touch:** `src/element_support.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original element builder.*) · `src/element_beam_variable.rs` (*Type the whole original helpers introduced today.*) · `src/element_block.rs` (*Type the whole original helpers introduced today.*)
 
 Add the remaining original Support, Beam Variable and Block wrappers. Reuse the kernel constructors and the length parser already written.
 
-> **Self-Check Question:** *Where does the element geometry come from?*  
-> **Answer:** The existing Wood kernel constructs it. These short wrappers preserve the supported original inputs and return the typed element or a clear refusal.
-
-- **What You Should See:** Positive length validation and the six Element builders compile before dispatch and history editing are connected.
-- **Hands-On Lab Experiment:** Compare the selected original families and refused empty selections for the three wrappers.
-
-<details>
-<summary>Implementation 92a-retain-current-positive-lengths-and-six-builders: Write original support variable beam and block builders</summary>
-
-Add the remaining original Support, Beam Variable and Block wrappers.
-
-Data flow: original picks → positive dimensions → existing Wood kernel → typed element.
+> **Check:** *Where does the element geometry come from?* — The existing Wood kernel constructs it. These short wrappers preserve the supported original inputs and return the typed element or a clear refusal.
 
 ### 1. `src/element_support.rs`
 
@@ -463,16 +266,6 @@ Create the file and type:
 ### 2. `src/lib.rs`
 
 Register this original element builder.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_plate;
-```
-
-</details>
 
 After that block, type:
 
@@ -494,16 +287,6 @@ Create the file and type:
 
 Register this original element builder.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_support;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -524,75 +307,46 @@ Create the file and type:
 
 Register this original element builder.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_beam_variable;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-6.rs" skip=32
 ```
 
-</details>
+**Result after `92a-retain-current-positive-lengths-and-six-builders`:** Positive length validation and the six Element builders compile before dispatch and history editing are connected.
+
+---
 
 <a id="checkpoint-92b-own-original-element-geometry"></a>
 
 ### Step 4 of 17 · Own original Element geometry (`92b-own-original-element-geometry`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/17 Visual Trace (92b-own-original-element-geometry): Own original Element geometry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_original.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_original.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Own original Element geometry.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_original.rs` (*Retain the original Element beside its derived display.*) · `src/lib.rs` (*Register the completed Element component.*)
 
 Own original Element geometry.
 
-> **Self-Check Question:** *Does a display BRep replace the typed Element?*  
-> **Answer:** No. Keep the original Element and derive its BRep or mesh display under the same owner. Reject an Element without drawable geometry.
-
-- **Hands-On Lab Experiment:** Compare typed payload, original flags, GUID and derived topology.
-
-<details>
-<summary>Implementation 92b-own-original-element-geometry: Own original Element geometry</summary>
-
-Own original Element geometry.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Does a display BRep replace the typed Element?* — No. Keep the original Element and derive its BRep or mesh display under the same owner. Reject an Element without drawable geometry.
 
 ### 1. `src/element_original.rs`
 
@@ -608,75 +362,44 @@ Create the file and type:
 
 Register the completed Element component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_block;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/92b-own-original-element-geometry-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-92c-read-current-element-command-defaults"></a>
 
 ### Step 5 of 17 · Read current Element command defaults (`92c-read-current-element-command-defaults`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/17 Visual Trace (92c-read-current-element-command-defaults): Read current Element command defaults</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_input.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_input.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Read current Element command defaults.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_input.rs` (*Own the six current command kinds and exact defaults.*) · `src/lib.rs` (*Register the completed Element component.*)
 
 Read current Element command defaults.
 
-> **Self-Check Question:** *Does Element Beam Variable mean Beam with a Variable argument?*  
-> **Answer:** No. It is a separate longest-matching command. Argument-free recipes reject extra values; dimensioned recipes allow partial positive lengths.
-
-- **Hands-On Lab Experiment:** Try Element Beam120 and Element Beam Variable, then reject an extra number for Support.
-
-<details>
-<summary>Implementation 92c-read-current-element-command-defaults: Read current Element command defaults</summary>
-
-Read current Element command defaults.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Does Element Beam Variable mean Beam with a Variable argument?* — No. It is a separate longest-matching command. Argument-free recipes reject extra values; dimensioned recipes allow partial positive lengths.
 
 ### 1. `src/element_input.rs`
 
@@ -692,89 +415,48 @@ Create the file and type:
 
 Register the completed Element component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_original;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/92c-read-current-element-command-defaults-02.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-92d-build-typed-elements-from-ordered-world-picks"></a>
 
 ### Step 6 of 17 · Build typed Elements from ordered world picks (`92d-build-typed-elements-from-ordered-world-picks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/17 Visual Trace (92d-build-typed-elements-from-ordered-world-picks): Build typed Elements from ordered world picks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_input.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Build typed Elements from ordered world picks.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_input.rs` (*Route ordered original sources into current Wood builders and base planes.*)
 
 Build typed Elements from ordered world picks.
 
-> **Self-Check Question:** *Can original curve placement be ignored?*  
-> **Answer:** No. Transform each original into world space in pick order before calling the current builder. Retain closed-loop filtering and the typed Element payload.
-
-- **Hands-On Lab Experiment:** Compare a translated beam axis, variable-beam stations, paired block holes and a point support.
-
-<details>
-<summary>Implementation 92d-build-typed-elements-from-ordered-world-picks: Build typed Elements from ordered world picks</summary>
-
-Build typed Elements from ordered world picks.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Can original curve placement be ignored?* — No. Transform each original into world space in pick order before calling the current builder. Retain closed-loop filtering and the typed Element payload.
 
 ### 1. `src/element_input.rs`
 
 Route ordered original sources into current Wood builders and base planes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone,Copy,Debug,PartialEq)]
-pub struct Param{pub name:&'static str,pub value:f64}
-```
-
-</details>
 
 After that block, type:
 
@@ -782,59 +464,38 @@ After that block, type:
 --8<-- "journey/code/92d-build-typed-elements-from-ordered-world-picks-01.rs" skip=92
 ```
 
-</details>
+---
 
 <a id="checkpoint-92e-capture-original-picks-while-the-tool-runs"></a>
 
 ### Step 7 of 17 · Capture original picks while the tool runs (`92e-capture-original-picks-while-the-tool-runs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/17 Visual Trace (92e-capture-original-picks-while-the-tool-runs): Capture original picks while the tool runs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_draft.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_draft.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Capture original picks while the tool runs.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_draft.rs` (*Capture fitting original sources and ordered tool state.*) · `src/lib.rs` (*Register the completed Element component.*)
 
 Capture original picks while the tool runs.
 
-> **Self-Check Question:** *Can a pending Element tool use a moved or replaced source?*  
-> **Answer:** No. Capture its shared original and exact placement, then validate both before creation. Picking again toggles its ordered membership.
-
-- **Hands-On Lab Experiment:** Move a captured axis before Enter and verify the original remains present after rejection.
-
-<details>
-<summary>Implementation 92e-capture-original-picks-while-the-tool-runs: Capture original picks while the tool runs</summary>
-
-Capture original picks while the tool runs.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Can a pending Element tool use a moved or replaced source?* — No. Capture its shared original and exact placement, then validate both before creation. Picking again toggles its ordered membership.
 
 ### 1. `src/element_draft.rs`
 
@@ -850,91 +511,48 @@ Create the file and type:
 
 Register the completed Element component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_input;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/92e-capture-original-picks-while-the-tool-runs-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-92f-teach-named-and-bare-element-values"></a>
 
 ### Step 8 of 17 · Teach named and bare Element values (`92f-teach-named-and-bare-element-values`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/17 Visual Trace (92f-teach-named-and-bare-element-values): Teach named and bare Element values</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Teach named and bare Element values.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_draft.rs` (*Adapt the maintained Element parameter word recipe without changing its semantics.*)
 
 Teach named and bare Element values.
 
-> **Self-Check Question:** *What does Height without a number do?*  
-> **Answer:** It asks for that value; Enter keeps the current number. Name=value sets it directly, and bare numbers fill parameters cyclically.
-
-- **Hands-On Lab Experiment:** Try Width=100 Height150, then ask for Height and keep it with Enter.
-
-<details>
-<summary>Implementation 92f-teach-named-and-bare-element-values: Teach named and bare Element values</summary>
-
-Teach named and bare Element values.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *What does Height without a number do?* — It asks for that value; Enter keeps the current number. Name=value sets it directly, and bare numbers fill parameters cyclically.
 
 ### 1. `src/element_draft.rs`
 
 Adapt the maintained Element parameter word recipe without changing its semantics.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- pub fn prompt(&self)->String{if let Some(i)=self.asking{format!("{} <{}>: type a number · Enter keeps it",self.params[i].name,self.params[i].value)}else{format!("{} · pick original sources ({} picked) · Enter creates · Esc cancels",self.kind.name(),self.picked.len())}}
- pub fn buttons(&self)->Vec<(String,String)>{self.params.iter().map(|p|(format!("{}={}",p.name,p.value),p.name.into())).chain([("Create".into(),"".into()),("Cancel".into(),"Escape".into())]).collect()}
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -942,76 +560,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/92f-teach-named-and-bare-element-values-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-92g-make-element-input-batches-atomic"></a>
 
 ### Step 9 of 17 · Make Element input batches atomic (`92g-make-element-input-batches-atomic`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/17 Visual Trace (92g-make-element-input-batches-atomic): Make Element input batches atomic</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Make Element input batches atomic.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_draft.rs` (*Adopt only validated current parameter batches.*)
 
 Make Element input batches atomic.
 
-> **Self-Check Question:** *Should Width=99 Height=-1 keep the first edit?*  
-> **Answer:** No. Read into a cloned draft and adopt only a completely valid batch. Enter creates only when no parameter is being asked.
-
-- **Hands-On Lab Experiment:** Compare draft parameters before and after an invalid two-word batch.
-
-<details>
-<summary>Implementation 92g-make-element-input-batches-atomic: Make Element input batches atomic</summary>
-
-Make Element input batches atomic.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Should Width=99 Height=-1 keep the first edit?* — No. Read into a cloned draft and adopt only a completely valid batch. Enter creates only when no parameter is being asked.
 
 ### 1. `src/element_draft.rs`
 
 Adopt only validated current parameter batches.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- pub fn valid(&self,scene:&Scene)->Result<(),String>{for o in &self.picked{o.valid(scene).map_err(str::to_owned)?;}Ok(())}
- pub fn build(&self,scene:&Scene)->Result<Vec<Made>,String>{self.valid(scene)?;crate::element_input::build(self.kind,&self.params,&self.picked.iter().map(|o|(o.source.clone(),o.model.clone())).collect::<Vec<_>>())}
-
- pub fn values(&self)->String{self.params.iter().map(|p|format!("{} {}",p.name,p.value)).collect::<Vec<_>>().join(" · ")}
- pub fn prompt(&self)->String{if let Some(i)=self.asking{format!("{} <{}>: type a number · Enter keeps it",self.params[i].name,self.params[i].value)}else{format!("{} · pick original sources ({} picked) · Enter creates · Esc cancels",self.kind.name(),self.picked.len())}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1019,73 +603,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/92g-make-element-input-batches-atomic-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-92h-attach-readonly-element-attributes"></a>
 
 ### Step 10 of 17 · Attach readonly Element attributes (`92h-attach-readonly-element-attributes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/17 Visual Trace (92h-attach-readonly-element-attributes): Attach readonly Element attributes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Attach readonly Element attributes.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/layer_edit.rs` (*Attach generated original attributes under their Element owner.*)
 
 Attach readonly Element attributes.
 
-> **Self-Check Question:** *Can the base plane be edited as another layer object?*  
-> **Answer:** No. Move it under its Element attributes branch and mark it readonly. Enforce the existing hierarchy bounds before adoption.
-
-- **Hands-On Lab Experiment:** Inspect parent/child ranges and why a feature follows parent movement.
-
-<details>
-<summary>Implementation 92h-attach-readonly-element-attributes: Attach readonly Element attributes</summary>
-
-Attach readonly Element attributes.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Can the base plane be edited as another layer object?* — No. Move it under its Element attributes branch and mark it readonly. Enforce the existing hierarchy bounds before adoption.
 
 ### 1. `src/layer_edit.rs`
 
 Attach generated original attributes under their Element owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    replace(scene,owner,tree);Rc::make_mut(&mut scene.groups).insert((doc.key,group_guid));Ok(name)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1093,59 +646,38 @@ After that block, type:
 --8<-- "journey/code/92h-attach-readonly-element-attributes-01.rs" skip=102
 ```
 
-</details>
+---
 
 <a id="checkpoint-92i-adopt-elements-and-consume-sources-once"></a>
 
 ### Step 11 of 17 · Adopt Elements and consume sources once (`92i-adopt-elements-and-consume-sources-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/17 Visual Trace (92i-adopt-elements-and-consume-sources-once): Adopt Elements and consume sources once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_adopt.rs, src/lib.rs, src/source_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_adopt.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Adopt Elements and consume sources once.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_adopt.rs` (*Adopt original Element payloads and readonly attributes as one edit.*) · `src/lib.rs` (*Register the completed Element component.*) · `src/source_edit.rs` (*Validate captured original Element identity by shared source ownership.*)
 
 Adopt Elements and consume sources once.
 
-> **Self-Check Question:** *Does Enter create a partial selection on failure?*  
-> **Answer:** No. Stage all Elements, base planes and serialized feature outlines, then replace the consumed sources in one history transaction.
-
-- **Hands-On Lab Experiment:** Inspect original feature payloads, readonly generated children, default hidden attributes and restored axes after Undo.
-
-<details>
-<summary>Implementation 92i-adopt-elements-and-consume-sources-once: Adopt Elements and consume sources once</summary>
-
-Adopt Elements and consume sources once.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Does Enter create a partial selection on failure?* — No. Stage all Elements, base planes and serialized feature outlines, then replace the consumed sources in one history transaction.
 
 ### 1. `src/element_adopt.rs`
 
@@ -1161,16 +693,6 @@ Create the file and type:
 
 Register the completed Element component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod element_draft;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -1181,94 +703,48 @@ After that block, type:
 
 Validate captured original Element identity by shared source ownership.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    match (a, b) {
-        (Geometry::PointCloud(a), Geometry::PointCloud(b)) => Rc::ptr_eq(a,b),
-        (Geometry::Plane(a), Geometry::Plane(b)) => Rc::ptr_eq(a,b),
-        (Geometry::OBB(a), Geometry::OBB(b)) => Rc::ptr_eq(a, b),
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/92i-adopt-elements-and-consume-sources-once-03.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-92j-save-and-open-original-element-records"></a>
 
 ### Step 12 of 17 · Save and open original Element records (`92j-save-and-open-original-element-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/17 Visual Trace (92j-save-and-open-original-element-records): Save and open original Element records</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/geometry_snapshot.rs, src/archive_identity.rs, src/document_source.rs, src/document_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/geometry_snapshot.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Save and open original Element records.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/geometry_snapshot.rs` (*Route original Element records through mixed-document archives.*) · `src/archive_identity.rs` (*Route original Element records through mixed-document archives.*) · `src/document_source.rs` (*Route original Element records through mixed-document archives.*) · `src/document_geometry.rs` (*Route original Element records through mixed-document archives.*)
 
 Save and open original Element records.
 
-> **Self-Check Question:** *Should Save serialize the display mesh?*  
-> **Answer:** No. Save the original Element record and its payload, retain attribute ancestry and remap original GUIDs consistently.
-
-- **Hands-On Lab Experiment:** Save, open and compare the typed payload and readonly base-plane/feature branches.
-
-<details>
-<summary>Implementation 92j-save-and-open-original-element-records: Save and open original Element records</summary>
-
-Save and open original Element records.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Should Save serialize the display mesh?* — No. Save the original Element record and its payload, retain attribute ancestry and remap original GUIDs consistently.
 
 ### 1. `src/geometry_snapshot.rs`
 
 Route original Element records through mixed-document archives.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    for row in scene.objects().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {
-        if let Some(session_rust::Geometry::Plane(source))=&row.original {push!(planes,row.id,source.to_proto());}
-        else if let Some(session_rust::Geometry::OBB(source))=&row.original {push!(bboxes,row.id,source.to_proto());}
-        else if let Some(cad)=row.cad.as_ref() {push!(breps,row.id,cad.source.to_proto());}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1280,19 +756,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Route original Element records through mixed-document archives.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) fn objects(objects:&mut proto::Objects,names:&HashMap<String,String>) {
-    macro_rules! remap {($field:ident)=>{for object in &mut objects.$field {if let Some(guid)=names.get(&object.guid) {object.guid=guid.clone();}}};}
-    remap!(planes);remap!(bboxes);remap!(meshes);remap!(lines);remap!(points);remap!(polylines);remap!(nurbscurves);remap!(nurbssurfaces);remap!(breps);remap!(pointclouds);remap!(instances);remap!(sheets);
-}
-pub(crate) fn tree(node:&mut proto::TreeNode,names:&HashMap<String,String>) {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -1302,45 +765,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 3. `src/document_source.rs`
 
 Route original Element records through mixed-document archives.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>,pub sheets:Vec<Rc<crate::sheet_source::Prepared>>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(planes);identity!(bboxes);identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);identity!(sheets);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let sheets=objects.sheets.iter().cloned().map(|sheet|crate::sheet_source::Prepared::new(Rc::new(sheet)).map(Rc::new).map_err(str::to_owned)).collect::<Result<Vec<_>,_>>()?;
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world,sheets})
-}
-
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    if !source.interactions.is_empty() {return Err("Interactions arrive with element features".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.elements.is_empty()||!objects.components.is_empty() {return Err("This subject cannot open assemblies yet".into());}
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1378,36 +802,9 @@ fn supported(source:&proto::Session)->Result<(),String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/92j-save-and-open-original-element-records-03.rs"
-```
-
-```text
---8<-- "journey/code/92j-save-and-open-original-element-records-04.rs"
-```
-
-</details>
-
 ### 4. `src/document_geometry.rs`
 
 Route original Element records through mixed-document archives.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut owners=Vec::new();let mut shapes=crate::cad_shape_cache::Cache::default();
-    macro_rules! add {($source:expr,$insert:expr)=>{{let source=$source;let guid=source.guid().to_owned();let label=source.name.clone();let model=crate::nested_placement::model(&loaded.world,place,&guid);let id=$insert.map_err(str::to_owned)?;scene.place_following(id,model).map_err(str::to_owned)?;owners.push((guid,id,label));id}};}
-    for source in &loaded.document.objects.meshes {
-        let mut prepared=crate::prepared::PreparedMesh::from_shared(source.clone()).map_err(str::to_owned)?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1415,59 +812,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/92j-save-and-open-original-element-records-05.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-92k-own-independent-element-tool-state"></a>
 
 ### Step 13 of 17 · Own independent Element tool state (`92k-own-independent-element-tool-state`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/17 Visual Trace (92k-own-independent-element-tool-state): Own independent Element tool state</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Own independent Element tool state.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/editor.rs` (*Own Element draft state and cleanup before routing its commands.*)
 
 Own independent Element tool state.
 
-> **Self-Check Question:** *Does an Element picker ask for drawing points?*  
-> **Answer:** No. It owns ordered original picks and parameter prompts separately from freehand drawing tools.
-
-- **Hands-On Lab Experiment:** Compare the Element draft with an original Line drawing draft and feature visibility state.
-
-<details>
-<summary>Implementation 92k-own-independent-element-tool-state: Own independent Element tool state</summary>
-
-Own independent Element tool state.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Does an Element picker ask for drawing points?* — No. It owns ordered original picks and parameter prompts separately from freehand drawing tools.
 
 ### 1. `src/editor.rs`
 
@@ -1475,8 +851,7 @@ Own Element draft state and cleanup before routing its commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -1487,8 +862,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::PickedMany { target, additive } => {
                 if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1502,8 +875,7 @@ Replace it with:
                 if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::CancelTrim=>{if let Some(trim)=self.trim.take(){self.select_objects(trim.before,false)}self.tool_status="Trim cancelled · nothing changed".into();return Ok(Change::Preview)},
@@ -1514,8 +886,6 @@ Replace it with:
             Action::MeasureDistance(text)=>return self.begin_measure_distance(&text),
             Action::BoundingBox=>return self.bounding_box(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1529,8 +899,7 @@ Replace it with:
             Action::BoundingBox=>return self.bounding_box(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let draft=self.draft.as_ref().ok_or("No transform tool is running")?;let mut next=draft.transform.clone().ok_or("No transform tool is running")?;
@@ -1541,8 +910,6 @@ Replace it with:
     fn gather_adopt(&mut self,next:crate::gather_draft::Draft,made:Option<crate::gather_input::Made>)->Result<Change,&'static str>{
         next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1556,8 +923,7 @@ Replace it with:
         next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -1568,8 +934,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1583,8 +947,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1594,8 +957,6 @@ pub struct Editor {
     pub outlines:bool,
     pub clipping_enabled:bool,pub clipping_solid:bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1611,8 +972,7 @@ pub struct Editor {
     pub clipping_enabled:bool,pub clipping_solid:bool,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2783,104 +2143,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/92k-own-independent-element-tool-state-01.rs"
-```
-
-```text
---8<-- "journey/code/92k-own-independent-element-tool-state-02.rs"
-```
-
-```text
---8<-- "journey/code/92k-own-independent-element-tool-state-03.rs"
-```
-
-```text
---8<-- "journey/code/92k-own-independent-element-tool-state-04.rs"
-```
-
-```text
---8<-- "journey/code/92k-own-independent-element-tool-state-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-92l-commit-one-element-creation-and-retry-errors"></a>
 
 ### Step 14 of 17 · Commit one Element creation and retry errors (`92l-commit-one-element-creation-and-retry-errors`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/17 Visual Trace (92l-commit-one-element-creation-and-retry-errors): Commit one Element creation and retry errors</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Commit one Element creation and retry errors.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/editor.rs` (*Connect staged Element creation, named input and ordered picks.*)
 
 Commit one Element creation and retry errors.
 
-> **Self-Check Question:** *Can a failed build clear the pending picks?*  
-> **Answer:** No. Keep the draft until all derived originals are ready. A successful commit selects new Element owners and clears the tool.
-
-- **Hands-On Lab Experiment:** Inspect typed immediate creation, argument-free pending creation, stale original checks and one history transaction.
-
-<details>
-<summary>Implementation 92l-commit-one-element-creation-and-retry-errors: Commit one Element creation and retry errors</summary>
-
-Commit one Element creation and retry errors.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Can a failed build clear the pending picks?* — No. Keep the draft until all derived originals are ready. A successful commit selects new Element owners and clears the tool.
 
 ### 1. `src/editor.rs`
 
 Connect staged Element creation, named input and ordered picks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2888,59 +2186,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/92l-commit-one-element-creation-and-retry-errors-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-92m-route-current-element-commands-and-feature-visibility"></a>
 
 ### Step 15 of 17 · Route Element commands and independent visibility (`92m-route-current-element-commands-and-feature-visibility`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/17 Visual Trace (92m-route-current-element-commands-and-feature-visibility): Route Element commands and independent visibility</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Toggle Element Attributes and Element Interactions independently.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/editor.rs` (*Route Element actions and current feature presentation.*) · `src/commands.rs` (*Register current Element commands and strict argument parsing.*)
 
 Route current Element commands and feature visibility.
 
-> **Self-Check Question:** *Do feature toggles modify the typed Element payload?*  
-> **Answer:** No. Change derived child visibility. Commands retain current defaults, strict arguments and longest matching names.
-
-- **Hands-On Lab Experiment:** Create a selected-axis beam immediately, show its features, then Undo the original edit.
-
-<details>
-<summary>Implementation 92m-route-current-element-commands-and-feature-visibility: Route Element commands and independent visibility</summary>
-
-Toggle Element Attributes and Element Interactions independently.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Do feature toggles modify the typed Element payload?* — No. Change derived child visibility. Commands retain current defaults, strict arguments and longest matching names.
 
 ### 1. `src/editor.rs`
 
@@ -2948,8 +2225,7 @@ Route Element actions and current feature presentation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
@@ -2959,8 +2235,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Arctic(_)=>unreachable!("Arctic presentation returned before editor mutation"),
             Action::Clipping(request)=>{return self.clipping_request(request)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -2985,8 +2259,7 @@ Replace it with:
             Action::Clipping(request)=>{return self.clipping_request(request)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2996,8 +2269,6 @@ Replace it with:
         if self.trim.is_some(){return match text.trim(){""=>Some(Ok(Action::Trim)),v if v.eq_ignore_ascii_case("Trim")=>Some(Ok(Action::Trim)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelTrim)),_=>None}}
         if self.mark.is_some()&&text.trim().eq_ignore_ascii_case("Escape"){return Some(Ok(Action::CancelTool))}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3011,8 +2282,7 @@ Replace it with:
         if self.mark.is_some()&&text.trim().eq_ignore_ascii_case("Escape"){return Some(Ok(Action::CancelTool))}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3022,8 +2292,6 @@ pub enum Action {
     ViewOutline(Option<bool>),
     Clipping(crate::clipping_input::Request),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3037,8 +2305,7 @@ pub enum Action {
     Clipping(crate::clipping_input::Request),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4236,35 +3503,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/92m-route-current-element-commands-and-feature-visibility-01.rs"
-```
-
-```text
---8<-- "journey/code/92m-route-current-element-commands-and-feature-visibility-02.rs"
-```
-
-```text
---8<-- "journey/code/92m-route-current-element-commands-and-feature-visibility-03.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Register current Element commands and strict argument parsing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
@@ -4274,8 +3519,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
     if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4293,8 +3536,7 @@ Replace it with:
     if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4304,8 +3546,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Arctic",||Action::Arctic(None)),
     ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4326,8 +3566,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -4556,76 +3795,38 @@ fn command_alias(line:&str)->String{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/92m-route-current-element-commands-and-feature-visibility-04.rs"
-```
-
-```text
---8<-- "journey/code/92m-route-current-element-commands-and-feature-visibility-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-92n-pick-elements-through-the-real-command-dock"></a>
 
 ### Step 16 of 17 · Pick Elements through the real command dock (`92n-pick-elements-through-the-real-command-dock`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/17 Visual Trace (92n-pick-elements-through-the-real-command-dock): Pick Elements through the real command dock</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Pick Elements through the real command dock.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/browser.rs` (*Route actual browser original picks, command results and Element parameter controls.*)
 
 Pick Elements through the real command dock.
 
-> **Self-Check Question:** *Can a browser point gesture create an Element axis implicitly?*  
-> **Answer:** No. Read actual original integer picks in object mode; typed parameters and Enter still pass through the drawn command dock.
-
-- **Hands-On Lab Experiment:** Compare Element tool buttons, repeated source picks, named values and tool cancellation.
-
-<details>
-<summary>Implementation 92n-pick-elements-through-the-real-command-dock: Pick Elements through the real command dock</summary>
-
-Pick Elements through the real command dock.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
+> **Check:** *Can a browser point gesture create an Element axis implicitly?* — No. Read actual original integer picks in object mode; typed parameters and Enter still pass through the drawn command dock.
 
 ### 1. `src/browser.rs`
 
@@ -4633,8 +3834,7 @@ Route actual browser original picks, command results and Element parameter contr
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         panel.lasso=editor.lasso.as_ref().map_or_else(Vec::new,|l|l.points.iter().map(|p|[(p.0/l.density) as f32,(p.1/l.density) as f32]).collect());
@@ -4645,8 +3845,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4660,8 +3858,7 @@ Replace it with:
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -4672,8 +3869,6 @@ Replace it with:
         else if let Some(split)=&editor.split{panel.tool(split.prompt(),vec![("Split".into(),"Split".into()),("Cancel".into(),"Escape".into())]);}
         else if let Some(draft) = editor.draft.as_ref() {let mut buttons=draft.tool.buttons();if draft.text.is_some(){buttons.push(("Height".into(),"Height".into()));}buttons.extend(crate::drawing_input::buttons());panel.tool(draft.prompt(),buttons);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4688,8 +3883,7 @@ Replace it with:
         else if let Some(draft) = editor.draft.as_ref() {let mut buttons=draft.tool.buttons();if draft.text.is_some(){buttons.push(("Height".into(),"Height".into()));}buttons.extend(crate::drawing_input::buttons());panel.tool(draft.prompt(),buttons);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             highlight_changed |= matches!(&action, Action::SelectAll);
@@ -4700,8 +3894,6 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4715,8 +3907,7 @@ Replace it with:
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Some(Action::Touch(actions))=> {
@@ -4727,8 +3918,6 @@ Replace it with:
                 }}Some(Action::Touch(applied))
             },
 ```
-
-</details>
 
 Replace it with:
 
@@ -4742,8 +3931,7 @@ Replace it with:
             },
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -4754,8 +3942,6 @@ Replace it with:
                 Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4769,8 +3955,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match renderer.take_pick(editor.camera.uniform()) {
@@ -4781,8 +3966,6 @@ Replace it with:
                     else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4796,8 +3979,7 @@ Replace it with:
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5666,96 +4848,40 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/92n-pick-elements-through-the-real-command-dock-01.rs"
-```
-
-```text
---8<-- "journey/code/92n-pick-elements-through-the-real-command-dock-02.rs"
-```
-
-```text
---8<-- "journey/code/92n-pick-elements-through-the-real-command-dock-03.rs"
-```
-
-```text
---8<-- "journey/code/92n-pick-elements-through-the-real-command-dock-04.rs"
-```
-
-```text
---8<-- "journey/code/92n-pick-elements-through-the-real-command-dock-05.rs"
-```
-
-```text
---8<-- "journey/code/92n-pick-elements-through-the-real-command-dock-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-92o-prove-element-recipes-source-history-and-archives"></a>
 
 ### Step 17 of 17 · Prove Element recipes source history and archives (`92o-prove-element-recipes-source-history-and-archives`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/17 Visual Trace (92o-prove-element-recipes-source-history-and-archives): Prove Element recipes source history and archives</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/element_tests.rs, src/lib.rs, src/element_beam.rs, src/element_column.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ordered picks</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Wood builders</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed Element and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/element_tests.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed Element and attri…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Prove Element recipes source history and archives.
-- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
-- **Files You Touch:** `src/element_tests.rs` (*Copy supplied original Element adapter and archive fixtures.*) · `src/lib.rs` (*Register the completed Element component.*) · `src/element_beam.rs` (*Copy maintained beam solid and command fixtures.*) · `src/element_column.rs` (*Copy maintained column solid and command fixtures.*) · `src/element_plate.rs` (*Copy maintained plate solid and command fixtures.*) · `src/element_support.rs` (*Copy maintained support solid and command fixtures.*) · `src/element_beam_variable.rs` (*Copy maintained beam variable solid and command fixtures.*) · `src/element_block.rs` (*Copy maintained block solid and command fixtures.*)
 
 Prove Element recipes source history and archives.
 
-> **Self-Check Question:** *What verifies the Element chapter?*  
-> **Answer:** Current builder solids plus exact source, history, archive and attribute behavior. Verify world placements, all six builders, strict input, feature movement, bounds and cascading Delete.
+> **Check:** *What verifies the Element chapter?* — Current builder solids plus exact source, history, archive and attribute behavior. Verify world placements, all six builders, strict input, feature movement, bounds and cascading Delete.
 
-- **What You Should See:** Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership. Element Attributes starts Off; Element Interactions starts On. The native feature fixture checks each category independently without changing the original Element payload.
-- **Hands-On Lab Experiment:** Inspect the original Element frame in the browser. Toggle Element Attributes and Element Interactions independently, then compare the supplied original-payload fixture.
-
-<details>
-<summary>Implementation 92o-prove-element-recipes-source-history-and-archives: Prove Element recipes source history and archives</summary>
-
-Prove Element recipes source history and archives.
-
-Data flow: original ordered picks → current Wood builders → typed Element and attributes → one history edit.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5769,10 +4895,7 @@ Copy this supplied file:
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5780,26 +4903,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed Element component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod element_adopt;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-02.rs" skip=24
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5807,25 +4917,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy maintained beam solid and command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-03.rs" skip=3
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5833,25 +4931,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy maintained column solid and command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-04.rs" skip=3
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5859,25 +4945,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy maintained plate solid and command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-05.rs" skip=3
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5885,25 +4959,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy maintained support solid and command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-06.rs" skip=3
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5911,26 +4973,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy maintained beam variable solid and command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Ok(BeamVariable::through(sections, "beam_variable"))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-07.rs" skip=60
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5938,47 +4987,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy maintained block solid and command fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Ok(Block::new(loops, "block"))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-08.rs" skip=38
 ```
 
-</details>
-
-</details>
+**Result after `92o-prove-element-recipes-source-history-and-archives`:** Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership. Element Attributes starts Off; Element Interactions starts On. The native feature fixture checks each category independently without changing the original Element payload.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 92o-prove-element-recipes-source-history-and-archives
-npm --prefix ../session_tests run course -- check 92o-prove-element-recipes-source-history-and-archives
-npm --prefix ../session_tests run course -- save 92o-prove-element-recipes-source-history-and-archives
+npm --prefix ../session_tests run course -- dependencies 18.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 18.4
+npm --prefix ../session_tests run course -- save 18.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership. Element Attributes starts Off; Element Interactions starts On. The native feature fixture checks each category independently without changing the original Element payload.
-
-- **Final Lesson Experiment:** Inspect the original Element frame in the browser. Toggle Element Attributes and Element Interactions independently, then compare the supplied original-payload fixture.
-
-Continue with [Glass, X-ray and shared visibility rules](../../consolidation/93-classify-original-solids-independently-of-clipping.md).
+Continue with [18.5 · Glass, X-ray and shared visibility rules](../../consolidation/93-classify-original-solids-independently-of-clipping.md).

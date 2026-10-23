@@ -1,234 +1,98 @@
 # 5.3 · Original point markers and curve control identities
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.3** (Redraft `4.3`) · **7 checkpoints (`37-point` → `37e-controls`)** · **Study time: 5.25–8.75 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `37-point` → `37e-controls` (7 steps) · **Production source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-> **What You Will Learn & Build:** Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record. By the final checkpoint (`37e-controls`), you will refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
+> **Goal:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 5 Visual Explanation: Homogeneous Near-Clip, Screen-Space Ribbon Quad Extrusion & Point Discs</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Clipping to w > near before perspective divide. Center: Extruding segment pA→pB along normal n. Right: SDF point disc.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Homogeneous Near-Plane Clip -->
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Homogeneous Clip (w &gt; near)</text>
-    <!-- Near plane vertical line at x=115 -->
-    <line x1="115" y1="96" x2="115" y2="196" stroke="#111111" stroke-width="1.75"/>
-    <text x="115" y="92" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">w = near plane</text>
-    <!-- Eye at (65, 148) -->
-    <circle cx="65" cy="148" r="4" fill="#111111"/>
-    <text x="65" y="164" text-anchor="middle" font-size="9" fill="#111111">Camera</text>
-    <!-- Segment from behind camera B(45, 180) through B'(115, 152) to A(225, 108) -->
-    <line x1="45" y1="180" x2="115" y2="152" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3"/>
-    <line x1="115" y1="152" x2="225" y2="108" stroke="#111111" stroke-width="2.5"/>
-    <circle cx="45" cy="180" r="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <circle cx="115" cy="152" r="4" fill="#111111"/>
-    <circle cx="225" cy="108" r="4" fill="#111111"/>
-    <text x="58" y="192" font-size="9" fill="#111111">B (w &lt; 0)</text>
-    <text x="142" y="164" font-size="9.5" font-weight="700" fill="#111111">Clipped B'</text>
-    <text x="225" y="102" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">A (w &gt; near)</text>
-    <text x="140" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Clip in 4D BEFORE xyz / w divide</text>
-    <text x="140" y="232" text-anchor="middle" font-size="9" fill="#111111">so behind-camera endpoints never flip!</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Screen-Space Ribbon Quad Extrusion -->
-    <rect x="287" y="64" width="295" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Screen-Space Ribbon Quad (6 Verts)</text>
-    <!-- Outer AA feather quad (dashed) -->
-    <polygon points="316,120 516,92 528,162 328,190" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <!-- Core stroke quad -->
-    <polygon points="319,130 519,102 525,152 325,180" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Center line pA -> pB -->
-    <line x1="322" y1="155" x2="522" y2="127" stroke="#111111" stroke-width="2"/>
-    <circle cx="322" cy="155" r="4" fill="#111111"/>
-    <circle cx="522" cy="127" r="4" fill="#111111"/>
-    <!-- Normal vector n = (-dir.y, dir.x) -->
-    <line x1="422" y1="141" x2="416" y2="104" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="458" y="114" font-size="9.5" font-weight="700" fill="#111111">n = (-dir.y, dir.x)</text>
-    <text x="315" y="172" font-size="9.5" font-weight="700" fill="#111111">pA</text>
-    <text x="532" y="130" font-size="9.5" font-weight="700" fill="#111111">pB</text>
-    <text x="434" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">offset = n * (half_width_px + 1px_AA)</text>
-    <text x="434" y="223" text-anchor="middle" font-size="9" fill="#111111">Constant CSS pixel width at any 3D zoom</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Point Marker SDF Disc (glyph.wgsl) -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Point Marker Disc (SDF)</text>
-    <!-- Bounding 2D screen quad -->
-    <rect x="664" y="96" width="100" height="100" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
-    <!-- Outer AA circle and Inner solid circle -->
-    <circle cx="714" cy="146" r="42" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <circle cx="714" cy="146" r="34" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="714" cy="146" r="3" fill="#111111"/>
-    <line x1="714" y1="146" x2="748" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="731" y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">r</text>
-    <text x="714" y="213" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">d = length(uv); discard d &gt; r+1</text>
-    <text x="714" y="227" text-anchor="middle" font-size="9" fill="#111111">smoothstep feathers 1px rim</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 5.3 Pipeline Schematic: Original point markers and curve control identities</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (7 Checkpoints: 37-point → 37e-controls)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original Point</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">owner</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked position</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and style</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">explicit default</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">diameter</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">packed marker</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">record</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve Rc</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">and index</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 5.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/marker.rs  ·  src/lib.rs  ·  src/marker_tests.rs  ·  src/marker.wgsl  ·  src/stroke_gpu.rs  ·  src/scene.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">7 Checkpoints: 37-point → 37e-controls — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Near Clip (w &gt; 0)</text>
+  <line x1="115" y1="58" x2="115" y2="162" stroke="#111111" stroke-width="2"/>
+  <text x="115" y="176" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">w = near</text>
+  <line x1="55" y1="142" x2="115" y2="110" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 4"/>
+  <line x1="115" y1="110" x2="210" y2="68" stroke="#111111" stroke-width="3"/>
+  <circle cx="55" cy="142" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="115" cy="110" r="4.5" fill="#111111"/>
+  <circle cx="210" cy="68" r="4" fill="#111111"/>
+  <text x="68" y="156" font-family="monospace" font-size="9" fill="#111111">Clipped</text>
+  <text x="180" y="95" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Kept</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Ribbon Quad</text>
+  <polygon points="338,120 480,68 498,108 356,160" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="347" y1="140" x2="489" y2="88" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="347" cy="140" r="4" fill="#111111"/>
+  <circle cx="489" cy="88" r="4" fill="#111111"/>
+  <line x1="418" y1="114" x2="407" y2="88" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="385" y="84" font-family="monospace" font-size="10" font-weight="700" fill="#111111">+n</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">6-Vert Extrusion</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. SDF Anti-Alias</text>
+  <line x1="620" y1="148" x2="788" y2="148" stroke="#111111" stroke-width="1.5"/>
+  <path d="M 628 148 L 656 76 L 752 76 L 780 148" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="704" y="68" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">alpha = 1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">smoothstep() Edge</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
-| **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
-| **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
+| **WGSL (`ribbon.wgsl`)** | Near-Plane Clip (`w > near`) | Clips 3D segments in 4D before dividing by `w`. |
+| **WGSL (`ribbon.wgsl`)** | 6-Vertex Screen Quad (`±n`) | Extrudes each 3D line along screen normal `(-dir.y, dir.x)`. |
+| **WGSL (`glyph.wgsl`)** | `smoothstep()` SDF Coverage | Anti-aliases stroke edges and round point markers in `@fragment`. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`37-point`](#checkpoint-37-point) | Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record. | `src/marker.rs`, `src/lib.rs`, `src/marker_tests.rs` | `original Point owner → checked position and style → explicit default diameter → packed marker record` |
-| **2** | [`37a-disc`](#checkpoint-37a-disc) | Extrude a point into a depth-tested screen disc with analytic circular coverage. | `src/marker.wgsl`, `src/marker.rs` | `checked centre → clip rejection → physical radius → clip-w billboard → circular coverage` |
-| **3** | [`37b-lane`](#checkpoint-37b-lane) | Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU. | `src/stroke_gpu.rs` | `finite marker records → format-specific attributes → shared upload/view policy → actual disc pixels → empty release` |
-| **4** | [`37c-document`](#checkpoint-37c-document) | Give original point sources checked document identities, precise placement and undoable lifetimes. | `src/scene.rs`, `src/document.rs`, `src/lib.rs`, `src/point_document_tests.rs` | `original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close` |
-| **5** | [`37d-render`](#checkpoint-37d-render) | Draw placed original point rows with truthful CPU/GPU counters and complete Close release. | `src/renderer.rs`, `src/memory.rs`, `src/browser.rs` | `accepted point rows → final placed marker records → change-only lane → shared depth → source and buffer release` |
-| **6** | [`37da-input`](#checkpoint-37da-input) | Insert one original Point through actual command input and prove its screen diameter, history and resource release. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/point_input_tests.rs` | `Example Point input → original source → one undoable point row → circular pixels → view-only reuse → Close` |
-| **7** | [`37e-controls`](#checkpoint-37e-controls) | Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates. | `src/controls.rs`, `src/lib.rs`, `src/control_tests.rs` | `original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker` |
+![Recorded visual output for Lesson 5.3 (37e-controls)](../../../screenshots/journey/37e-controls-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-37-point"></a>
 
 ### Step 1 of 7 · Prepare an original point for a screen marker (`37-point`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/7 Visual Trace (37-point): Prepare an original point for a screen marker</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/marker.rs, src/lib.rs, src/marker_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Point owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked position and style</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit default diameter</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">packed marker record</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/marker.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit default diamet…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">packed marker record</text>
 </svg>
-</div>
-
-- **Goal:** Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
-- **Data Flow Trace:** `original Point owner → checked position and style → explicit default diameter → packed marker record`
-- **Files You Touch:** `src/marker.rs` (*Retain exact point ownership and pack finite display data with the viewer’s diameter policy.*) · `src/lib.rs` (*Register point preparation and its source checks.*) · `src/marker_tests.rs` (*Copy point precision, packing, style and lifetime checks.*)
 
 Retain the original Point owner and convert only its display position. Pack centre, diameter and colour into one explicit 32-byte record.
 
 Match the current viewer’s point defaults: an unspecified/default pen draws a six-pixel diameter dot, while an explicit width changes its diameter. Invalid display coordinates or overflowing widths fail before GPU allocation.
 
-> **Self-Check Question:** *Why retain a source Point beside the display marker?*  
-> **Answer:** The marker is a screen representation. Original doubles, identity and metadata remain available for saving, placing and later picking or editing.
-
-- **What You Should See:** Run point preparation checks. The source keeps its exact coordinates while the marker uses explicit display precision and diameter.
-- **Hands-On Lab Experiment:** Use a coordinate that changes during f32 conversion. The source must remain unchanged; cloning prepared data must share its source owner.
-
-<details>
-<summary>Implementation 37-point: Prepare an original point for a screen marker</summary>
-
-Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
-
-Data flow: original Point owner → checked position and style → explicit default diameter → packed marker record.
+> **Check:** *Why retain a source Point beside the display marker?* — The marker is a screen representation. Original doubles, identity and metadata remain available for saving, placing and later picking or editing.
 
 ### 1. `src/marker.rs`
 
@@ -244,15 +108,6 @@ Create the file and type:
 
 Register point preparation and its source checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod chain;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -261,19 +116,7 @@ pub mod marker;
 mod marker_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37-point-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -287,67 +130,42 @@ Copy this supplied file:
 --8<-- "journey/code/37-point-03.rs"
 ```
 
-</details>
+**Result after `37-point`:** Run point preparation checks. The source keeps its exact coordinates while the marker uses explicit display precision and diameter.
 
-</details>
+---
 
 <a id="checkpoint-37a-disc"></a>
 
 ### Step 2 of 7 · Extrude a circular marker in screen pixels (`37a-disc`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/7 Visual Trace (37a-disc): Extrude a circular marker in screen pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/marker.wgsl, src/marker.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked centre</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clip rejection</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical radius</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clip-w billboard</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">circular coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/marker.wgsl, src/mark…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical radius</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">circular coverage</text>
 </svg>
-</div>
-
-- **Goal:** Extrude a point into a depth-tested screen disc with analytic circular coverage.
-- **Data Flow Trace:** `checked centre → clip rejection → physical radius → clip-w billboard → circular coverage`
-- **Files You Touch:** `src/marker.wgsl` (*Keep disc diameter in screen pixels and cover its edge analytically.*) · `src/marker.rs` (*Expose the actual marker shader source.*)
 
 Project the original point centre and reject centres outside the depth range. Offset a six-vertex billboard in physical pixels, using the current effective density.
 
 Scale the clip offset by w so zoom cannot change the screen diameter. A circular distance function gives its edge coverage; the shared depth pass will hide a marker behind nearer geometry.
 
-> **Self-Check Question:** *Why scale a marker offset by clip w?*  
-> **Answer:** Perspective divides its position by w. Multiplying the screen offset by w before that division keeps the marker’s diameter independent of distance.
-
-- **What You Should See:** The actual drawing device validates the complete marker shader. Its real instance layout and pixel checks are the next endpoint.
-- **Hands-On Lab Experiment:** Follow a diameter of six CSS pixels through effective density one and two. The marker radius becomes three or six physical pixels.
-
-<details>
-<summary>Implementation 37a-disc: Extrude a circular marker in screen pixels</summary>
-
-Extrude a point into a depth-tested screen disc with analytic circular coverage.
-
-Data flow: checked centre → clip rejection → physical radius → clip-w billboard → circular coverage.
+> **Check:** *Why scale a marker offset by clip w?* — Perspective divides its position by w. Multiplying the screen offset by w before that division keeps the marker’s diameter independent of distance.
 
 ### 1. `src/marker.wgsl`
 
@@ -363,15 +181,6 @@ Create the file and type:
 
 Expose the actual marker shader source.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::rc::Rc;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -379,81 +188,42 @@ pub const SHADER: &str = include_str!("marker.wgsl");
 use std::rc::Rc;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `37a-disc`:** The actual drawing device validates the complete marker shader. Its real instance layout and pixel checks are the next endpoint.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37a-disc-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-37b-lane"></a>
 
 ### Step 3 of 7 · Draw markers with the shared instance lane (`37b-lane`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/7 Visual Trace (37b-lane): Draw markers with the shared instance lane</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite marker</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">records</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">format-specific</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared upload/view</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">policy</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual disc pixels</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">empty release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared upload/view poli…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">empty release</text>
 </svg>
-</div>
-
-- **Goal:** Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.
-- **Data Flow Trace:** `finite marker records → format-specific attributes → shared upload/view policy → actual disc pixels → empty release`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Validate marker payloads before using shared change-only synchronization.*)
 
 Add the marker’s 32-byte instance layout to the existing shared lane. Validate its centre, diameter and colour before accepting any new payload.
 
 Native texture readback measures real circular area and interior alpha at both projections, zoom levels and densities. Repeated data reuses its buffer; empty data releases it.
 
-> **Self-Check Question:** *Why give markers another layout rather than another resource-management implementation?*  
-> **Answer:** Their attributes and shader differ. Changed-data reuse, uniform updates, payload accounting and buffer lifetime remain the same responsibilities.
-
-- **What You Should See:** Build and open the viewer. Existing geometry still draws, and the marker pipeline is ready. Original point rows and command input follow.
-- **Hands-On Lab Experiment:** The reference GPU fixture checks marker area and alpha across projections, zoom and DPR1/2, unchanged uploads and atomic refusal of invalid marker input.
-
-From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 37b-lane` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 37b-lane` and run your project separately.
-
-<details>
-<summary>Implementation 37b-lane: Draw markers with the shared instance lane</summary>
-
-Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.
-
-Data flow: finite marker records → format-specific attributes → shared upload/view policy → actual disc pixels → empty release.
+> **Check:** *Why give markers another layout rather than another resource-management implementation?* — Their attributes and shader differ. Changed-data reuse, uniform updates, payload accounting and buffer lifetime remain the same responsibilities.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -461,8 +231,7 @@ Validate marker payloads before using shared change-only synchronization. Use th
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 4 => Float32x3, 5 => Float32x3, 6 => Uint32])
@@ -472,8 +241,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 ```
-
-</details>
 
 Replace it with:
 
@@ -491,8 +258,7 @@ Replace it with:
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.set_bytes(device, data)
@@ -502,8 +268,6 @@ Replace it with:
         use wgpu::util::DeviceExt;
         u32::try_from(data.len() as u64 / self.stride).map_err(|_| "Too many stroke instances")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -526,8 +290,7 @@ Replace it with:
         u32::try_from(data.len() as u64 / self.stride).map_err(|_| "Too many stroke instances")?;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -657,83 +420,42 @@ impl Lane {
 }
 ```
 
-</details>
+**Result after `37b-lane`:** Build and open the viewer. Existing geometry still draws, and the marker pipeline is ready. Original point rows and command input follow.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37b-lane-01.rs"
-```
-
-```text
---8<-- "journey/code/37b-lane-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-37c-document"></a>
 
 ### Step 4 of 7 · Retain original point rows and placement (`37c-document`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/7 Visual Trace (37c-document): Retain original point rows and placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/document.rs, src/lib.rs, src/point_document_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Point</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">distinct row</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">identity/GUID</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">double world bounds</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">final marker centre</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Close</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/documen…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">double world bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Close</text>
 </svg>
-</div>
-
-- **Goal:** Give original point sources checked document identities, precise placement and undoable lifetimes.
-- **Data Flow Trace:** `original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close`
-- **Files You Touch:** `src/scene.rs` (*Retain exact point sources and derive placed display centres independently.*) · `src/document.rs` (*Refuse unsupported point saving rather than silently omit original geometry.*) · `src/lib.rs` (*Register precise point-placement and history checks.*) · `src/point_document_tests.rs` (*Copy exact placement, source sharing, identity and complete release checks.*)
 
 Retain one original Point source for each independently placed document row. Allocate a checked object identity and distinct saved GUID before insertion.
 
 Validate the complete placed point before changing its model. World bounds include the exact centre, while screen diameter remains presentation data. History retains immutable source owners and Close releases them.
 
-> **Self-Check Question:** *Why does a placed marker derive its centre from the original source point?*  
-> **Answer:** Display coordinates already lost precision. Applying the model to the original doubles keeps world bounds and edits accurate before the final GPU conversion.
-
-- **What You Should See:** Run point-document checks. Exact placed bounds, shared history owners and complete Close remain independent of the marker’s screen diameter.
-- **Hands-On Lab Experiment:** Translate a point with a precise fractional coordinate and Undo/Redo. Its source stays unchanged, while its placed world coordinates remain double precision.
-
-<details>
-<summary>Implementation 37c-document: Retain original point rows and placement</summary>
-
-Give original point sources checked document identities, precise placement and undoable lifetimes.
-
-Data flow: original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close.
+> **Check:** *Why does a placed marker derive its centre from the original source point?* — Display coordinates already lost precision. Applying the model to the original doubles keeps world bounds and edits accurate before the final GPU conversion.
 
 ### 1. `src/scene.rs`
 
@@ -741,8 +463,7 @@ Retain exact point sources and derive placed display centres independently. Init
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -752,8 +473,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.lines = Vec::new();
         self.objects = Vec::new();
 ```
-
-</details>
 
 Replace it with:
 
@@ -767,8 +486,7 @@ Replace it with:
         self.objects = Vec::new();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -778,8 +496,6 @@ Replace it with:
 
     pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
 ```
-
-</details>
 
 Replace it with:
 
@@ -815,8 +531,7 @@ Replace it with:
     pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
@@ -825,8 +540,6 @@ Replace it with:
         bounds
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -842,8 +555,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -854,8 +566,6 @@ Replace it with:
         scene.insert(turquoise).expect("ID available");
         scene
 ```
-
-</details>
 
 Replace it with:
 
@@ -869,8 +579,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -881,8 +590,6 @@ pub struct Scene {
     lines: Vec<LineObject>,
     objects: Vec<Object>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -905,8 +612,7 @@ pub struct Scene {
     objects: Vec<Object>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -997,7 +703,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1325,47 +1030,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37c-document-01.rs"
-```
-
-```text
---8<-- "journey/code/37c-document-02.rs"
-```
-
-```text
---8<-- "journey/code/37c-document-03.rs"
-```
-
-```text
---8<-- "journey/code/37c-document-04.rs"
-```
-
-```text
---8<-- "journey/code/37c-document-05.rs"
-```
-
-</details>
-
 ### 2. `src/document.rs`
 
 Refuse unsupported point saving rather than silently omit original geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1374,29 +1041,9 @@ Edit the existing block to match this code; keep unchanged lines:
     if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37c-document-06.rs"
-```
-
-</details>
-
 ### 3. `src/lib.rs`
 
 Register precise point-placement and history checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod marker;
-```
-
-</details>
 
 After that block, type:
 
@@ -1405,19 +1052,7 @@ After that block, type:
 mod point_document_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37c-document-07.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1431,69 +1066,42 @@ Copy this supplied file:
 --8<-- "journey/code/37c-document-08.rs"
 ```
 
-</details>
+**Result after `37c-document`:** Run point-document checks. Exact placed bounds, shared history owners and complete Close remain independent of the marker’s screen diameter.
 
-</details>
+---
 
 <a id="checkpoint-37d-render"></a>
 
 ### Step 5 of 7 · Draw original point rows and count their resources (`37d-render`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/7 Visual Trace (37d-render): Draw original point rows and count their resources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/memory.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted point rows</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">final placed marker</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">records</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">change-only lane</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared depth</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source and buffer</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/memo…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">change-only lane</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source and buffer relea…</text>
 </svg>
-</div>
-
-- **Goal:** Draw placed original point rows with truthful CPU/GPU counters and complete Close release.
-- **Data Flow Trace:** `accepted point rows → final placed marker records → change-only lane → shared depth → source and buffer release`
-- **Files You Touch:** `src/renderer.rs` (*Keep one marker lane beside the other scene batches.*) · `src/memory.rs` (*Count actual point rows, unique source owners and retained row capacity.*) · `src/browser.rs` (*Inspect point resource categories independently of earlier counters.*)
 
 Synchronize original point rows through the shared marker lane after accepted document changes. Keep camera and density in the view uniform.
 
 Draw with the same depth texture as meshes and strokes. CPU counters report point rows, distinct sources and row capacity; GPU counters report actual marker instances, buffer bytes and initialized payloads.
 
-> **Self-Check Question:** *Why does the renderer retain marker bytes without the original Point owner?*  
-> **Answer:** Editing and history own the source. The GPU needs display data only, so document Close can release original sources immediately before buffer synchronization.
-
-- **What You Should See:** Inspect mixed-document GPU checks. Source points draw alongside connected paths; Close clears every live point and marker resource.
-- **Hands-On Lab Experiment:** Zoom with the marker-bearing scene. Vertex uploads remain unchanged, and complete Close expires the original source and drops the marker buffer.
-
-<details>
-<summary>Implementation 37d-render: Draw original point rows and count their resources</summary>
-
-Draw placed original point rows with truthful CPU/GPU counters and complete Close release.
-
-Data flow: accepted point rows → final placed marker records → change-only lane → shared depth → source and buffer release.
+> **Check:** *Why does the renderer retain marker bytes without the original Point owner?* — Editing and history own the source. The GPU needs display data only, so document Close can release original sources immediately before buffer synchronization.
 
 ### 1. `src/renderer.rs`
 
@@ -1501,8 +1109,7 @@ Keep one marker lane beside the other scene batches. Create the actual marker pi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -1512,8 +1119,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1527,8 +1132,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.queue.write_buffer(&self.uniform, 0, &bytes);
@@ -1538,8 +1142,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1553,8 +1155,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1565,8 +1166,6 @@ Replace it with:
 
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1580,8 +1179,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
@@ -1592,8 +1190,6 @@ Replace it with:
             .expect("Prepared path placement fits the display range");
         self.strokes.set(&self.device, scene.lines().iter().map(crate::scene::LineObject::stroke))
 ```
-
-</details>
 
 Replace it with:
 
@@ -1614,8 +1210,7 @@ Replace it with:
         self.strokes.set(&self.device, scene.lines().iter().map(crate::scene::LineObject::stroke))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let depth = Self::depth(&device, 640, 480);
@@ -1628,8 +1223,6 @@ Replace it with:
         renderer
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1646,8 +1239,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     depth: wgpu::TextureView,
@@ -1657,8 +1249,6 @@ Replace it with:
     density: f32,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1672,8 +1262,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1899,55 +1488,9 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37d-render-01.rs"
-```
-
-```text
---8<-- "journey/code/37d-render-02.rs"
-```
-
-```text
---8<-- "journey/code/37d-render-03.rs"
-```
-
-```text
---8<-- "journey/code/37d-render-04.rs"
-```
-
-```text
---8<-- "journey/code/37d-render-05.rs"
-```
-
-```text
---8<-- "journey/code/37d-render-06.rs"
-```
-
-```text
---8<-- "journey/code/37d-render-07.rs"
-```
-
-</details>
-
 ### 2. `src/memory.rs`
 
 Count actual point rows, unique source owners and retained row capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1964,29 +1507,9 @@ pub fn points<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 3] {
 pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37d-render-08.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Inspect point resource categories independently of earlier counters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1996,76 +1519,42 @@ Edit the existing block to match this code; keep unchanged lines:
     canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `37d-render`:** Inspect mixed-document GPU checks. Source points draw alongside connected paths; Close clears every live point and marker resource.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37d-render-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-37da-input"></a>
 
 ### Step 6 of 7 · Insert original points through the real dock (`37da-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/7 Visual Trace (37da-input): Insert original points through the real dock</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/lib.rs, src/point_input_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Example Point input</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">circular pixels</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">view-only reuse</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Close</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">circular pixels</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Close</text>
 </svg>
-</div>
-
-- **Goal:** Insert one original Point through actual command input and prove its screen diameter, history and resource release.
-- **Data Flow Trace:** `Example Point input → original source → one undoable point row → circular pixels → view-only reuse → Close`
-- **Files You Touch:** `src/editor.rs` (*Expose an original point insertion as an editor action.*) · `src/browser.rs` (*Include the point example in completion and Help.*) · `src/lib.rs` (*Register the point input ownership checks.*) · `src/point_input_tests.rs` (*Copy original identity, style, one-step history and release checks.*)
 
 Register Example Point in the existing dock and prepare its original Point before committing one history insertion.
 
 Use actual Chrome pixels to measure its diameter at both device densities, projections and zoom levels. Keep source ownership and buffer accounting visible through Undo, Redo and Close.
 
-> **Self-Check Question:** *What changes when a point marker is enlarged by zoom?*  
-> **Answer:** Its world position moves with the camera, but its diameter stays in CSS pixels. Device density changes physical coverage without changing its source or vertex payload.
-
-- **What You Should See:** Close, type Example Point, then zoom and switch projection. The marker keeps a twelve-pixel diameter.
-- **Hands-On Lab Experiment:** Undo and Redo the point. Close clears original owners, history and the actual marker buffer.
-
-<details>
-<summary>Implementation 37da-input: Insert original points through the real dock</summary>
-
-Insert one original Point through actual command input and prove its screen diameter, history and resource release.
-
-Data flow: Example Point input → original source → one undoable point row → circular pixels → view-only reuse → Close.
+> **Check:** *What changes when a point marker is enlarged by zoom?* — Its world position moves with the camera, but its diameter stays in CSS pixels. Device density changes physical coverage without changing its source or vertex payload.
 
 ### 1. `src/editor.rs`
 
@@ -2073,8 +1562,7 @@ Expose an original point insertion as an editor action. Prepare the original poi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 };
@@ -2084,8 +1572,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
                 line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2104,8 +1590,7 @@ Replace it with:
                 line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     UnloadSources,
@@ -2115,8 +1600,6 @@ Replace it with:
     AddArrow,
     Translate([f64; 3]),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2130,8 +1613,7 @@ Replace it with:
     Translate([f64; 3]),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2516,31 +1998,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37da-input-01.rs"
-```
-
-```text
---8<-- "journey/code/37da-input-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Include the point example in completion and Help. Dispatch actual input through the editor action.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let action = match line.as_str() {
@@ -2550,8 +2014,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     "example arrow" => Action::AddArrow,
                     "example triangle" => Action::ToggleExtra,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2565,8 +2027,7 @@ Replace it with:
                     "example triangle" => Action::ToggleExtra,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Report Previous",
@@ -2576,8 +2037,6 @@ Replace it with:
             "Example Arrow",
             "Example Triangle",
 ```
-
-</details>
 
 Replace it with:
 
@@ -2591,8 +2050,7 @@ Replace it with:
             "Example Triangle",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -3225,35 +2683,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37da-input-03.rs"
-```
-
-```text
---8<-- "journey/code/37da-input-04.rs"
-```
-
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the point input ownership checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod marker;
-```
-
-</details>
 
 After that block, type:
 
@@ -3262,19 +2694,7 @@ After that block, type:
 mod point_input_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37da-input-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3288,64 +2708,42 @@ Copy this supplied file:
 --8<-- "journey/code/37da-input-06.rs"
 ```
 
-</details>
+**Result after `37da-input`:** Close, type Example Point, then zoom and switch projection. The marker keeps a twelve-pixel diameter.
 
-</details>
+---
 
 <a id="checkpoint-37e-controls"></a>
 
 ### Step 7 of 7 · Identify controls on the original curve owner (`37e-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/7 Visual Trace (37e-controls): Identify controls on the original curve owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/controls.rs, src/lib.rs, src/control_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve Rc and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">index</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked control layout</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact Euclidean control</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite screen marker</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/controls.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact Euclidean control</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite screen marker</text>
 </svg>
-</div>
-
-- **Goal:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
-- **Data Flow Trace:** `original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker`
-- **Files You Touch:** `src/controls.rs` (*Keep an indexed control on its original curve and guard every public layout access.*) · `src/lib.rs` (*Register original control references and their refusal checks.*) · `src/control_tests.rs` (*Copy original rational precision, owner release, dimension and malicious-layout checks.*)
 
 A control reference owns the original curve and carries its control index. Resolve its position from the original homogeneous coordinates before producing a screen marker.
 
 Validate dimensions, index, stride and checked slice bounds before touching a public kernel layout. Refuse zero or nonfinite rational weights and display overflow without allocating independent Point identities.
 
-> **Self-Check Question:** *Why does a curve control marker avoid a new Point GUID?*  
-> **Answer:** It identifies a control inside the original curve. A fabricated independent Point would lose its parent, control index and rational weight when editing begins.
-
-- **What You Should See:** Inspect original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
-- **Hands-On Lab Experiment:** Use rational controls whose weight is two. Display positions divide by the weight while the source homogeneous coordinates remain untouched.
-
-<details>
-<summary>Implementation 37e-controls: Identify controls on the original curve owner</summary>
-
-Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
-
-Data flow: original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker.
+> **Check:** *Why does a curve control marker avoid a new Point GUID?* — It identifies a control inside the original curve. A fabricated independent Point would lose its parent, control index and rational weight when editing begins.
 
 ### 1. `src/controls.rs`
 
@@ -3361,15 +2759,6 @@ Create the file and type:
 
 Register original control references and their refusal checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod marker;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -3378,19 +2767,7 @@ pub mod controls;
 mod control_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/37e-controls-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3404,33 +2781,21 @@ Copy this supplied file:
 --8<-- "journey/code/37e-controls-03.rs"
 ```
 
-</details>
-
-</details>
+**Result after `37e-controls`:** Inspect original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 37e-controls
-npm --prefix ../session_tests run course -- check 37e-controls
-npm --prefix ../session_tests run course -- save 37e-controls
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 5.3
+npm --prefix ../session_tests run course -- save 5.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 5.3 (37e-controls)](../../../screenshots/journey/37e-controls-browser.png)
-
-Inspect original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
-
-- **Final Lesson Experiment:** Use rational controls whose weight is two. Display positions divide by the weight while the source homogeneous coordinates remain untouched.
-
-Continue with [NURBS source ownership and derived samples](../../consolidation/38-layout.md).
+Continue with [5.4 · NURBS source ownership and derived samples](../../consolidation/38-layout.md).

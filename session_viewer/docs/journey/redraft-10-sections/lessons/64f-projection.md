@@ -1,232 +1,89 @@
 # 11.3 · View-dependent LOD and cached point splats
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.3** (Redraft `6.12`) · **19 checkpoints (`64f-projection` → `64t-clouds`)** · **Study time: 9.5–19 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `64f-projection` → `64t-clouds` (19 steps) · **Production source:** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs) · [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl) · [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl) · [app/cloud_query.rs](../../../../src/app/cloud_query.rs)
 
-> **What You Will Learn & Build:** Measure point spacing in the current projection. By the final checkpoint (`64t-clouds`), you will exercise original clouds and real view-dependent detail.
+> **Goal:** Exercise original clouds and real view-dependent detail.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
-    <!-- Outer CCW loop square -->
-    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Inner CW hole loop circle (white cutout!) -->
-    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
-    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
-    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
-    <!-- Curved 3D patch shape -->
-    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Elliptical 3D bore hole cutout in white -->
-    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
-    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
-    <!-- Smooth curve on left -->
-    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
-    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
-    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
-    <!-- Sharp crease corner on right -->
-    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
-    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
-    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
-    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
-    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 11.3 Pipeline Schematic: View-dependent LOD and cached point splats</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (19 Checkpoints: 64f-projection → 64t-clouds)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source spacing and</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">model</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">camera distance or</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">half-height</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">physical pixel</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">spacing</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">split decision</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original cloud</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">fixture</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 11.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/cloud_lod.rs  ·  src/lib.rs  ·  src/cloud_tests.rs  ·  src/cloud_points.wgsl  ·  src/cloud_normals.rs  ·  src/cloud_resolve.wgsl</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">19 Checkpoints: 64f-projection → 64t-clouds — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Trimmed B-Rep (u,v)</text>
+  <rect x="55" y="60" width="160" height="96" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="135" cy="108" r="24" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="112" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Hole</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Outer + Inner Loops</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Crease Split</text>
+  <polyline points="338,144 419,98 500,144" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="419" cy="98" r="4.5" fill="#111111"/>
+  <line x1="419" y1="98" x2="386" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <line x1="419" y1="98" x2="452" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="372" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N1</text>
+  <text x="458" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N2</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Sharp Edge Normals</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Sub-ID Pick</text>
+  <polygon points="650,74 758,74 780,138 628,138" fill="url(#hatch)" stroke="#111111" stroke-width="2.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[brep, face_2]</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Face &amp; Edge IDs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`64f-projection`](#checkpoint-64f-projection) | Measure point spacing in the current projection. | `src/cloud_lod.rs`, `src/lib.rs` | `source spacing and model → camera distance or half-height → physical pixel spacing → split decision` |
-| **2** | [`64g-detail`](#checkpoint-64g-detail) | Walk only detail whose screen spacing needs refinement. | `src/cloud_lod.rs`, `src/cloud_tests.rs`, `src/lib.rs` | `root run → screen-spacing decision → chosen children → bounded source runs` |
-| **3** | [`64h-shaders`](#checkpoint-64h-shaders) | Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform. | `src/cloud_points.wgsl` | `declare point-cloud records and decode source normals` |
-| **4** | [`64ha-project-original-cloud-rows-to-bounded-point-splats`](#checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats) | Find the owning row by its original point interval and project one source position to a bounded screen disc. | `src/cloud_points.wgsl` | `project original cloud rows to bounded point splats` |
-| **5** | [`64hb-rasterize-source-point-discs-with-integer-ownership`](#checkpoint-64hb-rasterize-source-point-discs-with-integer-ownership) | Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses. | `src/cloud_points.wgsl` | `rasterize source point discs with integer ownership` |
-| **6** | [`64hc-encode-original-cloud-normals-and-resolve-point-targets`](#checkpoint-64hc-encode-original-cloud-normals-and-resolve-point-targets) | Pack source normals once and resolve color, depth and original owner IDs with one pixel convention. | `src/cloud_normals.rs`, `src/lib.rs`, `src/cloud_resolve.wgsl` | `encode original cloud normals and resolve point targets` |
-| **7** | [`64hd-check-cloud-shaders-on-the-actual-browser-device`](#checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device) | Await real shader compilation info before connecting the point passes. | `src/shader_check.rs`, `src/lib.rs`, `Cargo.toml`, `src/renderer.rs` | `check cloud shaders on the actual browser device` |
-| **8** | [`64i-columns`](#checkpoint-64i-columns) | Upload original point columns once per shared source. | `src/cloud_gpu.rs`, `src/lib.rs` | `immutable original columns → checked GPU buffers → shared upload → independent instance frame` |
-| **9** | [`64j-targets`](#checkpoint-64j-targets) | Own the cached cloud images and frame identity. | `src/cloud_gpu.rs` | `source draw owners → cached images → full frame key → truthful allocation counts` |
-| **10** | [`64k-layouts`](#checkpoint-64k-layouts) | Bind source storage and cached pixels explicitly. | `src/cloud_gpu.rs` | `source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison` |
-| **11** | [`64l-pipelines`](#checkpoint-64l-pipelines) | Create a lazy cloud lane with reusable pipelines. | `src/cloud_gpu.rs` | `current shaders → reusable pipelines → shared settings → consistent radius units` |
-| **12** | [`64m-cache`](#checkpoint-64m-cache) | Share column uploads across placed cloud rows. | `src/cloud_gpu.rs` | `source pointer identity → shared columns → independent row records → pruned owners` |
-| **13** | [`64n-records`](#checkpoint-64n-records) | Encode each source run in the exact 160-byte layout. | `src/cloud_gpu.rs` | `chosen original run → cumulative count → 40 exact words → original source lookup` |
-| **14** | [`64o-runs`](#checkpoint-64o-runs) | Keep one shared record budget for the whole view. | `src/cloud_gpu.rs` | `current view → chosen runs → shared record budget → capacity-bounded upload` |
-| **15** | [`64p-frame`](#checkpoint-64p-frame) | Cache the nearest point frame until its inputs change. | `src/cloud_gpu.rs` | `changed frame facts → chosen source records → cached nearest points → shared colour and pick resolve` |
-| **16** | [`64q-owner`](#checkpoint-64q-owner) | Create and release the cloud renderer only when needed. | `src/renderer.rs` | `scene cloud rows → lazy lane → reused source owners → immediate Close cleanup` |
-| **17** | [`64r-draw`](#checkpoint-64r-draw) | Use the cached cloud depth in colour and integer passes. | `src/renderer.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `prepared cached points → scene depth → bounded original whole owner → existing selection` |
-| **18** | [`64s-diagnostics`](#checkpoint-64s-diagnostics) | Expose cloud source payload detail and actual GPU resources. | `src/memory.rs`, `src/browser.rs` | `current camera facts → chosen detail → source and GPU diagnostics → visible preparation errors` |
-| **19** | [`64t-clouds`](#checkpoint-64t-clouds) | Exercise original clouds and real view-dependent detail. | `src/cloud.rs`, `src/editor.rs`, `src/commands.rs`, `src/cloud_tests.rs` | `original cloud fixture → current-view detail → shared source uploads → reversible row edits` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-64f-projection"></a>
 
 ### Step 1 of 19 · Measure point spacing in the current projection (`64f-projection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/19 Visual Trace (64f-projection): Measure point spacing in the current projection</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_lod.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source spacing and model</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera distance or</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">half-height</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical pixel spacing</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">split decision</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_lod.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical pixel spacing</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">split decision</text>
 </svg>
-</div>
-
-- **Goal:** Measure point spacing in the current projection.
-- **Data Flow Trace:** `source spacing and model → camera distance or half-height → physical pixel spacing → split decision`
-- **Files You Touch:** `src/cloud_lod.rs` (*Measure current production projected spacing and radius factors from explicit camera facts.*) · `src/lib.rs` (*Register the source component.*)
 
 Carry camera eye, orthographic half-height, physical viewport height and a pixel split threshold. Project node spacing after applying the instance scale.
 
-> **Self-Check Question:** *Does the node cube size alone decide whether to refine?*  
-> **Answer:** No. Its point spacing and the camera projection decide the screen gap. Physical viewport height and object scale affect that gap; perspective also depends on distance from the eye.
-
-- **Hands-On Lab Experiment:** Compare one node at two orthographic half-heights and two perspective distances. Trace the metre conversion in both spacing and distance; the ratio stays independent of that shared unit scale.
-
-<details>
-<summary>Implementation 64f-projection: Measure point spacing in the current projection</summary>
-
-Measure point spacing in the current projection.
-
-Data flow: source spacing and model → camera distance or half-height → physical pixel spacing → split decision.
+> **Check:** *Does the node cube size alone decide whether to refine?* — No. Its point spacing and the camera projection decide the screen gap. Physical viewport height and object scale affect that gap; perspective also depends on distance from the eye.
 
 ### 1. `src/cloud_lod.rs`
 
@@ -242,89 +99,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod cloud;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/64f-projection-02.rs" skip=16
 ```
 
-</details>
+---
 
 <a id="checkpoint-64g-detail"></a>
 
 ### Step 2 of 19 · Walk only detail whose screen spacing needs refinement (`64g-detail`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/19 Visual Trace (64g-detail): Walk only detail whose screen spacing needs refinement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_lod.rs, src/cloud_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">root run</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen-spacing decision</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen children</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded source runs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_lod.rs, src/clo…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">chosen children</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded source runs</text>
 </svg>
-</div>
-
-- **Goal:** Walk only detail whose screen spacing needs refinement.
-- **Data Flow Trace:** `root run → screen-spacing decision → chosen children → bounded source runs`
-- **Files You Touch:** `src/cloud_lod.rs` (*Use the current production reusable LOD walk without inventing source points.*) · `src/cloud_tests.rs` (*Copy original-ID, malformed-tree, view-run, radius and source/history/close regressions.*) · `src/lib.rs` (*Register the source component.*)
 
 Reuse stack and visit lists. Keep the coarse node points and visit children while their spacing exceeds the threshold; pass finer spacing back to the visited parents.
 
-> **Self-Check Question:** *Does zooming in discard the original coarse point IDs?*  
-> **Answer:** No. Coarse points remain part of the chosen runs, with their original stored indices. Small clouds below two million points and clouds without an octree draw their complete resident prefix.
-
-- **Hands-On Lab Experiment:** Inspect the supplied walk checks for coarse, fine and partially resident cases. The final large fixture contains 2,000,064 real points so zoom changes actual drawn detail.
-
-<details>
-<summary>Implementation 64g-detail: Walk only detail whose screen spacing needs refinement</summary>
-
-Walk only detail whose screen spacing needs refinement.
-
-Data flow: root run → screen-spacing decision → chosen children → bounded source runs.
+> **Check:** *Does zooming in discard the original coarse point IDs?* — No. Coarse points remain part of the chosen runs, with their original stored indices. Small clouds below two million points and clouds without an octree draw their complete resident prefix.
 
 ### 1. `src/cloud_lod.rs`
 
 Use the current production reusable LOD walk without inventing source points.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    stack: Vec<(usize, usize)>, // nodes still to visit, with parent
-    visits: Vec<Visit>,         // nodes visited
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -332,8 +148,7 @@ After that block, type:
 --8<-- "journey/code/64g-detail-01.rs" skip=121
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -347,10 +162,7 @@ Copy this supplied file:
 --8<-- "journey/code/64g-detail-02.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -358,67 +170,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod cloud_lod;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/64g-detail-03.rs" skip=20
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64h-shaders"></a>
 
 ### Step 3 of 19 · Declare point-cloud records and decode source normals (`64h-shaders`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/19 Visual Trace (64h-shaders): Declare point-cloud records and decode source normals</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_points.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">declare point-cloud records and decode source normals</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_points.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">declare point-cloud rec…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">declare point-cloud rec…</text>
 </svg>
-</div>
-
-- **Goal:** Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
-- **Data Flow Trace:** `declare point-cloud records and decode source normals`
-- **Files You Touch:** `src/cloud_points.wgsl` (*Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.*)
 
 Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
 
 Use the original point columns and the existing forty-word placement table. The shader decodes the stored normal formats instead of expanding every source normal into another GPU column. Its guarded cofactor transform handles singular and reflected placements. The new cloud shader is developed in this same browser application.
 
-> **Self-Check Question:** *Why does a reflected model need the determinant sign when transforming a normal?*  
-> **Answer:** The inverse transpose changes orientation under reflection. Keeping the determinant sign preserves the source normal’s facing after the cofactor transform.
-
-- **What You Should See:** This cloud section is written; its runtime passes are connected by the following buffer and pipeline lessons.
-- **Hands-On Lab Experiment:** Trace one original point through this section. Why does a reflected model need the determinant sign when transforming a normal? Predict its values before the later real cloud pass connection.
-
-<details>
-<summary>Implementation 64h-shaders: Declare point-cloud records and decode source normals</summary>
-
-Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
-
-Data flow: declare point-cloud records and decode source normals.
+> **Check:** *Why does a reflected model need the determinant sign when transforming a normal?* — The inverse transpose changes orientation under reflection. Keeping the determinant sign preserves the source normal’s facing after the cofactor transform.
 
 ### 1. `src/cloud_points.wgsl`
 
@@ -428,78 +219,44 @@ Create the file and type:
 --8<-- "journey/code/64h-shaders-01.rs"
 ```
 
-</details>
+**Result after `64h-shaders`:** This cloud section is written; its runtime passes are connected by the following buffer and pipeline lessons.
+
+---
 
 <a id="checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats"></a>
 
 ### Step 4 of 19 · Project original cloud rows to bounded point splats (`64ha-project-original-cloud-rows-to-bounded-point-splats`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/19 Visual Trace (64ha-project-original-cloud-rows-to-bounded-point-splats): Project original cloud rows to bounded point splats</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_points.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">project original cloud rows to bounded point splats</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_points.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">project original cloud…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">project original cloud…</text>
 </svg>
-</div>
-
-- **Goal:** Find the owning row by its original point interval and project one source position to a bounded screen disc.
-- **Data Flow Trace:** `project original cloud rows to bounded point splats`
-- **Files You Touch:** `src/cloud_points.wgsl` (*Find the owning row by its original point interval and project one source position to a bounded screen disc.*)
 
 Find the owning row by its original point interval and project one source position to a bounded screen disc.
 
 A global vertex index can span many original clouds and placements. Use the existing cumulative point intervals to find its owner, read the original column offsets, and project that source point. Bounds and validity checks keep rejected points out of the draw without changing source geometry.
 
-> **Self-Check Question:** *Why search point intervals before reading its position and normal columns?*  
-> **Answer:** The global draw index spans several original source rows. Its interval gives the correct column offsets, placement and source owner without duplicating those source columns.
-
-- **Hands-On Lab Experiment:** Trace one original point through this section. Why search point intervals before reading its position and normal columns? Predict its values before the later real cloud pass connection.
-
-<details>
-<summary>Implementation 64ha-project-original-cloud-rows-to-bounded-point-splats: Project original cloud rows to bounded point splats</summary>
-
-Find the owning row by its original point interval and project one source position to a bounded screen disc.
-
-Data flow: project original cloud rows to bounded point splats.
+> **Check:** *Why search point intervals before reading its position and normal columns?* — The global draw index spans several original source rows. Its interval gives the correct column offsets, placement and source owner without duplicating those source columns.
 
 ### 1. `src/cloud_points.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-    }
-
-    return normalize(n);
-}
-fn oct32_decode(p: u32) -> vec3<f32> {
-    if (p == 0x80008000u) {
-        return vec3<f32>(0.0);
-    }
-
-    let e = unpack2x16snorm(p);
-    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
-
-    if (n.z < 0.0) {
-        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
-        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-    }
-
-    return normalize(n);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -602,85 +359,42 @@ fn project(gid: u32) -> Splat {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64ha-project-original-cloud-rows-to-bounded-point-splats-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64hb-rasterize-source-point-discs-with-integer-ownership"></a>
 
 ### Step 5 of 19 · Rasterize source point discs with integer ownership (`64hb-rasterize-source-point-discs-with-integer-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/19 Visual Trace (64hb-rasterize-source-point-discs-with-integer-ownership): Rasterize source point discs with integer ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_points.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rasterize source point discs with integer ownership</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_points.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rasterize source point…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rasterize source point…</text>
 </svg>
-</div>
-
-- **Goal:** Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
-- **Data Flow Trace:** `rasterize source point discs with integer ownership`
-- **Files You Touch:** `src/cloud_points.wgsl` (*Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.*)
 
 Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
 
 Generate six vertices around one projected source point, then apply one disc predicate in the fragment stage. Color and integer owner outputs share that coverage, so visible point pixels and picks agree. The following resolve shader places both outputs back into the main scene.
 
-> **Self-Check Question:** *Why does the fragment stage reject pixels outside the disc even though the vertex stage drew a quad?*  
-> **Answer:** The quad bounds the work. The circular coverage predicate chooses the actual point shape and ensures its color and integer ownership occupy the same pixels.
-
-- **Hands-On Lab Experiment:** Trace one original point through this section. Why does the fragment stage reject pixels outside the disc even though the vertex stage drew a quad? Predict its values before the later real cloud pass connection.
-
-<details>
-<summary>Implementation 64hb-rasterize-source-point-discs-with-integer-ownership: Rasterize source point discs with integer ownership</summary>
-
-Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
-
-Data flow: rasterize source point discs with integer ownership.
+> **Check:** *Why does the fragment stage reject pixels outside the disc even though the vertex stage drew a quad?* — The quad bounds the work. The circular coverage predicate chooses the actual point shape and ensures its color and integer ownership occupy the same pixels.
 
 ### 1. `src/cloud_points.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-            vec3<f32>(rec_f(base, 32u), rec_f(base, 33u), rec_f(base, 34u)),
-        );
-        let nw = transform_normal(rot, oct16_decode(packed_n));
-        let light = normalize(vec3<f32>(0.4, 0.4, 0.8));
-        let lambert = 0.25 + 0.75 * abs(dot(nw, light));
-        rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
-    }
-
-    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) {
-        rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0);
-    }
-
-    s.color = pack4x8unorm(rgba);
-    s.ok = true;
-    return s;
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -732,59 +446,40 @@ struct PointPixel {@location(0) color:vec4<f32>,@location(1) owner:vec2<u32>}
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64hb-rasterize-source-point-discs-with-integer-ownership-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64hc-encode-original-cloud-normals-and-resolve-point-targets"></a>
 
 ### Step 6 of 19 · Encode original cloud normals and resolve point targets (`64hc-encode-original-cloud-normals-and-resolve-point-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/19 Visual Trace (64hc-encode-original-cloud-normals-and-resolve-point-targets): Encode original cloud normals and resolve point targets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_normals.rs, src/lib.rs, src/cloud_resolve.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">encode original cloud normals and resolve point targets</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_normals.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">encode original cloud n…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">encode original cloud n…</text>
 </svg>
-</div>
-
-- **Goal:** Pack source normals once and resolve color, depth and original owner IDs with one pixel convention.
-- **Data Flow Trace:** `encode original cloud normals and resolve point targets`
-- **Files You Touch:** `src/cloud_normals.rs` (*Copy current production oct-normal packing.*) · `src/lib.rs` (*Register the source component.*) · `src/cloud_resolve.wgsl` (*Resolve cached forward depth and original whole-owner IDs through a bounded pick-window origin.*)
 
 Encode source normals into the sixteen-bit octahedral format expected by the shader. Preserve the absent-normal case instead of normalizing a zero vector. This adapter uploads original data; it does not replace or mutate the source cloud.
 
 The resolve shader reads the private point depth, color and owner attachments. A forward-depth clear is empty; valid point depth is written into the main depth attachment. Apply the crop origin for picks and return the original object owner only in object mode. Keep both resolves on the same source pixels.
 
-> **Self-Check Question:** *Why does the integer resolve add its crop origin while the color resolve does not?*  
-> **Answer:** The color pass covers the whole target. The pick pass renders a cropped window, so its local fragment coordinate must be translated back to the source point target.
-
-- **Hands-On Lab Experiment:** Trace a zero normal, a reflected normal and a pick at crop origin(40,20). Predict the packed normal, empty-depth behavior and source pixel address. After connection, compare a point pixel and its picked original owner.
-
-<details>
-<summary>Implementation 64hc-encode-original-cloud-normals-and-resolve-point-targets: Encode original cloud normals and resolve point targets</summary>
-
-Pack source normals once and resolve color, depth and original owner IDs with one pixel convention.
-
-Data flow: encode original cloud normals and resolve point targets.
+> **Check:** *Why does the integer resolve add its crop origin while the color resolve does not?* — The color pass covers the whole target. The pick pass renders a cropped window, so its local fragment coordinate must be translated back to the source point target.
 
 ### 1. `src/cloud_normals.rs`
 
@@ -799,16 +494,6 @@ Create the file and type:
 ### 2. `src/lib.rs`
 
 Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod cloud_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -826,49 +511,40 @@ Create the file and type:
 --8<-- "journey/code/64hc-encode-original-cloud-normals-and-resolve-point-targets-03.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device"></a>
 
 ### Step 7 of 19 · Check cloud shaders on the actual browser device (`64hd-check-cloud-shaders-on-the-actual-browser-device`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/19 Visual Trace (64hd-check-cloud-shaders-on-the-actual-browser-device): Check cloud shaders on the actual browser device</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/shader_check.rs, src/lib.rs, Cargo.toml, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">check cloud shaders on the actual browser device</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/shader_check.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">check cloud shaders on…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">check cloud shaders on…</text>
 </svg>
-</div>
-
-- **Goal:** Await real shader compilation info before connecting the point passes.
-- **Data Flow Trace:** `check cloud shaders on the actual browser device`
-- **Files You Touch:** `src/shader_check.rs` (*Await one real browser GPU compilation report without blocking input.*) · `src/lib.rs` (*Share the completed-source GPU check with later shader owners.*) · `Cargo.toml` (*Enable browser developer-console compilation reports in the existing web-sys dependency.*) · `src/renderer.rs` (*Check both completed cloud modules on the actual device before their pipeline connection.*) · `src/cloud_shader_contract.rs` (*Supply an independent completed-source shader interface witness.*)
 
 The WGSL sections are complete. Check them with the actual browser GPU, then inspect compilation info in the developer console. A Rust build alone does not prove that a shader is valid.
 
 Write one shared shader-check helper. Later finite-ink lessons reuse it; they do not introduce another checker. The optional supplied native fixture provides additional authoring evidence, while the learner runs the browser and reads the actual GPU report.
 
-> **Self-Check Question:** *Why does the shader check run asynchronously in the browser?*  
-> **Answer:** Shader compilation info arrives through the browser GPU task queue. Await it without blocking drawing or input, then inspect its errors and source locations.
-
-- **What You Should See:** Both completed cloud modules compile on the actual browser GPU; the developer console reports shader errors before pass connection.
-- **Hands-On Lab Experiment:** Run the browser and read the Cloud points and Cloud resolve reports. Temporarily change a WGSL return type, inspect the compiler message and location, then restore it and reload. The source cloud and visible mesh remain unchanged while this pass is not connected.
-
-<details>
-<summary>Implementation 64hd-check-cloud-shaders-on-the-actual-browser-device: Check cloud shaders on the actual browser device</summary>
-
-Await real shader compilation info before connecting the point passes.
-
-Data flow: check cloud shaders on the actual browser device.
+> **Check:** *Why does the shader check run asynchronously in the browser?* — Shader compilation info arrives through the browser GPU task queue. Await it without blocking drawing or input, then inspect its errors and source locations.
 
 ### 1. `src/shader_check.rs`
 
@@ -884,44 +560,15 @@ Create the file and type:
 
 Share the completed-source GPU check with later shader owners.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod cloud_normals;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 mod shader_check;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64hd-check-cloud-shaders-on-the-actual-browser-device-02.rs"
-```
-
-</details>
-
 ### 3. `Cargo.toml`
 
 Enable browser developer-console compilation reports in the existing web-sys dependency.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -929,29 +576,9 @@ Edit the existing block to match this code; keep unchanged lines:
 web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64hd-check-cloud-shaders-on-the-actual-browser-device-03.rs"
-```
-
-</details>
-
 ### 4. `src/renderer.rs`
 
 Check both completed cloud modules on the actual device before their pipeline connection.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -961,19 +588,7 @@ Edit the existing block to match this code; keep unchanged lines:
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64hd-check-cloud-shaders-on-the-actual-browser-device-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -987,20 +602,9 @@ Copy this supplied file:
 --8<-- "journey/code/64hd-check-cloud-shaders-on-the-actual-browser-device-05.rs"
 ```
 
-</details>
-
 ### 6. `src/lib.rs`
 
 Register the supplied optional shader interface witness.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod shader_check;
-```
-
-</details>
 
 After that block, type:
 
@@ -1009,69 +613,40 @@ After that block, type:
 mod cloud_shader_contract;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `64hd-check-cloud-shaders-on-the-actual-browser-device`:** Both completed cloud modules compile on the actual browser GPU; the developer console reports shader errors before pass connection.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64hd-check-cloud-shaders-on-the-actual-browser-device-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64i-columns"></a>
 
 ### Step 8 of 19 · Upload original point columns once per shared source (`64i-columns`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/19 Visual Trace (64i-columns): Upload original point columns once per shared source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">immutable original columns</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked GPU buffers</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared upload</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent instance frame</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared upload</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent instance fr…</text>
 </svg>
-</div>
-
-- **Goal:** Upload original point columns once per shared source.
-- **Data Flow Trace:** `immutable original columns → checked GPU buffers → shared upload → independent instance frame`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Create checked original column uploads and explicit view facts.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep positions, packed colours and packed normals in separate source buffers. Check the device storage binding limit before allocating; instance models stay outside those columns.
 
-> **Self-Check Question:** *Does copying one cloud require uploading all its points again?*  
-> **Answer:** No. Copies share the original prepared source and its GPU columns. Only their placements and small draw records differ; normals retain their original source values beside the packed display words.
-
-- **Hands-On Lab Experiment:** Compare original f64 coordinates with uploaded f32 positions. Inspect black fallback colours and the no-normal sentinel; verify no cloud source exceeds this device’s storage binding limit.
-
-<details>
-<summary>Implementation 64i-columns: Upload original point columns once per shared source</summary>
-
-Upload original point columns once per shared source.
-
-Data flow: immutable original columns → checked GPU buffers → shared upload → independent instance frame.
+> **Check:** *Does copying one cloud require uploading all its points again?* — No. Copies share the original prepared source and its GPU columns. Only their placements and small draw records differ; normals retain their original source values beside the packed display words.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -1087,88 +662,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod cloud_normals;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/64i-columns-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-64j-targets"></a>
 
 ### Step 9 of 19 · Own the cached cloud images and frame identity (`64j-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/19 Visual Trace (64j-targets): Own the cached cloud images and frame identity</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source draw owners</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached images</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">full frame key</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">truthful allocation counts</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">full frame key</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">truthful allocation cou…</text>
 </svg>
-</div>
-
-- **Goal:** Own the cached cloud images and frame identity.
-- **Data Flow Trace:** `source draw owners → cached images → full frame key → truthful allocation counts`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Own cached colour/depth/IDs, per-instance draw records and complete frame identity.*)
 
 Keep cached point colour, nearest depth and owner/index textures alongside a reuse key. Count live source columns, record buffers and exact target allocations separately.
 
-> **Self-Check Question:** *Does an unchanged point count make cached pixels reusable?*  
-> **Answer:** No. Camera, viewport, density, LOD facts, visibility, placement and selection can change while point count stays constant. Their key and explicit scene revision govern reuse.
-
-- **Hands-On Lab Experiment:** List every input in the key. Compare a full-size 4-byte colour, 4-byte depth and 8-byte owner/index image; dropping the image owner destroys its GPU texture.
-
-<details>
-<summary>Implementation 64j-targets: Own the cached cloud images and frame identity</summary>
-
-Own the cached cloud images and frame identity.
-
-Data flow: source draw owners → cached images → full frame key → truthful allocation counts.
+> **Check:** *Does an unchanged point count make cached pixels reusable?* — No. Camera, viewport, density, LOD facts, visibility, placement and selection can change while point count stays constant. Their key and explicit scene revision govern reuse.
 
 ### 1. `src/cloud_gpu.rs`
 
 Own cached colour/depth/IDs, per-instance draw records and complete frame identity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  })
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1176,58 +711,38 @@ After that block, type:
 --8<-- "journey/code/64j-targets-01.rs" skip=7
 ```
 
-</details>
+---
 
 <a id="checkpoint-64k-layouts"></a>
 
 ### Step 10 of 19 · Bind source storage and cached pixels explicitly (`64k-layouts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/19 Visual Trace (64k-layouts): Bind source storage and cached pixels explicitly</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source storage layouts</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">point pipeline</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached pixel layouts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">scene-depth comparison</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached pixel layouts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">scene-depth comparison</text>
 </svg>
-</div>
-
-- **Goal:** Bind source storage and cached pixels explicitly.
-- **Data Flow Trace:** `source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Define compatible explicit storage, texture and forward-depth pipeline layouts.*)
 
 Create separate layouts for point records/source columns and cached textures. Point draws write nearest forward depth; cached resolve compares that depth with the existing scene.
 
-> **Self-Check Question:** *Should a cloud resolve overwrite a solid in front of it?*  
-> **Answer:** No. It writes the point’s actual nearest depth and compares against the scene. A locked visible cloud keeps colour/depth but writes zero ownership, so occluded geometry stays unavailable.
-
-- **Hands-On Lab Experiment:** Check the storage binding count, 48-byte cloud settings and 16-byte pick origin. Compare the point colour/ID targets with the final scene colour and bounded integer targets.
-
-<details>
-<summary>Implementation 64k-layouts: Bind source storage and cached pixels explicitly</summary>
-
-Bind source storage and cached pixels explicitly.
-
-Data flow: source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison.
+> **Check:** *Should a cloud resolve overwrite a solid in front of it?* — No. It writes the point’s actual nearest depth and compares against the scene. A locked visible cloud keeps colour/depth but writes zero ownership, so occluded geometry stays unavailable.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -1235,15 +750,12 @@ Define compatible explicit storage, texture and forward-depth pipeline layouts.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   image: wgpu::BindGroupLayout,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1283,8 +795,7 @@ fn layouts(ctx: &GpuCtx) -> Layouts {
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1294,8 +805,6 @@ struct Layouts {
   uniform: wgpu::BindGroupLayout,
   window: wgpu::BindGroupLayout,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1349,8 +858,7 @@ struct Layouts {
   window: wgpu::BindGroupLayout,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -1594,75 +1102,38 @@ fn layouts(ctx: &GpuCtx) -> Layouts {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64k-layouts-01.rs"
-```
-
-```text
---8<-- "journey/code/64k-layouts-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64l-pipelines"></a>
 
 ### Step 11 of 19 · Create a lazy cloud lane with reusable pipelines (`64l-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/19 Visual Trace (64l-pipelines): Create a lazy cloud lane with reusable pipelines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current shaders</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reusable pipelines</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared settings</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">consistent radius units</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared settings</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">consistent radius units</text>
 </svg>
-</div>
-
-- **Goal:** Create a lazy cloud lane with reusable pipelines.
-- **Data Flow Trace:** `current shaders → reusable pipelines → shared settings → consistent radius units`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Construct reusable current cloud pipelines and adapt perspective units explicitly.*)
 
 Create the point and two cached-resolve pipelines once. Convert production perspective radius factors to this cumulative viewer’s world-unit clip distance.
 
-> **Self-Check Question:** *Why does the perspective radius adapter multiply by 1000 here?*  
-> **Answer:** Production supplies metre-based clip distance, while this cumulative camera still supplies its original world units. The adapter cancels that difference; orthographic ratios already cancel the common unit scale.
-
-- **Hands-On Lab Experiment:** Compare the supplied orthographic and perspective radius checks for equivalent projected heights. Keep the original production radius function unchanged and adapt only the frame convention.
-
-<details>
-<summary>Implementation 64l-pipelines: Create a lazy cloud lane with reusable pipelines</summary>
-
-Create a lazy cloud lane with reusable pipelines.
-
-Data flow: current shaders → reusable pipelines → shared settings → consistent radius units.
+> **Check:** *Why does the perspective radius adapter multiply by 1000 here?* — Production supplies metre-based clip distance, while this cumulative camera still supplies its original world units. The adapter cancels that difference; orthographic ratios already cancel the common unit scale.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -1670,16 +1141,13 @@ Construct reusable current cloud pipelines and adapt perspective units explicitl
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   });
   Layouts { uniform, window: window_layout, columns: columns_layout, image: image_layout }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1720,8 +1188,7 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   pub total: u64,
@@ -1731,8 +1198,6 @@ impl Lane {
 fn pipeline(
   device: &wgpu::Device,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1781,8 +1246,7 @@ fn pipeline(
   device: &wgpu::Device,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -2093,91 +1557,42 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64l-pipelines-01.rs"
-```
-
-```text
---8<-- "journey/code/64l-pipelines-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64m-cache"></a>
 
 ### Step 12 of 19 · Share column uploads across placed cloud rows (`64m-cache`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/19 Visual Trace (64m-cache): Share column uploads across placed cloud rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source pointer identity</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared columns</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent row records</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pruned owners</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent row records</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pruned owners</text>
 </svg>
-</div>
-
-- **Goal:** Share column uploads across placed cloud rows.
-- **Data Flow Trace:** `source pointer identity → shared columns → independent row records → pruned owners`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Reuse original GPU columns across row placements and count actual shared allocations.*)
 
 Reuse one column owner for repeated original sources. Each instance keeps its own bounded record buffer and model; scene updates prune obsolete display owners.
 
-> **Self-Check Question:** *Should hiding a cloud change its original visibility field?*  
-> **Answer:** No. Existing viewer/layer flags decide current presentation and eligibility. The original source fields remain intact, and shared column buffers can be reused when a hidden cloud is shown again.
-
-- **Hands-On Lab Experiment:** Copy a cloud and inspect the upload counter before and after. Change selection or layer colour; its records change while original column uploads remain shared.
-
-<details>
-<summary>Implementation 64m-cache: Share column uploads across placed cloud rows</summary>
-
-Share column uploads across placed cloud rows.
-
-Data flow: source pointer identity → shared columns → independent row records → pruned owners.
+> **Check:** *Should hiding a cloud change its original visibility field?* — No. Existing viewer/layer flags decide current presentation and eligibility. The original source fields remain intact, and shared column buffers can be reused when a hidden cloud is shown again.
 
 ### 1. `src/cloud_gpu.rs`
 
 Reuse original GPU columns across row placements and count actual shared allocations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-  }
-}
-fn pipeline(
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2185,58 +1600,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/64m-cache-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-64n-records"></a>
 
 ### Step 13 of 19 · Encode each source run in the exact 160-byte layout (`64n-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/19 Visual Trace (64n-records): Encode each source run in the exact 160-byte layout</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen original run</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cumulative count</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">40 exact words</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original source lookup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">40 exact words</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original source lookup</text>
 </svg>
-</div>
-
-- **Goal:** Encode each source run in the exact 160-byte layout.
-- **Data Flow Trace:** `chosen original run → cumulative count → 40 exact words → original source lookup`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Encode exact current source-run records without rewriting original IDs or coordinates.*)
 
 Keep the original run start/count beside cumulative drawn counts, placement, normal transform, radius, flags and original owner. Encode integers as integer words.
 
-> **Self-Check Question:** *Is a cumulative drawn point number an original point ID?*  
-> **Answer:** No. It chooses a record; that record maps the offset back to the original stored run. Source IDs remain in the PointCloud and can differ from both numbers.
-
-- **Hands-On Lab Experiment:** Trace one point through record binary search and original run offset. Check the radius adapter, no-normal sentinel, original owner address and layer/selection flags.
-
-<details>
-<summary>Implementation 64n-records: Encode each source run in the exact 160-byte layout</summary>
-
-Encode each source run in the exact 160-byte layout.
-
-Data flow: chosen original run → cumulative count → 40 exact words → original source lookup.
+> **Check:** *Is a cumulative drawn point number an original point ID?* — No. It chooses a record; that record maps the offset back to the original stored run. Source IDs remain in the PointCloud and can differ from both numbers.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -2244,8 +1639,7 @@ Encode exact current source-run records without rewriting original IDs or coordi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   );
@@ -2255,8 +1649,6 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
   crate::cloud_lod::radius_factor(range, px, scale, ortho_h) * if ortho_h > 0. { 1. } else { 1000. }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2310,8 +1702,7 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     self.key = None;
@@ -2321,8 +1712,6 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
     let mut seen = std::collections::HashSet::new();
     let columns =
 ```
-
-</details>
 
 Replace it with:
 
@@ -2366,8 +1755,7 @@ Replace it with:
     let columns =
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -2828,91 +2216,42 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64n-records-01.rs"
-```
-
-```text
---8<-- "journey/code/64n-records-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64o-runs"></a>
 
 ### Step 14 of 19 · Keep one shared record budget for the whole view (`64o-runs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/19 Visual Trace (64o-runs): Keep one shared record budget for the whole view</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current view</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen runs</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared record budget</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">capacity-bounded upload</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared record budget</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">capacity-bounded upload</text>
 </svg>
-</div>
-
-- **Goal:** Keep one shared record budget for the whole view.
-- **Data Flow Trace:** `current view → chosen runs → shared record budget → capacity-bounded upload`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Select bounded view runs and grow record storage only to used capacity.*)
 
 Choose original runs for each visible instance and enforce one 4096-record limit across all clouds. Grow each record buffer only to used capacity and reject overflowing vertex counts.
 
-> **Self-Check Question:** *Is 4096 records allowed separately for every cloud?*  
-> **Answer:** No. It is the whole-view budget. Repeated clouds share original columns, and record buffers reserve only their needed bounded capacity. A failed preparation cannot expose stale cached picks.
-
-- **Hands-On Lab Experiment:** Compare one small cloud with many placements. Inspect live record counts versus reserved bytes and the checked six-vertices-per-point draw limit.
-
-<details>
-<summary>Implementation 64o-runs: Keep one shared record budget for the whole view</summary>
-
-Keep one shared record budget for the whole view.
-
-Data flow: current view → chosen runs → shared record budget → capacity-bounded upload.
+> **Check:** *Is 4096 records allowed separately for every cloud?* — No. It is the whole-view budget. Repeated clouds share original columns, and record buffers reserve only their needed bounded capacity. A failed preparation cannot expose stale cached picks.
 
 ### 1. `src/cloud_gpu.rs`
 
 Select bounded view runs and grow record storage only to used capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Ok(())
-  }
-  pub fn failed(&mut self) {
-    self.targets = None;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2920,59 +2259,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/64o-runs-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-64p-frame"></a>
 
 ### Step 15 of 19 · Cache the nearest point frame until its inputs change (`64p-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/19 Visual Trace (64p-frame): Cache the nearest point frame until its inputs change</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">changed frame facts</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen source records</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached nearest points</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared colour and pick</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">resolve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached nearest points</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared colour and pick…</text>
 </svg>
-</div>
-
-- **Goal:** Cache the nearest point frame until its inputs change.
-- **Data Flow Trace:** `changed frame facts → chosen source records → cached nearest points → shared colour and pick resolve`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Prepare and reuse actual nearest-point targets, resolve depth/whole IDs and drop stale targets after failure.*)
 
 Render chosen point runs into cached colour/depth/IDs only after key changes. Repeat frames reuse those targets; colour and bounded picking resolve the same cached point coverage.
 
-> **Self-Check Question:** *Can a failed preparation reuse yesterday’s point IDs?*  
-> **Answer:** No. Drop stale cached targets and expose the error while keeping the CAD scene usable. Successful repeat frames preserve both pixels and original source uploads.
-
-- **Hands-On Lab Experiment:** Repeat an unchanged frame and inspect the skip counter. Change viewport, camera or density; compare a rebuilt cached point frame with unchanged source upload counts.
-
-<details>
-<summary>Implementation 64p-frame: Cache the nearest point frame until its inputs change</summary>
-
-Cache the nearest point frame until its inputs change.
-
-Data flow: changed frame facts → chosen source records → cached nearest points → shared colour and pick resolve.
+> **Check:** *Can a failed preparation reuse yesterday’s point IDs?* — No. Drop stale cached targets and expose the error while keeping the CAD scene usable. Successful repeat frames preserve both pixels and original source uploads.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -2980,8 +2298,7 @@ Prepare and reuse actual nearest-point targets, resolve depth/whole IDs and drop
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   bytes[4..8].copy_from_slice(&total.to_ne_bytes());
@@ -2991,8 +2308,6 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
   crate::cloud_lod::radius_factor(range, px, scale, ortho_h) * if ortho_h > 0. { 1. } else { 1000. }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3006,8 +2321,7 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   );
@@ -3017,8 +2331,6 @@ fn record_bytes(
   draw: &Draw,
   transform: [f32; 16],
 ```
-
-</details>
 
 Replace it with:
 
@@ -3032,8 +2344,7 @@ fn record_bytes(
   transform: [f32; 16],
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     cache: None,
@@ -3050,8 +2361,6 @@ fn layouts(ctx: &GpuCtx) -> Layouts {
   let uniform = crate::gpu_layout::uniform(&ctx.device, 48);
   let window_layout = crate::gpu_layout::uniform(&ctx.device, 16);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3071,8 +2380,7 @@ fn layouts(ctx: &GpuCtx) -> Layouts {
   let window_layout = crate::gpu_layout::uniform(&ctx.device, 16);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     self.total = total;
@@ -3082,8 +2390,6 @@ fn layouts(ctx: &GpuCtx) -> Layouts {
     self.targets = None;
     self.key = None;
 ```
-
-</details>
 
 Replace it with:
 
@@ -3174,8 +2480,7 @@ Replace it with:
     self.key = None;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -3774,87 +3079,38 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64p-frame-01.rs"
-```
-
-```text
---8<-- "journey/code/64p-frame-02.rs"
-```
-
-```text
---8<-- "journey/code/64p-frame-03.rs"
-```
-
-```text
---8<-- "journey/code/64p-frame-04.rs"
-```
-
-```text
---8<-- "journey/code/64p-frame-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64q-owner"></a>
 
 ### Step 16 of 19 · Create and release the cloud renderer only when needed (`64q-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/19 Visual Trace (64q-owner): Create and release the cloud renderer only when needed</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene cloud rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy lane</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reused source owners</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">immediate Close cleanup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reused source owners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">immediate Close cleanup</text>
 </svg>
-</div>
-
-- **Goal:** Create and release the cloud renderer only when needed.
-- **Data Flow Trace:** `scene cloud rows → lazy lane → reused source owners → immediate Close cleanup`
-- **Files You Touch:** `src/renderer.rs` (*Connect lazy cloud scene owners, explicit source sharing, counters and immediate cleanup.*)
 
 Keep the cloud lane lazy. Scene updates preserve shared uploads; empty scenes drop the entire owner immediately, including cached images, settings and column buffers.
 
-> **Self-Check Question:** *Does clearing the source list alone release GPU columns?*  
-> **Answer:** No. Drop the renderer owner too, and clear document history on Close. The native lifetime checks verify that original and derived owners can actually disappear.
-
-- **Hands-On Lab Experiment:** Compare a CAD-only scene with a scene containing clouds. Close after copying/deleting/undoing a cloud and inspect source owner counts and exact GPU bytes.
-
-<details>
-<summary>Implementation 64q-owner: Create and release the cloud renderer only when needed</summary>
-
-Create and release the cloud renderer only when needed.
-
-Data flow: scene cloud rows → lazy lane → reused source owners → immediate Close cleanup.
+> **Check:** *Does clearing the source list alone release GPU columns?* — No. Drop the renderer owner too, and clear document history on Close. The native lifetime checks verify that original and derived owners can actually disappear.
 
 ### 1. `src/renderer.rs`
 
@@ -3862,8 +3118,7 @@ Connect lazy cloud scene owners, explicit source sharing, counters and immediate
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
@@ -3873,8 +3128,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3894,8 +3147,7 @@ Replace it with:
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.settings_writes += calls; self.settings_bytes += bytes;
@@ -3904,8 +3156,6 @@ Replace it with:
         if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3918,8 +3168,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         drop(old);
@@ -3928,8 +3177,6 @@ Replace it with:
         if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3942,8 +3189,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
@@ -3955,8 +3201,6 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3969,8 +3213,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3980,8 +3223,6 @@ pub struct Renderer {
     text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
     text_error:std::cell::RefCell<Option<String>>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3997,8 +3238,7 @@ pub struct Renderer {
     text_error:std::cell::RefCell<Option<String>>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4431,88 +3671,38 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64q-owner-01.rs"
-```
-
-```text
---8<-- "journey/code/64q-owner-02.rs"
-```
-
-```text
---8<-- "journey/code/64q-owner-03.rs"
-```
-
-```text
---8<-- "journey/code/64q-owner-04.rs"
-```
-
-```text
---8<-- "journey/code/64q-owner-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64r-draw"></a>
 
 ### Step 17 of 19 · Use the cached cloud depth in colour and integer passes (`64r-draw`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/19 Visual Trace (64r-draw): Use the cached cloud depth in colour and integer passes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared cached points</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene depth</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded original whole</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owner</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing selection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/pick…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded original whole…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing selection</text>
 </svg>
-</div>
-
-- **Goal:** Use the cached cloud depth in colour and integer passes.
-- **Data Flow Trace:** `prepared cached points → scene depth → bounded original whole owner → existing selection`
-- **Files You Touch:** `src/renderer.rs` (*Prepare current cloud pixels and resolve their actual depth in both colour and bounded whole-owner picking.*) · `src/pick_gpu.rs` (*Resolve cached cloud IDs and depth through the existing bounded readback window.*) · `src/pick_encode.rs` (*Resolve cached cloud IDs and depth through the existing bounded readback window.*)
 
 Prepare cloud pixels before colour and bounded integer readback. Resolve real point depth into the scene, preserving zero-ID occlusion for locked clouds. Draw selection ink after the cloud so a point sprite cannot cover its selected marker.
 
-> **Self-Check Question:** *Can a locked point occlude the colour image but vanish from pick depth?*  
-> **Answer:** No. The same cached depth participates in integer picking, with zero ownership. Click tolerance can still reach visibly exposed geometry outside the point disc; it cannot pick geometry occluded within that disc.
-
-- **Hands-On Lab Experiment:** Place a point in front of a triangle, lock it and inspect the depth/zero-ID regression. Compare two densities without changing original source colours or coordinates.
-
-<details>
-<summary>Implementation 64r-draw: Use the cached cloud depth in colour and integer passes</summary>
-
-Use the cached cloud depth in colour and integer passes.
-
-Data flow: prepared cached points → scene depth → bounded original whole owner → existing selection.
+> **Check:** *Can a locked point occlude the colour image but vanish from pick depth?* — No. The same cached depth participates in integer picking, with zero ownership. Click tolerance can still reach visibly exposed geometry outside the point disc; it cannot pick geometry occluded within that disc.
 
 ### 1. `src/renderer.rs`
 
@@ -4520,8 +3710,7 @@ Prepare current cloud pixels and resolve their actual depth in both colour and b
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             for mesh in &self.meshes {
@@ -4531,8 +3720,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.highlight.mesh(&mut pass);
             self.highlight.ink(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -4546,8 +3733,7 @@ Replace it with:
             self.highlight.ink(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
@@ -4557,8 +3743,6 @@ Replace it with:
         let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
         bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
 ```
-
-</details>
 
 Replace it with:
 
@@ -4572,8 +3756,7 @@ Replace it with:
         bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if scene.clouds().is_empty() {self.clouds.borrow_mut().take();self.cloud_error.borrow_mut().take();return Ok(());}
@@ -4583,8 +3766,6 @@ Replace it with:
 
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4600,8 +3781,7 @@ Replace it with:
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
@@ -4613,8 +3793,6 @@ Replace it with:
 
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4630,8 +3808,7 @@ Replace it with:
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5070,39 +4247,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64r-draw-01.rs"
-```
-
-```text
---8<-- "journey/code/64r-draw-02.rs"
-```
-
-```text
---8<-- "journey/code/64r-draw-03.rs"
-```
-
-```text
---8<-- "journey/code/64r-draw-04.rs"
-```
-
-</details>
-
 ### 2. `src/pick_gpu.rs`
 
 Resolve cached cloud IDs and depth through the existing bounded readback window.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         bytes.extend((request.mode as u32).to_ne_bytes()); bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
@@ -5113,8 +4264,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5128,12 +4277,10 @@ Replace it with:
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -5141,13 +4288,10 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -5155,8 +4299,7 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -5168,7 +4311,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -5221,7 +4363,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
         let request = queued.request; let window = request.window;
@@ -5266,59 +4407,9 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64r-draw-05.rs"
-```
-
-```text
---8<-- "journey/code/64r-draw-06.rs"
-```
-
-</details>
-
 ### 3. `src/pick_encode.rs`
 
 Resolve cached cloud IDs and depth through the existing bounded readback window.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5351,87 +4442,42 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64r-draw-07.rs"
-```
-
-```text
---8<-- "journey/code/64r-draw-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64s-diagnostics"></a>
 
 ### Step 18 of 19 · Expose cloud source payload detail and actual GPU resources (`64s-diagnostics`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/19 Visual Trace (64s-diagnostics): Expose cloud source payload detail and actual GPU resources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current camera facts</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen detail</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source and GPU diagnostics</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible preparation errors</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/memory.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source and GPU diagnost…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible preparation err…</text>
 </svg>
-</div>
-
-- **Goal:** Expose cloud source payload detail and actual GPU resources.
-- **Data Flow Trace:** `current camera facts → chosen detail → source and GPU diagnostics → visible preparation errors`
-- **Files You Touch:** `src/memory.rs` (*Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.*) · `src/browser.rs` (*Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.*)
 
 Deliver current camera facts before rendering. Expose original source/instance IDs, logical source payload, derived node capacity, chosen point count, actual GPU bytes and visible errors.
 
-> **Self-Check Question:** *Does the drawn-point count equal the original cloud size?*  
-> **Answer:** Only when all source runs are chosen. LOD can draw fewer points while original data remains retained. This count names points submitted in selected runs, not the number of coloured framebuffer pixels.
-
-- **Hands-On Lab Experiment:** Compare source points with chosen draw points and cached-frame counters. Keep used original payload bytes separate from private reserved capacity, and verify Close clears all cloud diagnostics.
-
-<details>
-<summary>Implementation 64s-diagnostics: Expose cloud source payload detail and actual GPU resources</summary>
-
-Expose cloud source payload detail and actual GPU resources.
-
-Data flow: current camera facts → chosen detail → source and GPU diagnostics → visible preparation errors.
+> **Check:** *Does the drawn-point count equal the original cloud size?* — Only when all source runs are chosen. LOD can draw fewer points while original data remains retained. This count names points submitted in selected runs, not the number of coloured framebuffer pixels.
 
 ### 1. `src/memory.rs`
 
 Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- let mut sources=HashSet::new();let mut usage=[0;4];for scene in scenes {usage[0]+=scene.texts().len();usage[2]+=scene.texts().len()*std::mem::size_of::<crate::scene_label::Row>();for row in scene.texts() {if sources.insert(Rc::as_ptr(&row.prepared.source)) {let source=&row.prepared.source;usage[3]+=std::mem::size_of::<crate::scene_label::Source>()+source.guid.capacity()+source.name.capacity()+source.label.text.capacity();}}}usage[1]=sources.len();usage
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -5445,8 +4491,7 @@ Expose current cloud source/payload, derived capacity, exact GPU allocation and 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ..Default::default()
@@ -5456,8 +4501,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     panel.draw(renderer, &view);
     frame.present();
 ```
-
-</details>
 
 Replace it with:
 
@@ -5471,8 +4514,7 @@ Replace it with:
     frame.present();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
@@ -5482,8 +4524,6 @@ Replace it with:
     canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
     canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5500,8 +4540,7 @@ Replace it with:
     canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             });
@@ -5511,8 +4550,6 @@ Replace it with:
             report(&format!("Cannot report projection: {error:?}"));
             return;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5526,8 +4563,7 @@ Replace it with:
             return;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -6322,83 +5358,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64s-diagnostics-02.rs"
-```
-
-```text
---8<-- "journey/code/64s-diagnostics-03.rs"
-```
-
-```text
---8<-- "journey/code/64s-diagnostics-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-64t-clouds"></a>
 
 ### Step 19 of 19 · Exercise original clouds and real view-dependent detail (`64t-clouds`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/19 Visual Trace (64t-clouds): Exercise original clouds and real view-dependent detail</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs, src/editor.rs, src/commands.rs, src/cloud_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cloud fixture</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current-view detail</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source uploads</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reversible row edits</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud.rs, src/editor.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source uploads</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reversible row edits</text>
 </svg>
-</div>
-
-- **Goal:** Exercise original clouds and real view-dependent detail.
-- **Data Flow Trace:** `original cloud fixture → current-view detail → shared source uploads → reversible row edits`
-- **Files You Touch:** `src/cloud.rs` (*Copy the small curved and real two-million-point original-cloud fixtures.*) · `src/editor.rs` (*Connect supplied original cloud fixtures through the actual command dock and one history transaction.*) · `src/commands.rs` (*Connect supplied original cloud fixtures through the actual command dock and one history transaction.*) · `src/cloud_tests.rs` (*Copy the equivalent-projection radius-unit regression.*) · `src/pick_gpu_tests.rs` (*Copy actual original colour/normal/depth/ID, two-density/cache/sharing/cleanup and real two-million-point coarse/fine/coarse GPU checks.*)
 
 Connect a small curved cloud and a supplied 2,000,064-point octree fixture. Copy actual source/GPU checks and inspect coarse/fine detail without reallocating original point columns.
 
-> **Self-Check Question:** *Does the large-cloud fixture establish Lenovo floor performance?*  
-> **Answer:** No. It proves real LOD selection, rendering and upload reuse on the available software GPU. Fresh browser checks and same-hardware full-floor and dome measurements remain required.
+> **Check:** *Does the large-cloud fixture establish Lenovo floor performance?* — No. It proves real LOD selection, rendering and upload reuse on the available software GPU. Fresh browser checks and same-hardware full-floor and dome measurements remain required.
 
-- **What You Should See:** Type Close, Example Cloud, Fit and View Isometric. The curved coloured cloud retains original source IDs and f64 columns. Move, Undo, Delete and Undo act on its whole row. Example Cloud LOD supplies 2,000,064 real points; zoom changes chosen detail while the original source upload stays shared. Close drops all cloud owners. Mixed Save stays guarded until 66.
-- **Hands-On Lab Experiment:** Type Close, Example Cloud, Fit and View Isometric. Move, Undo, Delete and Undo. Then Close, Example Cloud LOD and Fit; zoom out and back in and compare the chosen-point counter with 2,000,064 original points.
-
-<details>
-<summary>Implementation 64t-clouds: Exercise original clouds and real view-dependent detail</summary>
-
-Exercise original clouds and real view-dependent detail.
-
-Data flow: original cloud fixture → current-view detail → shared source uploads → reversible row edits.
-
-<details>
-<summary>Supplied example data</summary>
+**Supplied example data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -6406,28 +5399,13 @@ Copy this supplied data once; it is excluded from the typing estimate.
 
 Copy the small curved and real two-million-point original-cloud fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-
-fn checked_node(source: &PointCloud, p: &session_rust::proto::PointCloud, i: usize) -> Result<LodNode, &'static str> {
-  let n = p.lod_size.len();
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/64t-clouds-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied example data</summary>
+**Supplied example data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -6435,23 +5413,11 @@ Copy this supplied data once; it is excluded from the typing estimate.
 
 Copy the small curved and real two-million-point original-cloud fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-  })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/64t-clouds-02.rs" skip=7
 ```
-
-</details>
 
 ### 3. `src/editor.rs`
 
@@ -6459,8 +5425,7 @@ Connect supplied original cloud fixtures through the actual command dock and one
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.objects.clear(); self.selected = None;
@@ -6470,8 +5435,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
             Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
 ```
-
-</details>
 
 Replace it with:
 
@@ -6486,8 +5449,7 @@ Replace it with:
             Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Show,
@@ -6497,8 +5459,6 @@ Replace it with:
     AddText(crate::text::TextPlacement),
     AddSurface,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6513,8 +5473,7 @@ Replace it with:
     AddSurface,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -7259,38 +6218,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/64t-clouds-03.rs"
-```
-
-```text
---8<-- "journey/code/64t-clouds-04.rs"
-```
-
-</details>
-
 ### 4. `src/commands.rs`
 
 Connect supplied original cloud fixtures through the actual command dock and one history transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Show",||Action::Show),
-    ("Example Box", || Action::AddBox),
-    ("Example CAD",||Action::AddCad),
-    ("Example Scene Text",||Action::AddText(crate::text::TextPlacement::WorldPlane {world:[-1.5,0.,1.],right:[1.,0.,0.],up:[0.,1.,0.],world_height:0.22})),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7298,8 +6228,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/64t-clouds-05.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7307,26 +6236,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the equivalent-projection radius-unit regression.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    editor.apply(Action::SelectAll).unwrap();assert_eq!(editor.selected_objects().len(),2);editor.apply(Action::Delete).unwrap();assert!(editor.scene.clouds().is_empty());editor.apply(Action::Undo).unwrap();assert_eq!(editor.scene.clouds().len(),2);editor.apply(Action::Close).unwrap();drop(history);assert!(weak.upgrade().is_none());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/64t-clouds-06.rs" skip=337
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7334,47 +6250,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual original colour/normal/depth/ID, two-density/cache/sharing/cleanup and real two-million-point coarse/fine/coarse GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert_eq!(source.to_proto(),original,"Coverage cannot change original topology");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/64t-clouds-07.rs" skip=89
 ```
 
-</details>
-
-</details>
+**Result after `64t-clouds`:** Type Close, Example Cloud, Fit and View Isometric. The curved coloured cloud retains original source IDs and f64 columns. Move, Undo, Delete and Undo act on its whole row. Example Cloud LOD supplies 2,000,064 real points; zoom changes chosen detail while the original source upload stays shared. Close drops all cloud owners. Mixed Save stays guarded until 66.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 64t-clouds
-npm --prefix ../session_tests run course -- check 64t-clouds
-npm --prefix ../session_tests run course -- save 64t-clouds
+npm --prefix ../session_tests run course -- dependencies 11.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 11.3
+npm --prefix ../session_tests run course -- save 11.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Type Close, Example Cloud, Fit and View Isometric. The curved coloured cloud retains original source IDs and f64 columns. Move, Undo, Delete and Undo act on its whole row. Example Cloud LOD supplies 2,000,064 real points; zoom changes chosen detail while the original source upload stays shared. Close drops all cloud owners. Mixed Save stays guarded until 66.
-
-- **Final Lesson Experiment:** Type Close, Example Cloud, Fit and View Isometric. Move, Undo, Delete and Undo. Then Close, Example Cloud LOD and Fit; zoom out and back in and compare the chosen-point counter with 2,000,064 original points.
-
-Continue with [Original point identity and manifest source records](../../consolidation/65-originals.md).
+Continue with [11.4 · Original point identity and manifest source records](../../consolidation/65-originals.md).

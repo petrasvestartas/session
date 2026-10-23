@@ -1,242 +1,104 @@
-# Shaders and the command dock
+# 1.3 · Shaders and the command dock
 
-**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.3** (Redraft `1.3`) · **25 checkpoints (`03-triangle` → `03d-input`)** · **Study time: 16.75–32 h**
+**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Checkpoints:** `03-triangle` → `03d-input` (25 steps) · **Production source:** [`lib.rs`](../../../src/lib.rs) · [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs) · [`command_dock/mod.rs`](../../../src/command_dock/mod.rs) · [`view.rs`](../../../src/command_dock/view.rs) · [`theme.rs`](../../../src/command_dock/theme.rs) · [`app/ui/command_line.rs`](../../../src/app/ui/command_line.rs) · [`app/ui/mod.rs`](../../../src/app/ui/mod.rs) · [`engine/gpu/ui.rs`](../../../src/engine/gpu/ui.rs)
 
-> **What You Will Learn & Build:** Draw a pink triangle on the white background. By the final checkpoint (`03d-input`), you will return accepted commands while keeping editing inside Panel.
+> **Goal:** Return accepted commands while keeping editing inside Panel.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 1 Visual Explanation: WebGPU Clip-Space Coordinates (-1..+1) & Two-Pass Framebuffer (Clear + Load)</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: How @vertex maps 3 corners into WebGPU clip space. Center: CPU CommandEncoder borrow scope. Right: Pass #1 (Clear) + Pass #2 (Load UI).</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel 1: WebGPU Clip Space (-1..+1) Coordinate Grid & Triangle -->
-    <rect x="18" y="64" width="260" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="148" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. WebGPU Clip Space (-1..+1)</text>
-    <!-- Viewport square inside Panel 1 -->
-    <rect x="68" y="94" width="160" height="116" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <!-- Dashed X and Y axes through origin (148, 152) -->
-    <line x1="68" y1="152" x2="228" y2="152" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <line x1="148" y1="94" x2="148" y2="210" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <!-- Triangle: v2(0.0, 0.6) -> (148, 112), v0(-0.6, -0.5) -> (100, 184), v1(0.6, -0.5) -> (196, 184) -->
-    <polygon points="148,112 100,184 196,184" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="148" cy="112" r="3.5" fill="#111111"/>
-    <circle cx="100" cy="184" r="3.5" fill="#111111"/>
-    <circle cx="196" cy="184" r="3.5" fill="#111111"/>
-    <text x="148" y="106" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">v2 (0.0, +0.6)</text>
-    <text x="98" y="198" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">v0 (-0.6, -0.5)</text>
-    <text x="198" y="198" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">v1 (+0.6, -0.5)</text>
-    <text x="64" y="102" text-anchor="end" font-size="9" fill="#111111">+1</text>
-    <text x="64" y="210" text-anchor="end" font-size="9" fill="#111111">-1</text>
-    <text x="148" y="232" text-anchor="middle" font-size="10" fill="#111111">@builtin(vertex_index) 0, 1, 2</text>
-
-    <line x1="278" y1="154" x2="302" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel 2: Rust CommandEncoder Borrow Timeline -->
-    <rect x="304" y="64" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Rust Borrow Timeline</text>
-    <rect x="320" y="94" width="200" height="34" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="420" y="109" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">1. { let pass1 = enc.begin...(); }</text>
-    <text x="420" y="122" text-anchor="middle" font-size="9.5" fill="#111111">LoadOp::Clear(White) + draw(0..3)</text>
-    <line x1="420" y1="128" x2="420" y2="142" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="320" y="144" width="200" height="34" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="420" y="159" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">2. { let pass2 = enc.begin...(); }</text>
-    <text x="420" y="172" text-anchor="middle" font-size="9.5" fill="#111111">LoadOp::Load (keeps triangle!)</text>
-    <line x1="420" y1="178" x2="420" y2="192" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="320" y="194" width="200" height="36" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="210" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">3. queue.submit([enc.finish()])</text>
-    <text x="420" y="223" text-anchor="middle" font-size="9.5" fill="#111111">frame.present() -&gt; Canvas</text>
-
-    <line x1="536" y1="154" x2="560" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel 3: Composited GPU TextureView (Scene + Command Dock) -->
-    <rect x="562" y="64" width="260" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="692" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Composited Framebuffer</text>
-    <!-- Simulated Browser Viewport -->
-    <rect x="586" y="94" width="212" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="596" y="108" font-size="9.5" fill="#111111">Pass #1: Scene (Cleared White)</text>
-    <polygon points="692,114 654,170 730,170" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Command Dock Overlay at bottom -->
-    <rect x="596" y="182" width="192" height="32" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="606" y="196" font-size="9.5" font-weight="700" fill="#111111">Command: Help_</text>
-    <text x="606" y="208" font-size="8.5" fill="#111111">Pass #2 (LoadOp::Load): egui Noto Dock</text>
-    <text x="692" y="236" text-anchor="middle" font-size="10" fill="#111111">Why Load? A second Clear erases Pass #1!</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 1.3 Pipeline Schematic: Shaders and the command dock</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (25 Checkpoints: 03-triangle → 03d-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Three shader</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">positions</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">triangle coverage</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">fragment colour</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">canvas</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Return accepted</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">commands while</text>
-    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">keeping…</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 1.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/triangle.wgsl  ·  src/renderer.rs  ·  src/browser.rs  ·  Cargo.toml  ·  src/panel.rs  ·  src/lib.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">25 Checkpoints: 03-triangle → 03d-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. &lt;canvas&gt; (px)</text>
+  <rect x="45" y="56" width="180" height="110" rx="6" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="45" cy="56" r="3.5" fill="#111111"/>
+  <text x="53" y="70" font-family="monospace" font-size="10" fill="#111111">(0,0)</text>
+  <text x="175" y="160" font-family="monospace" font-size="10" fill="#111111">(W,H)</text>
+  <rect x="65" y="140" width="140" height="16" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text x="135" y="151" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">&gt; Command Dock</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">DOM Surface + Events</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. CommandEncoder</text>
+  <rect x="326" y="58" width="186" height="44" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="419" y="77" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Pass 1: LoadOp::Clear</text>
+  <text x="419" y="93" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Clear + Scene Triangle</text>
+  <line x1="419" y1="102" x2="419" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="326" y="122" width="186" height="44" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="419" y="141" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Pass 2: LoadOp::Load</text>
+  <text x="419" y="157" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Keep Pixels + Dock UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">queue.submit()</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Clip Space (-1..+1)</text>
+  <rect x="644" y="56" width="120" height="108" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <line x1="644" y1="110" x2="764" y2="110" stroke="#111111" stroke-width="1" stroke-dasharray="3 3"/>
+  <line x1="704" y1="56" x2="704" y2="164" stroke="#111111" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="704,68 662,148 746,148" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="704" cy="68" r="3.5" fill="#111111"/>
+  <circle cx="662" cy="148" r="3.5" fill="#111111"/>
+  <circle cx="746" cy="148" r="3.5" fill="#111111"/>
+  <text x="712" y="69" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(0,+1)</text>
+  <text x="606" y="152" font-family="monospace" font-size="9" fill="#111111">(-1,-1)</text>
+  <text x="767" y="152" font-family="monospace" font-size="9" fill="#111111">(+1,-1)</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">@vertex -&gt; @fragment</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **HTML / CSS** | `<canvas id="canvas">` | Full-window browser drawing surface; CSS `width/height: 100%` fills the viewport while Rust synchronizes physical pixel dimensions. |
-| **Rust (`wgpu`)** | `CommandEncoder` + `{ begin_render_pass(...) }` | Records GPU commands on the CPU. Scoping Pass #1 (`LoadOp::Clear`) in `{ ... }` releases the mutable borrow so Pass #2 (`LoadOp::Load`, Command Dock UI) can draw on top. |
-| **WGSL Shader** | `@vertex` & `@fragment` (`@builtin(vertex_index)`) | GPU stages that compute clip-space coordinates `(-1..+1)` and RGBA pixel colors in parallel across GPU cores. |
+| **HTML** | `<canvas id="canvas">` | Full-window pixel surface (`width/height: 100%`). |
+| **Rust (`wgpu`)** | `Pass 1 (Clear)` → `Pass 2 (Load)` | Pass 1 clears and draws 3D scene; Pass 2 overlays Command Dock UI. |
+| **WGSL** | `@vertex` & `@fragment` | Outputs clip coordinates `(-1..+1)` and RGBA pixel color. |
 
-**Authoritative production source (`session_viewer/src`):** [`lib.rs`](../../../src/lib.rs), [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs), [`command_dock/mod.rs`](../../../src/command_dock/mod.rs), [`view.rs`](../../../src/command_dock/view.rs), [`theme.rs`](../../../src/command_dock/theme.rs), [`app/ui/command_line.rs`](../../../src/app/ui/command_line.rs), [`app/ui/mod.rs`](../../../src/app/ui/mod.rs), [`engine/gpu/ui.rs`](../../../src/engine/gpu/ui.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`03-triangle`](#checkpoint-03-triangle) | Draw a pink triangle on the white background. | `src/triangle.wgsl`, `src/renderer.rs`, `src/browser.rs` | `Three shader positions → triangle coverage → fragment colour → canvas` |
-| **2** | [`03a-fonts`](#checkpoint-03a-fonts) | Create the font and GPU painter owner while keeping the triangle. | `Cargo.toml`, `src/panel.rs`, `src/browser.rs`, `src/lib.rs` | `Embedded font bytes → shared font definitions → egui context → GPU painter` |
-| **3** | [`03a-paint`](#checkpoint-03a-paint) | Draw a Command label over the triangle using the same GPU. | `src/panel.rs`, `src/browser.rs` | `RawInput → egui shapes and font atlas → GPU upload → Load pass → present` |
-| **4** | [`03a-panel`](#checkpoint-03a-panel) | Draw the production command field beside its label. | `src/panel.rs`, `src/command_dock/theme.rs`, `src/command_dock/mod.rs`, `src/command_dock/view.rs` | `Panel rectangle → spacing and text style → local String → field response` |
-| **5** | [`03b-memory`](#checkpoint-03b-memory) | Store the field text and history in one owned model. | `src/panel.rs`, `src/browser.rs`, `src/command_dock/mod.rs` | `Panel owns CommandLine → field borrows text → placeholder borrows status` |
-| **6** | [`03b-state`](#checkpoint-03b-state) | Give the upcoming layout a vocabulary contract and caret helpers. | `Cargo.toml`, `src/command_dock/mod.rs`, `src/panel.rs` | `Commands contract → optional inspection → character-based caret positions` |
-| **7** | [`03c-history`](#checkpoint-03c-history) | Draw retained history above the field. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Draw retained history above the field` |
-| **8** | [`03ca-typing`](#checkpoint-03ca-typing) | Send the first printable key directly into the field. | `src/browser.rs`, `src/panel.rs` | `Send the first printable key directly into the field` |
-| **9** | [`03cb-submit`](#checkpoint-03cb-submit) | Clear submitted text and retain one history entry. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Clear submitted text and retain one history entry` |
-| **10** | [`03cc-edit`](#checkpoint-03cc-edit) | Keep text selection, deletion and Escape in the field. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Keep text selection, deletion and Escape in the field` |
-| **11** | [`03cd-vocabulary`](#checkpoint-03cd-vocabulary) | Connect known names and useful unknown-command replies. | `src/command_vocabulary.rs`, `src/browser.rs`, `src/panel.rs`, `src/lib.rs` | `Connect known names and useful unknown-command replies` |
-| **12** | [`03ce-complete`](#checkpoint-03ce-complete) | Select only the suggested suffix while retaining typed text. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Select only the suggested suffix while retaining typed text` |
-| **13** | [`03cf-accept`](#checkpoint-03cf-accept) | Use Tab, Enter and Escape without losing input ownership. | `src/command_dock/mod.rs`, `src/panel.rs` | `Use Tab, Enter and Escape without losing input ownership` |
-| **14** | [`03cg-keys`](#checkpoint-03cg-keys) | Consume command editing once and restore field focus. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Consume command editing once and restore field focus` |
-| **15** | [`03ch-popup`](#checkpoint-03ch-popup) | Draw the matching names above the field. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Draw the matching names above the field` |
-| **16** | [`03ci-browse`](#checkpoint-03ci-browse) | Move through matching command names without changing the scene. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Move through matching command names without changing the scene` |
-| **17** | [`03cj-prepare`](#checkpoint-03cj-prepare) | Keep UI output owned until one GPU submission. | `src/browser.rs`, `src/panel.rs` | `Keep UI output owned until one GPU submission` |
-| **18** | [`03ck-rects`](#checkpoint-03ck-rects) | Record actual widget bounds for mouse ownership. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Record actual widget bounds for mouse ownership` |
-| **19** | [`03ck-pointer`](#checkpoint-03ck-pointer) | Use pointer ownership to edit, choose a name and fold history. | `src/browser.rs`, `src/panel.rs` | `Use pointer ownership to edit, choose a name and fold history` |
-| **20** | [`03cl-wheel`](#checkpoint-03cl-wheel) | Keep scrolling over the dock inside the command list. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Keep scrolling over the dock inside the command list` |
-| **21** | [`03c-layout`](#checkpoint-03c-layout) | Connect the existing row and history to one shared layout. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Connect the existing row and history to one shared layout` |
-| **22** | [`03co-align`](#checkpoint-03co-align) | Align label and field text, and record the dock edge for later fitting. | `src/command_dock/mod.rs` | `22 px row → centred layout → drawn dock edge → future usable viewport` |
-| **23** | [`03cp-options`](#checkpoint-03cp-options) | Own active-tool value buttons beside the command field. | `src/command_dock/mod.rs`, `src/lib.rs`, `src/command_dock/tool_buttons_tests.rs` | `tool value labels → measured button width → command field reservation → option-owned pointer and keyboard focus` |
-| **24** | [`03cn-handoff`](#checkpoint-03cn-handoff) | Keep editing local and return accepted names to the caller. | `src/browser.rs`, `src/panel.rs` | `Keep editing local and return accepted names to the caller` |
-| **25** | [`03d-input`](#checkpoint-03d-input) | Return accepted commands while keeping editing inside Panel. | `src/browser.rs` | `Return accepted commands while keeping editing inside Panel` |
+![Recorded visual output for Lesson 1.3 (03d-input)](../../screenshots/journey/03d-input-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-03-triangle"></a>
 
 ### Step 1 of 25 · Give the GPU three corners (`03-triangle`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/25 Visual Trace (03-triangle): Give the GPU three corners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Three shader positions</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">triangle coverage</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fragment colour</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">canvas</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle.wgsl, src/re…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fragment colour</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">canvas</text>
 </svg>
-</div>
-
-- **Goal:** Draw a pink triangle on the white background.
-- **Data Flow Trace:** `Three shader positions → triangle coverage → fragment colour → canvas`
-- **Files You Touch:** `src/triangle.wgsl` (*Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink.*) · `src/renderer.rs` (*Create and retain the triangle shader pipeline.*) · `src/browser.rs` (*Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.*)
 
 Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.
 
 The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
 
-A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
-
-> **Self-Check Question:** *If you change the top vertex, which part of the picture changes, and which stays the same?*  
-> **Answer:** The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
-
-- **What You Should See:** A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
-- **Hands-On Lab Experiment:** Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`. Run it: the top should move right while the base stays still. Then change only the fragment colour. Explain why that changes the inside colour but not the silhouette. Restore both edits.
-
-<details>
-<summary>Implementation 03-triangle: Give the GPU three corners</summary>
+> **Check:** *If you change the top vertex, which part of the picture changes, and which stays the same?* — The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
 
 ### 1. `src/triangle.wgsl`
 
@@ -251,47 +113,6 @@ Create the file and type:
 ### 2. `src/renderer.rs`
 
 Create and retain the triangle shader pipeline. Bind the pipeline and draw its three vertices.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-}
-
-impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
-        Self { device, queue }
-    }
-
-    pub fn draw(&self, view: &wgpu::TextureView) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -359,40 +180,9 @@ impl Renderer {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03-triangle-fullscreen-2.rs"
-```
-
-```text
---8<-- "journey/code/03-triangle-fullscreen-3.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue);
-    present(&surface, &renderer)?;
-    report("The GPU painted the canvas.");
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -400,77 +190,46 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/03-triangle-window-1.rs"
 ```
 
-</details>
+**Result after `03-triangle`:** A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
+
+---
 
 <a id="checkpoint-03a-fonts"></a>
 
 ### Step 2 of 25 · Prepare the command fonts and painter (`03a-fonts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/25 Visual Trace (03a-fonts): Prepare the command fonts and painter</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/panel.rs, src/browser.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Embedded font bytes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared font definitions</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">egui context</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">GPU painter</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">egui context</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">GPU painter</text>
 </svg>
-</div>
-
-- **Goal:** Create the font and GPU painter owner while keeping the triangle.
-- **Data Flow Trace:** `Embedded font bytes → shared font definitions → egui context → GPU painter`
-- **Files You Touch:** `Cargo.toml` (*Add egui and its GPU painter.*) · `src/panel.rs` (*Keep the context and painter together.*) · `src/browser.rs` (*Create the painter owner before presenting the scene.*) · `src/lib.rs` (*Register the browser-only drawing modules.*) · `src/command_dock/theme.rs` (*Configure Noto fonts and the light theme.*) · `src/command_dock/mod.rs` (*Register the shared styling module.*)
 
 Prepare one owner for the command drawing. It keeps an `egui::Context` and a GPU painter. The browser constructs this owner now; the triangle stays unchanged until we connect drawing.
 
 `include_bytes!` embeds the three Noto font files in the program. Their static lifetime lets the font definitions retain them. `Arc` gives egui shared ownership of the font data; both families list the same font names. The `fonts` helper returns that configuration; `new` installs it, chooses the light theme and creates a painter using the existing device.
 
-The painter records interface work on our GPU. It does not need a second canvas or HTML controls.
-
-> **Self-Check Question:** *Why can the font configuration keep the embedded byte slices?*  
-> **Answer:** include_bytes! supplies bytes with a static lifetime, so FontData can retain those slices. Arc lets egui share the same font data allocation; both families refer to its registered name.
-
-- **What You Should See:** The triangle stays visible in the full window. The font and painter owner is constructed, but no interface drawing is connected yet.
-- **Hands-On Lab Experiment:** Change visuals.window_fill and rebuild. Predict why the triangle stays unchanged before the painter is called, then restore the colour.
-
-<details>
-<summary>Implementation 03a-fonts: Prepare the command fonts and painter</summary>
+> **Check:** *Why can the font configuration keep the embedded byte slices?* — include_bytes! supplies bytes with a static lifetime, so FontData can retain those slices. Arc lets egui share the same font data allocation; both families refer to its registered name.
 
 ### 1. `Cargo.toml`
 
 Add egui and its GPU painter.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-
-[dev-dependencies]
-pollster = "=0.4.0"
-log = "=0.4.34"
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -492,20 +251,6 @@ Create the file and type:
 
 Create the painter owner before presenting the scene.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    present(&surface, &renderer)?;
-    report("Three corners became a triangle.");
-    Ok(())
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -515,17 +260,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/lib.rs`
 
 Register the browser-only drawing modules.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    });
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -553,80 +287,46 @@ Create the file and type:
 --8<-- "journey/code/03a-fonts-06.rs"
 ```
 
-</details>
+**Result after `03a-fonts`:** The triangle stays visible in the full window. The font and painter owner is constructed, but no interface drawing is connected yet.
+
+---
 
 <a id="checkpoint-03a-paint"></a>
 
 ### Step 3 of 25 · Paint command text over the scene (`03a-paint`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/25 Visual Trace (03a-paint): Paint command text over the scene</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">RawInput</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">egui shapes and font</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">atlas</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">GPU upload</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Load pass</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">present</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs, src/browser…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">GPU upload</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">present</text>
 </svg>
-</div>
-
-- **Goal:** Draw a Command label over the triangle using the same GPU.
-- **Data Flow Trace:** `RawInput → egui shapes and font atlas → GPU upload → Load pass → present`
-- **Files You Touch:** `src/panel.rs` (*Lay out the label, upload its font atlas and draw over the scene.*) · `src/browser.rs` (*Create the panel and pass it into presentation.*)
 
 Draw the Command label after the triangle and before presenting the image. `RawInput` gives egui the available canvas size. `run_ui` calls our layout closure and returns shapes plus changed font-atlas pixels.
 
 Upload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.
 
-`forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.
-
-> **Self-Check Question:** *Why does the interface pass use Load?*  
-> **Answer:** The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.
-
-- **What You Should See:** Command: appears at the bottom of the full-window canvas. The triangle remains unchanged above it. Keyboard input is not connected yet.
-- **Hands-On Lab Experiment:** Change only Load to a white Clear, rebuild and see which earlier drawing disappears. Restore Load.
-
-<details>
-<summary>Implementation 03a-paint: Paint command text over the scene</summary>
+> **Check:** *Why does the interface pass use Load?* — The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.
 
 ### 1. `src/panel.rs`
 
 Lay out the label, upload its font atlas and draw over the scene.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Self { context, painter }
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -640,8 +340,7 @@ Create the panel and pass it into presentation. Draw the panel over the scene be
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ..Default::default()
@@ -651,8 +350,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -666,8 +363,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -684,8 +380,6 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsVal
         wgpu::CurrentSurfaceTexture::Success(frame)
         | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
 ```
-
-</details>
 
 Replace it with:
 
@@ -705,8 +399,7 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
         | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -775,76 +468,42 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
+**Result after `03a-paint`:** Command: appears at the bottom of the full-window canvas. The triangle remains unchanged above it. Keyboard input is not connected yet.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03a-paint-02.rs"
-```
-
-```text
---8<-- "journey/code/03a-paint-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03a-panel"></a>
 
 ### Step 4 of 25 · Lay out the command field (`03a-panel`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/25 Visual Trace (03a-panel): Lay out the command field</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs, src/command_dock/theme.rs, src/command_dock/mod.rs, src/command_dock/view.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Panel rectangle</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">spacing and text style</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local String</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">field response</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs, src/command…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local String</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">field response</text>
 </svg>
-</div>
-
-- **Goal:** Draw the production command field beside its label.
-- **Data Flow Trace:** `Panel rectangle → spacing and text style → local String → field response`
-- **Files You Touch:** `src/panel.rs` (*Own the field text in Panel and import its layout helpers.*) · `src/command_dock/theme.rs` (*Style selection and the caret for the command field.*) · `src/command_dock/mod.rs` (*Register the shared field layout.*) · `src/command_dock/view.rs` (*Add reusable panel, spacing and field functions.*)
 
 Add the command field beside its label. Keep panel sizing, shared spacing and field styling in the view module so later command behaviour can reuse them.
 
 The field receives `&mut String`: egui borrows the text for this draw instead of owning a separate copy. It returns a `Response` describing the widget. The current page still supplies no keyboard events, so drawing the field does not connect typing yet.
 
-The panel keeps its white fill, thin top rule, Noto text and unframed field. The history expansion control arrives with its behaviour in later steps.
-
-> **Self-Check Question:** *Why does the field receive &mut String?*  
-> **Answer:** The Panel owns the text. A mutable borrow lets the widget edit that same value during a draw without moving it or keeping a second copy.
-
-- **What You Should See:** The production command field appears beside Command: over the triangle. Input handling comes in the next command-line steps.
-- **Hands-On Lab Experiment:** Change the hint text, rebuild and check only the empty field hint changes. Restore it.
-
-<details>
-<summary>Implementation 03a-panel: Lay out the command field</summary>
+> **Check:** *Why does the field receive &mut String?* — The Panel owns the text. A mutable borrow lets the widget edit that same value during a draw without moving it or keeping a second copy.
 
 ### 1. `src/panel.rs`
 
@@ -852,8 +511,7 @@ Own the field text in Panel and import its layout helpers. Initialize empty text
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             ..Default::default()
@@ -868,8 +526,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         });
         // The font atlas is a texture: upload its changed pixels before drawing the letters.
 ```
-
-</details>
 
 Replace it with:
 
@@ -890,8 +546,7 @@ Replace it with:
         // The font atlas is a texture: upload its changed pixels before drawing the letters.
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -902,8 +557,6 @@ Replace it with:
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -917,8 +570,7 @@ Replace it with:
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::command_dock::theme;
@@ -931,8 +583,6 @@ pub struct Panel {
 
 impl Panel {
 ```
-
-</details>
 
 Replace it with:
 
@@ -949,8 +599,7 @@ pub struct Panel {
 impl Panel {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{theme, view};
@@ -1023,43 +672,9 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03a-panel-01.rs"
-```
-
-```text
---8<-- "journey/code/03a-panel-02.rs"
-```
-
-```text
---8<-- "journey/code/03a-panel-03.rs"
-```
-
-</details>
-
 ### 2. `src/command_dock/theme.rs`
 
 Style selection and the caret for the command field.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    visuals.panel_fill = egui::Color32::from_gray(245);
-    visuals.window_stroke = egui::Stroke::NONE;
-    visuals.extreme_bg_color = egui::Color32::WHITE;
-    visuals.text_cursor.blink = false; // frames are drawn on demand
-    visuals.indent_has_left_vline = false;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1070,15 +685,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 3. `src/command_dock/mod.rs`
 
 Register the shared field layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) mod theme;
-```
-
-</details>
 
 After that block, type:
 
@@ -1096,57 +702,42 @@ Create the file and type:
 --8<-- "journey/code/03a-panel-06.rs"
 ```
 
-</details>
+**Result after `03a-panel`:** The production command field appears beside Command: over the triangle. Input handling comes in the next command-line steps.
+
+---
 
 <a id="checkpoint-03b-memory"></a>
 
 ### Step 5 of 25 · Give the command field its memory (`03b-memory`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/25 Visual Trace (03b-memory): Give the command field its memory</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs, src/browser.rs, src/command_dock/mod.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Panel owns CommandLine</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">field borrows text</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">placeholder borrows status</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs, src/browser…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">field borrows text</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placeholder borrows sta…</text>
 </svg>
-</div>
-
-- **Goal:** Store the field text and history in one owned model.
-- **Data Flow Trace:** `Panel owns CommandLine → field borrows text → placeholder borrows status`
-- **Files You Touch:** `src/panel.rs` (*Replace the local String with an owned CommandLine.*) · `src/browser.rs` (*Report that the field now uses the command model.*) · `src/command_dock/mod.rs` (*Define the state and choose the empty-field hint from borrowed text.*)
 
 Replace the panel’s local `String` with `CommandLine`. The field now reads and edits `model.command`; its empty hint comes from `model.status`.
 
 `String` owns editable text. `VecDeque<String>` retains ordered history and can remove the oldest entry from the front. `Option` represents values that do not exist yet, such as an undrawn widget’s rectangle. `Default` starts strings and queues empty, flags false and optional values absent.
 
-`placeholder` returns borrowed text. Its lifetime keeps that slice tied to the supplied prompt or status. Rust allows the field to borrow command mutably and status immutably because they are separate fields.
-
-The model also reserves completion and input state used by the next lessons. Keyboard events are connected later.
-
-> **Self-Check Question:** *Which value keeps the command text between draws?*  
-> **Answer:** CommandLine inside Panel owns it. The field borrows model.command during layout; finishing the draw does not discard that String.
-
-- **What You Should See:** The empty field now shows “The field now belongs to CommandLine.” Change that initial status, save, and check the hint changes. Restore it. Keyboard input comes later.
-- **Hands-On Lab Experiment:** Change only the initial status. Predict which part of the dock changes, then rebuild and restore it.
-
-<details>
-<summary>Implementation 03b-memory: Give the command field its memory</summary>
+> **Check:** *Which value keeps the command text between draws?* — CommandLine inside Panel owns it. The field borrows model.command during layout; finishing the draw does not discard that String.
 
 ### 1. `src/panel.rs`
 
@@ -1154,8 +745,7 @@ Replace the local String with an owned CommandLine. Give the model its initial s
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 ui.horizontal(|ui| {
@@ -1166,8 +756,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 });
             });
 ```
-
-</details>
 
 Replace it with:
 
@@ -1181,8 +769,7 @@ Replace it with:
             });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -1193,8 +780,6 @@ Replace it with:
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1211,8 +796,7 @@ Replace it with:
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::command_dock::{theme, view};
@@ -1226,8 +810,6 @@ pub struct Panel {
 
 impl Panel {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1244,8 +826,7 @@ pub struct Panel {
 impl Panel {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{CommandLine, placeholder, theme, view};
@@ -1321,44 +902,9 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03b-memory-01.rs"
-```
-
-```text
---8<-- "journey/code/03b-memory-02.rs"
-```
-
-```text
---8<-- "journey/code/03b-memory-03.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Report that the field now uses the command model.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
-    present(&surface, &renderer, &mut panel)?;
-    report("Our command line is drawn. Input comes next.");
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1370,108 +916,52 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Define the state and choose the empty-field hint from borrowed text.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) mod theme;
-pub(crate) mod view;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03b-memory-05.rs"
 ```
 
-</details>
+**Result after `03b-memory`:** The empty field now shows “The field now belongs to CommandLine.” Change that initial status, save, and check the hint changes. Restore it. Keyboard input comes later.
+
+---
 
 <a id="checkpoint-03b-state"></a>
 
 ### Step 6 of 25 · Prepare the dock completion helpers (`03b-state`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/25 Visual Trace (03b-state): Prepare the dock completion helpers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Commands contract</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">optional inspection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">character-based caret positions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/command_d…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">optional inspection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">character-based caret p…</text>
 </svg>
-</div>
-
-- **Goal:** Give the upcoming layout a vocabulary contract and caret helpers.
-- **Data Flow Trace:** `Commands contract → optional inspection → character-based caret positions`
-- **Files You Touch:** `Cargo.toml` (*Enable the browser event, canvas geometry and focus bindings.*) · `src/command_dock/mod.rs` (*Define the application vocabulary contract without coupling the dock to scene types.*) · `src/panel.rs` (*Import the module name for the following shared helper calls.*)
 
 The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices refer to its fixed vocabulary.
 
 `Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.
 
-Caret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.
-
-These helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.
-
-> **Self-Check Question:** *Why does the caret helper use chars().count()?*  
-> **Answer:** String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.
-
-- **What You Should See:** The connected field looks exactly as before. The vocabulary, inspection and caret helpers are ready for the following layout and input lessons.
-- **Hands-On Lab Experiment:** For é🙂x, predict the byte length and character count. Compare len() with chars().count() in a small Rust scratch program.
-
-<details>
-<summary>Implementation 03b-state: Prepare the dock completion helpers</summary>
+> **Check:** *Why does the caret helper use chars().count()?* — String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.
 
 ### 1. `Cargo.toml`
 
 Enable the browser event, canvas geometry and focus bindings. Add serde serialization and JSON inspection dependencies.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-[package]
-name = "viewer_journey"
-version = "0.1.0"
-edition = "2024"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[workspace]
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "Event"] }
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-
-egui = { version = "=0.34.3", default-features = false }
-egui-wgpu = { version = "=0.34.3", default-features = false }
-
-[dev-dependencies]
-pollster = "=0.4.0"
-log = "=0.4.34"
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1504,68 +994,9 @@ pollster = "=0.4.0"
 log = "=0.4.34"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03b-state-01.toml"
-```
-
-```text
---8<-- "journey/code/03b-state-02.toml"
-```
-
-</details>
-
 ### 2. `src/command_dock/mod.rs`
 
 Define the application vocabulary contract without coupling the dock to scene types. Record actual widget bounds only when inspection is enabled. Add character-based caret and prefix helpers for the dock. Keep the helper declarations separated by a blank line.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::collections::VecDeque;
-
-pub(crate) mod theme;
-pub(crate) mod view;
-
-/// What the command line shows and remembers between frames.
-#[derive(Default)]
-pub struct CommandLine {
-    pub(crate) command_open: bool,                  // command line shown
-    pub(crate) command: String,                     // text in the command field
-    pub(crate) drawing_prompt: String,              // prompt while drawing
-    pub(crate) focus_command: bool,                 // give the field focus next frame
-    pub(crate) status: String,                      // status line text
-    pub(crate) history: VecDeque<String>,           // past commands and answers
-    pub(crate) command_expanded: bool,              // history shown above the field
-    pub(crate) completion: usize,                   // highlighted completion index
-    pub(crate) completion_prefix: String,           // text the completions match
-    pub(crate) inline_suffix: bool,                 // completion suffix shown in the field
-    pub(crate) completion_visible: bool,            // completion list shown
-    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
-    pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
-    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
-}
-
-/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.
-pub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {
-    if !prompt.is_empty() {
-        return prompt;
-    }
-
-    if !expanded && !status.is_empty() {
-        return status;
-    }
-
-    "Type a command"
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1686,42 +1117,9 @@ pub(crate) fn command_cursor_select(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03b-state-03.rs"
-```
-
-```text
---8<-- "journey/code/03b-state-04.rs"
-```
-
-```text
---8<-- "journey/code/03b-state-05.rs"
-```
-
-```text
---8<-- "journey/code/03b-state-direct-03.rs"
-```
-
-</details>
-
 ### 3. `src/panel.rs`
 
 Import the module name for the following shared helper calls.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::command_dock::{CommandLine, placeholder, theme, view};
-use crate::renderer::Renderer;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1729,58 +1127,44 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/03b-state-direct-04.rs"
 ```
 
-</details>
+**Result after `03b-state`:** The connected field looks exactly as before. The vocabulary, inspection and caret helpers are ready for the following layout and input lessons.
+
+---
 
 <a id="checkpoint-03c-history"></a>
 
 ### Step 7 of 25 · Draw retained command history (`03c-history`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/25 Visual Trace (03c-history): Draw retained command history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Draw retained history above the field</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Draw retained history a…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Draw retained history a…</text>
 </svg>
-</div>
-
-- **Goal:** Draw retained history above the field.
-- **Data Flow Trace:** `Draw retained history above the field`
-- **Files You Touch:** `src/browser.rs` (*Report that history is drawn.*) · `src/command_dock/mod.rs` (*Draw retained history and its divider.*) · `src/panel.rs` (*Start with expanded history and one retained sentence.*)
 
 Draw each retained String above the command field. ScrollArea borrows the entries; the model keeps them after drawing.
 
-> **Self-Check Question:** *Does drawing move the retained strings?*  
-> **Answer:** No. The loop borrows each entry.
-
-- **What You Should See:** The history sentence appears above the field.
-- **Hands-On Lab Experiment:** Change the initial history sentence and rebuild. The new sentence should appear above the field. Restore the original sentence afterward.
-
-<details>
-<summary>Implementation 03c-history: Draw retained command history</summary>
+> **Check:** *Does drawing move the retained strings?* — No. The loop borrows each entry.
 
 ### 1. `src/browser.rs`
 
 Report that history is drawn.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    present(&surface, &renderer, &mut panel)?;
-    report("The command model owns the text and history.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1791,16 +1175,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/command_dock/mod.rs`
 
 Draw retained history and its divider.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1814,8 +1188,7 @@ Start with expanded history and one retained sentence. Choose panel height from 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             ..Default::default()
@@ -1833,8 +1206,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         });
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1854,8 +1225,7 @@ Replace it with:
         });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
@@ -1866,8 +1236,6 @@ Replace it with:
         } }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1882,8 +1250,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, placeholder, theme, view};
@@ -1961,83 +1328,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03c-history`:** The history sentence appears above the field.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03c-history-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03c-history-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03c-history-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03c-history-direct-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03ca-typing"></a>
 
 ### Step 8 of 25 · Type directly into the command field (`03ca-typing`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/25 Visual Trace (03ca-typing): Type directly into the command field</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Send the first printable key directly into the field</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/panel…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Send the first printabl…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Send the first printabl…</text>
 </svg>
-</div>
-
-- **Goal:** Send the first printable key directly into the field.
-- **Data Flow Trace:** `Send the first printable key directly into the field`
-- **Files You Touch:** `src/browser.rs` (*Retain the panel in keyboard callbacks; redraw and inspect accepted input.*) · `src/panel.rs` (*Store pending egui events in Panel.*)
 
 Focus the field before sending the first Text event. Panel owns the event queue; mem::take leaves it empty after drawing.
 
-> **Self-Check Question:** *Why focus before Text?*  
-> **Answer:** The editor needs focus when egui processes the first character.
-
-- **What You Should See:** Click the scene and type G. G appears immediately in the command field.
-- **Hands-On Lab Experiment:** Click the triangle and type xyz without clicking the field. All three letters should appear in order.
-
-<details>
-<summary>Implementation 03ca-typing: Type directly into the command field</summary>
+> **Check:** *Why focus before Text?* — The editor needs focus when egui processes the first character.
 
 ### 1. `src/browser.rs`
 
 Retain the panel in keyboard callbacks; redraw and inspect accepted input.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    present(&surface, &renderer, &mut panel)?;
-    report("The history panel is drawn.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2051,8 +1379,7 @@ Store pending egui events in Panel. Initialize the empty event queue. Focus befo
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 ui.horizontal(|ui| {
@@ -2063,8 +1390,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 });
             });
 ```
-
-</details>
 
 Replace it with:
 
@@ -2078,8 +1403,7 @@ Replace it with:
             });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -2100,8 +1424,6 @@ Replace it with:
                 egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),
             )),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2148,8 +1470,7 @@ Replace it with:
             )),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     context: egui::Context,
@@ -2159,8 +1480,6 @@ Replace it with:
 
 impl Panel {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2174,8 +1493,7 @@ Replace it with:
 impl Panel {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, placeholder, theme, view};
@@ -2277,72 +1595,40 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03ca-typing`:** Click the scene and type G. G appears immediately in the command field.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03ca-typing-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03ca-typing-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03ca-typing-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03ca-typing-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03ca-typing-direct-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03cb-submit"></a>
 
 ### Step 9 of 25 · Submit command text once (`03cb-submit`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/25 Visual Trace (03cb-submit): Submit command text once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Clear submitted text and retain one history entry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Clear submitted text an…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Clear submitted text an…</text>
 </svg>
-</div>
-
-- **Goal:** Clear submitted text and retain one history entry.
-- **Data Flow Trace:** `Clear submitted text and retain one history entry`
-- **Files You Touch:** `src/browser.rs` (*Expose the actual retained history to browser inspection.*) · `src/command_dock/mod.rs` (*Take nonblank owned text and retain at most 200 history entries.*) · `src/panel.rs` (*Expose the model’s retained history by reference.*)
 
 Consume Enter before drawing the field. take_command moves a nonblank String out and leaves an empty String. remember retains at most 200 entries.
 
-> **Self-Check Question:** *Why take rather than clone the String?*  
-> **Answer:** Submission transfers its ownership once and clears the source.
-
-- **What You Should See:** Type Help and press Enter. One entry appears and the field clears. Empty Enter adds nothing.
-- **Hands-On Lab Experiment:** Submit Help twice. Two entries should appear; pressing Enter with an empty field should add none.
-
-<details>
-<summary>Implementation 03cb-submit: Submit command text once</summary>
+> **Check:** *Why take rather than clone the String?* — Submission transfers its ownership once and clears the source.
 
 ### 1. `src/browser.rs`
 
@@ -2350,8 +1636,7 @@ Expose the actual retained history to browser inspection. Report that Enter subm
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if let Err(error) = input_canvas.set_attribute("data-command", panel.command()) {
@@ -2367,8 +1652,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2390,8 +1673,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -2478,37 +1760,9 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cb-submit-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03cb-submit-direct-02.rs"
-```
-
-</details>
-
 ### 2. `src/command_dock/mod.rs`
 
 Take nonblank owned text and retain at most 200 history entries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        );
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2522,8 +1776,7 @@ Expose the model’s retained history by reference. Recognize Enter as an editin
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let output = self.context.run_ui(input, |root| {
@@ -2533,8 +1786,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 ui.horizontal(|ui| {
                     ui.set_max_width((ui.available_width() - 26.0).max(80.0));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2553,8 +1804,7 @@ Replace it with:
                     ui.set_max_width((ui.available_width() - 26.0).max(80.0));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2572,8 +1822,6 @@ Replace it with:
         } else if down && key.chars().count() == 1 {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2594,8 +1842,7 @@ Replace it with:
         } else if down && key.chars().count() == 1 {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, placeholder, theme, view};
@@ -2705,83 +1952,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cb-submit`:** Type Help and press Enter. One entry appears and the field clears. Empty Enter adds nothing.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cb-submit-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03cb-submit-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03cb-submit-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03cb-submit-direct-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03cc-edit"></a>
 
 ### Step 10 of 25 · Edit the command text (`03cc-edit`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/25 Visual Trace (03cc-edit): Edit the command text</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Keep text selection, deletion and Escape in the field</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep text selection, de…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep text selection, de…</text>
 </svg>
-</div>
-
-- **Goal:** Keep text selection, deletion and Escape in the field.
-- **Data Flow Trace:** `Keep text selection, deletion and Escape in the field`
-- **Files You Touch:** `src/browser.rs` (*Report that editing stays in the field.*) · `src/command_dock/mod.rs` (*Separate the model helpers with a blank line.*) · `src/panel.rs` (*Translate modifiers and named editing keys; ignore composing text.*)
 
 Translate modifiers and editing keys into egui events. Ctrl+A selects text; Backspace deletes it; Escape clears and closes the field.
 
-> **Self-Check Question:** *Why skip text when Ctrl or Alt is held?*  
-> **Answer:** Those keys modify an editing action rather than insert ordinary text.
-
-- **What You Should See:** Type abc, press Ctrl+A, type x, then Escape. The field clears.
-- **Hands-On Lab Experiment:** Type abc, press Backspace once, then Enter. History should contain ab. Escape should clear any unfinished text.
-
-<details>
-<summary>Implementation 03cc-edit: Edit the command text</summary>
+> **Check:** *Why skip text when Ctrl or Alt is held?* — Those keys modify an editing action rather than insert ordinary text.
 
 ### 1. `src/browser.rs`
 
 Report that editing stays in the field.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("Enter submits the owned command text.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2792,17 +2000,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/command_dock/mod.rs`
 
 Separate the model helpers with a blank line.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.history.push_back(line);
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2816,8 +2013,7 @@ Translate modifiers and named editing keys; ignore composing text. Consume Escap
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                         self.model.remember(format!("> {line}\n{}", self.model.status));
@@ -2827,8 +2023,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 ui.horizontal(|ui| {
                     ui.set_max_width((ui.available_width() - 26.0).max(80.0));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2846,8 +2040,7 @@ Replace it with:
                     ui.set_max_width((ui.available_width() - 26.0).max(80.0));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
@@ -2871,8 +2064,6 @@ Replace it with:
         true
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2904,8 +2095,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, placeholder, theme, view};
@@ -3025,62 +2215,42 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cc-edit`:** Type abc, press Ctrl+A, type x, then Escape. The field clears.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cc-edit-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03cc-edit-direct-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03cd-vocabulary"></a>
 
 ### Step 11 of 25 · Recognize Help (`03cd-vocabulary`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/25 Visual Trace (03cd-vocabulary): Recognize Help</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/command_vocabulary.rs, src/browser.rs, src/panel.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Connect known names and useful unknown-command replies</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/command_vocabulary.rs…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Connect known names and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Connect known names and…</text>
 </svg>
-</div>
-
-- **Goal:** Connect known names and useful unknown-command replies.
-- **Data Flow Trace:** `Connect known names and useful unknown-command replies`
-- **Files You Touch:** `src/command_vocabulary.rs` (*Rank exact words, then a whole-word extension, then remaining prefixes without replacing typed command meaning.*) · `src/browser.rs` (*Supply Help as the initial application vocabulary.*) · `src/panel.rs` (*Import the vocabulary trait methods.*) · `src/lib.rs` (*Compile the shared ranking helper alongside the first command dictionary.*)
 
 Commands borrows a fixed vocabulary. The adapter normalizes spacing and case; Help lists its names. Unknown input receives a useful reply.
 
 A matching prefix is not enough to choose inline completion. Rank an exact command first, then a match that extends at a word boundary. Keep the remaining prefixes in registry order. This prevents Select from becoming Selection before the user can type Object, and keeps an exact named view ahead of its longer variant.
 
-> **Self-Check Question:** *Why must an exact or whole-word command rank ahead of a longer character prefix?*  
-> **Answer:** Completion must preserve the words the user is typing. An exact match wins, a following space preserves the completed word, and a suffix inside that word must not replace it.
-
-- **What You Should See:** Type Help and press Enter. History shows Help as the available command.
-- **Hands-On Lab Experiment:** Submit lowercase help, then an unknown name. Help should still list the vocabulary; the unknown name should receive an error reply.
-
-<details>
-<summary>Implementation 03cd-vocabulary: Recognize Help</summary>
+> **Check:** *Why must an exact or whole-word command rank ahead of a longer character prefix?* — Completion must preserve the words the user is typing. An exact match wins, a following space preserves the completed word, and a suffix inside that word must not replace it.
 
 ### 1. `src/command_vocabulary.rs`
 
@@ -3098,8 +2268,7 @@ Supply Help as the initial application vocabulary. Report that Help is recognize
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
@@ -3109,8 +2278,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3123,8 +2290,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -3135,8 +2301,6 @@ Replace it with:
     let input_canvas = canvas.clone();
     let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3150,8 +2314,7 @@ Replace it with:
     let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -3238,31 +2401,13 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-02.rs"
-```
-
-</details>
-
 ### 3. `src/panel.rs`
 
 Import the vocabulary trait methods. Normalize names, find completions and answer Help or unknown input. Store the vocabulary adapter in Panel. Accept a static vocabulary in the constructor. Initialize the supplied vocabulary. Answer the submitted line through the vocabulary adapter.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 view::prepare(ui);
@@ -3274,8 +2419,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 }
                 if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3289,8 +2432,7 @@ Replace it with:
                 if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -3301,8 +2443,6 @@ Replace it with:
             history: ["Command history lives here.".into()].into(),
             ..Default::default()
 ```
-
-</details>
 
 Replace it with:
 
@@ -3316,8 +2456,7 @@ Replace it with:
             ..Default::default()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -3328,8 +2467,6 @@ impl Panel {
         context.set_fonts(theme::fonts([
             include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3343,8 +2480,7 @@ impl Panel {
             include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, placeholder, theme, view};
@@ -3355,8 +2491,6 @@ pub struct Panel {
     painter: egui_wgpu::Renderer,
     model: CommandLine,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3405,8 +2539,7 @@ pub struct Panel {
     model: CommandLine,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -3560,52 +2693,9 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03cd-vocabulary-ranked-panel.rs"
-```
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03cd-vocabulary-direct-08.rs"
-```
-
-</details>
-
 ### 4. `src/lib.rs`
 
 Compile the shared ranking helper alongside the first command dictionary.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch = "wasm32")]
-mod panel;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3617,69 +2707,44 @@ mod command_vocabulary;
 mod panel;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `03cd-vocabulary`:** Type Help and press Enter. History shows Help as the available command.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cd-vocabulary-ranked-lib.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03ce-complete"></a>
 
 ### Step 12 of 25 · Complete a command name (`03ce-complete`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/25 Visual Trace (03ce-complete): Complete a command name</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Select only the suggested suffix while retaining typed text</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Select only the suggest…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Select only the suggest…</text>
 </svg>
-</div>
-
-- **Goal:** Select only the suggested suffix while retaining typed text.
-- **Data Flow Trace:** `Select only the suggested suffix while retaining typed text`
-- **Files You Touch:** `src/browser.rs` (*Report that inline completion is connected.*) · `src/command_dock/mod.rs` (*Match names after changes and select only the suggested suffix.*) · `src/panel.rs` (*Keep the field response and refresh completion after editing.*)
 
 After the field changes, find a matching command name. Replace the text and select only the suggested suffix, so the next letter replaces that suffix.
 
-> **Self-Check Question:** *Why count characters instead of bytes?*  
-> **Answer:** egui caret positions use characters; UTF-8 characters can occupy several bytes.
-
-- **What You Should See:** Type He. The field shows Help with the suggested ending selected. Backspace leaves He.
-- **Hands-On Lab Experiment:** Type He, then x. The selected lp should be replaced by x, leaving Hex with no matching completion.
-
-<details>
-<summary>Implementation 03ce-complete: Complete a command name</summary>
+> **Check:** *Why count characters instead of bytes?* — egui caret positions use characters; UTF-8 characters can occupy several bytes.
 
 ### 1. `src/browser.rs`
 
 Report that inline completion is connected.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("Help recognizes the command vocabulary.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3691,17 +2756,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Match names after changes and select only the suggested suffix.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.history.push_back(line);
-    }
-}
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -3712,60 +2766,46 @@ After that block, type:
 
 Keep the field response and refresh completion after editing.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ce-complete-direct-03.rs"
 ```
 
-</details>
+**Result after `03ce-complete`:** Type He. The field shows Help with the suggested ending selected. Backspace leaves He.
+
+---
 
 <a id="checkpoint-03cf-accept"></a>
 
 ### Step 13 of 25 · Accept or cancel a completion (`03cf-accept`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/25 Visual Trace (03cf-accept): Accept or cancel a completion</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Use Tab, Enter and Escape without losing input ownership</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/command_dock/mod.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Use Tab, Enter and Esca…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Use Tab, Enter and Esca…</text>
 </svg>
-</div>
-
-- **Goal:** Use Tab, Enter and Escape without losing input ownership.
-- **Data Flow Trace:** `Use Tab, Enter and Escape without losing input ownership`
-- **Files You Touch:** `src/command_dock/mod.rs` (*Retain the editing-key results for this frame.*) · `src/panel.rs` (*Consume Enter and Tab before the field handles input.*)
 
 Read Enter and Tab before the field. finish accepts a completion, submits a nonblank command, or cancels with Escape.
 
-> **Self-Check Question:** *Why consume Enter once?*  
-> **Answer:** The field and command dispatcher must not both submit the same event.
-
-- **What You Should See:** Type He, then Tab. Help gains a trailing space. Escape clears it.
-- **Hands-On Lab Experiment:** Type He and press Tab. Check that history stays unchanged until you press Enter.
-
-<details>
-<summary>Implementation 03cf-accept: Accept or cancel a completion</summary>
+> **Check:** *Why consume Enter once?* — The field and command dispatcher must not both submit the same event.
 
 ### 1. `src/command_dock/mod.rs`
 
@@ -3773,16 +2813,13 @@ Retain the editing-key results for this frame. Accept completion, submit Enter o
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         model.completion_prefix.clone_from(&model.command);
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3846,8 +2883,7 @@ pub(crate) fn finish(
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3857,8 +2893,6 @@ pub(crate) fn refresh(
     ui: &egui::Ui,
     model: &mut CommandLine,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3879,8 +2913,7 @@ pub(crate) fn refresh(
     model: &mut CommandLine,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::collections::VecDeque;
@@ -4161,31 +3194,13 @@ pub(crate) fn finish(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cf-accept-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03cf-accept-direct-03.rs"
-```
-
-</details>
-
 ### 2. `src/panel.rs`
 
 Consume Enter and Tab before the field handles input. Route completion and submission through finish.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let output = self.context.run_ui(input, |root| {
@@ -4213,8 +3228,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             });
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4243,8 +3256,7 @@ Replace it with:
             });
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -4400,75 +3412,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cf-accept`:** Type He, then Tab. Help gains a trailing space. Escape clears it.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cf-accept-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03cf-accept-direct-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03cg-keys"></a>
 
 ### Step 14 of 25 · Read editing keys before the field (`03cg-keys`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/25 Visual Trace (03cg-keys): Read editing keys before the field</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Consume command editing once and restore field focus</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Consume command editing…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Consume command editing…</text>
 </svg>
-</div>
-
-- **Goal:** Consume command editing once and restore field focus.
-- **Data Flow Trace:** `Consume command editing once and restore field focus`
-- **Files You Touch:** `src/browser.rs` (*Report that editing keys are read first.*) · `src/command_dock/mod.rs` (*Handle a space inside the selected suffix; centralize editing and focus keys.*) · `src/panel.rs` (*Restore field focus before accepting the first text event.*)
 
 Move key handling into keys. Restore focus before text editing; suffix_space keeps a space inside a multiword completion rather than replacing the remaining name.
 
-> **Self-Check Question:** *Why restore focus before drawing the field?*  
-> **Answer:** The field must own input when it handles queued events.
-
-- **What You Should See:** Type He, press Tab, then Enter. The command is submitted once.
-- **Hands-On Lab Experiment:** Submit Help, then press Enter again without typing. Only the first Enter should create a history entry.
-
-<details>
-<summary>Implementation 03cg-keys: Read editing keys before the field</summary>
+> **Check:** *Why restore focus before drawing the field?* — The field must own input when it handles queued events.
 
 ### 1. `src/browser.rs`
 
 Report that editing keys are read first.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("The field completes known names.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4479,16 +3460,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/command_dock/mod.rs`
 
 Handle a space inside the selected suffix; centralize editing and focus keys.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub(crate) fn refresh(
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4502,8 +3473,7 @@ Restore field focus before accepting the first text event. Remove the replaced i
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let output = self.context.run_ui(input, |root| {
@@ -4525,8 +3495,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     let mut line = None;
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4544,8 +3512,7 @@ Replace it with:
                     let mut line = None;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let text = event.type_() == "keydown" && event.key().chars().count() == 1
@@ -4555,8 +3522,6 @@ Replace it with:
             self.model.command_open = true;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4570,8 +3535,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -4723,79 +3687,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cg-keys`:** Type He, press Tab, then Enter. The command is submitted once.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cg-keys-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03cg-keys-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03cg-keys-direct-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03ch-popup"></a>
 
 ### Step 15 of 25 · Show matching commands (`03ch-popup`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/25 Visual Trace (03ch-popup): Show matching commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Draw the matching names above the field</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Draw the matching names…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Draw the matching names…</text>
 </svg>
-</div>
-
-- **Goal:** Draw the matching names above the field.
-- **Data Flow Trace:** `Draw the matching names above the field`
-- **Files You Touch:** `src/browser.rs` (*Report that matching commands are drawn.*) · `src/command_dock/mod.rs` (*Draw matching names in a bounded popup and remember its rectangle.*) · `src/panel.rs` (*Clear the previous popup rectangle before layout.*)
 
 Draw matching names above the field. A scroll area bounds the list, and the model remembers its actual rectangle. Pointer selection is connected later.
 
-> **Self-Check Question:** *Why store the drawn rectangle?*  
-> **Answer:** Later pointer handling needs the actual layout bounds.
-
-- **What You Should See:** Type He. Help appears above the field as a suggestion.
-- **Hands-On Lab Experiment:** Clear the field and type Z. The Help suggestion should disappear because the prefix no longer matches.
-
-<details>
-<summary>Implementation 03ch-popup: Show matching commands</summary>
+> **Check:** *Why store the drawn rectangle?* — Later pointer handling needs the actual layout bounds.
 
 ### 1. `src/browser.rs`
 
 Report that matching commands are drawn.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("Editing keys are handled before the field.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4806,16 +3735,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/command_dock/mod.rs`
 
 Draw matching names in a bounded popup and remember its rectangle.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub(crate) fn finish(
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4829,8 +3748,7 @@ Clear the previous popup rectangle before layout. Draw current matches; preserve
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
@@ -4841,8 +3759,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
                     let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
 ```
-
-</details>
 
 Replace it with:
 
@@ -4858,8 +3774,7 @@ Replace it with:
                     let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             )),
@@ -4869,8 +3784,6 @@ Replace it with:
             view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
                 view::prepare(ui);
 ```
-
-</details>
 
 Replace it with:
 
@@ -4884,8 +3797,7 @@ Replace it with:
                 view::prepare(ui);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -5040,75 +3952,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03ch-popup`:** Type He. Help appears above the field as a suggestion.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03ch-popup-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03ch-popup-direct-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03ci-browse"></a>
 
 ### Step 16 of 25 · Browse matching names (`03ci-browse`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/25 Visual Trace (03ci-browse): Browse matching names</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Move through matching command names without changing the scene</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Move through matching c…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Move through matching c…</text>
 </svg>
-</div>
-
-- **Goal:** Move through matching command names without changing the scene.
-- **Data Flow Trace:** `Move through matching command names without changing the scene`
-- **Files You Touch:** `src/browser.rs` (*Report that arrow browsing is connected.*) · `src/command_dock/mod.rs` (*Wrap the match index and retain the original typed prefix.*) · `src/panel.rs` (*Use browse for arrow keys, Tab and popup choices.*)
 
 Use the original typed prefix while browsing matches. Arrow keys wrap the highlighted index; the selected suffix remains replaceable.
 
-> **Self-Check Question:** *Why retain the prefix while browsing?*  
-> **Answer:** The chosen suggestion must not become a new search filter.
-
-- **What You Should See:** Press ArrowDown in the empty field. Help appears. Escape clears it.
-- **Hands-On Lab Experiment:** Press ArrowDown twice in the empty field. The one-item list should wrap to Help without submitting it.
-
-<details>
-<summary>Implementation 03ci-browse: Browse matching names</summary>
+> **Check:** *Why retain the prefix while browsing?* — The chosen suggestion must not become a new search filter.
 
 ### 1. `src/browser.rs`
 
 Report that arrow browsing is connected.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("Matching commands appear above the field.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5120,16 +4001,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Wrap the match index and retain the original typed prefix.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub(crate) fn finish(
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -5140,77 +4011,50 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use browse for arrow keys, Tab and popup choices.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    let mut line = None;
-                    let choices = self.commands.completions(&self.model.completion_prefix);
-                    let complete = if self.model.completion_visible && !choices.is_empty() { command_dock::popup(ui, &mut self.model, &mut None, &choices, &response, 0) } else { None };
-                    let complete = complete.or_else(|| keys.tab.then(|| choices.first().copied()).flatten());
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ci-browse-direct-03.rs"
 ```
 
-</details>
+**Result after `03ci-browse`:** Press ArrowDown in the empty field. Help appears. Escape clears it.
+
+---
 
 <a id="checkpoint-03cj-prepare"></a>
 
 ### Step 17 of 25 · Prepare the dock before painting (`03cj-prepare`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/25 Visual Trace (03cj-prepare): Prepare the dock before painting</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Keep UI output owned until one GPU submission</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/panel…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep UI output owned un…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep UI output owned un…</text>
 </svg>
-</div>
-
-- **Goal:** Keep UI output owned until one GPU submission.
-- **Data Flow Trace:** `Keep UI output owned until one GPU submission`
-- **Files You Touch:** `src/browser.rs` (*Report that prepared UI is painted once.*) · `src/panel.rs` (*Own prepared output and the screen descriptor.*)
 
 Prepare UI output before painting. Append any additional layout output so changed font textures survive until the single GPU submission.
 
-> **Self-Check Question:** *Why append output before painting?*  
-> **Answer:** Another layout may add texture changes that the renderer still needs.
-
-- **What You Should See:** Type Help. Text and the triangle remain visible after repeated key events.
-- **Hands-On Lab Experiment:** Type and delete Help repeatedly. The triangle and command text should remain visible throughout.
-
-<details>
-<summary>Implementation 03cj-prepare: Prepare the dock before painting</summary>
+> **Check:** *Why append output before painting?* — Another layout may add texture changes that the renderer still needs.
 
 ### 1. `src/browser.rs`
 
 Report that prepared UI is painted once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("Arrow keys browse matching commands.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5224,8 +4068,7 @@ Own prepared output and the screen descriptor. Initialize pending output and scr
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             })],
@@ -5236,8 +4079,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         renderer.queue.submit(buffers);
         for id in output.textures_delta.free { self.painter.free_texture(&id); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5251,8 +4092,7 @@ Replace it with:
         for id in output.textures_delta.free { self.painter.free_texture(&id); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);
@@ -5263,8 +4103,6 @@ Replace it with:
         let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("command panel"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5278,8 +4116,7 @@ Replace it with:
             label: Some("command panel"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 });
@@ -5289,8 +4126,6 @@ Replace it with:
         for (id, delta) in &output.textures_delta.set {
             self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5311,8 +4146,7 @@ Replace it with:
             self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         true
@@ -5331,8 +4165,6 @@ Replace it with:
         };
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5351,8 +4183,7 @@ Replace it with:
         };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -5363,8 +4194,6 @@ Replace it with:
             history: ["Command history lives here.".into()].into(),
             ..Default::default()
 ```
-
-</details>
 
 Replace it with:
 
@@ -5379,8 +4208,7 @@ Replace it with:
             ..Default::default()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     painter: egui_wgpu::Renderer,
@@ -5390,8 +4218,6 @@ Replace it with:
 
 impl Panel {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5406,8 +4232,7 @@ Replace it with:
 impl Panel {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -5570,80 +4395,40 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cj-prepare`:** Type Help. Text and the triangle remain visible after repeated key events.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cj-prepare-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03cj-prepare-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03cj-prepare-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03cj-prepare-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03cj-prepare-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03cj-prepare-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03cj-prepare-direct-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03ck-rects"></a>
 
 ### Step 18 of 25 · Remember where the dock is drawn (`03ck-rects`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/25 Visual Trace (03ck-rects): Remember where the dock is drawn</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Record actual widget bounds for mouse ownership</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Record actual widget bo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Record actual widget bo…</text>
 </svg>
-</div>
-
-- **Goal:** Record actual widget bounds for mouse ownership.
-- **Data Flow Trace:** `Record actual widget bounds for mouse ownership`
-- **Files You Touch:** `src/browser.rs` (*Expose actual dock state and rectangles for inspection.*) · `src/command_dock/mod.rs` (*Record the fold control and toggle expanded history on click.*) · `src/panel.rs` (*Store current control bounds and the panel’s top edge.*)
 
 Record the real field and collapse-control rectangles. The inspector reads these bounds from egui responses rather than guessing their positions.
 
-> **Self-Check Question:** *Why use response rectangles?*  
-> **Answer:** They reflect the actual layout and scale used for this frame.
-
-- **What You Should See:** Type He. The field and suggestion remain correctly placed above the history.
-- **Hands-On Lab Experiment:** Compare the inspector’s command/input rectangle with the visible field. Its bounds should describe the drawn widget.
-
-<details>
-<summary>Implementation 03ck-rects: Remember where the dock is drawn</summary>
+> **Check:** *Why use response rectangles?* — They reflect the actual layout and scale used for this frame.
 
 ### 1. `src/browser.rs`
 
@@ -5651,8 +4436,7 @@ Expose actual dock state and rectangles for inspection. Report that drawn bounds
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
@@ -5662,8 +4446,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5676,8 +4458,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if let Err(error) = present(&surface, &renderer, &mut panel) {
@@ -5687,8 +4468,6 @@ Replace it with:
                 report(&format!("Cannot inspect text: {error:?}"));
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5704,8 +4483,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -5795,36 +4573,9 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03ck-rects-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-02.rs"
-```
-
-</details>
-
 ### 2. `src/command_dock/mod.rs`
 
 Record the fold control and toggle expanded history on click.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    false
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -5838,8 +4589,7 @@ Store current control bounds and the panel’s top edge. Initialize inspection s
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
@@ -5849,8 +4599,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         // The font atlas is a texture: upload its changed pixels before drawing the letters.
         for (id, delta) in &output.textures_delta.set {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5864,8 +4612,7 @@ Replace it with:
         for (id, delta) in &output.textures_delta.set {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             ..Default::default()
@@ -5894,8 +4641,6 @@ Replace it with:
         else { self.output = Some(output); }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5929,8 +4674,7 @@ Replace it with:
         else { self.output = Some(output); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         true
@@ -5940,8 +4684,6 @@ Replace it with:
         let size = self.screen.size_in_pixels;
         let input = egui::RawInput {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5960,8 +4702,7 @@ Replace it with:
         let input = egui::RawInput {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -5972,8 +4713,6 @@ Replace it with:
             command_expanded: true,
             history: ["Command history lives here.".into()].into(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5987,8 +4726,7 @@ Replace it with:
             history: ["Command history lives here.".into()].into(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5998,8 +4736,6 @@ pub struct Panel {
     painter: egui_wgpu::Renderer,
     model: CommandLine,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6014,8 +4750,7 @@ pub struct Panel {
     model: CommandLine,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -6191,96 +4926,40 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03ck-rects`:** Type He. The field and suggestion remain correctly placed above the history.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03ck-rects-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-08.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-09.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-10.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-11.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-12.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-13.rs"
-```
-
-```text
---8<-- "journey/code/03ck-rects-direct-14.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03ck-pointer"></a>
 
 ### Step 19 of 25 · Click the command dock (`03ck-pointer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/25 Visual Trace (03ck-pointer): Click the command dock</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Use pointer ownership to edit, choose a name and fold history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/panel…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Use pointer ownership t…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Use pointer ownership t…</text>
 </svg>
-</div>
-
-- **Goal:** Use pointer ownership to edit, choose a name and fold history.
-- **Data Flow Trace:** `Use pointer ownership to edit, choose a name and fold history`
-- **Files You Touch:** `src/browser.rs` (*Dispatch keyboard and pointer events through one retained callback.*) · `src/panel.rs` (*Retain pointer ownership between press and release.*)
 
 Translate mouse positions into canvas coordinates. Keep a press owned until release or cancellation. collapse changes layout while retained history stays in the model.
 
-> **Self-Check Question:** *Why retain pointer ownership?*  
-> **Answer:** A drag must stay with the widget even after leaving its rectangle.
-
-- **What You Should See:** Click the history fold control. History folds away; click again to restore it.
-- **Hands-On Lab Experiment:** Press the history fold control, drag outside it, and release. The cancelled click should leave history expanded.
-
-<details>
-<summary>Implementation 03ck-pointer: Click the command dock</summary>
+> **Check:** *Why retain pointer ownership?* — A drag must stay with the widget even after leaving its rectangle.
 
 ### 1. `src/browser.rs`
 
@@ -6288,8 +4967,7 @@ Dispatch keyboard and pointer events through one retained callback. Register poi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -6304,8 +4982,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -6321,8 +4997,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
@@ -6334,8 +5009,6 @@ Replace it with:
                 report(&format!("Cannot redraw: {error:?}"));
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6352,8 +5025,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -6445,35 +5117,13 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03ck-pointer-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03ck-pointer-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03ck-pointer-direct-03.rs"
-```
-
-</details>
-
 ### 2. `src/panel.rs`
 
 Retain pointer ownership between press and release. Initialize pointer ownership. Translate canvas coordinates, preserve drag ownership and release cancelled buttons. Expose pointer ownership so cancellation can be checked against the actual event handler.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         true
@@ -6485,8 +5135,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6530,8 +5178,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -6542,8 +5189,6 @@ Replace it with:
             command_expanded: true,
             history: ["Command history lives here.".into()].into(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -6557,8 +5202,7 @@ Replace it with:
             history: ["Command history lives here.".into()].into(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -6568,8 +5212,6 @@ pub struct Panel {
     controls: Option<Vec<command_dock::Control>>,
     context: egui::Context,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6583,8 +5225,7 @@ pub struct Panel {
     context: egui::Context,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -6790,68 +5431,40 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03ck-pointer`:** Click the history fold control. History folds away; click again to restore it.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03ck-pointer-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03ck-pointer-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03ck-pointer-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03ck-pointer-owned-inspection.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03cl-wheel"></a>
 
 ### Step 20 of 25 · Scroll through command names (`03cl-wheel`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/25 Visual Trace (03cl-wheel): Scroll through command names</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Keep scrolling over the dock inside the command list</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep scrolling over the…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep scrolling over the…</text>
 </svg>
-</div>
-
-- **Goal:** Keep scrolling over the dock inside the command list.
-- **Data Flow Trace:** `Keep scrolling over the dock inside the command list`
-- **Files You Touch:** `src/browser.rs` (*Dispatch wheel events to Panel.*) · `src/command_dock/mod.rs` (*Consume wheel movement over the field or previous popup.*) · `src/panel.rs` (*Queue wheel units and deltas at the canvas pointer position.*)
 
 Queue wheel input with the pointer position. Consume scrolling over the field or previous suggestion rectangle before it can reach the scene.
 
-> **Self-Check Question:** *Why remember the previous popup rectangle?*  
-> **Answer:** Input arrives before this frame draws the new popup.
-
-- **What You Should See:** Move the mouse over the field and scroll. Help is selected in the command list.
-- **Hands-On Lab Experiment:** Scroll in both directions over the empty field. The one-item list should wrap to Help without submitting it.
-
-<details>
-<summary>Implementation 03cl-wheel: Scroll through command names</summary>
+> **Check:** *Why remember the previous popup rectangle?* — Input arrives before this frame draws the new popup.
 
 ### 1. `src/browser.rs`
 
@@ -6859,8 +5472,7 @@ Dispatch wheel events to Panel. Register wheel input with preventDefault enabled
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
@@ -6871,8 +5483,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6889,8 +5499,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let input_canvas = canvas.clone();
@@ -6900,8 +5509,6 @@ Replace it with:
         {
             if let Err(error) = present(&surface, &renderer, &mut panel) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6915,8 +5522,7 @@ Replace it with:
             if let Err(error) = present(&surface, &renderer, &mut panel) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -7012,35 +5618,13 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cl-wheel-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03cl-wheel-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03cl-wheel-direct-03.rs"
-```
-
-</details>
-
 ### 2. `src/command_dock/mod.rs`
 
 Consume wheel movement over the field or previous popup. Focus the field when scrolling its command names. Give wheel browsing priority over arrow browsing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -7052,8 +5636,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             if input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown) {
                 1
 ```
-
-</details>
 
 Replace it with:
 
@@ -7075,8 +5657,7 @@ Replace it with:
                 1
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub(crate) deletes: bool,
@@ -7086,8 +5667,6 @@ pub(crate) fn suffix_space(ui: &egui::Ui, model: &mut CommandLine, id: egui::Id,
     if model.inline_suffix
         && focused
 ```
-
-</details>
 
 Replace it with:
 
@@ -7128,8 +5707,7 @@ pub(crate) fn suffix_space(ui: &egui::Ui, model: &mut CommandLine, id: egui::Id,
         && focused
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::collections::VecDeque;
@@ -7642,35 +6220,13 @@ pub(crate) fn collapse(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cl-wheel-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03cl-wheel-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03cl-wheel-direct-06.rs"
-```
-
-</details>
-
 ### 3. `src/panel.rs`
 
 Queue wheel units and deltas at the canvas pointer position. Take the previous popup rectangle before drawing. Pass previous popup bounds to key and wheel handling.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     ui.set_max_width((ui.available_width() - 26.0).max(80.0));
@@ -7681,8 +6237,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     self.model.command_rect = Some(response.rect);
                     command_dock::record(&mut self.controls, "command/input", "Command", &response);
 ```
-
-</details>
 
 Replace it with:
 
@@ -7696,8 +6250,7 @@ Replace it with:
                     command_dock::record(&mut self.controls, "command/input", "Command", &response);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             )),
@@ -7708,8 +6261,6 @@ Replace it with:
         let output = self.context.run_ui(input, |root| {
             let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7723,8 +6274,7 @@ Replace it with:
             let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         owned
@@ -7734,8 +6284,6 @@ Replace it with:
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
             "pointer_owned": self.pointer_owned,
 ```
-
-</details>
 
 Replace it with:
 
@@ -7761,8 +6309,7 @@ Replace it with:
             "pointer_owned": self.pointer_owned,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -7981,79 +6528,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cl-wheel`:** Move the mouse over the field and scroll. Help is selected in the command list.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cl-wheel-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03cl-wheel-direct-08.rs"
-```
-
-```text
---8<-- "journey/code/03cl-wheel-direct-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03c-layout"></a>
 
 ### Step 21 of 25 · Share the production dock layout (`03c-layout`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/25 Visual Trace (03c-layout): Share the production dock layout</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/command_dock/mod.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Connect the existing row and history to one shared layout</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/comma…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Connect the existing ro…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Connect the existing ro…</text>
 </svg>
-</div>
-
-- **Goal:** Connect the existing row and history to one shared layout.
-- **Data Flow Trace:** `Connect the existing row and history to one shared layout`
-- **Files You Touch:** `src/browser.rs` (*Report that the shared production layout is connected.*) · `src/command_dock/mod.rs` (*Combine the connected field, history and controls into row and draw.*) · `src/panel.rs` (*Remove imports now owned by the shared layout.*)
 
 Put the already connected helpers into one row and layout. The same command_dock source now draws both this lesson and the production viewer.
 
-> **Self-Check Question:** *Does sharing the layout give it ownership of the scene?*  
-> **Answer:** No. It edits the model and returns an accepted command to its caller.
-
-- **What You Should See:** Type Help and press Enter. The shared dock clears the field and adds one answer.
-- **Hands-On Lab Experiment:** Submit Help, fold history, then expand it. The retained answer should return.
-
-<details>
-<summary>Implementation 03c-layout: Share the production dock layout</summary>
+> **Check:** *Does sharing the layout give it ownership of the scene?* — No. It edits the model and returns an accepted command to its caller.
 
 ### 1. `src/browser.rs`
 
 Report that the shared production layout is connected.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    redraw.forget();
-    report("Scrolling selects a command name.");
-    Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8064,17 +6576,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/command_dock/mod.rs`
 
 Combine the connected field, history and controls into row and draw.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        ui.ctx().request_repaint();
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -8088,8 +6589,7 @@ Remove imports now owned by the shared layout. Remove inline setup handled by co
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             )),
@@ -8124,8 +6624,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -8146,8 +6644,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};
@@ -8155,8 +6652,6 @@ use crate::renderer::Renderer;
 
 struct Commands(&'static [&'static str]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -8167,8 +6662,7 @@ use crate::renderer::Renderer;
 struct Commands(&'static [&'static str]);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -8372,86 +6866,42 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03c-layout`:** Type Help and press Enter. The shared dock clears the field and adds one answer.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03c-layout-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03c-layout-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03c-layout-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03c-layout-direct-08.rs"
-```
-
-```text
---8<-- "journey/code/03c-layout-direct-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03co-align"></a>
 
 ### Step 22 of 25 · Align and measure the command row (`03co-align`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/25 Visual Trace (03co-align): Align and measure the command row</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/command_dock/mod.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">22 px row</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">centred layout</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drawn dock edge</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">future usable viewport</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/command_dock/mod.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">drawn dock edge</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">future usable viewport</text>
 </svg>
-</div>
-
-- **Goal:** Align label and field text, and record the dock edge for later fitting.
-- **Data Flow Trace:** `22 px row → centred layout → drawn dock edge → future usable viewport`
-- **Files You Touch:** `src/command_dock/mod.rs` (*Use the field height and centre the row’s children.*)
 
 Give the shared row the field’s height and centre its children vertically. Store the drawn dock edge on the existing model.
 
 The row still returns accepted commands to its caller. The new optional edge is layout metadata, not scene state. Later fitting uses it to keep geometry above the dock.
 
-> **Self-Check Question:** *Why record the dock edge while drawing instead of assuming a fixed footer height?*  
-> **Answer:** The current layout knows the actual edge. Later fitting can use that value when history or other panels change the visible canvas.
-
-- **What You Should See:** Type Help, then click the drawing. The Command label and field text share a centre line; the dock retains its current top edge.
-- **Hands-On Lab Experiment:** Temporarily change the row height, redraw, then restore 22 px. Compare the label and typed text.
-
-<details>
-<summary>Implementation 03co-align: Align and measure the command row</summary>
+> **Check:** *Why record the dock edge while drawing instead of assuming a fixed footer height?* — The current layout knows the actual edge. Later fitting can use that value when history or other panels change the visible canvas.
 
 ### 1. `src/command_dock/mod.rs`
 
@@ -8459,8 +6909,7 @@ Use the field height and centre the row’s children. Keep the actual dock edge 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let mut focus_canvas = false;
@@ -8470,8 +6919,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         focus_canvas = row(
             ui,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8485,8 +6932,7 @@ Replace it with:
             ui,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     escape_allowed: bool,
@@ -8498,8 +6944,6 @@ Replace it with:
         let id = egui::Id::new("command-input");
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -8515,8 +6959,7 @@ Replace it with:
         let id = egui::Id::new("command-input");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub(crate) command: String,                     // text in the command field
@@ -8526,8 +6969,6 @@ Replace it with:
     pub(crate) history: VecDeque<String>,           // past commands and answers
     pub(crate) command_expanded: bool,              // history shown above the field
 ```
-
-</details>
 
 Replace it with:
 
@@ -8541,8 +6982,7 @@ Replace it with:
     pub(crate) command_expanded: bool,              // history shown above the field
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::collections::VecDeque;
@@ -9140,77 +7580,40 @@ pub fn draw(
 }
 ```
 
-</details>
+**Result after `03co-align`:** Type Help, then click the drawing. The Command label and field text share a centre line; the dock retains its current top edge.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03co-align-01.rs"
-```
-
-```text
---8<-- "journey/code/03co-align-02.rs"
-```
-
-```text
---8<-- "journey/code/03co-align-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03cp-options"></a>
 
 ### Step 23 of 25 · Reserve command-row space for active tool values (`03cp-options`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/25 Visual Trace (03cp-options): Reserve command-row space for active tool values</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/command_dock/mod.rs, src/lib.rs, src/command_dock/tool_buttons_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">tool value labels</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measured button width</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">command field reservation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">option-owned pointer and</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">keyboard…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/command_dock/mod.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">command field reservati…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">option-owned pointer an…</text>
 </svg>
-</div>
-
-- **Goal:** Own active-tool value buttons beside the command field.
-- **Data Flow Trace:** `tool value labels → measured button width → command field reservation → option-owned pointer and keyboard focus`
-- **Files You Touch:** `src/command_dock/mod.rs` (*Measure active value buttons, reserve field width and return their owned commands.*) · `src/lib.rs` (*Compile the shared dock for native widget checks.*) · `src/command_dock/tool_buttons_tests.rs` (*Copy actual value-button, focus, text, completion and Enter checks.*)
 
 Reserve measured space for active-tool values and keep their taps in the command dock. Empty options preserve ordinary command completion; interactive tools supply values later.
 
-> **Self-Check Question:** *Does clicking Create decide when geometry is committed?*  
-> **Answer:** No. It returns an empty command to the active tool. That owner decides whether Enter keeps an asked value or creates geometry.
-
-- **What You Should See:** Type Help and fold the command history. This preparation keeps the ordinary command row; value buttons appear when an active tool supplies options in the later tool lesson. The optional supplied widget fixture records button, typed-value and Enter behavior.
-- **Hands-On Lab Experiment:** In the copied widget check, compare the button rectangle with the command-field rectangle and verify that a running tool suppresses unrelated completion.
-
-<details>
-<summary>Implementation 03cp-options: Reserve command-row space for active tool values</summary>
+> **Check:** *Does clicking Create decide when geometry is committed?* — No. It returns an empty command to the active tool. That owner decides whether Enter keeps an asked value or creates geometry.
 
 ### 1. `src/command_dock/mod.rs`
 
@@ -9218,8 +7621,7 @@ Measure active value buttons, reserve field width and return their owned command
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     focus_canvas
@@ -9229,8 +7631,6 @@ pub fn draw(
     root: &mut egui::Ui,
     model: &mut CommandLine,
 ```
-
-</details>
 
 Replace it with:
 
@@ -9311,8 +7711,7 @@ pub fn draw(
     model: &mut CommandLine,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ui.label("Command:");
@@ -9329,8 +7728,6 @@ pub fn draw(
         record(controls, "command/input", "Command", &response);
         refresh(ui, model, &response, commands, id, keys.deletes);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9351,8 +7748,7 @@ Replace it with:
         refresh(ui, model, &response, commands, id, keys.deletes);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         model.completion_visible = true;
@@ -9362,8 +7758,6 @@ Replace it with:
         return None;
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9377,8 +7771,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::collections::VecDeque;
@@ -10046,40 +8439,9 @@ pub fn draw(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cp-options-01.rs"
-```
-
-```text
---8<-- "journey/code/03cp-options-02.rs"
-```
-
-```text
---8<-- "journey/code/03cp-options-03.rs"
-```
-
-</details>
-
 ### 2. `src/lib.rs`
 
 Compile the shared dock for native widget checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch = "wasm32")]
-mod command_dock;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10087,8 +8449,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/03cp-options-04.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -10102,45 +8463,40 @@ Copy this supplied file:
 --8<-- "journey/code/03cp-options-05.rs"
 ```
 
-</details>
+**Result after `03cp-options`:** Type Help and fold the command history. This preparation keeps the ordinary command row; value buttons appear when an active tool supplies options in the later tool lesson. The optional supplied widget fixture records button, typed-value and Enter behavior.
 
-</details>
+---
 
 <a id="checkpoint-03cn-handoff"></a>
 
 ### Step 24 of 25 · Return accepted application commands (`03cn-handoff`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/25 Visual Trace (03cn-handoff): Return accepted application commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Keep editing local and return accepted names to the caller</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/panel…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep editing local and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Keep editing local and…</text>
 </svg>
-</div>
-
-- **Goal:** Keep editing local and return accepted names to the caller.
-- **Data Flow Trace:** `Keep editing local and return accepted names to the caller`
-- **Files You Touch:** `src/browser.rs` (*Prepare the initial dock before presenting.*) · `src/panel.rs` (*Remove replies now handled by Panel.update.*)
 
 Panel.update prepares input and returns an accepted application name. Help and unknown-command replies stay local; the caller will handle scene actions.
 
-> **Self-Check Question:** *Why return Option<String>?*  
-> **Answer:** Most input edits the field; only an accepted application command needs dispatch.
-
-- **What You Should See:** Type Help and press Enter. The field clears and exactly one answer appears.
-- **Hands-On Lab Experiment:** Submit an unknown name. The dock should answer locally and leave the triangle unchanged.
-
-<details>
-<summary>Implementation 03cn-handoff: Return accepted application commands</summary>
+> **Check:** *Why return Option<String>?* — Most input edits the field; only an accepted application command needs dispatch.
 
 ### 1. `src/browser.rs`
 
@@ -10148,8 +8504,7 @@ Prepare the initial dock before presenting. Use Panel.update for input and the f
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     options.set_passive(false);
@@ -10159,8 +8514,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -10173,8 +8526,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     surface.configure(&device, &config);
@@ -10204,8 +8556,6 @@ Replace it with:
     for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -10231,8 +8581,7 @@ Replace it with:
     for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::renderer::Renderer;
@@ -10323,39 +8672,13 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cn-handoff-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-04.rs"
-```
-
-</details>
-
 ### 2. `src/panel.rs`
 
 Remove replies now handled by Panel.update. Expose whether the dock consumed this event. Initialize event consumption. Start with folded history and focus the command field. Answer local commands; return accepted application names from update. Allow prepare to set viewport input scale. Supply the physical pixel scale to egui. Move command answers out of prepare. Return the accepted line from prepare. Paint prepared output without replaying input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(control) = self.controls.as_ref().and_then(|items| items.iter().find(|item| item.key == "command/resize")) {
@@ -10375,8 +8698,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         for (id, delta) in &output.textures_delta.set {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -10394,8 +8715,7 @@ Replace it with:
         for (id, delta) in &output.textures_delta.set {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             )),
@@ -10405,8 +8725,6 @@ Replace it with:
         let mut line = None;
         let output = self.context.run_ui(input, |root| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -10420,8 +8738,7 @@ Replace it with:
         let output = self.context.run_ui(input, |root| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()
@@ -10434,8 +8751,6 @@ Replace it with:
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
 ```
-
-</details>
 
 Replace it with:
 
@@ -10496,8 +8811,7 @@ Replace it with:
             screen_rect: Some(egui::Rect::from_min_size(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -10511,8 +8825,6 @@ Replace it with:
         } }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -10528,8 +8840,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -10552,8 +8863,6 @@ pub struct Panel {
     controls: Option<Vec<command_dock::Control>>,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -10568,8 +8877,7 @@ pub struct Panel {
     controls: Option<Vec<command_dock::Control>>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -10806,190 +9114,44 @@ impl Panel {
 }
 ```
 
-</details>
+**Result after `03cn-handoff`:** Type Help and press Enter. The field clears and exactly one answer appears.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03cn-handoff-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-08.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-09.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-10.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-11.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-12.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-13.rs"
-```
-
-```text
---8<-- "journey/code/03cn-handoff-direct-14.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-03d-input"></a>
 
 ### Step 25 of 25 · Hand commands to the application (`03d-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/25 Visual Trace (03d-input): Hand commands to the application</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Return accepted commands while keeping editing inside Panel</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Return accepted command…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Return accepted command…</text>
 </svg>
-</div>
-
-- **Goal:** Return accepted commands while keeping editing inside Panel.
-- **Data Flow Trace:** `Return accepted commands while keeping editing inside Panel`
-- **Files You Touch:** `src/browser.rs` (*Import the retained Closure type.*)
 
 Listen on the canvas and hand events to Panel.update. Prepare the dock again after input, then paint one frame. Typing after a scene click focuses the field immediately.
 
-> **Self-Check Question:** *Why prepare again before painting?*  
-> **Answer:** Input can change layout or history; the final frame must show the updated model.
-
-- **What You Should See:** Click the scene, type Help and press Enter. One answer appears in the real dock.
-- **Hands-On Lab Experiment:** Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
-
-<details>
-<summary>Implementation 03d-input: Hand commands to the application</summary>
+> **Check:** *Why prepare again before painting?* — Input can change layout or history; the final frame must show the updated model.
 
 ### 1. `src/browser.rs`
 
 Import the retained Closure type. Keep canvas acquisition ready for canvas-owned input. Keep GPU setup with the final browser event owner. Remove the intermediate event callback setup. Keep surface configuration before the canvas input owner. Handle command update errors in the canvas callback. Stop the callback after a layout failure. Present after preparing the final command layout. Register drawing and keyboard events on the canvas. Retain the wheel callback for the page lifetime. Give surface presentation its complete function. Return a useful error when the surface is unavailable.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas").ok_or("Missing canvas")?.dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-        compatible_surface: Some(&surface),
-        ..Default::default()
-    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())
-        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface.get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    panel.update(None, &canvas)?;
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Err(error) = panel.update(Some(&event), &input_canvas) {
-            report(&format!("Cannot read command: {error:?}"));
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-        }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options("wheel", redraw.as_ref().unchecked_ref(), &options)?;
-    redraw.forget();
-    report("Panel returns accepted application commands.");
-    Ok(())
-}
-
-fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => return Err(JsValue::from_str(&format!("Surface unavailable: {other:?}"))),
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -11117,81 +9279,22 @@ fn present(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03d-input-direct-01.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-02.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-03.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-04.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-05.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-06.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-07.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-08.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-09.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-10.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-11.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-12.rs"
-```
-
-</details>
-
-</details>
+**Result after `03d-input`:** Click the scene, type Help and press Enter. One answer appears in the real dock.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-
+npm --prefix ../session_tests run course -- dependencies 1.3
+cd workspace/journey
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 1.3
+npm --prefix ../session_tests run course -- save 1.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Historical Chrome reference: pink triangle and Help completion in the command dock. Current source/browser acceptance remains pending.](../../screenshots/journey/03d-input-browser.png)
-
-Click the scene, type Help and press Enter. One answer appears in the real dock.
-
-- **Final Lesson Experiment:** Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
-
-Continue with [Commands that change the view](04-input.md).
+Continue with [1.4 · Commands that change the view](04-input.md).

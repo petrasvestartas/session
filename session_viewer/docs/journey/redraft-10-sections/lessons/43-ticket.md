@@ -1,227 +1,95 @@
 # 6.2 · Accept a hit only for its current view
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.2** (Redraft `4.9`) · **3 checkpoints (`43-ticket` → `43b-view`)** · **Study time: 1.5–3 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `43-ticket` → `43b-view` (3 steps) · **Production source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
-> **What You Will Learn & Build:** Name the request and view that produced a hit. By the final checkpoint (`43b-view`), you will reject results from an old view or interrupted input.
+> **Goal:** Reject results from an old view or interrupted input.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 6 Visual Explanation: Offscreen Rg32Uint Integer Pick Grid, Spiral Search & 256-Byte Staging Copy</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Cropped Rg32Uint pixel window around cursor with spiral search. Center: 256-byte row alignment. Right: Priority & view ticket.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 5x5 Pixel Grid with Spiral Halo Search -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Rg32Uint Crop &amp; Spiral Search</text>
-    <!-- 5x5 grid at x=75..225, y=94..194 (cell = 30x20) -->
-    <rect x="75" y="94" width="150" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="105" y1="94" x2="105" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="135" y1="94" x2="135" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="165" y1="94" x2="165" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="195" y1="94" x2="195" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="114" x2="225" y2="114" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="134" x2="225" y2="134" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="154" x2="225" y2="154" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="174" x2="225" y2="174" stroke="#111111" stroke-width="0.75"/>
-    <!-- Highlighted hit cell at (165, 114) -->
-    <rect x="165" y="114" width="30" height="20" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Spiral path from center (150, 144) outward -->
-    <polyline points="150,144 180,144 180,124" fill="none" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <circle cx="150" cy="144" r="3" fill="#111111"/>
-    <text x="155" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Each pixel = vec2&lt;u32&gt;(owner_id, sub_id)</text>
-    <text x="155" y="225" text-anchor="middle" font-size="9" fill="#111111">Priority: Point Glyph &gt; Wire Edge &gt; Face</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 256-Byte Aligned Staging Copy -->
-    <rect x="317" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="449" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 256-Byte Staging Row Alignment</text>
-    <!-- Row 0 -->
-    <rect x="335" y="102" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="102" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 0 (W×8 B)</text>
-    <text x="510" y="119" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Row 1 -->
-    <rect x="335" y="136" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="136" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 1 (W×8 B)</text>
-    <text x="510" y="153" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Dimension line 0..256 -->
-    <line x1="335" y1="176" x2="565" y2="176" stroke="#111111" stroke-width="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-    <text x="450" y="191" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">bytes_per_row = align_to(W * 8, 256)</text>
-    <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#111111">copy_texture_to_buffer -&gt; map_async(Read)</text>
-    <text x="450" y="226" text-anchor="middle" font-size="9" fill="#111111">Single in-flight readback coalesces bursts</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: View-Revision Ticket & Sub-Selection -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Revision Ticket &amp; Sub-ID</text>
-    <rect x="620" y="98" width="188" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="714" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">PickTicket Verification</text>
-    <text x="630" y="131" font-size="9.5" fill="#111111">ticket.view_rev == current_rev?</text>
-    <text x="630" y="145" font-size="9" font-weight="600" fill="#111111">Mismatch -&gt; Discard stale hit!</text>
-    <rect x="620" y="162" width="188" height="66" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Decoded Sub-Element</text>
-    <text x="630" y="195" font-size="9.5" fill="#111111">• R = Object ID (1-based)</text>
-    <text x="630" y="209" font-size="9.5" fill="#111111">• G = Face / Edge / Control Pt</text>
-    <text x="630" y="222" font-size="9" fill="#111111">• Shift+Click preserves order</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 6.2 Pipeline Schematic: Accept a hit only for its current view</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (3 Checkpoints: 43-ticket → 43b-view)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">request sequence</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">and epoch</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">one-use ticket</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">camera/viewport/density</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">signature</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted current</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">result</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">current scene epoch</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">and view</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 6.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/pick_gate.rs  ·  src/pick_view.rs  ·  src/pick_gate_tests.rs  ·  src/pick_view_tests.rs  ·  src/lib.rs  ·  src/pick_gpu.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">3 Checkpoints: 43-ticket → 43b-view — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
-| **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
-| **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
+| **WebGPU** | `Rg32Uint` (`[owner_id, sub_id]`) | Exact 2-channel 32-bit integer ID target (zero color quantization). |
+| **WebGPU** | 256-Byte Aligned Crop Readback | Copies cursor window to staging buffer for async `map_async(Read)`. |
+| **Rust (Picker)** | `Point > Wire > Face` + Ticket | Spiral search prioritizes points/wires and drops stale camera revisions. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`43-ticket`](#checkpoint-43-ticket) | Name the request and view that produced a hit. | `src/pick_gate.rs`, `src/pick_view.rs`, `src/pick_gate_tests.rs`, `src/pick_view_tests.rs` | `request sequence and epoch → one-use ticket → camera/viewport/density signature → accepted current result` |
-| **2** | [`43a-flight`](#checkpoint-43a-flight) | Carry checked tickets through GPU mapping. | `src/pick_gpu.rs`, `src/renderer.rs` | `checked admission → ticketed flight → map callback → epoch acceptance → latest pending cursor` |
-| **3** | [`43b-view`](#checkpoint-43b-view) | Reject results from an old view or interrupted input. | `src/pick_gpu.rs`, `src/renderer.rs`, `src/browser.rs`, `src/pick_gpu_tests.rs` | `current scene epoch and view → completed ticket validation → stale rejection → valid next request` |
+![Recorded visual output for Lesson 6.2 (43b-view)](../../../screenshots/journey/43b-view.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-43-ticket"></a>
 
 ### Step 1 of 3 · Name the request and view that produced a hit (`43-ticket`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/3 Visual Trace (43-ticket): Name the request and view that produced a hit</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gate.rs, src/pick_view.rs, src/pick_gate_tests.rs, src/pick_view_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">request sequence and epoch</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one-use ticket</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera/viewport/density</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">signature</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accepted current result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gate.rs, src/pic…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera/viewport/density…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">accepted current result</text>
 </svg>
-</div>
-
-- **Goal:** Name the request and view that produced a hit.
-- **Data Flow Trace:** `request sequence and epoch → one-use ticket → camera/viewport/density signature → accepted current result`
-- **Files You Touch:** `src/pick_gate.rs` (*Create checked request freshness and view signatures.*) · `src/pick_view.rs` (*Create checked request freshness and view signatures.*) · `src/pick_gate_tests.rs` (*Copy one-use, superseded, invalidated, closed and exhausted ticket checks.*) · `src/pick_view_tests.rs` (*Copy camera, viewport, density and invalid-view checks.*) · `src/lib.rs` (*Register the freshness component and its checks.*)
 
 Give every pick a checked request ticket and view signature. An object ID can still exist after Undo while the readback that saw it is already obsolete.
 
-> **Self-Check Question:** *Why is finding the returned object ID insufficient?*  
-> **Answer:** Undo can restore that ID after the document and view have changed. The result must also belong to the latest request and current view.
-
-- **What You Should See:** Run the ticket and view checks, then repeat the existing point-picking exercise.
-- **Hands-On Lab Experiment:** Invalidate a ticket, restore the same scene identity and check that the old ticket remains rejected.
-
-<details>
-<summary>Implementation 43-ticket: Name the request and view that produced a hit</summary>
-
-Name the request and view that produced a hit.
-
-Data flow: request sequence and epoch → one-use ticket → camera/viewport/density signature → accepted current result.
+> **Check:** *Why is finding the returned object ID insufficient?* — Undo can restore that ID after the document and view have changed. The result must also belong to the latest request and current view.
 
 ### 1. `src/pick_gate.rs`
 
@@ -243,8 +111,7 @@ Create the file and type:
 --8<-- "journey/code/43-ticket-02.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -258,10 +125,7 @@ Copy this supplied file:
 --8<-- "journey/code/43-ticket-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -275,22 +139,9 @@ Copy this supplied file:
 --8<-- "journey/code/43-ticket-04.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the freshness component and its checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod pick_input_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -298,166 +149,44 @@ After that block, type:
 --8<-- "journey/code/43-ticket-05.rs" skip=36
 ```
 
-</details>
+**Result after `43-ticket`:** Run the ticket and view checks, then repeat the existing point-picking exercise.
+
+---
 
 <a id="checkpoint-43a-flight"></a>
 
 ### Step 2 of 3 · Carry checked tickets through GPU mapping (`43a-flight`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/3 Visual Trace (43a-flight): Carry checked tickets through GPU mapping</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked admission</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ticketed flight</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">map callback</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">epoch acceptance</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">latest pending</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cursor</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gpu.rs, src/rend…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">map callback</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">latest pending cursor</text>
 </svg>
-</div>
-
-- **Goal:** Carry checked tickets through GPU mapping.
-- **Data Flow Trace:** `checked admission → ticketed flight → map callback → epoch acceptance → latest pending cursor`
-- **Files You Touch:** `src/pick_gpu.rs` (*Carry and check the current request ticket through mapping.*) · `src/renderer.rs` (*Propagate checked request-admission failures before GPU submission.*)
 
 Carry one ticket through submission and mapping. Invalidate it when the renderer adopts a changed scene; a newer queued cursor supersedes the older result.
 
-> **Self-Check Question:** *Does the map callback decide which object is selected?*  
-> **Answer:** No. It signals readiness only. The owner checks the flight ticket and reads completed bytes before any selection is changed.
-
-- **What You Should See:** Run the checks and click a point, then Undo and Redo. Selection must remain outside document history.
-- **Hands-On Lab Experiment:** Queue a newer cursor while the first request is in flight; the first result must never replace it.
-
-<details>
-<summary>Implementation 43a-flight: Carry checked tickets through GPU mapping</summary>
-
-Carry checked tickets through GPU mapping.
-
-Data flow: checked admission → ticketed flight → map callback → epoch acceptance → latest pending cursor.
+> **Check:** *Does the map callback decide which object is selected?* — No. It signals readiness only. The owner checks the flight ticket and reads completed bytes before any selection is changed.
 
 ### 1. `src/pick_gpu.rs`
 
 Carry and check the current request ticket through mapping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
-use std::sync::{Arc, atomic::{AtomicBool, AtomicU8, Ordering}};
-
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
-
-
-pub struct Picker {
-    pipeline: wgpu::RenderPipeline,
-    view: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    crop: wgpu::Buffer,
-    crop_group: wgpu::BindGroup,
-    image: Option<crate::pick_image::Image>,
-    active: Option<Arc<AtomicU8>>,
-    pending: Option<Request>,
-    alive: Arc<AtomicBool>,
-    pub submitted: u64,
-    pub coalesced: u64,
-}
-
-impl Drop for Picker { fn drop(&mut self) { self.alive.store(false, Ordering::Release); } }
-
-impl Picker {
-    pub fn new(device: &wgpu::Device, view_layout: &wgpu::BindGroupLayout, model_layout: &wgpu::BindGroupLayout) -> Self {
-        let crop_layout = crate::gpu_layout::uniform(device, 64);
-        let pipeline = crate::pick_pipeline::mesh(device, view_layout, model_layout, &crop_layout);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(80); let crop = buffer(64);
-        let view_group = crate::gpu_layout::group(device, view_layout, &view);
-        let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
-            alive: Arc::new(AtomicBool::new(true)), submitted: 0, coalesced: 0 }
-    }
-
-    pub fn queue(&mut self, request: Request) {
-        if self.pending.replace(request).is_some() { self.coalesced += 1; }
-    }
-
-    pub fn queued(&self) -> bool { self.pending.is_some() }
-
-    pub fn cancel(&mut self) {
-        self.pending = None;
-        let mapped = self.active.take().is_some_and(|ready| ready.load(Ordering::Acquire) <= 1);
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
-    }
-
-    pub fn next(&mut self) -> Option<Request> { if self.active.is_some() { None } else { self.pending.take() } }
-
-
-    pub fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, request: Request, meshes: &[GpuMesh], ink: &[&Lane]) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
-            self.image = Some(crate::pick_image::Image::new(device, window));
-        }
-        let image = self.image.as_mut().unwrap(); image.window = window;
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
-        queue.write_buffer(&self.view, 0, &bytes);
-        let bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect(); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Arc::clone(&ready)); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
-            if alive.load(Ordering::Acquire) {
-                #[cfg(target_arch = "wasm32")] crate::browser_pick::wake();
-            }
-        });
-        self.submitted += 1;
-    }
-
-    pub fn take(&mut self) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let status = self.active.as_ref()?.load(Ordering::Acquire);
-        if status == 0 { return None; }
-        self.active = None;
-        let image = self.image.as_ref().unwrap();
-        if status != 1 { return Some(Err("Cannot read GPU pick image")); }
-        let bytes = image.readback.slice(..).get_mapped_range();
-        let result = image.window.closest(&bytes); drop(bytes); image.readback.unmap(); Some(result)
-    }
-
-    pub fn usage(&self) -> [u64; 3] {
-        [u64::from(self.active.is_some()), u64::from(self.pending.is_some()), self.image.as_ref().map_or(0, |image|
-            image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 12) + 144]
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -470,7 +199,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -562,50 +290,9 @@ impl Picker {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/43a-flight-01.rs"
-```
-
-```text
---8<-- "journey/code/43a-flight-02.rs"
-```
-
-```text
---8<-- "journey/code/43a-flight-03.rs"
-```
-
-```text
---8<-- "journey/code/43a-flight-04.rs"
-```
-
-```text
---8<-- "journey/code/43a-flight-05.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Propagate checked request-admission failures before GPU submission.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density });
-        self.pump_pick(); Ok(())
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -613,61 +300,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/43a-flight-06.rs"
 ```
 
-</details>
+**Result after `43a-flight`:** Run the checks and click a point, then Undo and Redo. Selection must remain outside document history.
+
+---
 
 <a id="checkpoint-43b-view"></a>
 
 ### Step 3 of 3 · Reject results from an old view or interrupted input (`43b-view`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/3 Visual Trace (43b-view): Reject results from an old view or interrupted input</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/renderer.rs, src/browser.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current scene epoch and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">view</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">completed ticket</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stale rejection</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">valid next request</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gpu.rs, src/rend…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stale rejection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">valid next request</text>
 </svg>
-</div>
-
-- **Goal:** Reject results from an old view or interrupted input.
-- **Data Flow Trace:** `current scene epoch and view → completed ticket validation → stale rejection → valid next request`
-- **Files You Touch:** `src/pick_gpu.rs` (*Adopt only the current view and cancel interrupted input.*) · `src/renderer.rs` (*Adopt only the current view and cancel interrupted input.*) · `src/browser.rs` (*Adopt only the current view and cancel interrupted input.*) · `src/pick_gpu_tests.rs` (*Copy actual GPU old-view and cancelled-request checks.*)
 
 Validate the current camera, physical viewport and density when adopting a hit. Cancel unfinished picks on blur and page transitions, including a cached page.
 
-> **Self-Check Question:** *What changes if the camera moves but the document does not?*  
-> **Answer:** The same pixel refers to another ray. A readback from the older matrix must not select an object in the new picture.
-
-- **What You Should See:** Click Example Point, then navigate and click again. Undo still removes the source insertion; an old readback cannot revive selection after Close.
-- **Hands-On Lab Experiment:** Hold a genuine GPU map in the browser checker, then pan, resize, Undo, Close or blur before releasing it.
-
-<details>
-<summary>Implementation 43b-view: Reject results from an old view or interrupted input</summary>
-
-Reject results from an old view or interrupted input.
-
-Data flow: current scene epoch and view → completed ticket validation → stale rejection → valid next request.
+> **Check:** *What changes if the camera moves but the document does not?* — The same pixel refers to another ray. A readback from the older matrix must not select an object in the new picture.
 
 ### 1. `src/pick_gpu.rs`
 
@@ -675,8 +341,7 @@ Adopt only the current view and cancel interrupted input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.submitted += 1;
@@ -694,8 +359,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         drop(bytes); image.readback.unmap(); Some(result)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -716,8 +379,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
@@ -728,8 +390,6 @@ Replace it with:
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
             ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
 ```
-
-</details>
 
 Replace it with:
 
@@ -743,8 +403,7 @@ Replace it with:
             ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
@@ -755,8 +414,6 @@ Replace it with:
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
 ```
-
-</details>
 
 Replace it with:
 
@@ -770,13 +427,11 @@ Replace it with:
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -788,8 +443,6 @@ Replace it with:
         Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -804,8 +457,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 #[derive(Clone, Copy)]
@@ -814,11 +466,8 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket }
 
-
 pub struct Picker {
 ```
-
-</details>
 
 Replace it with:
 
@@ -830,12 +479,10 @@ pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, v
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
 
-
 pub struct Picker {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -847,7 +494,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -900,7 +546,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
         let request = queued.request; let window = request.window;
@@ -944,64 +589,9 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/43b-view-01.rs"
-```
-
-```text
---8<-- "journey/code/43b-view-02.rs"
-```
-
-```text
---8<-- "journey/code/43b-view-03.rs"
-```
-
-```text
---8<-- "journey/code/43b-view-04.rs"
-```
-
-```text
---8<-- "journey/code/43b-view-05.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Adopt only the current view and cancel interrupted input.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density })?;
-        self.pump_pick(); Ok(())
-    }
-
-    fn pump_pick(&mut self) {
-        if let Some(request) = self.picker.next() { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.strokes, &self.paths, &self.markers]); }
-    }
-
-    pub fn take_pick(&mut self) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let result = self.picker.take();
-        if result.is_some() && self.picker.queued() { self.pump_pick(); return None; }
-        result
-    }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1015,8 +605,7 @@ Adopt only the current view and cancel interrupted input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             None
@@ -1027,8 +616,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 Some(Err(error)) => { report(error); None },
                 None => None,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1042,8 +629,7 @@ Replace it with:
                 None => None,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
@@ -1053,8 +639,6 @@ Replace it with:
             gesture.cancel();
             if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1068,8 +652,7 @@ Replace it with:
             if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -1206,7 +789,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
 
             "Controls On",
             "Controls Off",
@@ -1418,7 +1000,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                     "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
-
 
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
@@ -1760,25 +1341,7 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/43b-view-07.rs"
-```
-
-```text
---8<-- "journey/code/43b-view-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1786,31 +1349,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual GPU old-view and cancelled-request checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-fn finish(renderer: &mut Renderer) -> Option<[u32; 2]> {
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    renderer.take_pick().expect("Map callback completed").unwrap()
-}
-
-fn identity() -> [f32; 16] { session_rust::Xform::identity().m.map(|n| n as f32) }
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/43b-view-09.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1818,31 +1363,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual GPU old-view and cancelled-request checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    for _ in 0..20 { renderer.request_pick([0.95, 0.95], identity()).unwrap(); }
-    assert_eq!(&renderer.pick_usage()[..2], &[1, 1]); assert_eq!(renderer.pick_usage()[4], 19);
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    assert!(renderer.take_pick().is_none(), "A newer cursor supersedes the first result");
-    assert_eq!(finish(&mut renderer), None);
-    assert_eq!(&renderer.pick_usage()[..2], &[0, 0]);
-    assert!(renderer.pick_usage()[2] <= 25 * 256 + 31 * 31 * 12 + 176, "Readback does not grow with the full drawing");
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/43b-view-10.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1850,55 +1377,27 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual GPU old-view and cancelled-request checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(weak.upgrade().is_none()); assert_eq!(&renderer.pick_usage()[..3], &[0, 0, 144]);
-    let new = scene.insert(triangle(0.3)).unwrap(); assert_ne!(old, new); renderer.set_scene(&scene, None);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), Some([new.value(), 0]));
-    assert!(renderer.take_pick().is_none(), "The cancelled map has no result for the replacement");
-    let uploads = renderer.stats(); renderer.request_pick([0.0, 0.0], identity()).unwrap(); renderer.cancel_pick();
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    assert!(renderer.take_pick().is_none()); assert_eq!(renderer.stats(), uploads);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/43b-view-11.rs"
 ```
 
-</details>
-
-</details>
+**Result after `43b-view`:** Click Example Point, then navigate and click again. Undo still removes the source insertion; an old readback cannot revive selection after Close.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 43b-view
-npm --prefix ../session_tests run course -- check 43b-view
-npm --prefix ../session_tests run course -- save 43b-view
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 6.2
+npm --prefix ../session_tests run course -- save 6.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 6.2 (43b-view)](../../../screenshots/journey/43b-view.png)
-
-Click Example Point, then navigate and click again. Undo still removes the source insertion; an old readback cannot revive selection after Close.
-
-- **Final Lesson Experiment:** Hold a genuine GPU map in the browser checker, then pan, resize, Undo, Close or blur before releasing it.
-
-Continue with [Pick original faces, edges and controls](../../consolidation/44-topology.md).
+Continue with [6.3 · Pick original faces, edges and controls](../../consolidation/44-topology.md).

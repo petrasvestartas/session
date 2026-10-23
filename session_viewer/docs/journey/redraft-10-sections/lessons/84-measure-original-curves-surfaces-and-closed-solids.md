@@ -1,223 +1,93 @@
 # 16.4 · Measurements, temporary marks and retained CAD pieces
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.4** (Redraft `8.14`) · **37 checkpoints (`84-measure-original-curves-surfaces-and-closed-solids` → `84zod-explode-supported-original-families`)** · **Study time: 24.20000000000001–37 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `84-measure-original-curves-surfaces-and-closed-solids` → `84zod-explode-supported-original-families` (37 steps) · **Production source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs)
 
-> **What You Will Learn & Build:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. By the final checkpoint (`84zod-explode-supported-original-families`), you will count derived pieces before allocating them.
+> **Goal:** Count derived pieces before allocating them.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 16.4 Pipeline Schematic: Measurements, temporary marks and retained CAD pieces</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original geometry</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">placed source</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">measure or refusal</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 16.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/measure_volume.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/bounds_original.rs  ·  src/source_edit.rs  ·  src/gpu_geometry.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`84-measure-original-curves-surfaces-and-closed-solids`](#checkpoint-84-measure-original-curves-surfaces-and-closed-solids) | Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. | `src/measure_volume.rs`, `src/lib.rs` | `original geometry → placed source → measure or refusal` |
-| **2** | [`84a-validate-an-original-box-and-derive-wire-only-display`](#checkpoint-84a-validate-an-original-box-and-derive-wire-only-display) | Validate an original box and derive wire-only display. | `src/scene.rs`, `src/bounds_original.rs`, `src/lib.rs` | `original box frame → finite orthonormal validation → twelve display edges` |
-| **3** | [`84b-adopt-original-boxes-and-retain-precise-placed-bounds`](#checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds) | Adopt original boxes and retain precise placed bounds. | `src/bounds_original.rs`, `src/scene.rs`, `src/source_edit.rs`, `src/gpu_geometry.rs` | `original corners → world placement → stable source row → checked replacement` |
-| **4** | [`84c-save-and-reopen-the-original-box-frame`](#checkpoint-84c-save-and-reopen-the-original-box-frame) | Save and reopen the original box frame. | `src/geometry_snapshot.rs`, `src/document_source.rs`, `src/document_geometry.rs`, `src/archive_identity.rs` | `original box owner → protobuf box record → checked source import → same original frame` |
-| **5** | [`84d-own-temporary-measurement-labels-without-scene-identities`](#checkpoint-84d-own-temporary-measurement-labels-without-scene-identities) | Own temporary measurement labels without scene identities. | `src/measure_mark.rs`, `src/lib.rs` | `numeric value and points → unused label IDs → temporary presentation words` |
-| **6** | [`84e-report-distance-and-world-bounding-lengths`](#checkpoint-84e-report-distance-and-world-bounding-lengths) | Report distance and world bounding lengths. | `src/measure_mark.rs` | `selected bounds or two points → world extents and deltas → formatted result` |
-| **7** | [`84f-collect-only-supported-finite-original-measurements`](#checkpoint-84f-collect-only-supported-finite-original-measurements) | Collect only supported finite original measurements. | `src/measure_mark.rs` | `selected original owners → placed source copies → supported totals and refusals` |
-| **8** | [`84g-format-totals-refusals-and-three-axis-box-extents`](#checkpoint-84g-format-totals-refusals-and-three-axis-box-extents) | Format totals refusals and three-axis box extents. | `src/measure_mark.rs` | `finite total and refusals → current value formatting → temporary result chip` |
-| **9** | [`84h-keep-measurements-outside-geometry-history`](#checkpoint-84h-keep-measurements-outside-geometry-history) | Keep measurements outside geometry history. | `src/editor.rs` | `selected whole owner or face → measurement or original box → unchanged or single history entry` |
-| **10** | [`84i-accept-two-distance-points-through-the-drawing-tool`](#checkpoint-84i-accept-two-distance-points-through-the-drawing-tool) | Accept two distance points through the drawing tool. | `src/tool.rs`, `src/editor.rs` | `drawing-plane or world points → existing snapping tool → temporary measured pair` |
-| **11** | [`84j-register-measurements-and-end-temporary-marks-predictably`](#checkpoint-84j-register-measurements-and-end-temporary-marks-predictably) | Register measurements and end temporary marks predictably. | `src/editor.rs`, `src/commands.rs` | `current command vocabulary → checked measurement action → explicit mark lifecycle` |
-| **12** | [`84k-draw-cached-unpickable-measurement-strokes`](#checkpoint-84k-draw-cached-unpickable-measurement-strokes) | Draw cached unpickable measurement strokes. | `src/stroke_gpu.rs`, `src/measure_gpu.rs`, `src/lib.rs` | `temporary point pair → cached CSS-width stroke → overlay colour pass` |
-| **13** | [`84l-merge-measurement-chips-with-cached-scene-text`](#checkpoint-84l-merge-measurement-chips-with-cached-scene-text) | Merge measurement chips with cached scene text. | `src/renderer.rs` | `unchanged mark guard → merged cached text → stroke overlay → value chip` |
-| **14** | [`84m-exercise-original-boxes-and-temporary-distance-annotations`](#checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations) | Exercise original boxes and temporary distance annotations. | `src/browser.rs`, `src/measure_tests.rs`, `src/lib.rs` | `original solid → reversible wire box → temporary distance line and value` |
-| **15** | [`84zza-describe-removable-cad-parts`](#checkpoint-84zza-describe-removable-cad-parts) | Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry. | `src/trim_parts.rs`, `src/lib.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **16** | [`84zzb-read-trim-part-previews`](#checkpoint-84zzb-read-trim-part-previews) | Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **17** | [`84zzc-collect-curve-crossings`](#checkpoint-84zzc-collect-curve-crossings) | Collect kernel curve intersections, filter open endpoints and merge a closed seam. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **18** | [`84zzd-preserve-trimmed-source-types`](#checkpoint-84zzd-preserve-trimmed-source-types) | Rebuild kept curves in their original source family with their presentation. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **19** | [`84zze-group-faces-by-cutting-planes`](#checkpoint-84zze-group-faces-by-cutting-planes) | Extend a plane-plane intersection past surface control points. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **20** | [`84zzf-cut-planar-brep-faces`](#checkpoint-84zzf-cut-planar-brep-faces) | Find crossed planar faces, split them through the kernel and collect section edges. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **21** | [`84zzg-assemble-removable-face-groups`](#checkpoint-84zzg-assemble-removable-face-groups) | Combine curve regions, fallback fence planes and crossed plane sections into one Parts value. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **22** | [`84zzh-mark-retained-brep-topology`](#checkpoint-84zzh-mark-retained-brep-topology) | Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **23** | [`84zzi-rebuild-retained-brep-tables`](#checkpoint-84zzi-rebuild-retained-brep-tables) | Compact marked BRep tables and rewrite every reference. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **24** | [`84zzj-split-mesh-faces-at-a-plane`](#checkpoint-84zzj-split-mesh-faces-at-a-plane) | Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **25** | [`84zzk-compact-both-trimmed-mesh-sides`](#checkpoint-84zzk-compact-both-trimmed-mesh-sides) | Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **26** | [`84zzl-rebuild-kept-cad-parts`](#checkpoint-84zzl-rebuild-kept-cad-parts) | Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **27** | [`84zzm-connect-original-trim-recipes`](#checkpoint-84zzm-connect-original-trim-recipes) | Route original curves, surfaces, BReps and meshes through the shared part builders. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
-| **28** | [`84zna-index-selection-loops-by-pixel-row`](#checkpoint-84zna-index-selection-loops-by-pixel-row) | Build a row index for the even-odd point test. | `src/selection_region.rs`, `src/lib.rs` | `original CAD samples → screen region → window or crossing result` |
-| **29** | [`84znb-test-window-membership-and-segment-crossings`](#checkpoint-84znb-test-window-membership-and-segment-crossings) | Complete Region with point membership and segment clipping against the rectangle. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
-| **30** | [`84znc-sample-original-cad-families-for-selection`](#checkpoint-84znc-sample-original-cad-families-for-selection) | Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
-| **31** | [`84znd-collect-original-boundary-strokes`](#checkpoint-84znd-collect-original-boundary-strokes) | Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
-| **32** | [`84zne-test-crossing-selection-on-original-strokes`](#checkpoint-84zne-test-crossing-selection-on-original-strokes) | Dispatch original geometry families to their shared stroke builders. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
-| **33** | [`84znf-connect-window-and-bounds-selection-tests`](#checkpoint-84znf-connect-window-and-bounds-selection-tests) | Add projection, conservative screen bounds and complete-enclosure dispatch. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
-| **34** | [`84zoa-classify-originals-and-isolate-one-mesh-face`](#checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face) | Name each original geometry kind once. | `src/source_shape.rs`, `src/lib.rs`, `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
-| **35** | [`84zob-copy-original-brep-edges-and-pcurves`](#checkpoint-84zob-copy-original-brep-edges-and-pcurves) | Copy an edge, its endpoint vertices and its surface pcurves into a new BRep. | `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
-| **36** | [`84zoc-build-one-original-brep-face`](#checkpoint-84zoc-build-one-original-brep-face) | Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell. | `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
-| **37** | [`84zod-explode-supported-original-families`](#checkpoint-84zod-explode-supported-original-families) | Count derived pieces before allocating them. | `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-84-measure-original-curves-surfaces-and-closed-solids"></a>
 
 ### Step 1 of 37 · Measure original closed-solid volume (`84-measure-original-curves-surfaces-and-closed-solids`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/37 Visual Trace (84-measure-original-curves-surfaces-and-closed-solids): Measure original closed-solid volume</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_volume.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed source</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">measure or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/measure_volume.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed source</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">measure or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
-- **Data Flow Trace:** `original geometry → placed source → measure or refusal`
-- **Files You Touch:** `src/measure_volume.rs` (*Type the complete original helpers introduced today.*) · `src/lib.rs` (*Register this original measurement owner.*)
 
 Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. Orient solid BRep face meshes before adding their signed volumes.
 
-> **Self-Check Question:** *Why choose an origin on the mesh?*  
-> **Answer:** Subtracting a nearby origin keeps large world translations out of the triple products and preserves volume precision.
-
-- **What You Should See:** The original split face and its cutter remain visible while measurement connects.
-- **Hands-On Lab Experiment:** Inspect the far-translated box and reversed-face fixtures. Compare an open mesh refusal with a geometry kind that has no volume.
-
-<details>
-<summary>Implementation 84-measure-original-curves-surfaces-and-closed-solids: Measure original closed-solid volume</summary>
-
-Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
-
-Data flow: original geometry → placed source → measure or refusal.
+> **Check:** *Why choose an origin on the mesh?* — Subtracting a nearby origin keeps large world translations out of the triple products and preserves volume precision.
 
 ### 1. `src/measure_volume.rs`
 
@@ -233,24 +103,13 @@ Create the file and type:
 
 Register this original measurement owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod measure_area;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/84-measure-original-curves-surfaces-and-closed-solids-2.rs" skip=23
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -258,129 +117,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::measure_math::compute_swept;
-use crate::cad_edges::edge_chains;
-use crate::cad_orient::face_signs;
-use session_rust::{BRep,Geometry,Mesh,Point,Xform};
-use session_rust::element::ElementGeometry;
-const OPEN:&str="open";
-/// World volume of a closed mesh or solid BRep; Err when open, None when the kind has no volume.
-pub fn compute_volume(geometry: &Geometry, place: &Xform) -> Option<Result<f64, &'static str>> {
-    match geometry {
-        Geometry::Mesh(mesh) => Some(compute_mesh_volume(mesh, place)),
-        Geometry::BRep(brep) => Some(compute_brep_volume(brep, place)),
-        Geometry::NurbsSurface(_) => Some(Err(OPEN)),
-        Geometry::Element(element) => match element.geometry() {
-            ElementGeometry::Mesh(mesh) => Some(compute_mesh_volume(mesh, place)),
-            ElementGeometry::BRep(brep) => Some(compute_brep_volume(brep, place)),
-            ElementGeometry::None => None,
-        },
-        _ => None,
-    }
-}
-
-/// Volume of a closed mesh, from its drawn triangles.
-fn compute_mesh_volume(mesh: &Mesh, place: &Xform) -> Result<f64, &'static str> {
-    if !mesh.is_closed() {
-        return Err(OPEN);
-    }
-
-    let origin = origin_of(mesh, place);
-    Ok(compute_swept(mesh, place, &origin).abs() / 6.0)
-}
-
-/// Volume of a solid BRep as the viewer meshes it, each face turned outward first.
-fn compute_brep_volume(brep: &BRep, place: &Xform) -> Result<f64, &'static str> {
-    if !brep.is_solid() {
-        return Err(OPEN);
-    }
-
-    let meshes = brep.face_meshes_q(Some(crate::cad_boundary::QUALITY));
-    let chains = edge_chains(brep, &meshes);
-    let signs = face_signs(brep, &meshes, &chains);
-    let Some(origin) = meshes.iter().find(|mesh| !mesh.vertex.is_empty()) else {
-        return Err(OPEN);
-    };
-    let origin = origin_of(origin, place);
-    let swept: f64 = meshes
-        .iter()
-        .zip(&signs)
-        .map(|(mesh, sign)| sign * compute_swept(mesh, place, &origin))
-        .sum();
-    Ok(swept.abs() / 6.0)
-}
-
-/// A world point on the mesh, so far-away models keep their precision.
-fn origin_of(mesh: &Mesh, place: &Xform) -> Point {
-    mesh.faces()
-        .first()
-        .and_then(|face| mesh.vertex_point(*mesh.face[face].first()?))
-        .map_or(Point::new(0.0, 0.0, 0.0), |p| p.transformed(place))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/84-measure-original-curves-surfaces-and-closed-solids-dedup-volume-3.rs" skip=2289
 ```
 
-</details>
+**Result after `84-measure-original-curves-surfaces-and-closed-solids`:** The original split face and its cutter remain visible while measurement connects.
 
-</details>
+---
 
 <a id="checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"></a>
 
 ### Step 2 of 37 · Validate an original box and derive wire-only display (`84a-validate-an-original-box-and-derive-wire-only-display`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/37 Visual Trace (84a-validate-an-original-box-and-derive-wire-only-display): Validate an original box and derive wire-only display</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/bounds_original.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original box frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite orthonormal validation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">twelve display edges</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/bounds_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite orthonormal vali…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">twelve display edges</text>
 </svg>
-</div>
-
-- **Goal:** Validate an original box and derive wire-only display.
-- **Data Flow Trace:** `original box frame → finite orthonormal validation → twelve display edges`
-- **Files You Touch:** `src/scene.rs` (*Retain an independent original geometry owner beside the existing mesh display.*) · `src/bounds_original.rs` (*Validate original box frames and prepare a wire-only display.*) · `src/lib.rs` (*Register the measurement component.*)
 
 Keep the original box frame separate from its twelve-edge display proxy. Reject nonfinite extents and nonorthogonal axes before allocation.
 
-> **Self-Check Question:** *Does an original bounding box need opaque display faces?*  
-> **Answer:** No. Its eight corners and twelve edges show the bounds while leaving the enclosed solid visible.
-
-- **Hands-On Lab Experiment:** Inspect nonnegative half-extents, unit axes and mirrored orthogonal bases. Preserve original GUID, name and source flags in the proxy metadata.
-
-<details>
-<summary>Implementation 84a-validate-an-original-box-and-derive-wire-only-display: Validate an original box and derive wire-only display</summary>
-
-Validate an original box and derive wire-only display.
-
-Data flow: original box frame → finite orthonormal validation → twelve display edges.
+> **Check:** *Does an original bounding box need opaque display faces?* — No. Its eight corners and twelve edges show the bounds while leaving the enclosed solid visible.
 
 ### 1. `src/scene.rs`
 
@@ -388,8 +164,7 @@ Retain an independent original geometry owner beside the existing mesh display.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let generated=prepared.source.is_none();
@@ -400,8 +175,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -415,8 +188,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -426,8 +198,6 @@ pub struct Object {
     pub surface:Option<Rc<crate::surface::Prepared>>,
     pub id: ObjectId,
 ```
-
-</details>
 
 Replace it with:
 
@@ -441,8 +211,7 @@ pub struct Object {
     pub id: ObjectId,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -550,7 +319,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1225,23 +993,6 @@ impl Scene {
     }
 }
 ```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84a-validate-an-original-box-and-derive-wire-only-display-01.rs"
-```
-
-```text
---8<-- "journey/code/84a-validate-an-original-box-and-derive-wire-only-display-02.rs"
-```
-
-</details>
 
 ### 2. `src/bounds_original.rs`
 
@@ -1257,88 +1008,48 @@ Create the file and type:
 
 Register the measurement component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod measure_volume;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/84a-validate-an-original-box-and-derive-wire-only-display-04.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"></a>
 
 ### Step 3 of 37 · Adopt original boxes and retain precise placed bounds (`84b-adopt-original-boxes-and-retain-precise-placed-bounds`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/37 Visual Trace (84b-adopt-original-boxes-and-retain-precise-placed-bounds): Adopt original boxes and retain precise placed bounds</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/bounds_original.rs, src/scene.rs, src/source_edit.rs, src/gpu_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original corners</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable source row</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked replacement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/bounds_original.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable source row</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked replacement</text>
 </svg>
-</div>
-
-- **Goal:** Adopt original boxes and retain precise placed bounds.
-- **Data Flow Trace:** `original corners → world placement → stable source row → checked replacement`
-- **Files You Touch:** `src/bounds_original.rs` (*Adopt and place original boxes without substituting their display proxy.*) · `src/scene.rs` (*Use original box bounds and preserve the original family during source replacement.*) · `src/source_edit.rs` (*Return the original box allocation before considering display geometry.*) · `src/gpu_geometry.rs` (*Skip empty triangle draws before binding a wire-only box index buffer.*) · `src/highlight.rs` (*Show whole selection on wire-only original edges without creating selected proxy faces.*)
 
 Compute bounds from original f64 corners, insert an original box owner and reject edits that would deform only its mesh proxy.
 
-> **Self-Check Question:** *Can distant original box extents survive Save independently of display floats?*  
-> **Answer:** Yes. Original f64 coordinates remain the source. The current f32 display still requires the later large-world rendering audit.
-
-- **Hands-On Lab Experiment:** Inspect world placement and original replacement guards. A flat box may have a zero half-extent and still retains all original coordinates.
-
-<details>
-<summary>Implementation 84b-adopt-original-boxes-and-retain-precise-placed-bounds: Adopt original boxes and retain precise placed bounds</summary>
-
-Adopt original boxes and retain precise placed bounds.
-
-Data flow: original corners → world placement → stable source row → checked replacement.
+> **Check:** *Can distant original box extents survive Save independently of display floats?* — Yes. Original f64 coordinates remain the source. The current f32 display still requires the later large-world rendering audit.
 
 ### 1. `src/bounds_original.rs`
 
 Adopt and place original boxes without substituting their display proxy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    })
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1352,8 +1063,7 @@ Use original box bounds and preserve the original family during source replaceme
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         use crate::pick_sources::Part;
@@ -1363,8 +1073,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
         if self.objects.iter().any(|row|row.id==target.owner&&(row.surface.is_some()||row.cad.is_some())) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1378,8 +1086,7 @@ Replace it with:
         if self.objects.iter().any(|row|row.id==target.owner&&(row.surface.is_some()||row.cad.is_some())) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let original=crate::source_edit::original(self,id).ok_or("Reload an editable original source")?;
@@ -1389,8 +1096,6 @@ Replace it with:
             Geometry::Line(source)if self.lines.iter().any(|r|r.id==id)=>{let prepared=crate::stroke::PreparedLine::new(source)?;for p in [prepared.source.start(),prepared.source.end()]{let p=model.transform_point(&p);if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited line exceeds display range")}}self.lines.iter_mut().find(|r|r.id==id).unwrap().prepared=prepared;},
             Geometry::Line(_)|Geometry::Polyline(_)|Geometry::NurbsCurve(_)=>{
 ```
-
-</details>
 
 Replace it with:
 
@@ -1404,8 +1109,7 @@ Replace it with:
             Geometry::Line(_)|Geometry::Polyline(_)|Geometry::NurbsCurve(_)=>{
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             else{self.paths.iter().find(|row|row.id==id).map(|row|row.prepared.source.bounds_coordinates().into_iter().map(|p|{let p=row.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));[p[0],p[1],p[2]]}).collect::<Vec<_>>())};
@@ -1415,8 +1119,6 @@ Replace it with:
         let first = vertices.next()?;
         let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
 ```
-
-</details>
 
 Replace it with:
 
@@ -1430,8 +1132,7 @@ Replace it with:
         let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -1539,7 +1240,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2218,95 +1918,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-02.rs"
-```
-
-```text
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-03.rs"
-```
-
-```text
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-04.rs"
-```
-
-</details>
-
 ### 3. `src/source_edit.rs`
 
 Return the original box allocation before considering display geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::scene::{ObjectId, Scene};
-use session_rust::{Geometry, Xform};
-use std::rc::Rc;
-pub fn original(scene: &Scene, id: ObjectId) -> Option<Geometry> {
-    if let Some(row) = scene.objects().iter().find(|r| r.id == id) {
-        if let Some(cad) = &row.cad {
-            return Some(Geometry::BRep(cad.source.clone()));
-        }
-        if let Some(s) = &row.surface {
-            return Some(Geometry::NurbsSurface(s.source.clone()));
-        }
-        return row.geometry().map(|g| Geometry::Mesh(g.clone()));
-    }
-    if let Some(row) = scene.points().iter().find(|r| r.id == id) {
-        return Some(Geometry::Point(row.prepared.source.clone()));
-    }
-    crate::gather_draft::Draft::source(scene, id)
-}
-pub fn same(a: &Geometry, b: &Geometry) -> bool {
-    match (a, b) {
-        (Geometry::Line(a), Geometry::Line(b)) => Rc::ptr_eq(a, b),
-        (Geometry::Polyline(a), Geometry::Polyline(b)) => Rc::ptr_eq(a, b),
-        (Geometry::NurbsCurve(a), Geometry::NurbsCurve(b)) => Rc::ptr_eq(a, b),
-        (Geometry::Point(a), Geometry::Point(b)) => Rc::ptr_eq(a, b),
-        (Geometry::Mesh(a), Geometry::Mesh(b)) => Rc::ptr_eq(a, b),
-        (Geometry::BRep(a), Geometry::BRep(b)) => Rc::ptr_eq(a, b),
-        (Geometry::NurbsSurface(a), Geometry::NurbsSurface(b)) => Rc::ptr_eq(a, b),
-        _ => false,
-    }
-}
-#[derive(Clone)]
-pub struct Owner {
-    pub id: ObjectId,
-    pub source: Geometry,
-    pub model: Xform,
-}
-impl Owner {
-    pub fn capture(scene: &Scene, id: ObjectId) -> Result<Self, &'static str> {
-        if scene.pick_id(id.value()) != Some(id) {
-            return Err("Pick a visible unlocked original");
-        }
-        Ok(Self {
-            id,
-            source: original(scene, id).ok_or("Reload an editable original source")?,
-            model: scene.placement(id).ok_or("Source placement is missing")?,
-        })
-    }
-    pub fn valid(&self, scene: &Scene) -> Result<(), &'static str> {
-        if scene.pick_id(self.id.value()) != Some(self.id)
-            || scene.placement(self.id).is_none_or(|p| p.m != self.model.m)
-            || original(scene, self.id).is_none_or(|g| !same(&self.source, &g))
-        {
-            return Err("Original source changed; start again");
-        }
-        Ok(())
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2372,33 +1986,9 @@ impl Owner {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-05.rs"
-```
-
-```text
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-06.rs"
-```
-
-</details>
-
 ### 4. `src/gpu_geometry.rs`
 
 Skip empty triangle draws before binding a wire-only box index buffer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn draw_instances(&self, pass: &mut wgpu::RenderPass<'_>,count:u32) {
-```
-
-</details>
 
 After that block, type:
 
@@ -2410,101 +2000,48 @@ After that block, type:
 
 Show whole selection on wire-only original edges without creating selected proxy faces.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            crate::stroke::Stroke { colour: yellow, width: r.prepared.display.width + 2., ..r.stroke() }))?;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
             crate::stroke::Stroke { colour: yellow, width: r.prepared.display.width + 2., ..r.stroke() }).chain(scene.objects().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)&&r.mesh.indices().is_empty()).flat_map(|r|r.mesh.parts.endpoints.iter().map(move|pair|{let ends=pair.map(|p|r.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32());crate::stroke::Stroke{start:ends[0],end:ends[1],colour:yellow,width:3.}}))))?;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-wire-selection.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84c-save-and-reopen-the-original-box-frame"></a>
 
 ### Step 4 of 37 · Save and reopen the original box frame (`84c-save-and-reopen-the-original-box-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/37 Visual Trace (84c-save-and-reopen-the-original-box-frame): Save and reopen the original box frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/geometry_snapshot.rs, src/document_source.rs, src/document_geometry.rs, src/archive_identity.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original box owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">protobuf box record</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source import</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">same original frame</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/geometry_snapshot.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked source import</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">same original frame</text>
 </svg>
-</div>
-
-- **Goal:** Save and reopen the original box frame.
-- **Data Flow Trace:** `original box owner → protobuf box record → checked source import → same original frame`
-- **Files You Touch:** `src/geometry_snapshot.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/document_source.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/document_geometry.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/archive_identity.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/source_validate.rs` (*Retain validated original OBB records through mixed document persistence.*)
 
 Include original boxes in mixed document identity, validation, snapshot and import paths. Preserve their family and precise coordinates.
 
-> **Self-Check Question:** *Should a box proxy be serialized as a mesh?*  
-> **Answer:** No. Save writes the original OBB record. The proxy exists only for drawing and ownership addresses.
-
-- **Hands-On Lab Experiment:** Inspect box GUID collision checks, exact coordinate fields and finite-frame validation. Reopen a flat box whose centre exceeds one billion.
-
-<details>
-<summary>Implementation 84c-save-and-reopen-the-original-box-frame: Save and reopen the original box frame</summary>
-
-Save and reopen the original box frame.
-
-Data flow: original box owner → protobuf box record → checked source import → same original frame.
+> **Check:** *Should a box proxy be serialized as a mesh?* — No. Save writes the original OBB record. The proxy exists only for drawing and ownership addresses.
 
 ### 1. `src/geometry_snapshot.rs`
 
 Retain validated original OBB records through mixed document persistence.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    for row in scene.objects().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {
-        if let Some(cad)=row.cad.as_ref() {push!(breps,row.id,cad.source.to_proto());}
-        else if let Some(surface)=row.surface.as_ref() {push!(nurbssurfaces,row.id,surface.source.to_proto());}
-        else {push!(meshes,row.id,row.geometry().ok_or("Reload editable sources before saving")?.to_proto());}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2515,45 +2052,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/document_source.rs`
 
 Retain validated original OBB records through mixed document persistence.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>,pub sheets:Vec<Rc<crate::sheet_source::Prepared>>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);identity!(sheets);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let sheets=objects.sheets.iter().cloned().map(|sheet|crate::sheet_source::Prepared::new(Rc::new(sheet)).map(Rc::new).map_err(str::to_owned)).collect::<Result<Vec<_>,_>>()?;
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world,sheets})
-}
-
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    if !source.interactions.is_empty() {return Err("Interactions arrive with element features".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.planes.is_empty()||!objects.bboxes.is_empty()||!objects.elements.is_empty()||!objects.components.is_empty() {return Err("This subject cannot open planes, boxes or assemblies yet".into());}
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2591,36 +2089,9 @@ fn supported(source:&proto::Session)->Result<(),String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-02.rs"
-```
-
-```text
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-03.rs"
-```
-
-</details>
-
 ### 3. `src/document_geometry.rs`
 
 Retain validated original OBB records through mixed document persistence.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        add!(source,scene.insert(prepared));
-    }
-    for source in &loaded.document.objects.points {add!(source,scene.insert_point(crate::marker::PreparedPoint::new(source.clone()).map_err(str::to_owned)?));}
-    for source in &loaded.document.objects.lines {add!(source,scene.insert_line(crate::stroke::PreparedLine::new(source.clone()).map_err(str::to_owned)?));}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2631,19 +2102,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/archive_identity.rs`
 
 Retain validated original OBB records through mixed document persistence.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) fn objects(objects:&mut proto::Objects,names:&HashMap<String,String>) {
-    macro_rules! remap {($field:ident)=>{for object in &mut objects.$field {if let Some(guid)=names.get(&object.guid) {object.guid=guid.clone();}}};}
-    remap!(meshes);remap!(lines);remap!(points);remap!(polylines);remap!(nurbscurves);remap!(nurbssurfaces);remap!(breps);remap!(pointclouds);remap!(instances);remap!(sheets);
-}
-pub(crate) fn tree(node:&mut proto::TreeNode,names:&HashMap<String,String>) {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2657,8 +2115,7 @@ Retain validated original OBB records through mixed document persistence.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return Err(TOO_MANY.into());
@@ -2668,8 +2125,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             point(item)?;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2683,8 +2138,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 /// Check every record of a protobuf session.
@@ -2695,8 +2149,6 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
             + objects.polylines.len()
             + objects.meshes.len()
 ```
-
-</details>
 
 Replace it with:
 
@@ -2710,8 +2162,7 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
             + objects.meshes.len()
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use prost::Message;
@@ -3396,71 +2847,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-06.rs"
-```
-
-```text
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84d-own-temporary-measurement-labels-without-scene-identities"></a>
 
 ### Step 5 of 37 · Own temporary measurement labels without scene identities (`84d-own-temporary-measurement-labels-without-scene-identities`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/37 Visual Trace (84d-own-temporary-measurement-labels-without-scene-identities): Own temporary measurement labels without scene identities</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">numeric value and points</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unused label IDs</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary presentation words</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/measure_mark.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unused label IDs</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary presentation…</text>
 </svg>
-</div>
-
-- **Goal:** Own temporary measurement labels without scene identities.
-- **Data Flow Trace:** `numeric value and points → unused label IDs → temporary presentation words`
-- **Files You Touch:** `src/measure_mark.rs` (*Own temporary points, unit suffixes and collision-free labels.*) · `src/lib.rs` (*Register the measurement component.*)
 
 Assign unused presentation IDs to a value chip and endpoint squares. Keep these annotations outside original scene rows and integer picking.
 
-> **Self-Check Question:** *Can a measurement chip reuse an existing label ID?*  
-> **Answer:** No. Allocate from unused presentation IDs while checking existing labels. Each mark carries no original object owner.
-
-- **Hands-On Lab Experiment:** Inspect the value chip, endpoint squares and collision check. Compare source row count before and after creating a mark.
-
-<details>
-<summary>Implementation 84d-own-temporary-measurement-labels-without-scene-identities: Own temporary measurement labels without scene identities</summary>
-
-Own temporary measurement labels without scene identities.
-
-Data flow: numeric value and points → unused label IDs → temporary presentation words.
+> **Check:** *Can a measurement chip reuse an existing label ID?* — No. Allocate from unused presentation IDs while checking existing labels. Each mark carries no original object owner.
 
 ### 1. `src/measure_mark.rs`
 
@@ -3476,85 +2894,48 @@ Create the file and type:
 
 Register the measurement component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod bounds_original;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/84d-own-temporary-measurement-labels-without-scene-identities-02.rs" skip=26
 ```
 
-</details>
+---
 
 <a id="checkpoint-84e-report-distance-and-world-bounding-lengths"></a>
 
 ### Step 6 of 37 · Report distance and world bounding lengths (`84e-report-distance-and-world-bounding-lengths`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/37 Visual Trace (84e-report-distance-and-world-bounding-lengths): Report distance and world bounding lengths</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected bounds or two points</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world extents and deltas</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">formatted result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/measure_mark.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world extents and deltas</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">formatted result</text>
 </svg>
-</div>
-
-- **Goal:** Report distance and world bounding lengths.
-- **Data Flow Trace:** `selected bounds or two points → world extents and deltas → formatted result`
-- **Files You Touch:** `src/measure_mark.rs` (*Resolve world selected bounds and distance without changing source geometry.*)
 
 Union precise selected bounds and calculate two-point distance with signed world-coordinate deltas. Preserve model coordinates when labeling units.
 
-> **Self-Check Question:** *Does changing a unit suffix rescale geometry?*  
-> **Answer:** No. Units describe the existing model coordinates. Numerical conversion requires a separate geometry operation.
-
-- **Hands-On Lab Experiment:** Compare a 3–4–5 distance and its signed deltas. Inspect world X/Y/Z bounds independently of the current drawing plane.
-
-<details>
-<summary>Implementation 84e-report-distance-and-world-bounding-lengths: Report distance and world bounding lengths</summary>
-
-Report distance and world bounding lengths.
-
-Data flow: selected bounds or two points → world extents and deltas → formatted result.
+> **Check:** *Does changing a unit suffix rescale geometry?* — No. Units describe the existing model coordinates. Numerical conversion requires a separate geometry operation.
 
 ### 1. `src/measure_mark.rs`
 
 Resolve world selected bounds and distance without changing source geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        out
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3562,68 +2943,42 @@ After that block, type:
 --8<-- "journey/code/84e-report-distance-and-world-bounding-lengths-01.rs" skip=20
 ```
 
-</details>
+---
 
 <a id="checkpoint-84f-collect-only-supported-finite-original-measurements"></a>
 
 ### Step 7 of 37 · Collect only supported finite original measurements (`84f-collect-only-supported-finite-original-measurements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/37 Visual Trace (84f-collect-only-supported-finite-original-measurements): Collect only supported finite original measurements</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original owners</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed source copies</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">supported totals and refusals</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/measure_mark.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed source copies</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">supported totals and re…</text>
 </svg>
-</div>
-
-- **Goal:** Collect only supported finite original measurements.
-- **Data Flow Trace:** `selected original owners → placed source copies → supported totals and refusals`
-- **Files You Touch:** `src/measure_mark.rs` (*Collect original length, area and volume while keeping refusals explicit.*)
 
 Transform temporary original copies and aggregate supported results. Track unsupported families and open solids separately.
 
-> **Self-Check Question:** *What happens when selection mixes curves with unsupported objects?*  
-> **Answer:** Supported originals contribute to the total; the result reports skipped objects. Released editable sources require Reload.
-
-- **Hands-On Lab Experiment:** Trace selected-face ownership, original placement, finite result checks and open-solid names. No collection opens a history transaction.
-
-<details>
-<summary>Implementation 84f-collect-only-supported-finite-original-measurements: Collect only supported finite original measurements</summary>
-
-Collect only supported finite original measurements.
-
-Data flow: selected original owners → placed source copies → supported totals and refusals.
+> **Check:** *What happens when selection mixes curves with unsupported objects?* — Supported originals contribute to the total; the result reports skipped objects. Released editable sources require Reload.
 
 ### 1. `src/measure_mark.rs`
 
 Collect original length, area and volume while keeping refusals explicit.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    BoundingLengths,
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3631,69 +2986,42 @@ After that block, type:
 --8<-- "journey/code/84f-collect-only-supported-finite-original-measurements-01.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"></a>
 
 ### Step 8 of 37 · Format totals refusals and three-axis box extents (`84g-format-totals-refusals-and-three-axis-box-extents`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/37 Visual Trace (84g-format-totals-refusals-and-three-axis-box-extents): Format totals refusals and three-axis box extents</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite total and refusals</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current value formatting</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary result chip</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/measure_mark.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current value formatting</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary result chip</text>
 </svg>
-</div>
-
-- **Goal:** Format totals refusals and three-axis box extents.
-- **Data Flow Trace:** `finite total and refusals → current value formatting → temporary result chip`
-- **Files You Touch:** `src/measure_mark.rs` (*Report current formatted totals and world bounding lengths with bounded errors.*)
 
 Format values with current rounding and unit powers. Bound open-object names and attach one temporary value chip to the selected bounds.
 
-> **Self-Check Question:** *Should one open object erase a valid closed-object volume?*  
-> **Answer:** No. Report the measured closed total and separately name the refused open objects; an entirely unsupported selection returns an error.
-
-- **Hands-On Lab Experiment:** Compare three-decimal and very small values, plural counts and skipped objects. More than three open names become three names plus a remaining count.
-
-<details>
-<summary>Implementation 84g-format-totals-refusals-and-three-axis-box-extents: Format totals refusals and three-axis box extents</summary>
-
-Format totals refusals and three-axis box extents.
-
-Data flow: finite total and refusals → current value formatting → temporary result chip.
+> **Check:** *Should one open object erase a valid closed-object volume?* — No. Report the measured closed total and separately name the refused open objects; an entirely unsupported selection returns an error.
 
 ### 1. `src/measure_mark.rs`
 
 Report current formatted totals and world bounding lengths with bounded errors.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(result)
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3701,54 +3029,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/84g-format-totals-refusals-and-three-axis-box-extents-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-84h-keep-measurements-outside-geometry-history"></a>
 
 ### Step 9 of 37 · Keep measurements outside geometry history (`84h-keep-measurements-outside-geometry-history`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/37 Visual Trace (84h-keep-measurements-outside-geometry-history): Keep measurements outside geometry history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected whole owner or face</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measurement or original box</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged or single history entry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">measurement or original…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged or single his…</text>
 </svg>
-</div>
-
-- **Goal:** Keep measurements outside geometry history.
-- **Data Flow Trace:** `selected whole owner or face → measurement or original box → unchanged or single history entry`
-- **Files You Touch:** `src/editor.rs` (*Own temporary marks and connect selected-original numerical results and box creation.*)
 
 Connect selected-parent measurement and checked box creation. Distance results change presentation; original bounding boxes use one scene transaction.
 
-> **Self-Check Question:** *Does measuring a selected face use whole-object selection?*  
-> **Answer:** No. Its selected parent supplies original geometry while the face index limits Area. A whole-object measure uses normal eligible selection.
-
-- **Hands-On Lab Experiment:** Inspect selected-parent resolution and the one BoundingBox transaction. Keep Redo after a measurement and reject released originals before creating a box.
-
-<details>
-<summary>Implementation 84h-keep-measurements-outside-geometry-history: Keep measurements outside geometry history</summary>
-
-Keep measurements outside geometry history.
-
-Data flow: selected whole owner or face → measurement or original box → unchanged or single history entry.
+> **Check:** *Does measuring a selected face use whole-object selection?* — No. Its selected parent supplies original geometry while the face index limits Area. A whole-object measure uses normal eligible selection.
 
 ### 1. `src/editor.rs`
 
@@ -3756,8 +3068,7 @@ Own temporary marks and connect selected-original numerical results and box crea
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.draft=None;self.gizmo_edit=None;self.edit_preview=None;self.transform_preview=None;self.tool_status=next.prompt();self.split=Some(next);Ok(Change::View)
@@ -3767,8 +3078,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3785,8 +3094,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -3797,8 +3105,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3812,8 +3118,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -3823,8 +3128,6 @@ pub struct Editor {
     pub canvas_drag:Option<crate::canvas_drag::Drag>,
     pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3838,8 +3141,7 @@ pub struct Editor {
     pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4884,75 +4186,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84h-keep-measurements-outside-geometry-history-01.rs"
-```
-
-```text
---8<-- "journey/code/84h-keep-measurements-outside-geometry-history-02.rs"
-```
-
-```text
---8<-- "journey/code/84h-keep-measurements-outside-geometry-history-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"></a>
 
 ### Step 10 of 37 · Accept two distance points through the drawing tool (`84i-accept-two-distance-points-through-the-drawing-tool`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/37 Visual Trace (84i-accept-two-distance-points-through-the-drawing-tool): Accept two distance points through the drawing tool</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drawing-plane or world points</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing snapping tool</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary measured pair</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs, src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing snapping tool</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary measured pair</text>
 </svg>
-</div>
-
-- **Goal:** Accept two distance points through the drawing tool.
-- **Data Flow Trace:** `drawing-plane or world points → existing snapping tool → temporary measured pair`
-- **Files You Touch:** `src/tool.rs` (*Add a two-point measurement result to the existing drawing tool.*) · `src/editor.rs` (*Complete accepted distance points without opening scene history and expose measurement actions.*)
 
 Use the existing point parser and snapping owner for distance input. Validate initial arguments before replacing a pending tool and finish without inserting geometry.
 
-> **Self-Check Question:** *Should invalid initial distance input discard an accepted drawing point?*  
-> **Answer:** No. Validate it before switching owners. Once started, distance enables object snapping and accepts exactly two points.
-
-- **Hands-On Lab Experiment:** Compare world-prefixed points with relative points on CPlane XZ. Completion creates a mark, keeps source row count and records no Undo step.
-
-<details>
-<summary>Implementation 84i-accept-two-distance-points-through-the-drawing-tool: Accept two distance points through the drawing tool</summary>
-
-Accept two distance points through the drawing tool.
-
-Data flow: drawing-plane or world points → existing snapping tool → temporary measured pair.
+> **Check:** *Should invalid initial distance input discard an accepted drawing point?* — No. Validate it before switching owners. Once started, distance enables object snapping and accepts exactly two points.
 
 ### 1. `src/tool.rs`
 
@@ -4960,8 +4225,7 @@ Add a two-point measurement result to the existing drawing tool.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -4971,8 +4235,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             (Self::Line, [a, b]) => {
                 if a.iter().zip(b).all(|(a, b)| (a-b).abs() < 1e-12) { return Err("Line endpoints must differ"); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4986,8 +4248,7 @@ Replace it with:
                 if a.iter().zip(b).all(|(a, b)| (a-b).abs() < 1e-12) { return Err("Line endpoints must differ"); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -5002,8 +4263,6 @@ impl Tool for Shape {
     fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -5021,8 +4280,7 @@ impl Tool for Shape {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -5033,8 +4291,6 @@ pub enum Built { Point(PreparedPoint), Line(PreparedLine), Move([f64; 3]), Polyl
 pub trait Tool: std::fmt::Debug {
     fn name(&self) -> &'static str;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5048,8 +4304,7 @@ pub trait Tool: std::fmt::Debug {
     fn name(&self) -> &'static str;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -5179,35 +4434,13 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-01.rs"
-```
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-02.rs"
-```
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-03.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Complete accepted distance points without opening scene history and expose measurement actions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
@@ -5217,8 +4450,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::SplitPick(id)=>return self.split_pick(id),
             Action::CancelSplit=>{self.split=None;self.tool_status="Split cancelled".into();return Ok(Change::View)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -5234,8 +4465,7 @@ Replace it with:
             Action::CancelSplit=>{self.split=None;self.tool_status="Split cancelled".into();return Ok(Change::View)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn measured_ids(&self)->Vec<ObjectId>{if self.selected_part.is_some(){self.selected.into_iter().filter(|id|self.scene.contains(*id)).collect()}else{self.selected_objects()}}
@@ -5245,8 +4475,6 @@ Replace it with:
     fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
         if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -5260,8 +4488,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             crate::tool::Built::Line(line)=>scene.insert_line(line).map(|_|()),
@@ -5271,8 +4498,6 @@ Replace it with:
         })?;
         self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
 ```
-
-</details>
 
 Replace it with:
 
@@ -5286,8 +4511,7 @@ Replace it with:
         self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -5297,8 +4521,6 @@ Replace it with:
         if let crate::tool::Built::Move(offset)=built {
             let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5312,8 +4534,7 @@ Replace it with:
             let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5323,8 +4544,6 @@ pub enum Action {
     Project(Vec<String>),ExtendBegin{distance:Option<f64>,asking:bool},ExtendPick(Option<ObjectId>),Interval(crate::interval_geometry::Interval),
     GatherBegin{recipe:&'static crate::gather_input::Recipe,text:String},GatherPick(Option<ObjectId>),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5338,8 +4557,7 @@ pub enum Action {
     GatherBegin{recipe:&'static crate::gather_input::Recipe,text:String},GatherPick(Option<ObjectId>),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6391,83 +5609,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-04.rs"
-```
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-05.rs"
-```
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-06.rs"
-```
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-07.rs"
-```
-
-```text
---8<-- "journey/code/84i-accept-two-distance-points-through-the-drawing-tool-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84j-register-measurements-and-end-temporary-marks-predictably"></a>
 
 ### Step 11 of 37 · Register measurements and end temporary marks predictably (`84j-register-measurements-and-end-temporary-marks-predictably`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/37 Visual Trace (84j-register-measurements-and-end-temporary-marks-predictably): Register measurements and end temporary marks predictably</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current command vocabulary</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked measurement action</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit mark lifecycle</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked measurement act…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit mark lifecycle</text>
 </svg>
-</div>
-
-- **Goal:** Register measurements and end temporary marks predictably.
-- **Data Flow Trace:** `current command vocabulary → checked measurement action → explicit mark lifecycle`
-- **Files You Touch:** `src/editor.rs` (*Connect transient mark cleanup and completed-mark Escape.*) · `src/commands.rs` (*Register original BoundingBox and current numerical measurement commands.*)
 
 Register current measurement verbs and box commands. Preserve marks during pointer views; clear them on the next typed command or Escape.
 
-> **Self-Check Question:** *Can orbiting the scene remove a completed distance annotation?*  
-> **Answer:** No. Pointer view controls retain it. Another typed command or Escape removes the temporary annotation without editing sources.
-
-- **Hands-On Lab Experiment:** Try Length, Area, Volume, BoundingBox, Length BoundingBox and Measure Distance. Compare arity errors, pending drawing input and Escape after completion.
-
-<details>
-<summary>Implementation 84j-register-measurements-and-end-temporary-marks-predictably: Register measurements and end temporary marks predictably</summary>
-
-Register measurements and end temporary marks predictably.
-
-Data flow: current command vocabulary → checked measurement action → explicit mark lifecycle.
+> **Check:** *Can orbiting the scene remove a completed distance annotation?* — No. Pointer view controls retain it. Another typed command or Escape removes the temporary annotation without editing sources.
 
 ### 1. `src/editor.rs`
 
@@ -6475,8 +5648,7 @@ Connect transient mark cleanup and completed-mark Escape.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
@@ -6486,8 +5658,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::StreamRefresh=>{self.snap_index=None;return Ok(Change::Scene);},
             Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
 ```
-
-</details>
 
 Replace it with:
 
@@ -6501,8 +5671,7 @@ Replace it with:
             Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
@@ -6512,8 +5681,6 @@ Replace it with:
         if self.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some() || text.trim().eq_ignore_ascii_case("Escape")) {
             return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
 ```
-
-</details>
 
 Replace it with:
 
@@ -6527,8 +5694,7 @@ Replace it with:
             return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -7582,31 +6748,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84j-register-measurements-and-end-temporary-marks-predictably-01-escape-drag.rs"
-```
-
-```text
---8<-- "journey/code/84j-register-measurements-and-end-temporary-marks-predictably-02.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Register original BoundingBox and current numerical measurement commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let alias=crate::transform_commands::alias(&line);let line=alias.as_str();
@@ -7616,8 +6764,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if let Some(action)=crate::editing_commands::action(name,&words[count..]){return action.map(Command::Editor);}
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -7631,8 +6777,7 @@ Replace it with:
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
@@ -7642,8 +6787,6 @@ Replace it with:
     ("Polyline",||Action::BeginTool(crate::tool::Shape::Polyline)),
     ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
 ```
-
-</details>
 
 Replace it with:
 
@@ -7662,8 +6805,7 @@ Replace it with:
     ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -7838,87 +6980,42 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84j-register-measurements-and-end-temporary-marks-predictably-03.rs"
-```
-
-```text
---8<-- "journey/code/84j-register-measurements-and-end-temporary-marks-predictably-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84k-draw-cached-unpickable-measurement-strokes"></a>
 
 ### Step 12 of 37 · Draw cached unpickable measurement strokes (`84k-draw-cached-unpickable-measurement-strokes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/37 Visual Trace (84k-draw-cached-unpickable-measurement-strokes): Draw cached unpickable measurement strokes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/measure_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary point pair</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached CSS-width stroke</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">overlay colour pass</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/me…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached CSS-width stroke</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">overlay colour pass</text>
 </svg>
-</div>
-
-- **Goal:** Draw cached unpickable measurement strokes.
-- **Data Flow Trace:** `temporary point pair → cached CSS-width stroke → overlay colour pass`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Add a colour-only overlay lane with explicit depth behaviour.*) · `src/measure_gpu.rs` (*Cache unchanged marks and account for their actual stroke allocation.*) · `src/lib.rs` (*Register the measurement component.*)
 
 Create a depth-independent overlay lane for temporary measurement segments. Reuse unchanged stroke allocation and keep it outside integer picks.
 
-> **Self-Check Question:** *Does the measurement line acquire a geometry pick address?*  
-> **Answer:** No. This overlay draws colour only. Its endpoints and value chip remain presentation data.
-
-- **Hands-On Lab Experiment:** Inspect the 1.5 CSS-pixel width, Always depth comparison and disabled depth writes. Compare actual allocated bytes with used segments.
-
-<details>
-<summary>Implementation 84k-draw-cached-unpickable-measurement-strokes: Draw cached unpickable measurement strokes</summary>
-
-Draw cached unpickable measurement strokes.
-
-Data flow: temporary point pair → cached CSS-width stroke → overlay colour pass.
+> **Check:** *Does the measurement line acquire a geometry pick address?* — No. This overlay draws colour only. Its endpoints and value chip remain presentation data.
 
 ### 1. `src/stroke_gpu.rs`
 
 Add a colour-only overlay lane with explicit depth behaviour.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    pub fn grid(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout_depth(device, format, crate::stroke::SHADER, 44, 6,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7940,74 +7037,44 @@ Create the file and type:
 
 Register the measurement component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod measure_mark;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/84k-draw-cached-unpickable-measurement-strokes-03.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-84l-merge-measurement-chips-with-cached-scene-text"></a>
 
 ### Step 13 of 37 · Merge measurement chips with cached scene text (`84l-merge-measurement-chips-with-cached-scene-text`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/37 Visual Trace (84l-merge-measurement-chips-with-cached-scene-text): Merge measurement chips with cached scene text</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unchanged mark guard</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">merged cached text</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stroke overlay</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">value chip</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stroke overlay</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">value chip</text>
 </svg>
-</div>
-
-- **Goal:** Merge measurement chips with cached scene text.
-- **Data Flow Trace:** `unchanged mark guard → merged cached text → stroke overlay → value chip`
-- **Files You Touch:** `src/renderer.rs` (*Draw cached measurement strokes and merge temporary chips with the existing text owner.*)
 
 Merge collision-free measurement words into the existing text lane and draw temporary strokes before text. Skip unchanged marks during camera motion.
 
-> **Self-Check Question:** *Should rotating reshape the same measurement words every frame?*  
-> **Answer:** No. Keep the mark and text document unchanged while updating only their projected frame.
-
-- **Hands-On Lab Experiment:** Trace the unchanged-mark guard and lazy text adoption. Removing the mark releases its stroke data and removes only its presentation labels.
-
-<details>
-<summary>Implementation 84l-merge-measurement-chips-with-cached-scene-text: Merge measurement chips with cached scene text</summary>
-
-Merge measurement chips with cached scene text.
-
-Data flow: unchanged mark guard → merged cached text → stroke overlay → value chip.
+> **Check:** *Should rotating reshape the same measurement words every frame?* — No. Keep the mark and text document unchanged while updating only their projected frame.
 
 ### 1. `src/renderer.rs`
 
@@ -8015,8 +7082,7 @@ Draw cached measurement strokes and merge temporary chips with the existing text
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.markers.draw(&mut pass);
@@ -8026,8 +7092,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density);
         } else {self.outline.borrow_mut().take();}
 ```
-
-</details>
 
 Replace it with:
 
@@ -8041,8 +7105,7 @@ Replace it with:
         } else {self.outline.borrow_mut().take();}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.mesh_ink.view(&self.queue, transform, self.size, self.density);
@@ -8052,8 +7115,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8067,8 +7128,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -8082,8 +7142,6 @@ Replace it with:
     pub fn refresh_text_bounds(&self,scene:&mut Scene) {
         if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -8100,8 +7158,7 @@ Replace it with:
         if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
@@ -8110,8 +7167,6 @@ Replace it with:
     pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
     pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8127,8 +7182,7 @@ Replace it with:
     pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let faces = crate::face_pick::Faces::new(&device);
@@ -8139,8 +7193,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         renderer.set_scene(scene, None);
 ```
-
-</details>
 
 Replace it with:
 
@@ -8155,8 +7207,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -8166,8 +7217,6 @@ pub struct Renderer {
     clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
     cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8181,8 +7230,7 @@ pub struct Renderer {
     cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -8641,88 +7689,38 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84l-merge-measurement-chips-with-cached-scene-text-01.rs"
-```
-
-```text
---8<-- "journey/code/84l-merge-measurement-chips-with-cached-scene-text-02.rs"
-```
-
-```text
---8<-- "journey/code/84l-merge-measurement-chips-with-cached-scene-text-03.rs"
-```
-
-```text
---8<-- "journey/code/84l-merge-measurement-chips-with-cached-scene-text-04.rs"
-```
-
-```text
---8<-- "journey/code/84l-merge-measurement-chips-with-cached-scene-text-05.rs"
-```
-
-```text
---8<-- "journey/code/84l-merge-measurement-chips-with-cached-scene-text-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"></a>
 
 ### Step 14 of 37 · Exercise original boxes and temporary distance annotations (`84m-exercise-original-boxes-and-temporary-distance-annotations`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/37 Visual Trace (84m-exercise-original-boxes-and-temporary-distance-annotations): Exercise original boxes and temporary distance annotations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/measure_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original solid</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reversible wire box</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary distance line and value</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/measu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reversible wire box</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary distance line…</text>
 </svg>
-</div>
-
-- **Goal:** Exercise original boxes and temporary distance annotations.
-- **Data Flow Trace:** `original solid → reversible wire box → temporary distance line and value`
-- **Files You Touch:** `src/browser.rs` (*Route current measurement input, physical Escape and truthful annotation diagnostics.*) · `src/measure_tests.rs` (*Copy original box, exact archive, numerical, selected-face, history, distance and label-collision fixtures.*) · `src/lib.rs` (*Register the measurement component.*)
 
 Copy original/history/coordinate fixtures and observe actual measurement state in the browser. Display a selected wire box around its original solid.
 
-> **Self-Check Question:** *What distinguishes BoundingBox from measuring its lengths?*  
-> **Answer:** BoundingBox creates an original OBB and one Undo step. Length BoundingBox only reports world extents; it adds no geometry or history.
-
-- **What You Should See:** A selected original wire bounding box surrounds the solid. A temporary black distance line, endpoint squares and a 2 mm value chip remain outside geometry history.
-- **Hands-On Lab Experiment:** Type Close, CPlane XY and Box w-1,-1,0 2 2 0.4. Type Select All, BoundingBox and Length BoundingBox: expect X 2, Y 2, Z 0.4 mm. Undo removes the box and Redo restores it. Type View Isometric, Select None and Fit, then Measure Distance w-1,0,1 w1,0,1: expect 2 mm, dx 2, dy 0, dz 0. Orbit and zoom retain the black line, endpoint squares and chip. Escape removes them. Select the solid and compare Area 11.2 mm² and Volume 1.6 mm³. Ctrl+Shift-select a face and compare its own area. Save/Open must retain the original wire box; measurements remain temporary.
-
-<details>
-<summary>Implementation 84m-exercise-original-boxes-and-temporary-distance-annotations: Exercise original boxes and temporary distance annotations</summary>
-
-Exercise original boxes and temporary distance annotations.
-
-Data flow: original solid → reversible wire box → temporary distance line and value.
+> **Check:** *What distinguishes BoundingBox from measuring its lengths?* — BoundingBox creates an original OBB and one Undo step. Length BoundingBox only reports world extents; it adds no geometry or history.
 
 ### 1. `src/browser.rs`
 
@@ -8730,8 +7728,7 @@ Route current measurement input, physical Escape and truthful annotation diagnos
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
@@ -8741,8 +7738,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-project", &editor.draft.as_ref().and_then(|d|d.project.as_ref()).map_or_else(||"null".into(), |p|serde_json::json!({"targets":p.targets.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"points":p.points,"unsupported":p.unsupported}).to_string()))?;
     canvas.set_attribute("data-extend", &editor.draft.as_ref().and_then(|d|d.extend.as_ref()).map_or_else(||"null".into(), |e|serde_json::json!({"boundaries":e.boundaries.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"curves":e.curves,"distance":e.distance,"asking":e.asking,"candidates":e.candidates.len(),"hover":e.hover.as_ref().map(|h|serde_json::json!({"owner":h.owner.id.value(),"end":format!("{:?}",h.end),"tail":h.tail})),"error":e.error}).to_string()))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -8757,8 +7752,7 @@ Replace it with:
     canvas.set_attribute("data-extend", &editor.draft.as_ref().and_then(|d|d.extend.as_ref()).map_or_else(||"null".into(), |e|serde_json::json!({"boundaries":e.boundaries.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"curves":e.curves,"distance":e.distance,"asking":e.asking,"candidates":e.candidates.len(),"hover":e.hover.as_ref().map(|h|serde_json::json!({"owner":h.owner.id.value(),"end":format!("{:?}",h.end),"tail":h.tail})),"error":e.error}).to_string()))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
@@ -8768,8 +7762,6 @@ Replace it with:
         text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
         let rect=pointer_canvas.get_bounding_client_rect();
 ```
-
-</details>
 
 Replace it with:
 
@@ -8783,8 +7775,7 @@ Replace it with:
         let rect=pointer_canvas.get_bounding_client_rect();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(action) = action {
@@ -8795,8 +7786,6 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8810,8 +7799,7 @@ Replace it with:
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } else if let Some(line) = line {
@@ -8821,8 +7809,6 @@ Replace it with:
             Err(error) => { panel.result(&error); None }
             Ok(crate::commands::Command::Editor(mut action)) => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8836,8 +7822,7 @@ Replace it with:
             Ok(crate::commands::Command::Editor(mut action)) => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -8848,8 +7833,6 @@ Replace it with:
             event.prevent_default(); gesture.cancel(); Some("Escape".into())
         } else { line };
 ```
-
-</details>
 
 Replace it with:
 
@@ -8863,8 +7846,7 @@ Replace it with:
         } else { line };
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -9708,37 +8690,7 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-01.rs"
-```
-
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-02.rs"
-```
-
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-03-selection-refresh.rs"
-```
-
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-04.rs"
-```
-
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9752,10 +8704,7 @@ Copy this supplied file:
 --8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-06.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9763,72 +8712,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the measurement component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod measure_gpu;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-07.rs" skip=22
 ```
 
-</details>
+**Result after `84m-exercise-original-boxes-and-temporary-distance-annotations`:** A selected original wire bounding box surrounds the solid. A temporary black distance line, endpoint squares and a 2 mm value chip remain outside geometry history.
 
-</details>
+---
 
 <a id="checkpoint-84zza-describe-removable-cad-parts"></a>
 
 ### Step 15 of 37 · Describe removable CAD parts (`84zza-describe-removable-cad-parts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/37 Visual Trace (84zza-describe-removable-cad-parts): Describe removable CAD parts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Type the original CAD part representation and seam-aware curve helpers.*) · `src/lib.rs` (*Register the shared part owner.*)
 
 Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry. Write seam-aware curve intervals and pieces.
 
-> **Self-Check Question:** *Why can the last interval end before it starts?*  
-> **Answer:** A closed curve wraps through its parameter seam; join its tail and head.
-
-- **Hands-On Lab Experiment:** Draw three cuts on a closed curve and trace the last interval through the seam.
-
-<details>
-<summary>Implementation 84zza-describe-removable-cad-parts: Describe removable CAD parts</summary>
-
-Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why can the last interval end before it starts?* — A closed curve wraps through its parameter seam; join its tail and head.
 
 ### 1. `src/trim_parts.rs`
 
@@ -9844,87 +8767,48 @@ Create the file and type:
 
 Register the shared part owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod measure_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/84zza-describe-removable-cad-parts-2.rs" skip=32
 ```
 
-</details>
+---
 
 <a id="checkpoint-84zzb-read-trim-part-previews"></a>
 
 ### Step 16 of 37 · Read trim part previews (`84zzb-read-trim-part-previews`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/37 Visual Trace (84zzb-read-trim-part-previews): Read trim part previews</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner. These helpers prepare later pointer picking.
 
-> **Self-Check Question:** *Why return face meshes with their part index?*  
-> **Answer:** Several faces can belong to one removable part; the click must recover that group.
-
-- **Hands-On Lab Experiment:** Trace a two-face group and identify the part returned by either face mesh.
-
-<details>
-<summary>Implementation 84zzb-read-trim-part-previews: Read trim part previews</summary>
-
-Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why return face meshes with their part index?* — Several faces can belong to one removable part; the click must recover that group.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// One cutter and, for a straight line, the plane it stands for off the object.
-pub struct Blade {
-    pub cutter: Cutter,       // in the target's frame
-    pub fence: Option<Plane>, // a line's vertical plane, in the target's frame
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9985,117 +8869,42 @@ impl Parts {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzb-read-trim-part-previews-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzc-collect-curve-crossings"></a>
 
 ### Step 17 of 37 · Collect curve crossings (`84zzc-collect-curve-crossings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/37 Visual Trace (84zzc-collect-curve-crossings): Collect curve crossings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Collect kernel curve intersections, filter open endpoints and merge a closed seam.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Collect kernel curve intersections, filter open endpoints and merge a closed seam. Add shared compact-table helpers for later BRep reconstruction.
 
-> **Self-Check Question:** *Why remove open endpoints from the cut list?*  
-> **Answer:** An endpoint creates no additional removable interval.
-
-- **Hands-On Lab Experiment:** Compare cuts at the start, middle and end of an open curve; then repeat on a closed curve.
-
-<details>
-<summary>Implementation 84zzc-collect-curve-crossings: Collect curve crossings</summary>
-
-Collect kernel curve intersections, filter open endpoints and merge a closed seam.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why remove open endpoints from the cut list?* — An endpoint creates no additional removable interval.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// The parameter range of curve part `index`; a closed curve's last part runs over the seam.
-fn interval(curve: &NurbsCurve, cuts: &[f64], index: usize) -> (f64, f64) {
-    let (d0, d1) = curve.domain();
-
-    if curve.is_closed() {
-        return (cuts[index], cuts[(index + 1) % cuts.len()]);
-    }
-
-    let a = if index == 0 { d0 } else { cuts[index - 1] };
-    (a, cuts.get(index).copied().unwrap_or(d1))
-}
-
-/// The piece of `curve` from `a` to `b`, over the seam when `b <= a`.
-fn piece(curve: &NurbsCurve, a: f64, b: f64) -> Option<NurbsCurve> {
-    let (d0, d1) = curve.domain();
-    let near = (d1 - d0) * 1e-9;
-    let trimmed = |a: f64, b: f64| {
-        let mut part = curve.clone();
-        part.trim(a, b).then_some(part)
-    };
-
-    if a < b {
-        return trimmed(a, b);
-    }
-
-    // over the seam: the tail and the head joined
-    let tail = (a < d1 - near).then(|| trimmed(a, d1)).flatten();
-    let head = (b > d0 + near).then(|| trimmed(d0, b)).flatten();
-
-    match (tail, head) {
-        (Some(tail), Some(head)) if curve.degree() == 1 => {
-            let mut points = samples(&tail, 1);
-            points.extend(samples(&head, 1).into_iter().skip(1));
-            Some(NurbsCurve::create(false, 1, &points))
-        }
-        (Some(tail), Some(head)) => NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
-            .into_iter()
-            .next(),
-        (tail, head) => tail.or(head),
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10103,72 +8912,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/84zzc-collect-curve-crossings-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-84zzd-preserve-trimmed-source-types"></a>
 
 ### Step 18 of 37 · Preserve trimmed source types (`84zzd-preserve-trimmed-source-types`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/37 Visual Trace (84zzd-preserve-trimmed-source-types): Preserve trimmed source types</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Rebuild kept curves in their original source family with their presentation.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Rebuild kept curves in their original source family with their presentation. Wrap a surface as a single-face BRep using the existing kernel split API.
 
-> **Self-Check Question:** *Why discard incompatible per-control colors?*  
-> **Answer:** A trimmed curve can have a different control count; stale color arrays no longer describe it.
-
-- **Hands-On Lab Experiment:** Trace which line properties survive trimming and when a NURBS color array is cleared.
-
-<details>
-<summary>Implementation 84zzd-preserve-trimmed-source-types: Preserve trimmed source types</summary>
-
-Rebuild kept curves in their original source family with their presentation.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why discard incompatible per-control colors?* — A trimmed curve can have a different control count; stale color arrays no longer describe it.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        (Some(tail), Some(head)) => NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
-            .into_iter()
-            .next(),
-        (tail, head) => tail.or(head),
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -10249,85 +9028,42 @@ fn planar_size(surface: &NurbsSurface) -> f64 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzd-preserve-trimmed-source-types-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zze-group-faces-by-cutting-planes"></a>
 
 ### Step 19 of 37 · Group faces by cutting planes (`84zze-group-faces-by-cutting-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/37 Visual Trace (84zze-group-faces-by-cutting-planes): Group faces by cutting planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Extend a plane-plane intersection past surface control points.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Extend a plane-plane intersection past surface control points. Group faces by plane-side signs while retaining independently cut face regions.
 
-> **Self-Check Question:** *Why keep curve-cut regions separate?*  
-> **Answer:** Faces split by a curve are individually removable even when they share the same plane-side signs.
-
-- **Hands-On Lab Experiment:** Compare two unsplit faces on one side with two faces split by a curve.
-
-<details>
-<summary>Implementation 84zze-group-faces-by-cutting-planes: Group faces by cutting planes</summary>
-
-Extend a plane-plane intersection past surface control points.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why keep curve-cut regions separate?* — Faces split by a curve are individually removable even when they share the same plane-side signs.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if let Some(p) = surface.get_cv(i, j) {
-                size = size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs());
-            }
-        }
-    }
-
-    size
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -10395,84 +9131,42 @@ fn across(line: &Line, surface: &NurbsSurface) -> NurbsCurve {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zze-group-faces-by-cutting-planes-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzf-cut-planar-brep-faces"></a>
 
 ### Step 20 of 37 · Cut planar BRep faces (`84zzf-cut-planar-brep-faces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/37 Visual Trace (84zzf-cut-planar-brep-faces): Cut planar BRep faces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Find crossed planar faces, split them through the kernel and collect section edges.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Find crossed planar faces, split them through the kernel and collect section edges. Report unsupported curved sections explicitly.
 
-> **Self-Check Question:** *Why scale the plane tolerance with the geometry?*  
-> **Answer:** The local coordinate magnitude controls how close a point must be to the plane.
-
-- **Hands-On Lab Experiment:** Trace a missing plane, a crossed flat face and a crossed curved face through the error paths.
-
-<details>
-<summary>Implementation 84zzf-cut-planar-brep-faces: Cut planar BRep faces</summary>
-
-Find crossed planar faces, split them through the kernel and collect section edges.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why scale the plane tolerance with the geometry?* — The local coordinate magnitude controls how close a point must be to the plane.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Some((_, _, faces)) => faces.push(face),
-            None => groups.push((key, region, vec![face])),
-        }
-    }
-
-    groups.into_iter().map(|(_, _, faces)| faces).collect()
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -10551,85 +9245,42 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzf-cut-planar-brep-faces-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzg-assemble-removable-face-groups"></a>
 
 ### Step 21 of 37 · Assemble removable face groups (`84zzg-assemble-removable-face-groups`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/37 Visual Trace (84zzg-assemble-removable-face-groups): Assemble removable face groups</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Combine curve regions, fallback fence planes and crossed plane sections into one Parts value. Keep the source BRep unchanged by working on its clone.
 
-> **Self-Check Question:** *Why ignore a plane that misses one target?*  
-> **Answer:** The same cutter list can cross another selected target.
-
-- **Hands-On Lab Experiment:** Trace one curve that splits a face and one fence plane that crosses another target.
-
-<details>
-<summary>Implementation 84zzg-assemble-removable-face-groups: Assemble removable face groups</summary>
-
-Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why ignore a plane that misses one target?* — The same cutter list can cross another selected target.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if let Some(p) = surface.get_cv(i, j) {
-                size = size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs());
-            }
-        }
-    }
-
-    size
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -10730,87 +9381,42 @@ fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzg-assemble-removable-face-groups-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzh-mark-retained-brep-topology"></a>
 
 ### Step 22 of 37 · Mark retained BRep topology (`84zzh-mark-retained-brep-topology`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/37 Visual Trace (84zzh-mark-retained-brep-topology): Mark retained BRep topology</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables. This preparatory function returns an error until the next lesson compacts those tables.
 
-> **Self-Check Question:** *Why follow references before deleting table entries?*  
-> **Answer:** Deleting first would shift indices before the surviving references can be mapped.
-
-- **Hands-On Lab Experiment:** Trace a retained face through one wire, edge, vertex and pcurve; mark every required table entry.
-
-<details>
-<summary>Implementation 84zzh-mark-retained-brep-topology: Mark retained BRep topology</summary>
-
-Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why follow references before deleting table entries?* — Deleting first would shift indices before the surviving references can be mapped.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .map(|&kept| {
-            if !kept {
-                return -1;
-            }
-
-            next += 1;
-            next - 1
-        })
-        .collect()
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -10892,78 +9498,42 @@ pub fn without_faces(brep: &BRep, removed: &[usize]) -> Result<BRep, String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzh-mark-retained-brep-topology-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzi-rebuild-retained-brep-tables"></a>
 
 ### Step 23 of 37 · Rebuild retained BRep tables (`84zzi-rebuild-retained-brep-tables`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/37 Visual Trace (84zzi-rebuild-retained-brep-tables): Rebuild retained BRep tables</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Compact marked BRep tables and rewrite every reference.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Compact marked BRep tables and rewrite every reference. Keep shell orientation, drop empty shells and retain solids only when their shells remain closed.
 
-> **Self-Check Question:** *Why can removing a face turn a solid into an open shell?*  
-> **Answer:** A solid requires closed shells; the remaining faces still form useful surface geometry.
-
-- **Hands-On Lab Experiment:** Trace a removed box face through shell references and the final closed-shell check.
-
-<details>
-<summary>Implementation 84zzi-rebuild-retained-brep-tables: Rebuild retained BRep tables</summary>
-
-Compact marked BRep tables and rewrite every reference.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why can removing a face turn a solid into an open shell?* — A solid requires closed shells; the remaining faces still form useful surface geometry.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Err("BRep table reconstruction is not connected yet".into())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10971,73 +9541,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/84zzi-rebuild-retained-brep-tables-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-84zzj-split-mesh-faces-at-a-plane"></a>
 
 ### Step 24 of 37 · Split mesh faces at a plane (`84zzj-split-mesh-faces-at-a-plane`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/37 Visual Trace (84zzj-split-mesh-faces-at-a-plane): Split mesh faces at a plane</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings. This preparatory function returns an error until its output tables are compacted next.
 
-> **Self-Check Question:** *Why sort the edge endpoints in the crossing key?*  
-> **Answer:** Adjacent faces can traverse the same edge in opposite directions; both must reuse one cut vertex.
-
-- **Hands-On Lab Experiment:** Trace an edge shared by two faces and verify both clipped rings receive the same crossing index.
-
-<details>
-<summary>Implementation 84zzj-split-mesh-faces-at-a-plane: Split mesh faces at a plane</summary>
-
-Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why sort the edge endpoints in the crossing key?* — Adjacent faces can traverse the same edge in opposite directions; both must reuse one cut vertex.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn kept_of<T: Clone>(list: &[T], used: &[bool]) -> Vec<T> {
-    list.iter()
-        .zip(used)
-        .filter(|(_, kept)| **kept)
-        .map(|(item, _)| item.clone())
-        .collect()
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -11135,78 +9674,42 @@ pub fn mesh_sides(mesh: &Mesh, plane: &Plane) -> Result<(Vec<Mesh>, Vec<[Point; 
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzj-split-mesh-faces-at-a-plane-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzk-compact-both-trimmed-mesh-sides"></a>
 
 ### Step 25 of 37 · Compact both trimmed mesh sides (`84zzk-compact-both-trimmed-mesh-sides`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/37 Visual Trace (84zzk-compact-both-trimmed-mesh-sides): Compact both trimmed mesh sides</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color. Return both sides and their cut segments.
 
-> **Self-Check Question:** *Why build a separate vertex map for each side?*  
-> **Answer:** Each output mesh owns only the vertices its own faces reference.
-
-- **Hands-On Lab Experiment:** Trace a cut vertex used by both halves and an original vertex used by just one.
-
-<details>
-<summary>Implementation 84zzk-compact-both-trimmed-mesh-sides: Compact both trimmed mesh sides</summary>
-
-Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why build a separate vertex map for each side?* — Each output mesh owns only the vertices its own faces reference.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Err("Mesh table reconstruction is not connected yet".into())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -11214,72 +9717,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/84zzk-compact-both-trimmed-mesh-sides-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-84zzl-rebuild-kept-cad-parts"></a>
 
 ### Step 26 of 37 · Rebuild kept CAD parts (`84zzl-rebuild-kept-cad-parts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/37 Visual Trace (84zzl-rebuild-kept-cad-parts): Rebuild kept CAD parts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half. Preserve the last part so complete removal remains the Delete command.
 
-> **Self-Check Question:** *Why start a closed curve after a removed part?*  
-> **Answer:** A kept run that crosses the parameter seam should remain one geometry.
-
-- **Hands-On Lab Experiment:** Mark two adjacent kept intervals across a closed seam and trace their single rebuilt run.
-
-<details>
-<summary>Implementation 84zzl-rebuild-kept-cad-parts: Rebuild kept CAD parts</summary>
-
-Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why start a closed curve after a removed part?* — A kept run that crosses the parameter seam should remain one geometry.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        (Some(tail), Some(head)) => NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
-            .into_iter()
-            .next(),
-        (tail, head) => tail.or(head),
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -11348,84 +9821,42 @@ pub fn kept(source: &Geometry, parts: &Parts, removed: &[usize]) -> Result<Vec<G
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzl-rebuild-kept-cad-parts-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zzm-connect-original-trim-recipes"></a>
 
 ### Step 27 of 37 · Connect original trim recipes (`84zzm-connect-original-trim-recipes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/37 Visual Trace (84zzm-connect-original-trim-recipes): Connect original trim recipes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/trim_parts.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removable parts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained source geometry</text>
 </svg>
-</div>
-
-- **Goal:** Route original curves, surfaces, BReps and meshes through the shared part builders.
-- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
-- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
 
 Route original curves, surfaces, BReps and meshes through the shared part builders. Keep the original validation fixtures supplied separately.
 
-> **Self-Check Question:** *Why try successive planes when trimming a mesh?*  
-> **Answer:** The first plane can miss this target; stop at the first real split or substantive error.
-
-- **Hands-On Lab Experiment:** Trace a missed plane followed by a crossed plane. The interactive Trim command is connected in later lessons.
-
-<details>
-<summary>Implementation 84zzm-connect-original-trim-recipes: Connect original trim recipes</summary>
-
-Route original curves, surfaces, BReps and meshes through the shared part builders.
-
-Data flow: original CAD geometry → removable parts → retained source geometry.
+> **Check:** *Why try successive planes when trimming a mesh?* — The first plane can miss this target; stop at the first real split or substantive error.
 
 ### 1. `src/trim_parts.rs`
 
 Add this part-building behavior to the existing owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                        .filter_map(move |f| Some((part, meshes.get(*f)?)))
-                })
-                .collect(),
-            Parts::Mesh { sides, .. } => sides.iter().enumerate().collect(),
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -11486,19 +9917,7 @@ pub fn cut(target: &Geometry, blades: &[Blade]) -> Result<Parts, String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zzm-connect-original-trim-recipes-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11506,187 +9925,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the original trim validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// A mesh cut by `plane` into its two sides, sharing the cut vertices; the cut as segments.
-pub fn mesh_sides(mesh: &Mesh, plane: &Plane) -> Result<(Vec<Mesh>, Vec<[Point; 2]>), String> {
-    if !mesh.get_face_holes().is_empty() {
-        return Err("Trim cannot cut a mesh with holed faces".into());
-    }
-
-    let (mut points, faces) = mesh.to_vertices_and_faces();
-    let normal = plane.z_axis();
-    let origin = plane.origin();
-    let size = points
-        .iter()
-        .map(|p| p[0].abs().max(p[1].abs()).max(p[2].abs()))
-        .fold(1.0, f64::max);
-    let near = 1e-9 * size;
-    let side: Vec<f64> = points
-        .iter()
-        .map(|p| {
-            let d = (p - &origin).dot(&normal);
-            if d.abs() <= near { 0.0 } else { d }
-        })
-        .collect();
-
-    if side.iter().all(|d| *d >= 0.0) || side.iter().all(|d| *d <= 0.0) {
-        return Err("not crossed".into());
-    }
-
-    let mut crossings: HashMap<(usize, usize), usize> = HashMap::new(); // edge to its cut vertex
-    let mut halves: [Vec<Vec<usize>>; 2] = [Vec::new(), Vec::new()];
-    let mut section = Vec::new();
-
-    for face in &faces {
-        if face.iter().all(|v| side[*v] >= 0.0) {
-            halves[0].push(face.clone());
-            continue;
-        }
-
-        if face.iter().all(|v| side[*v] <= 0.0) {
-            halves[1].push(face.clone());
-            continue;
-        }
-
-        let mut above = Vec::new();
-        let mut below = Vec::new();
-        let mut on = Vec::new(); // this face's points on the plane
-
-        for (i, &a) in face.iter().enumerate() {
-            let b = face[(i + 1) % face.len()];
-
-            if side[a] >= 0.0 {
-                above.push(a);
-            }
-
-            if side[a] <= 0.0 {
-                below.push(a);
-            }
-
-            if side[a] == 0.0 {
-                on.push(a);
-            }
-
-            if side[a] * side[b] < 0.0 {
-                let key = (a.min(b), a.max(b));
-                let at = *crossings.entry(key).or_insert_with(|| {
-                    let t = side[a] / (side[a] - side[b]);
-                    let (p, q) = (&points[a], &points[b]);
-                    points.push(Point::new(
-                        p[0] + t * (q[0] - p[0]),
-                        p[1] + t * (q[1] - p[1]),
-                        p[2] + t * (q[2] - p[2]),
-                    ));
-                    points.len() - 1
-                });
-                above.push(at);
-                below.push(at);
-                on.push(at);
-            }
-        }
-
-        if let [a, b] = on.as_slice() {
-            section.push([points[*a].clone(), points[*b].clone()]);
-        }
-
-        for (half, ring) in [(0, above), (1, below)] {
-            if ring.len() >= 3 {
-                halves[half].push(ring);
-            }
-        }
-    }
-
-    let sides = halves
-        .into_iter()
-        .map(|faces| {
-            // only the vertices this side uses
-            let mut index = vec![usize::MAX; points.len()];
-            let mut used = Vec::new();
-
-            for face in &faces {
-                for &v in face {
-                    if index[v] == usize::MAX {
-                        index[v] = used.len();
-                        used.push(points[v].clone());
-                    }
-                }
-            }
-
-            let faces = faces
-                .iter()
-                .map(|face| face.iter().map(|v| index[*v]).collect())
-                .collect();
-            let mut side = Mesh::from_vertices_and_faces(used, faces);
-            side.name = mesh.name.clone();
-            side.set_objectcolor(mesh.get_objectcolor().clone());
-            side
-        })
-        .collect();
-    Ok((sides, section))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/84zzm-connect-original-trim-recipes-2.rs" skip=3698
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zna-index-selection-loops-by-pixel-row"></a>
 
 ### Step 28 of 37 · Index selection loops by pixel row (`84zna-index-selection-loops-by-pixel-row`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/37 Visual Trace (84zna-index-selection-loops-by-pixel-row): Index selection loops by pixel row</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection_region.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">screen region</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing resu…</text>
 </svg>
-</div>
-
-- **Goal:** Build a row index for the even-odd point test.
-- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
-- **Files You Touch:** `src/selection_region.rs` (*Type the shared selection region and row index.*) · `src/lib.rs` (*Register the selection owner.*)
 
 Build a row index for the even-odd point test. Keep rectangles in the same Region owner so later crossing selection can reuse their bounds.
 
-> **Self-Check Question:** *Why exclude the upper endpoint of each crossing edge?*  
-> **Answer:** Counting a shared vertex twice would change whether its row is inside.
-
-- **Hands-On Lab Experiment:** Sketch a four-corner rectangle and calculate the crossings at the centre of one pixel row.
-
-<details>
-<summary>Implementation 84zna-index-selection-loops-by-pixel-row: Index selection loops by pixel row</summary>
-
-Build a row index for the even-odd point test.
-
-Data flow: original CAD samples → screen region → window or crossing result.
+> **Check:** *Why exclude the upper endpoint of each crossing edge?* — Counting a shared vertex twice would change whether its row is inside.
 
 ### 1. `src/selection_region.rs`
 
@@ -11702,21 +9978,6 @@ Create the file and type:
 
 Register the selection owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn validate_source_json(text: &str) -> Result<(), JsValue> {
-    source_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
-mod cloud_shader_contract;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -11724,82 +9985,42 @@ After that block, type:
 pub mod selection_region;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zna-index-selection-loops-by-pixel-row-2.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84znb-test-window-membership-and-segment-crossings"></a>
 
 ### Step 29 of 37 · Test window membership and segment crossings (`84znb-test-window-membership-and-segment-crossings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/37 Visual Trace (84znb-test-window-membership-and-segment-crossings): Test window membership and segment crossings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection_region.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">screen region</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing resu…</text>
 </svg>
-</div>
-
-- **Goal:** Complete Region with point membership and segment clipping against the rectangle.
-- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
-- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
 
 Complete Region with point membership and segment clipping against the rectangle. Clip the segment parameter interval rather than sampling its length.
 
-> **Self-Check Question:** *Why keep a parameter interval for a crossing stroke?*  
-> **Answer:** A long stroke can cross the window even when both endpoints are outside.
-
-- **Hands-On Lab Experiment:** Trace a horizontal stroke with both endpoints outside and compare it with a parallel stroke above the window.
-
-<details>
-<summary>Implementation 84znb-test-window-membership-and-segment-crossings: Test window membership and segment crossings</summary>
-
-Complete Region with point membership and segment clipping against the rectangle.
-
-Data flow: original CAD samples → screen region → window or crossing result.
+> **Check:** *Why keep a parameter interval for a crossing stroke?* — A long stroke can cross the window even when both endpoints are outside.
 
 ### 1. `src/selection_region.rs`
 
 Extend the existing original selection owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Self {
-            box_: Some([left, top, right, bottom]),
-            ..Self::new(&[(left, top), (right, top), (right, bottom), (left, bottom)])
-        }
-    }
-```
-
-</details>
 
 After that block, type:
 
@@ -11850,84 +10071,42 @@ After that block, type:
     }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84znb-test-window-membership-and-segment-crossings-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84znc-sample-original-cad-families-for-selection"></a>
 
 ### Step 30 of 37 · Sample original CAD families for selection (`84znc-sample-original-cad-families-for-selection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/37 Visual Trace (84znc-sample-original-cad-families-for-selection): Sample original CAD families for selection</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection_region.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">screen region</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing resu…</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
-- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
-- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
 
 Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples. Distinguish no samples from a failed inside test.
 
-> **Self-Check Question:** *Why preserve None for an empty sample iterator?*  
-> **Answer:** An empty geometry cannot establish complete enclosure; its bounds may supply the fallback.
-
-- **Hands-On Lab Experiment:** Compare a degree-one curve with a curved domain. Trace the first outside sample through the enclosure helper.
-
-<details>
-<summary>Implementation 84znc-sample-original-cad-families-for-selection: Sample original CAD families for selection</summary>
-
-Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
-
-Data flow: original CAD samples → screen region → window or crossing result.
+> **Check:** *Why preserve None for an empty sample iterator?* — An empty geometry cannot establish complete enclosure; its bounds may supply the fallback.
 
 ### 1. `src/selection_region.rs`
 
 Extend the existing original selection owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if !(row >= 0.0 && (row as usize) < self.rows.len()) {
-            return false;
-        }
-
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -12003,84 +10182,42 @@ fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84znc-sample-original-cad-families-for-selection-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84znd-collect-original-boundary-strokes"></a>
 
 ### Step 31 of 37 · Collect original boundary strokes (`84znd-collect-original-boundary-strokes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/37 Visual Trace (84znd-collect-original-boundary-strokes): Collect original boundary strokes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection_region.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">screen region</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing resu…</text>
 </svg>
-</div>
-
-- **Goal:** Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
-- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
-- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
 
 Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces. Keep each original boundary as an ordered stroke.
 
-> **Self-Check Question:** *Why close a mesh face outline explicitly?*  
-> **Answer:** The last vertex and first vertex form an edge that crossing selection must also test.
-
-- **Hands-On Lab Experiment:** Trace the last edge of a triangular mesh face and a curved BRep face through the stroke collector.
-
-<details>
-<summary>Implementation 84znd-collect-original-boundary-strokes: Collect original boundary strokes</summary>
-
-Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
-
-Data flow: original CAD samples → screen region → window or crossing result.
+> **Check:** *Why close a mesh face outline explicitly?* — The last vertex and first vertex form an edge that crossing selection must also test.
 
 ### 1. `src/selection_region.rs`
 
 Extend the existing original selection owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if !(row >= 0.0 && (row as usize) < self.rows.len()) {
-            return false;
-        }
-
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -12134,84 +10271,42 @@ fn brep_strokes(brep: &BRep) -> Vec<Vec<[f64; 3]>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84znd-collect-original-boundary-strokes-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zne-test-crossing-selection-on-original-strokes"></a>
 
 ### Step 32 of 37 · Test crossing selection on original strokes (`84zne-test-crossing-selection-on-original-strokes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/37 Visual Trace (84zne-test-crossing-selection-on-original-strokes): Test crossing selection on original strokes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection_region.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">screen region</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing resu…</text>
 </svg>
-</div>
-
-- **Goal:** Dispatch original geometry families to their shared stroke builders.
-- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
-- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
 
 Dispatch original geometry families to their shared stroke builders. Crossing selection accepts an inside sample or a rectangle-crossing segment; cloud sampling remains bounded.
 
-> **Self-Check Question:** *Why project each stroke before testing adjacent points?*  
-> **Answer:** Membership and crossing use screen pixels, while original geometry and its placements stay in world coordinates.
-
-- **Hands-On Lab Experiment:** Trace a projected curve that crosses a rectangle although every sampled point lies outside. The browser connection is taught after these helpers.
-
-<details>
-<summary>Implementation 84zne-test-crossing-selection-on-original-strokes: Test crossing selection on original strokes</summary>
-
-Dispatch original geometry families to their shared stroke builders.
-
-Data flow: original CAD samples → screen region → window or crossing result.
+> **Check:** *Why project each stroke before testing adjacent points?* — Membership and crossing use screen pixels, while original geometry and its placements stay in world coordinates.
 
 ### 1. `src/selection_region.rs`
 
 Extend the existing original selection owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if !(row >= 0.0 && (row as usize) < self.rows.len()) {
-            return false;
-        }
-
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -12283,65 +10378,38 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zne-test-crossing-selection-on-original-strokes-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84znf-connect-window-and-bounds-selection-tests"></a>
 
 ### Step 33 of 37 · Connect window and bounds selection tests (`84znf-connect-window-and-bounds-selection-tests`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/37 Visual Trace (84znf-connect-window-and-bounds-selection-tests): Connect window and bounds selection tests</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/selection_region.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">screen region</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing resu…</text>
 </svg>
-</div>
-
-- **Goal:** Add projection, conservative screen bounds and complete-enclosure dispatch.
-- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
-- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
 
 Add projection, conservative screen bounds and complete-enclosure dispatch. Supply the original validation fixtures separately; the existing selection command connects this owner in the next lesson.
 
-> **Self-Check Question:** *Why keep the bounds fallback separate from sampled geometry?*  
-> **Answer:** Planes and empty original families cannot establish membership from samples, but their projected bounds can still guide selection.
-
-- **Hands-On Lab Experiment:** Trace a complete window test, a crossing test and an original with no samples through their separate results.
-
-<details>
-<summary>Implementation 84znf-connect-window-and-bounds-selection-tests: Connect window and bounds selection tests</summary>
-
-Add projection, conservative screen bounds and complete-enclosure dispatch.
-
-Data flow: original CAD samples → screen region → window or crossing result.
+> **Check:** *Why keep the bounds fallback separate from sampled geometry?* — Planes and empty original families cannot establish membership from samples, but their projected bounds can still guide selection.
 
 ### 1. `src/selection_region.rs`
 
@@ -12349,16 +10417,13 @@ Extend the existing original selection owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .filter(|surface| planar(surface).is_none())
         .flat_map(|surface| surface_strokes(surface, FACE_STEPS));
     vertices.chain(edges).chain(faces).collect()
 ```
-
-</details>
 
 Replace it with:
 
@@ -12401,16 +10466,13 @@ pub(crate) fn enclosed(geometry: &Geometry, inside: &dyn Fn([f64; 3]) -> bool) -
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 /// Whether `geometry`, its points projected by `project`, has a point inside the region or a stroke across its rectangle; None when only its box can tell.
 pub(crate) fn touched(
     geometry: &Geometry,
 ```
-
-</details>
 
 Replace it with:
 
@@ -12450,17 +10512,13 @@ pub(crate) fn touched(
     geometry: &Geometry,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 --8<-- "journey/code/84znf-connect-window-and-bounds-selection-tests-1.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12468,85 +10526,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the original region-selection validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// Vertices, edges and curved faces; a flat face is bounded by its edges.
-fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
-    let vertices = brep.m_vertices.iter().map(|vertex| xyz(&vertex.point));
-    let edges = brep
-        .m_curves_3d
-        .iter()
-        .flat_map(|curve| curve_samples(curve, EDGE_STEPS));
-    let faces = brep
-        .m_surfaces
-        .iter()
-        .filter(|surface| planar(surface).is_none())
-        .flat_map(|surface| surface_samples(surface, FACE_STEPS));
-    vertices.chain(edges).chain(faces)
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/84znf-connect-window-and-bounds-selection-tests-2.rs" skip=559
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face"></a>
 
 ### Step 34 of 37 · Classify originals and isolate one mesh face (`84zoa-classify-originals-and-isolate-one-mesh-face`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/37 Visual Trace (84zoa-classify-originals-and-isolate-one-mesh-face): Classify originals and isolate one mesh face</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_shape.rs, src/lib.rs, src/explode_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_shape.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Name each original geometry kind once.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/source_shape.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Compile the shared original geometry classifier.*) · `src/explode_geometry.rs` (*Type the whole original helpers introduced today.*)
 
 Name each original geometry kind once. Build one mesh face with compact vertex keys, preserve its hole rings and retain its display attributes.
 
-> **Self-Check Question:** *Why remap vertices for a separated face?*  
-> **Answer:** The new mesh owns a compact vertex table. All outer and hole rings must refer to that new table.
-
-- **What You Should See:** Original-family classification and single mesh-face extraction are prepared.
-- **Hands-On Lab Experiment:** Trace a face with a hole and a vertex shared by both rings. Check that the new mesh owns each copied vertex once.
-
-<details>
-<summary>Implementation 84zoa-classify-originals-and-isolate-one-mesh-face: Classify originals and isolate one mesh face</summary>
-
-Name each original geometry kind once.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why remap vertices for a separated face?* — The new mesh owns a compact vertex table. All outer and hole rings must refer to that new table.
 
 ### 1. `src/source_shape.rs`
 
@@ -12561,16 +10578,6 @@ Create the file and type:
 ### 2. `src/lib.rs`
 
 Compile the shared original geometry classifier.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod selection_region;
-```
-
-</details>
 
 After that block, type:
 
@@ -12592,91 +10599,50 @@ Create the file and type:
 
 Register this original command owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod trim_parts;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/84zoa-classify-originals-and-isolate-one-mesh-face-4.rs" skip=21
 ```
 
-</details>
+**Result after `84zoa-classify-originals-and-isolate-one-mesh-face`:** Original-family classification and single mesh-face extraction are prepared.
+
+---
 
 <a id="checkpoint-84zob-copy-original-brep-edges-and-pcurves"></a>
 
 ### Step 35 of 37 · Copy original BRep edges and pcurves (`84zob-copy-original-brep-edges-and-pcurves`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/37 Visual Trace (84zob-copy-original-brep-edges-and-pcurves): Copy original BRep edges and pcurves</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/explode_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/explode_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Copy an edge, its endpoint vertices and its surface pcurves into a new BRep. Reuse vertex mappings and preserve seam curves, tolerances and degenerated edges.
 
-> **Self-Check Question:** *Why keep both pcurves on a seam?*  
-> **Answer:** A periodic surface uses the same spatial edge on two parameter boundaries. Both uses must survive the separated face.
-
-- **What You Should See:** BRep face extraction can preserve the required original edge and pcurve records.
-- **Hands-On Lab Experiment:** Trace a cylindrical seam and a degenerated pole edge through the copied tables.
-
-<details>
-<summary>Implementation 84zob-copy-original-brep-edges-and-pcurves: Copy original BRep edges and pcurves</summary>
-
-Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why keep both pcurves on a seam?* — A periodic surface uses the same spatial edge on two parameter boundaries. Both uses must survive the separated face.
 
 ### 1. `src/explode_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let key = *part.faces().first()?;
-        part.set_face_holes(key, rings);
-    }
-
-    part.name = mesh.name.clone();
-    part.set_objectcolor(mesh.get_objectcolor().clone());
-    Some(part)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -12733,86 +10699,44 @@ fn copy_edge(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `84zob-copy-original-brep-edges-and-pcurves`:** BRep face extraction can preserve the required original edge and pcurve records.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zob-copy-original-brep-edges-and-pcurves-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zoc-build-one-original-brep-face"></a>
 
 ### Step 36 of 37 · Build one original BRep face (`84zoc-build-one-original-brep-face`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/37 Visual Trace (84zoc-build-one-original-brep-face): Build one original BRep face</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/explode_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/explode_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell. Keep shared edges unique within that face.
 
-> **Self-Check Question:** *Why preserve reference orientation?*  
-> **Answer:** An edge table entry stores geometry. Each wire and shell reference also carries the direction in which that geometry is used.
-
-- **What You Should See:** One original BRep face can be rebuilt from its retained boundary data.
-- **Hands-On Lab Experiment:** Trace a reversed face and a face with an inner wire. Check the original BRep remains unchanged.
-
-<details>
-<summary>Implementation 84zoc-build-one-original-brep-face: Build one original BRep face</summary>
-
-Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why preserve reference orientation?* — An edge table entry stores geometry. Each wire and shell reference also carries the direction in which that geometry is used.
 
 ### 1. `src/explode_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let key = *part.faces().first()?;
-        part.set_face_holes(key, rings);
-    }
-
-    part.name = mesh.name.clone();
-    part.set_objectcolor(mesh.get_objectcolor().clone());
-    Some(part)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -12856,81 +10780,44 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `84zoc-build-one-original-brep-face`:** One original BRep face can be rebuilt from its retained boundary data.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/84zoc-build-one-original-brep-face-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-84zod-explode-supported-original-families"></a>
 
 ### Step 37 of 37 · Explode supported original families (`84zod-explode-supported-original-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/37 Visual Trace (84zod-explode-supported-original-families): Explode supported original families</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/explode_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/explode_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Count derived pieces before allocating them.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
 
 Count derived pieces before allocating them. Split polylines, BRep faces, mesh faces and point clouds while preserving their original display attributes. Reject unsupported or single-piece inputs.
 
-> **Self-Check Question:** *Why check the count before making pieces?*  
-> **Answer:** The bounded command must refuse excessive output before constructing thousands of objects.
-
-- **What You Should See:** Supported original families have an explode dispatcher; browser acceptance follows with the connected command.
-- **Hands-On Lab Experiment:** Inspect the original topology and family fixtures. Compare a one-face sphere refusal with a six-face box result.
-
-<details>
-<summary>Implementation 84zod-explode-supported-original-families: Explode supported original families</summary>
-
-Count derived pieces before allocating them.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why check the count before making pieces?* — The bounded command must refuse excessive output before constructing thousands of objects.
 
 ### 1. `src/explode_geometry.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{Geometry,Line,Mesh,BRep,BRepRef};
-use std::{rc::Rc,collections::HashMap};
-use crate::interval_geometry::MAX_POINTS;
-```
-
-</details>
 
 After that block, type:
 
@@ -12938,8 +10825,7 @@ After that block, type:
 --8<-- "journey/code/84zod-explode-supported-original-families-1.rs" skip=135
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12947,233 +10833,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use session_rust::{Geometry,Line,Mesh,BRep,BRepRef};
-use std::{rc::Rc,collections::HashMap};
-use crate::interval_geometry::MAX_POINTS;
-pub fn pieces(geometry: &Geometry) -> Result<Vec<Geometry>, String> {
-    let count = match geometry {
-        Geometry::Polyline(line) => line.point_count().saturating_sub(1),
-        Geometry::BRep(brep) => brep.face_count(),
-        Geometry::Mesh(mesh) => mesh.number_of_faces(),
-        Geometry::PointCloud(cloud) => cloud.point_count(),
-        _ => 0,
-    };
-
-    // counted before anything is made
-    if count > MAX_POINTS {
-        return Err(format!(
-            "Explode makes at most {MAX_POINTS} objects at once"
-        ));
-    }
-
-    let parts: Vec<Geometry> = match geometry {
-        Geometry::Polyline(line) => line
-            .get_points()
-            .windows(2)
-            .filter(|pair| pair[0].distance(&pair[1], None) > 1e-12)
-            .map(|pair| {
-                let mut part = Line::from_points(&pair[0], &pair[1]);
-                part.name = line.name.clone();
-                part.width = line.width;
-                part.dash = line.dash.clone();
-                part.linecolor = line.linecolor.clone();
-                Geometry::Line(Rc::new(part))
-            })
-            .collect(),
-        Geometry::BRep(brep) if brep.face_count() > 1 => (0..brep.face_count())
-            .map(|face| face_brep(brep, face).map(|part| Geometry::BRep(Rc::new(part))))
-            .collect::<Option<_>>()
-            .ok_or("This BRep's tables do not resolve")?,
-        Geometry::Mesh(mesh) if mesh.number_of_faces() > 1 => mesh
-            .faces()
-            .into_iter()
-            .map(|face| face_mesh(mesh, face).map(|part| Geometry::Mesh(Rc::new(part))))
-            .collect::<Option<_>>()
-            .ok_or("This mesh's faces do not resolve")?,
-        Geometry::PointCloud(cloud) => (0..cloud.point_count())
-            .map(|index| {
-                let mut point = cloud.get_point(index);
-                point.name = cloud.name.clone();
-                point.width = cloud.point_size;
-
-                if index < cloud.color_count() {
-                    point.pointcolor = cloud.get_color(index);
-                }
-
-                Geometry::Point(Rc::new(point))
-            })
-            .collect(),
-        _ => Vec::new(),
-    };
-
-    if parts.len() < 2 {
-        return Err(format!(
-            "{} cannot be exploded",
-            crate::source_shape::Shape::of(geometry).label()
-        ));
-    }
-
-    Ok(parts)
-}
-
-/// One face of a mesh as a mesh of its own, holes included.
-fn face_mesh(mesh: &Mesh, face: usize) -> Option<Mesh> {
-    let outer = mesh.face_vertices(face)?;
-    let holes = mesh.face_holes.get(&face);
-    let mut index = HashMap::new(); // old vertex key to new
-    let mut points = Vec::new();
-
-    for &key in outer.iter().chain(holes.into_iter().flatten().flatten()) {
-        if !index.contains_key(&key) {
-            index.insert(key, points.len());
-            points.push(mesh.vertex_point(key)?);
-        }
-    }
-
-    let ring = outer.iter().map(|key| index[key]).collect();
-    let mut part = Mesh::from_vertices_and_faces(points, vec![ring]);
-
-    if let Some(holes) = holes {
-        let rings = holes
-            .iter()
-            .map(|hole| hole.iter().map(|key| index[key]).collect())
-            .collect();
-        let key = *part.faces().first()?;
-        part.set_face_holes(key, rings);
-    }
-
-    part.name = mesh.name.clone();
-    part.set_objectcolor(mesh.get_objectcolor().clone());
-    Some(part)
-}
-
-/// One face of a BRep as a BRep of its own: its surface, wires, edges, vertices and pcurves on that surface.
-fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
-    let face = brep.m_faces.get(index)?;
-    let surface = face.surface_index;
-    let mut part = BRep::new();
-    part.name = brep.name.clone();
-    part.width = brep.width;
-    part.surfacecolor = brep.surfacecolor.clone();
-    part.add_surface(brep.m_surfaces.get(usize::try_from(surface).ok()?)?);
-    let mut vertices: HashMap<i32, i32> = HashMap::new(); // old index to new
-    let mut edges: HashMap<i32, i32> = HashMap::new();
-    let mut wires = Vec::with_capacity(face.wires.len());
-
-    for wire in &face.wires {
-        let uses = &brep.m_wires.get(usize::try_from(wire.index).ok()?)?.edges;
-        let mut refs = Vec::with_capacity(uses.len());
-
-        for used in uses {
-            let edge = match edges.get(&used.index) {
-                Some(&edge) => edge,
-                None => {
-                    let edge = copy_edge(brep, &mut part, used.index, surface, &mut vertices)?;
-                    edges.insert(used.index, edge);
-                    edge
-                }
-            };
-            refs.push(BRepRef::new(edge, used.orientation));
-        }
-
-        wires.push(BRepRef::new(part.add_wire(&refs) as i32, wire.orientation));
-    }
-
-    let made = part.add_face(0, &wires, face.tolerance);
-    part.m_faces[made].facecolor = face.facecolor.clone();
-    part.add_shell(&[BRepRef::new(0, brep.face_orientation(index))]);
-    Some(part)
-}
-
-/// Copy edge `old` into `part`: its curve, its two vertices once each, and its pcurves on `surface`.
-fn copy_edge(
-    brep: &BRep,
-    part: &mut BRep,
-    old: i32,
-    surface: i32,
-    vertices: &mut HashMap<i32, i32>,
-) -> Option<i32> {
-    let edge = brep.m_edges.get(usize::try_from(old).ok()?)?;
-    let curve = match usize::try_from(edge.curve_3d_index) {
-        Ok(curve) if !edge.degenerated => part.add_curve_3d(brep.m_curves_3d.get(curve)?) as i32,
-        _ => -1, // a pole or apex has no curve
-    };
-    let mut ends = [0; 2];
-
-    for (end, old) in ends.iter_mut().zip([edge.start_vertex, edge.end_vertex]) {
-        *end = match vertices.get(&old) {
-            Some(&vertex) => vertex,
-            None => {
-                let source = brep.m_vertices.get(usize::try_from(old).ok()?)?;
-                let vertex = part.add_vertex(&source.point, source.tolerance) as i32;
-                vertices.insert(old, vertex);
-                vertex
-            }
-        };
-    }
-
-    let copied = part.add_edge(curve, ends[0], ends[1]);
-    part.m_edges[copied].tolerance = edge.tolerance;
-    part.m_edges[copied].degenerated = edge.degenerated;
-
-    for pcurve in edge
-        .pcurves
-        .iter()
-        .filter(|pcurve| pcurve.surface_index == surface)
-    {
-        let first = part.add_curve_2d(
-            brep.m_curves_2d
-                .get(usize::try_from(pcurve.curve_2d_index).ok()?)?,
-        ) as i32;
-        // a seam runs twice over the surface, once each way
-        let second = match usize::try_from(pcurve.curve_2d_index_2) {
-            Ok(seam) => part.add_curve_2d(brep.m_curves_2d.get(seam)?) as i32,
-            Err(_) => -1,
-        };
-        part.add_pcurve(copied, 0, first, second);
-    }
-
-    Some(copied as i32)
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/84zod-explode-supported-original-families-2.rs" skip=6850
 ```
 
-</details>
-
-</details>
+**Result after `84zod-explode-supported-original-families`:** Supported original families have an explode dispatcher; browser acceptance follows with the connected command.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 84zod-explode-supported-original-families
-npm --prefix ../session_tests run course -- check 84zod-explode-supported-original-families
-npm --prefix ../session_tests run course -- save 84zod-explode-supported-original-families
+npm --prefix ../session_tests run course -- dependencies 16.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 16.4
+npm --prefix ../session_tests run course -- save 16.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Supported original families have an explode dispatcher; browser acceptance follows with the connected command.
-
-- **Final Lesson Experiment:** Inspect the original topology and family fixtures. Compare a one-face sphere refusal with a six-face box result.
-
-Continue with [Text, Plane, Trim and integrated editing commands](../../consolidation/85-copy-current-original-command-recipes.md).
+Continue with [16.5 · Text, Plane, Trim and integrated editing commands](../../consolidation/85-copy-current-original-command-recipes.md).

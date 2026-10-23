@@ -1,240 +1,95 @@
 # 6.1 · A bounded integer picking pass
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.1** (Redraft `4.8`) · **12 checkpoints (`42-window` → `42k-input`)** · **Study time: 6–12 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `42-window` → `42k-input` (12 steps) · **Production source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
-> **What You Will Learn & Build:** Bound picking work around the cursor independently of the canvas size. By the final checkpoint (`42k-input`), you will connect real canvas input to bounded integer GPU picking for meshes and ink.
+> **Goal:** Connect real canvas input to bounded integer GPU picking for meshes and ink.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 6 Visual Explanation: Offscreen Rg32Uint Integer Pick Grid, Spiral Search & 256-Byte Staging Copy</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Cropped Rg32Uint pixel window around cursor with spiral search. Center: 256-byte row alignment. Right: Priority & view ticket.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 5x5 Pixel Grid with Spiral Halo Search -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Rg32Uint Crop &amp; Spiral Search</text>
-    <!-- 5x5 grid at x=75..225, y=94..194 (cell = 30x20) -->
-    <rect x="75" y="94" width="150" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="105" y1="94" x2="105" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="135" y1="94" x2="135" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="165" y1="94" x2="165" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="195" y1="94" x2="195" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="114" x2="225" y2="114" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="134" x2="225" y2="134" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="154" x2="225" y2="154" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="174" x2="225" y2="174" stroke="#111111" stroke-width="0.75"/>
-    <!-- Highlighted hit cell at (165, 114) -->
-    <rect x="165" y="114" width="30" height="20" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Spiral path from center (150, 144) outward -->
-    <polyline points="150,144 180,144 180,124" fill="none" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <circle cx="150" cy="144" r="3" fill="#111111"/>
-    <text x="155" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Each pixel = vec2&lt;u32&gt;(owner_id, sub_id)</text>
-    <text x="155" y="225" text-anchor="middle" font-size="9" fill="#111111">Priority: Point Glyph &gt; Wire Edge &gt; Face</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 256-Byte Aligned Staging Copy -->
-    <rect x="317" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="449" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 256-Byte Staging Row Alignment</text>
-    <!-- Row 0 -->
-    <rect x="335" y="102" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="102" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 0 (W×8 B)</text>
-    <text x="510" y="119" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Row 1 -->
-    <rect x="335" y="136" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="136" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 1 (W×8 B)</text>
-    <text x="510" y="153" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Dimension line 0..256 -->
-    <line x1="335" y1="176" x2="565" y2="176" stroke="#111111" stroke-width="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-    <text x="450" y="191" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">bytes_per_row = align_to(W * 8, 256)</text>
-    <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#111111">copy_texture_to_buffer -&gt; map_async(Read)</text>
-    <text x="450" y="226" text-anchor="middle" font-size="9" fill="#111111">Single in-flight readback coalesces bursts</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: View-Revision Ticket & Sub-Selection -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Revision Ticket &amp; Sub-ID</text>
-    <rect x="620" y="98" width="188" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="714" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">PickTicket Verification</text>
-    <text x="630" y="131" font-size="9.5" fill="#111111">ticket.view_rev == current_rev?</text>
-    <text x="630" y="145" font-size="9" font-weight="600" fill="#111111">Mismatch -&gt; Discard stale hit!</text>
-    <rect x="620" y="162" width="188" height="66" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Decoded Sub-Element</text>
-    <text x="630" y="195" font-size="9.5" fill="#111111">• R = Object ID (1-based)</text>
-    <text x="630" y="209" font-size="9.5" fill="#111111">• G = Face / Edge / Control Pt</text>
-    <text x="630" y="222" font-size="9" fill="#111111">• Shift+Click preserves order</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 6.1 Pipeline Schematic: A bounded integer picking pass</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (12 Checkpoints: 42-window → 42k-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">cursor and density</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">clipped window and</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">halo</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">crop matrix</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">padded integer</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">image</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest visible</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">owner</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 6.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/pick_window.rs  ·  src/lib.rs  ·  src/pick_window_tests.rs  ·  src/gpu_layout.rs  ·  src/gpu_mesh.rs  ·  src/triangle.wgsl</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">12 Checkpoints: 42-window → 42k-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
-| **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
-| **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
+| **WebGPU** | `Rg32Uint` (`[owner_id, sub_id]`) | Exact 2-channel 32-bit integer ID target (zero color quantization). |
+| **WebGPU** | 256-Byte Aligned Crop Readback | Copies cursor window to staging buffer for async `map_async(Read)`. |
+| **Rust (Picker)** | `Point > Wire > Face` + Ticket | Spiral search prioritizes points/wires and drops stale camera revisions. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`42-window`](#checkpoint-42-window) | Bound picking work around the cursor independently of the canvas size. | `src/pick_window.rs`, `src/lib.rs`, `src/pick_window_tests.rs` | `cursor and density → clipped window and halo → crop matrix → padded integer image → nearest visible owner` |
-| **2** | [`42a-id`](#checkpoint-42a-id) | Share explicit uniform layouts between visible drawing and integer picking. | `src/gpu_layout.rs`, `src/lib.rs`, `src/gpu_mesh.rs`, `src/triangle.wgsl` | `checked scene identity → uint settings → shared layouts → unchanged visible drawing` |
-| **3** | [`42b-ink`](#checkpoint-42b-ink) | Use the same marker and stroke geometry in visible and ID shaders. | `src/stroke.wgsl`, `src/marker.wgsl`, `src/stroke_pick.wgsl`, `src/marker_pick.wgsl` | `shared geometry helper → shared coverage helper → cropped ID output → exact owner stream` |
-| **4** | [`42c-path`](#checkpoint-42c-path) | Keep joined strokes and shaped arrowheads consistent in both passes. | `src/chain.wgsl`, `src/chain_pick.wgsl` | `source neighbours and heads → shared connected geometry → shared shaped coverage → integer hit` |
-| **5** | [`42d-owners`](#checkpoint-42d-owners) | Keep picking identities separate from display coordinates and GPU geometry. | `src/stroke_gpu.rs`, `src/renderer.rs`, `src/scene.rs`, `src/editor.rs` | `visible source rows → ordered owner records → checked instance counts → changed-ID buffer` |
-| **6** | [`42e-pass`](#checkpoint-42e-pass) | Add integer pipelines without another geometry upload. | `src/stroke_gpu.rs` | `shared view layout → uint instance stream → same vertex buffer → cropped ID pass` |
-| **7** | [`42f-mesh`](#checkpoint-42f-mesh) | Use original mesh buffers and placements for exact visible owner IDs. | `src/triangle_pick.wgsl`, `src/pick_pipeline.rs`, `src/lib.rs` | `original vertices and indices → model placement → cropped camera → surface depth → RG32Uint owner` |
-| **8** | [`42g-image`](#checkpoint-42g-image) | Allocate bounded picking resources with checked padded rows. | `src/pick_image.rs`, `src/lib.rs` | `bounded draw extent → integer texture and depth → aligned readback capacity` |
-| **9** | [`42h-owner`](#checkpoint-42h-owner) | Own one active request and one latest pending cursor. | `src/pick_gpu.rs`, `src/lib.rs` | `request snapshot → one active map → one latest pending request → owner cancellation` |
-| **10** | [`42i-copy`](#checkpoint-42i-copy) | Submit surfaces and ink to a bounded image before copying its cursor region. | `src/pick_encode.rs`, `src/lib.rs` | `mesh depth → visible ink → halo render → cursor-only aligned copy` |
-| **11** | [`42j-read`](#checkpoint-42j-read) | Read completed GPU bytes asynchronously and reuse bounded resources. | `src/pick_gpu.rs`, `src/browser_pick.rs`, `src/lib.rs` | `submitted draw/copy → map callback → readiness flag → decode and unmap → owner wake` |
-| **12** | [`42k-input`](#checkpoint-42k-input) | Connect real canvas input to bounded integer GPU picking for meshes and ink. | `src/renderer.rs`, `src/editor.rs`, `src/browser.rs`, `src/pick_input_tests.rs` | `canvas click → bounded request → current integer owner → checked scene identity → selection outside history` |
+![Recorded visual output for Lesson 6.1 (42k-input)](../../../screenshots/journey/42k-input.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-42-window"></a>
 
 ### Step 1 of 12 · Bound the cursor image and decode a hit (`42-window`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/12 Visual Trace (42-window): Bound the cursor image and decode a hit</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_window.rs, src/lib.rs, src/pick_window_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cursor and density</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clipped window and</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">halo</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">crop matrix</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">padded integer image</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest visible</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_window.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">crop matrix</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">nearest visible owner</text>
 </svg>
-</div>
-
-- **Goal:** Bound picking work around the cursor independently of the canvas size.
-- **Data Flow Trace:** `cursor and density → clipped window and halo → crop matrix → padded integer image → nearest visible owner`
-- **Files You Touch:** `src/pick_window.rs` (*Bound the cursor window and decode exact integer owners.*) · `src/lib.rs` (*Register the new picking component.*) · `src/pick_window_tests.rs` (*Copy the focused checks.*)
 
 Prepare the cursor window, preserving the main view’s homogeneous depth. Decode integer owners inside a circular tolerance and skip row padding.
 
-> **Self-Check Question:** *Why read a small window instead of the whole canvas?*  
-> **Answer:** A six-CSS-pixel tolerance needs only nearby pixels. A bounded physical radius limits allocation and readback even for a large drawing.
-
-- **What You Should See:** Run the window checks. No new picking behavior appears in the viewer yet.
-- **Hands-On Lab Experiment:** Compare the window at DPR1 and2, a canvas corner and a one-pixel canvas.
-
-<details>
-<summary>Implementation 42-window: Bound the cursor image and decode a hit</summary>
-
-Bound picking work around the cursor independently of the canvas size.
-
-Data flow: cursor and density → clipped window and halo → crop matrix → padded integer image → nearest visible owner.
+> **Check:** *Why read a small window instead of the whole canvas?* — A six-CSS-pixel tolerance needs only nearby pixels. A bounded physical radius limits allocation and readback even for a large drawing.
 
 ### 1. `src/pick_window.rs`
 
@@ -250,25 +105,13 @@ Create the file and type:
 
 Register the new picking component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod browser_upload;
-#[cfg(target_arch = "wasm32")]
-mod browser_phase;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/42-window-02.rs" skip=70
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -282,22 +125,9 @@ Copy this supplied file:
 --8<-- "journey/code/42-window-03.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the copied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod browser_phase;
-
-pub mod pick_window;
-```
-
-</details>
 
 After that block, type:
 
@@ -305,59 +135,40 @@ After that block, type:
 --8<-- "journey/code/42-window-04.rs" skip=41
 ```
 
-</details>
+**Result after `42-window`:** Run the window checks. No new picking behavior appears in the viewer yet.
+
+---
 
 <a id="checkpoint-42a-id"></a>
 
 ### Step 2 of 12 · Keep exact object IDs in shared GPU settings (`42a-id`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/12 Visual Trace (42a-id): Keep exact object IDs in shared GPU settings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_layout.rs, src/lib.rs, src/gpu_mesh.rs, src/triangle.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked scene identity</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">uint settings</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared layouts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged visible drawing</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_layout.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared layouts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged visible drawi…</text>
 </svg>
-</div>
-
-- **Goal:** Share explicit uniform layouts between visible drawing and integer picking.
-- **Data Flow Trace:** `checked scene identity → uint settings → shared layouts → unchanged visible drawing`
-- **Files You Touch:** `src/gpu_layout.rs` (*Share explicit uniform bindings between draw passes.*) · `src/lib.rs` (*Register the new picking component.*) · `src/gpu_mesh.rs` (*Preserve exact IDs and the current visible drawing policy.*) · `src/triangle.wgsl` (*Preserve exact IDs and the current visible drawing policy.*) · `src/chain.rs` (*Preserve exact IDs and the current visible drawing policy.*) · `src/scene.rs` (*Resolve only current visible, unlocked object rows.*) · `src/renderer.rs` (*Use the same explicit mesh settings layout for both drawing passes.*)
 
 Store object IDs as integers and keep zero for a miss or a locked occluder. Resolve IDs against currently visible, unlocked source rows.
 
-> **Self-Check Question:** *Why can an object ID not be stored as a float?*  
-> **Answer:** Single-precision floats cannot represent every u32. For example16,777,217 rounds to a different number, which could select another row.
-
-- **What You Should See:** Run the checks and use View Normals On and Off. Existing mesh selection still highlights correctly.
-- **Hands-On Lab Experiment:** Use Select Next and Delete, then Undo; the source row must return with the same identity.
-
-<details>
-<summary>Implementation 42a-id: Keep exact object IDs in shared GPU settings</summary>
-
-Share explicit uniform layouts between visible drawing and integer picking.
-
-Data flow: checked scene identity → uint settings → shared layouts → unchanged visible drawing.
+> **Check:** *Why can an object ID not be stored as a float?* — Single-precision floats cannot represent every u32. For example16,777,217 rounds to a different number, which could select another row.
 
 ### 1. `src/gpu_layout.rs`
 
@@ -373,17 +184,6 @@ Create the file and type:
 
 Register the new picking component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod pick_window_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -394,22 +194,6 @@ After that block, type:
 
 Preserve exact IDs and the current visible drawing policy.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for (index, value) in object.model.m.iter().enumerate() {
-        bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
-    }
-    let flag: f32 = if selected { 1.0 } else { 0.0 };
-    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
-    let normals = crate::normals::matrix(&object.model).expect("Scene placements are checked before insertion or editing");
-    for (index, value) in normals.iter().enumerate() {
-        bytes[80 + index * 4..84 + index * 4].copy_from_slice(&value.to_ne_bytes());
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -419,57 +203,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/triangle.wgsl`
 
 Preserve exact IDs and the current visible drawing policy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<f32>,
-    normal_matrix: mat4x4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = view.transform * world;
-    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x > 0.5);
-    output.world = world.xyz;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let derivative = cross(dpdx(input.world), dpdy(input.world));
-    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
-    let face = select(derivative, -derivative, front);
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), 1.0); }
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -519,38 +252,9 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42a-id-04.wgsl"
-```
-
-```text
---8<-- "journey/code/42a-id-05.wgsl"
-```
-
-</details>
-
 ### 5. `src/chain.rs`
 
 Preserve exact IDs and the current visible drawing policy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct PreparedChain { pub source: Source, pub points: Rc<Vec<[f32; 3]>>, pub colour: [f32; 4], pub width: f32, pub heads: u32 }
-
-impl Source {
-    pub fn visible(&self) -> bool {
-        match self { Self::Line(line) => line.is_visible, Self::Polyline(line) => line.is_visible, Self::Curve(curve, _) => curve.is_visible }
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -564,8 +268,7 @@ Resolve only current visible, unlocked object rows.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -575,8 +278,6 @@ impl Scene {
         let pink = PreparedMesh::triangle([
             [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
 ```
-
-</details>
 
 Replace it with:
 
@@ -597,8 +298,7 @@ impl Scene {
             [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -608,8 +308,6 @@ pub struct ObjectId(u32);
 pub struct Object {
     pub id: ObjectId,
 ```
-
-</details>
 
 Replace it with:
 
@@ -624,8 +322,7 @@ pub struct Object {
     pub id: ObjectId,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -729,7 +426,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1093,43 +789,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42a-id-07.rs"
-```
-
-```text
---8<-- "journey/code/42a-id-08.rs"
-```
-
-</details>
-
 ### 7. `src/renderer.rs`
 
 Use the same explicit mesh settings layout for both drawing passes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1137,114 +799,44 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/42a-id-09.rs"
 ```
 
-</details>
+**Result after `42a-id`:** Run the checks and use View Normals On and Off. Existing mesh selection still highlights correctly.
+
+---
 
 <a id="checkpoint-42b-ink"></a>
 
 ### Step 3 of 12 · Share point and stroke coverage with picking (`42b-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/12 Visual Trace (42b-ink): Share point and stroke coverage with picking</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke.wgsl, src/marker.wgsl, src/stroke_pick.wgsl, src/marker_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared geometry helper</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared coverage helper</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped ID output</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact owner stream</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke.wgsl, src/mark…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped ID output</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact owner stream</text>
 </svg>
-</div>
-
-- **Goal:** Use the same marker and stroke geometry in visible and ID shaders.
-- **Data Flow Trace:** `shared geometry helper → shared coverage helper → cropped ID output → exact owner stream`
-- **Files You Touch:** `src/stroke.wgsl` (*Share the existing geometry and coverage calculations.*) · `src/marker.wgsl` (*Share the existing geometry and coverage calculations.*) · `src/stroke_pick.wgsl` (*Output an integer owner only where ink is visible.*) · `src/marker_pick.wgsl` (*Output an integer owner only where ink is visible.*)
 
 Extract the existing point and stroke calculations into helpers. Add integer outputs that crop positions after CSS-sized geometry is formed.
 
-> **Self-Check Question:** *Why must picking share the visible ink shape?*  
-> **Answer:** A bounding rectangle would select invisible point corners and stroke fringes. The ID fragment discards pixels with zero visible coverage.
-
-- **What You Should See:** Run the viewer and check existing points and strokes. The ID entry points are ready for the next draw-pass wiring.
-- **Hands-On Lab Experiment:** Create Example Point and Example Line, then zoom and change projection; the visible widths must stay stable.
-
-<details>
-<summary>Implementation 42b-ink: Share point and stroke coverage with picking</summary>
-
-Use the same marker and stroke geometry in visible and ID shaders.
-
-Data flow: shared geometry helper → shared coverage helper → cropped ID output → exact owner stream.
+> **Check:** *Why must picking share the visible ink shape?* — A bounding rectangle would select invisible point corners and stroke fringes. The ID fragment discards pixels with zero visible coverage.
 
 ### 1. `src/stroke.wgsl`
 
 Share the existing geometry and coverage calculations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-}
-
-fn hidden(colour: vec4<f32>) -> Output {
-    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0);
-}
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32) -> Output {
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    if (a.z < 0.0 && b.z < 0.0) { return hidden(colour); }
-    if (a.z < 0.0) { a = mix(a, b, -a.z / (b.z - a.z)); }
-    if (b.z < 0.0) { b = mix(b, a, -b.z / (a.z - b.z)); }
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour); }
-    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
-    let length2 = dot(delta, delta);
-    if (length2 < 0.000001) { return hidden(colour); }
-    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index];
-    let half_width = width * view.density * 0.5;
-    let extent = half_width + 0.70711;
-    var position = select(a, b, corner.x > 0.5);
-    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
-    return Output(position, colour, corner.y * extent, half_width);
-}
-
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {
-    let coverage = clamp(input.half_width + 0.5 - abs(input.side), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1297,59 +889,9 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42b-ink-01.wgsl"
-```
-
-```text
---8<-- "journey/code/42b-ink-02.wgsl"
-```
-
-</details>
-
 ### 2. `src/marker.wgsl`
 
 Share the existing geometry and coverage calculations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-}
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0);
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = diameter * view.density * 0.5;
-    let offset = corners[index] * (radius + 0.70711);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius);
-}
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {
-    let coverage = clamp(input.radius + 0.5 - length(input.offset), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1386,21 +928,6 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42b-ink-03.wgsl"
-```
-
-```text
---8<-- "journey/code/42b-ink-04.wgsl"
-```
-
-</details>
-
 ### 3. `src/stroke_pick.wgsl`
 
 Output an integer owner only where ink is visible.
@@ -1421,60 +948,40 @@ Create the file and type:
 --8<-- "journey/code/42b-ink-06.wgsl"
 ```
 
-</details>
+**Result after `42b-ink`:** Run the viewer and check existing points and strokes. The ID entry points are ready for the next draw-pass wiring.
+
+---
 
 <a id="checkpoint-42c-path"></a>
 
 ### Step 4 of 12 · Pick connected paths and arrowheads with their drawn shape (`42c-path`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/12 Visual Trace (42c-path): Pick connected paths and arrowheads with their drawn shape</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain.wgsl, src/chain_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source neighbours and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">heads</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared connected geometry</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared shaped coverage</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">integer hit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain.wgsl, src/chain…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared shaped coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer hit</text>
 </svg>
-</div>
-
-- **Goal:** Keep joined strokes and shaped arrowheads consistent in both passes.
-- **Data Flow Trace:** `source neighbours and heads → shared connected geometry → shared shaped coverage → integer hit`
-- **Files You Touch:** `src/chain.wgsl` (*Share connected geometry and shaped coverage.*) · `src/chain_pick.wgsl` (*Return owners from the visible connected ink.*)
 
 Reuse the connected shader’s join, clipping and arrowhead calculations. Add exact owner output while preserving all interpolation rules.
 
-> **Self-Check Question:** *Why is an arrowhead more than its enclosing quad?*  
-> **Answer:** The quad includes empty corners. Shared coverage clips those corners and the base while retaining the actual visible tip.
-
-- **What You Should See:** Run the viewer and use Example Polyline and Example Arrow. Their existing appearance is unchanged.
-- **Hands-On Lab Experiment:** Zoom in on an arrow tip and a polyline bend in both projections.
-
-<details>
-<summary>Implementation 42c-path: Pick connected paths and arrowheads with their drawn shape</summary>
-
-Keep joined strokes and shaped arrowheads consistent in both passes.
-
-Data flow: source neighbours and heads → shared connected geometry → shared shaped coverage → integer hit.
+> **Check:** *Why is an arrowhead more than its enclosing quad?* — The quad includes empty corners. Shared coverage clips those corners and the base while retaining the actual visible tip.
 
 ### 1. `src/chain.wgsl`
 
@@ -1482,16 +989,13 @@ Share connected geometry and shaped coverage.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     }
     return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1509,8 +1013,7 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
@@ -1522,8 +1025,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {
     let distance = dot(local, perpendicular(input.direction));
     var coverage = clamp(input.half_width + 0.5 - abs(distance), 0.0, 1.0);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1537,8 +1038,7 @@ fn colour(input: Output) -> vec4<f32> {
     var coverage = clamp(input.half_width + 0.5 - abs(distance), 0.0, 1.0);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     let bisector = normalize(sum);
@@ -1554,8 +1054,6 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
     var b = view.transform * vec4<f32>(end, 1.0);
 ```
 
-</details>
-
 Replace it with:
 
 ```wgsl
@@ -1568,8 +1066,7 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
     var b = view.transform * vec4<f32>(end, 1.0);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
@@ -1661,27 +1158,6 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42c-path-01.wgsl"
-```
-
-```text
---8<-- "journey/code/42c-path-02.wgsl"
-```
-
-```text
---8<-- "journey/code/42c-path-03.wgsl"
-```
-
-</details>
-
 ### 2. `src/chain_pick.wgsl`
 
 Return owners from the visible connected ink.
@@ -1692,61 +1168,42 @@ Create the file and type:
 --8<-- "journey/code/42c-path-04.wgsl"
 ```
 
-</details>
+**Result after `42c-path`:** Run the viewer and use Example Polyline and Example Arrow. Their existing appearance is unchanged.
+
+---
 
 <a id="checkpoint-42d-owners"></a>
 
 ### Step 5 of 12 · Attach original owners to visible ink instances (`42d-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/12 Visual Trace (42d-owners): Attach original owners to visible ink instances</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/renderer.rs, src/scene.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible source rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered owner records</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked instance counts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">changed-ID buffer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/re…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked instance counts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">changed-ID buffer</text>
 </svg>
-</div>
-
-- **Goal:** Keep picking identities separate from display coordinates and GPU geometry.
-- **Data Flow Trace:** `visible source rows → ordered owner records → checked instance counts → changed-ID buffer`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Validate and cache original owners separately from display data.*) · `src/renderer.rs` (*Match every visible instance to its source owner in the same order.*) · `src/scene.rs` (*Remove a selected original row of any current geometry kind.*) · `src/editor.rs` (*Delete ink rows while preserving the existing cold-mesh source guard.*) · `src/edit_intent.rs` (*Let original ink deletion proceed without requesting mesh rehydration.*)
 
 Build one owner record per visible instance, repeating path owners per segment and resolving control markers to their original parent.
 
 Move and Delete share the no-fetch gate for an already loaded non-mesh row. Reload keys belong to released source owners; they are not a requirement that every movable row be a mesh.
 
-> **Self-Check Question:** *Why cache IDs separately from display bytes?*  
-> **Answer:** Two rows may share identical coordinates while owning different identities. Unchanged display bytes cannot prove unchanged ownership.
-
-- **What You Should See:** Run the checks and inspect points, paths and controls. Owner buffers now match their displayed instance order.
-- **Hands-On Lab Experiment:** Create a curve and enable its controls; each marker must retain its original curve parent.
-
-<details>
-<summary>Implementation 42d-owners: Attach original owners to visible ink instances</summary>
-
-Keep picking identities separate from display coordinates and GPU geometry.
-
-Data flow: visible source rows → ordered owner records → checked instance counts → changed-ID buffer.
+> **Check:** *Why cache IDs separately from display bytes?* — Two rows may share identical coordinates while owning different identities. Unchanged display bytes cannot prove unchanged ownership.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -1754,8 +1211,7 @@ Validate and cache original owners separately from display data.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
@@ -1765,8 +1221,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1779,8 +1233,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
@@ -1790,8 +1243,6 @@ Replace it with:
         [self.data.len() as u64 / self.stride, self.vertices.as_ref().map_or(0, wgpu::Buffer::size)]
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1811,14 +1262,12 @@ Replace it with:
 
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 
-
     pub fn usage(&self) -> [u64; 2] {
         [self.data.len() as u64 / self.stride, self.vertices.as_ref().map_or(0, wgpu::Buffer::size)]
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -1827,8 +1276,6 @@ pub struct Lane {
     group: wgpu::BindGroup,
     vertices: Option<wgpu::Buffer>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1842,8 +1289,7 @@ pub struct Lane {
     vertices: Option<wgpu::Buffer>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -1935,7 +1381,6 @@ impl Lane {
 
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 
-
     pub fn usage(&self) -> [u64; 2] {
         [self.data.len() as u64 / self.stride, self.vertices.as_ref().map_or(0, wgpu::Buffer::size)]
     }
@@ -1997,44 +1442,9 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42d-owners-01.rs"
-```
-
-```text
---8<-- "journey/code/42d-owners-02.rs"
-```
-
-```text
---8<-- "journey/code/42d-owners-03.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Match every visible instance to its source owner in the same order.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| row.visible()).map(crate::scene::LineObject::stroke))
-            .expect("Prepared line placement fits the display range");
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| row.visible()) {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2048,8 +1458,7 @@ Remove a selected original row of any current geometry kind. Retain selection fo
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2069,8 +1478,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2093,8 +1500,7 @@ Replace it with:
     pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2198,7 +1604,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2562,36 +1967,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42d-owners-05.rs"
-```
-
-```text
---8<-- "journey/code/42d-owners-06.rs"
-```
-
-</details>
-
 ### 4. `src/editor.rs`
 
 Delete ink rows while preserving the existing cold-mesh source guard.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let row = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if row.geometry().is_none() { return Err("Reload editable sources before Delete"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2602,30 +1980,9 @@ Edit the existing block to match this code; keep unchanged lines:
         }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42d-owners-07.rs"
-```
-
-</details>
-
 ### 5. `src/edit_intent.rs`
 
 Let original ink deletion proceed without requesting mesh rehydration.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                let row = editor.scene.objects().iter().find(|row| row.id == *id).ok_or("Object not found")?;
-                Ok(ReloadKey::of(row).into_iter().collect())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2637,70 +1994,40 @@ Edit the existing block to match this code; keep unchanged lines:
                 Ok(ReloadKey::of(row).into_iter().collect())
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `42d-owners`:** Run the checks and inspect points, paths and controls. Owner buffers now match their displayed instance order.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42d-owners-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-42e-pass"></a>
 
 ### Step 6 of 12 · Draw integer ink with the shared geometry buffers (`42e-pass`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/12 Visual Trace (42e-pass): Draw integer ink with the shared geometry buffers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared view layout</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">uint instance stream</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same vertex buffer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cropped ID pass</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">same vertex buffer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped ID pass</text>
 </svg>
-</div>
-
-- **Goal:** Add integer pipelines without another geometry upload.
-- **Data Flow Trace:** `shared view layout → uint instance stream → same vertex buffer → cropped ID pass`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Reuse visible geometry in the integer ink pass.*)
 
 Create explicit ink layouts and integer pipelines. Bind the existing geometry and the owner stream together in the ID pass.
 
-> **Self-Check Question:** *What is uploaded twice when the ID pass is added?*  
-> **Answer:** Only small owner records are separate. Positions and prepared geometry remain in the existing buffers used by visible drawing.
-
-- **What You Should See:** Run the checks and navigate the drawing. The ID pipelines are ready; canvas input still follows the existing path.
-- **Hands-On Lab Experiment:** Compare geometry uploads before and after zooming; view changes must reuse the existing buffers.
-
-<details>
-<summary>Implementation 42e-pass: Draw integer ink with the shared geometry buffers</summary>
-
-Add integer pipelines without another geometry upload.
-
-Data flow: shared view layout → uint instance stream → same vertex buffer → cropped ID pass.
+> **Check:** *What is uploaded twice when the ID pass is added?* — Only small owner records are separate. Positions and prepared geometry remain in the existing buffers used by visible drawing.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -2708,8 +2035,7 @@ Reuse visible geometry in the integer ink pass.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             depth_stencil: Some(depth),
@@ -2724,8 +2050,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2752,8 +2076,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
@@ -2768,8 +2091,6 @@ Replace it with:
                 compilation_options: Default::default(),
                 buffers: &[wgpu::VertexBufferLayout { array_stride: stride, step_mode: wgpu::VertexStepMode::Instance, attributes }],
 ```
-
-</details>
 
 Replace it with:
 
@@ -2796,8 +2117,7 @@ Replace it with:
                 buffers: &[wgpu::VertexBufferLayout { array_stride: stride, step_mode: wgpu::VertexStepMode::Instance, attributes }],
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.id_data = data; Ok(())
@@ -2805,13 +2125,10 @@ Replace it with:
 
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 
-
     pub fn usage(&self) -> [u64; 2] {
         [self.data.len() as u64 / self.stride, self.vertices.as_ref().map_or(0, wgpu::Buffer::size)]
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2833,8 +2150,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -2843,8 +2159,6 @@ pub struct Lane {
     id_data: Vec<u8>,
     uniform: wgpu::Buffer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2857,8 +2171,7 @@ pub struct Lane {
     uniform: wgpu::Buffer,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -3037,89 +2350,40 @@ impl Lane {
 }
 ```
 
-</details>
+**Result after `42e-pass`:** Run the checks and navigate the drawing. The ID pipelines are ready; canvas input still follows the existing path.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42e-pass-01.rs"
-```
-
-```text
---8<-- "journey/code/42e-pass-02.rs"
-```
-
-```text
---8<-- "journey/code/42e-pass-03.rs"
-```
-
-```text
---8<-- "journey/code/42e-pass-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-42f-mesh"></a>
 
 ### Step 7 of 12 · Draw depth-tested mesh owners into an integer attachment (`42f-mesh`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/12 Visual Trace (42f-mesh): Draw depth-tested mesh owners into an integer attachment</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle_pick.wgsl, src/pick_pipeline.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original vertices</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">model placement</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped camera</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">surface depth</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">RG32Uint owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle_pick.wgsl, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped camera</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">RG32Uint owner</text>
 </svg>
-</div>
-
-- **Goal:** Use original mesh buffers and placements for exact visible owner IDs.
-- **Data Flow Trace:** `original vertices and indices → model placement → cropped camera → surface depth → RG32Uint owner`
-- **Files You Touch:** `src/triangle_pick.wgsl` (*Draw exact mesh owners at the original placed depth.*) · `src/pick_pipeline.rs` (*Create the integer mesh attachment and shared bindings.*) · `src/lib.rs` (*Register the new picking component.*)
 
 Add a mesh ID pipeline with the same vertex layouts, placements and opaque depth policy as visible surface drawing.
 
-> **Self-Check Question:** *Why keep normal surface depth in the ID pass?*  
-> **Answer:** Without depth, a hidden face drawn later could replace the front owner. The ID image must represent visible geometry.
-
-- **What You Should See:** Run the viewer and check existing mesh colors and normals. The mesh ID pipeline is ready.
-- **Hands-On Lab Experiment:** Select a mesh and toggle normal view; the original placement and geometry must remain intact.
-
-<details>
-<summary>Implementation 42f-mesh: Draw depth-tested mesh owners into an integer attachment</summary>
-
-Use original mesh buffers and placements for exact visible owner IDs.
-
-Data flow: original vertices and indices → model placement → cropped camera → surface depth → RG32Uint owner.
+> **Check:** *Why keep normal surface depth in the ID pass?* — Without depth, a hidden face drawn later could replace the front owner. The ID image must represent visible geometry.
 
 ### 1. `src/triangle_pick.wgsl`
 
@@ -3145,72 +2409,46 @@ Create the file and type:
 
 Register the new picking component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod pick_window_tests;
-
-pub mod gpu_layout;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/42f-mesh-03.rs" skip=44
 ```
 
-</details>
+**Result after `42f-mesh`:** Run the viewer and check existing mesh colors and normals. The mesh ID pipeline is ready.
+
+---
 
 <a id="checkpoint-42g-image"></a>
 
 ### Step 8 of 12 · Own a small ID image, depth target and readback buffer (`42g-image`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/12 Visual Trace (42g-image): Own a small ID image, depth target and readback buffer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_image.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded draw extent</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">integer texture and depth</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">aligned readback capacity</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_image.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer texture and dep…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">aligned readback capaci…</text>
 </svg>
-</div>
-
-- **Goal:** Allocate bounded picking resources with checked padded rows.
-- **Data Flow Trace:** `bounded draw extent → integer texture and depth → aligned readback capacity`
-- **Files You Touch:** `src/pick_image.rs` (*Allocate only the bounded target and padded readback.*) · `src/lib.rs` (*Register the new picking component.*)
 
 Own the integer image, depth attachment and staging buffer together. Their sizes follow the cursor window rather than the whole canvas.
 
-> **Self-Check Question:** *Why does the readback buffer exceed width times height times eight?*  
-> **Answer:** Each copied row must align to256bytes. Padding belongs to the transfer layout and must never be interpreted as additional pixels.
-
-- **What You Should See:** Run the checks. The bounded image allocator is ready and does not change visible drawing.
-- **Hands-On Lab Experiment:** Calculate the readback bytes for DPR1 and2 using the window checks.
-
-<details>
-<summary>Implementation 42g-image: Own a small ID image, depth target and readback buffer</summary>
-
-Allocate bounded picking resources with checked padded rows.
-
-Data flow: bounded draw extent → integer texture and depth → aligned readback capacity.
+> **Check:** *Why does the readback buffer exceed width times height times eight?* — Each copied row must align to256bytes. Padding belongs to the transfer layout and must never be interpreted as additional pixels.
 
 ### 1. `src/pick_image.rs`
 
@@ -3226,76 +2464,46 @@ Create the file and type:
 
 Register the new picking component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod gpu_layout;
-
-pub mod pick_pipeline;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/42g-image-02.rs" skip=44
 ```
 
-</details>
+**Result after `42g-image`:** Run the checks. The bounded image allocator is ready and does not change visible drawing.
+
+---
 
 <a id="checkpoint-42h-owner"></a>
 
 ### Step 9 of 12 · Bound asynchronous picking ownership (`42h-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/12 Visual Trace (42h-owner): Bound asynchronous picking ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">request snapshot</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one active map</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one latest pending request</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owner cancellation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gpu.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one latest pending requ…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owner cancellation</text>
 </svg>
-</div>
-
-- **Goal:** Own one active request and one latest pending cursor.
-- **Data Flow Trace:** `request snapshot → one active map → one latest pending request → owner cancellation`
-- **Files You Touch:** `src/pick_gpu.rs` (*Own bounded requests and release them on cancellation.*) · `src/lib.rs` (*Register the new picking component.*)
 
 Own picking uniforms and bounded requests independently of the source geometry. Cancellation releases the image and prevents its result from being adopted.
 
-> **Self-Check Question:** *Why keep only the latest pending cursor?*  
-> **Answer:** Old intermediate cursors do not help the learner. Coalescing bounds the queue while input continues to update.
-
-- **What You Should See:** Run the checks. Request ownership is prepared; no asynchronous pick is submitted yet.
-- **Hands-On Lab Experiment:** Compare repeated requests with the one-active, one-pending bound.
-
-<details>
-<summary>Implementation 42h-owner: Bound asynchronous picking ownership</summary>
-
-Own one active request and one latest pending cursor.
-
-Data flow: request snapshot → one active map → one latest pending request → owner cancellation.
+> **Check:** *Why keep only the latest pending cursor?* — Old intermediate cursors do not help the learner. Coalescing bounds the queue while input continues to update.
 
 ### 1. `src/pick_gpu.rs`
 
@@ -3311,76 +2519,46 @@ Create the file and type:
 
 Register the new picking component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod pick_pipeline;
-
-mod pick_image;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/42h-owner-02.rs" skip=40
 ```
 
-</details>
+**Result after `42h-owner`:** Run the checks. Request ownership is prepared; no asynchronous pick is submitted yet.
+
+---
 
 <a id="checkpoint-42i-copy"></a>
 
 ### Step 10 of 12 · Record the ID draw and aligned image copy (`42i-copy`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/12 Visual Trace (42i-copy): Record the ID draw and aligned image copy</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_encode.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mesh depth</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible ink</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">halo render</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cursor-only aligned copy</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_encode.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">halo render</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cursor-only aligned copy</text>
 </svg>
-</div>
-
-- **Goal:** Submit surfaces and ink to a bounded image before copying its cursor region.
-- **Data Flow Trace:** `mesh depth → visible ink → halo render → cursor-only aligned copy`
-- **Files You Touch:** `src/pick_encode.rs` (*Record depth-correct IDs and copy the bounded cursor region.*) · `src/lib.rs` (*Register the new picking component.*)
 
 Record the same placed geometry into the integer image. End the render pass, then copy only the cursor window into aligned rows.
 
-> **Self-Check Question:** *Why draw a halo but copy a smaller region?*  
-> **Answer:** The halo preserves nearby rasterization support. Only pixels inside the cursor window are needed to choose the hit.
-
-- **What You Should See:** Run the checks. ID recording and copy are prepared; the next step connects asynchronous mapping.
-- **Hands-On Lab Experiment:** Follow the encoder scope: its render-pass borrow must end before the texture copy and encoder finish.
-
-<details>
-<summary>Implementation 42i-copy: Record the ID draw and aligned image copy</summary>
-
-Submit surfaces and ink to a bounded image before copying its cursor region.
-
-Data flow: mesh depth → visible ink → halo render → cursor-only aligned copy.
+> **Check:** *Why draw a halo but copy a smaller region?* — The halo preserves nearby rasterization support. Only pixels inside the cursor window are needed to choose the hit.
 
 ### 1. `src/pick_encode.rs`
 
@@ -3396,148 +2574,50 @@ Create the file and type:
 
 Register the new picking component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod pick_image;
-
-pub mod pick_gpu;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/42i-copy-02.rs" skip=35
 ```
 
-</details>
+**Result after `42i-copy`:** Run the checks. ID recording and copy are prepared; the next step connects asynchronous mapping.
+
+---
 
 <a id="checkpoint-42j-read"></a>
 
 ### Step 11 of 12 · Map the integer hit without blocking browser input (`42j-read`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/12 Visual Trace (42j-read): Map the integer hit without blocking browser input</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/browser_pick.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">submitted draw/copy</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">map callback</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">readiness flag</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">decode and unmap</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owner wake</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gpu.rs, src/brow…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">readiness flag</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owner wake</text>
 </svg>
-</div>
-
-- **Goal:** Read completed GPU bytes asynchronously and reuse bounded resources.
-- **Data Flow Trace:** `submitted draw/copy → map callback → readiness flag → decode and unmap → owner wake`
-- **Files You Touch:** `src/pick_gpu.rs` (*Map asynchronously and decode only completed bytes.*) · `src/browser_pick.rs` (*Wake the browser owner when GPU mapping completes.*) · `src/lib.rs` (*Register the browser-only completion wakeup.*)
 
 Submit bounded draw work and request asynchronous mapping. Read, decode and unmap completed bytes; wake only the owning live runtime.
 
-> **Self-Check Question:** *Why must the browser not wait synchronously for mapping?*  
-> **Answer:** A synchronous wait stalls input and rendering. The callback signals completion, and the owning event handler reads only when mapping is ready.
-
-- **What You Should See:** Run the checks. GPU mapping and completion wakeup are prepared; real canvas input follows next.
-- **Hands-On Lab Experiment:** Trace successful mapping, failed mapping and cancellation; every path must leave the next request usable.
-
-<details>
-<summary>Implementation 42j-read: Map the integer hit without blocking browser input</summary>
-
-Read completed GPU bytes asynchronously and reuse bounded resources.
-
-Data flow: submitted draw/copy → map callback → readiness flag → decode and unmap → owner wake.
+> **Check:** *Why must the browser not wait synchronously for mapping?* — A synchronous wait stalls input and rendering. The callback signals completion, and the owning event handler reads only when mapping is ready.
 
 ### 1. `src/pick_gpu.rs`
 
 Map asynchronously and decode only completed bytes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::pick_window::Window;
-use std::sync::{Arc, atomic::{AtomicBool, AtomicU8, Ordering}};
-
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
-
-
-pub struct Picker {
-    pipeline: wgpu::RenderPipeline,
-    view: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    crop: wgpu::Buffer,
-    crop_group: wgpu::BindGroup,
-    image: Option<crate::pick_image::Image>,
-    active: Option<Arc<AtomicU8>>,
-    pending: Option<Request>,
-    alive: Arc<AtomicBool>,
-    pub submitted: u64,
-    pub coalesced: u64,
-}
-
-impl Drop for Picker { fn drop(&mut self) { self.alive.store(false, Ordering::Release); } }
-
-impl Picker {
-    pub fn new(device: &wgpu::Device, view_layout: &wgpu::BindGroupLayout, model_layout: &wgpu::BindGroupLayout) -> Self {
-        let crop_layout = crate::gpu_layout::uniform(device, 64);
-        let pipeline = crate::pick_pipeline::mesh(device, view_layout, model_layout, &crop_layout);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(80); let crop = buffer(64);
-        let view_group = crate::gpu_layout::group(device, view_layout, &view);
-        let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
-            alive: Arc::new(AtomicBool::new(true)), submitted: 0, coalesced: 0 }
-    }
-
-    pub fn queue(&mut self, request: Request) {
-        if self.pending.replace(request).is_some() { self.coalesced += 1; }
-    }
-
-    pub fn queued(&self) -> bool { self.pending.is_some() }
-
-    pub fn cancel(&mut self) {
-        self.pending = None;
-        let mapped = self.active.take().is_some_and(|ready| ready.load(Ordering::Acquire) <= 1);
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
-    }
-
-    pub fn next(&mut self) -> Option<Request> { if self.active.is_some() { None } else { self.pending.take() } }
-
-
-    pub fn usage(&self) -> [u64; 3] {
-        [u64::from(self.active.is_some()), u64::from(self.pending.is_some()), self.image.as_ref().map_or(0, |image|
-            image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 12) + 144]
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3548,7 +2628,6 @@ use std::sync::{Arc, atomic::{AtomicBool, AtomicU8, Ordering}};
 #[derive(Clone, Copy)]
 pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
 
-
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
     view: wgpu::Buffer,
@@ -3591,7 +2670,6 @@ impl Picker {
     }
 
     pub fn next(&mut self) -> Option<Request> { if self.active.is_some() { None } else { self.pending.take() } }
-
 
     pub fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, request: Request, meshes: &[GpuMesh], ink: &[&Lane]) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -3634,21 +2712,6 @@ impl Picker {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42j-read-01.rs"
-```
-
-```text
---8<-- "journey/code/42j-read-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser_pick.rs`
 
 Wake the browser owner when GPU mapping completes.
@@ -3663,83 +2726,46 @@ Create the file and type:
 
 Register the browser-only completion wakeup.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod pick_gpu;
-
-mod pick_encode;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/42j-read-04.rs" skip=36
 ```
 
-</details>
+**Result after `42j-read`:** Run the checks. GPU mapping and completion wakeup are prepared; real canvas input follows next.
+
+---
 
 <a id="checkpoint-42k-input"></a>
 
 ### Step 12 of 12 · Select original rows through actual GPU canvas clicks (`42k-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/12 Visual Trace (42k-input): Select original rows through actual GPU canvas clicks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/editor.rs, src/browser.rs, src/pick_input_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canvas click</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded request</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current integer</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owner</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked scene</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">identity</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">selection outside</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/edit…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current integer owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selection outside histo…</text>
 </svg>
-</div>
-
-- **Goal:** Connect real canvas input to bounded integer GPU picking for meshes and ink.
-- **Data Flow Trace:** `canvas click → bounded request → current integer owner → checked scene identity → selection outside history`
-- **Files You Touch:** `src/renderer.rs` (*Queue bounded GPU requests and reuse the visible geometry.*) · `src/editor.rs` (*Resolve accepted picks without changing document history.*) · `src/browser.rs` (*Route actual clicks and completion events through the owning renderer.*) · `src/pick_input_tests.rs` (*Copy current-row resolution and history checks.*) · `src/lib.rs` (*Register the copied input checks.*) · `src/pick_gpu_tests.rs` (*Copy actual GPU depth, ink, density, bounded work and cancellation checks.*) · `src/scene.rs` (*Register actual GPU checks with private checked scene IDs.*)
 
 Route actual canvas clicks through asynchronous GPU picking. Resolve the returned integer to the current original row and update selection without adding a history transaction.
 
-> **Self-Check Question:** *What should happen to a result when a newer cursor is queued?*  
-> **Answer:** The older result is discarded. The next request uses the latest cursor, and selection is applied only after its own readback completes.
-
-- **What You Should See:** Close, create Example Point, click it and Delete. Undo restores it; click a blank area to clear selection.
-- **Hands-On Lab Experiment:** Try points, lines, polylines, arrows and curve controls in both projections. Zooming must not upload their geometry again.
-
-<details>
-<summary>Implementation 42k-input: Select original rows through actual GPU canvas clicks</summary>
-
-Connect real canvas input to bounded integer GPU picking for meshes and ink.
-
-Data flow: canvas click → bounded request → current integer owner → checked scene identity → selection outside history.
+> **Check:** *What should happen to a result when a newer cursor is queued?* — The older result is discarded. The next request uses the latest cursor, and selection is applied only after its own readback completes.
 
 ### 1. `src/renderer.rs`
 
@@ -3747,8 +2773,7 @@ Queue bounded GPU requests and reuse the visible geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.geometry.prune();
@@ -3758,8 +2783,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.meshes.iter().map(|row| &row.geometry)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3797,8 +2820,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3808,8 +2830,6 @@ Replace it with:
             .expect("Prepared point placement fits the display range");
         self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| row.visible()).flat_map(crate::scene::PathObject::segments))
 ```
-
-</details>
 
 Replace it with:
 
@@ -3823,8 +2843,7 @@ Replace it with:
         self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| row.visible()).flat_map(crate::scene::PathObject::segments))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3840,8 +2859,6 @@ Replace it with:
 
     pub fn stroke_usage(&self) -> [u64; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3861,8 +2878,7 @@ Replace it with:
     pub fn stroke_usage(&self) -> [u64; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
@@ -3875,8 +2891,6 @@ Replace it with:
         renderer
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3893,8 +2907,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     grid_settings: Option<crate::grid::Settings>,
@@ -3904,8 +2917,6 @@ Replace it with:
 
 impl Renderer {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3919,8 +2930,7 @@ Replace it with:
 impl Renderer {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4205,43 +3215,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42k-input-01.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-02.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-03.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-04.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-05.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Resolve accepted picks without changing document history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4251,8 +3231,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.selected = self.camera.ray(screen)
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
 ```
-
-</details>
 
 Replace it with:
 
@@ -4266,8 +3244,7 @@ Replace it with:
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4277,8 +3254,6 @@ pub enum Action {
     Replace(Vec<u8>),
     ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4292,8 +3267,7 @@ pub enum Action {
     ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4711,31 +3685,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42k-input-06.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-07.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Route actual clicks and completion events through the owning renderer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .ok_or("Missing canvas")?;
@@ -4745,8 +3701,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.scenes())).unwrap())?;
     canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4760,8 +3714,7 @@ Replace it with:
     canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     listeners.listen(window.as_ref(), "blur")?;
@@ -4771,8 +3724,6 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-file-error")?;
     listeners.listen(window.as_ref(), "viewer-reload")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4786,8 +3737,7 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-reload")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } else {
@@ -4797,8 +3747,6 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
                 | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4825,8 +3773,7 @@ Replace it with:
                 | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -4963,7 +3910,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
 
             "Controls On",
             "Controls Off",
@@ -5174,7 +4120,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                     "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
-
 
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
@@ -5516,29 +4461,7 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/42k-input-08.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-09.rs"
-```
-
-```text
---8<-- "journey/code/42k-input-10.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5552,22 +4475,9 @@ Copy this supplied file:
 --8<-- "journey/code/42k-input-11.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the copied input checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(target_arch = "wasm32")]
-pub mod browser_pick;
-```
-
-</details>
 
 After that block, type:
 
@@ -5575,8 +4485,7 @@ After that block, type:
 --8<-- "journey/code/42k-input-12.rs" skip=54
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5590,22 +4499,9 @@ Copy this supplied file:
 --8<-- "journey/code/42k-input-13.rs"
 ```
 
-</details>
-
 ### 7. `src/scene.rs`
 
 Register actual GPU checks with private checked scene IDs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        assert_eq!(scene.objects().len(), 1);
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -5613,31 +4509,21 @@ After that block, type:
 --8<-- "journey/code/42k-input-14.rs" skip=54
 ```
 
-</details>
+**Result after `42k-input`:** Close, create Example Point, click it and Delete. Undo restores it; click a blank area to clear selection.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 42k-input
-npm --prefix ../session_tests run course -- check 42k-input
-npm --prefix ../session_tests run course -- save 42k-input
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 6.1
+npm --prefix ../session_tests run course -- save 6.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 6.1 (42k-input)](../../../screenshots/journey/42k-input.png)
-
-Close, create Example Point, click it and Delete. Undo restores it; click a blank area to clear selection.
-
-- **Final Lesson Experiment:** Try points, lines, polylines, arrows and curve controls in both projections. Zooming must not upload their geometry again.
-
-Continue with [Accept a hit only for its current view](../../consolidation/43-ticket.md).
+Continue with [6.2 · Accept a hit only for its current view](../../consolidation/43-ticket.md).

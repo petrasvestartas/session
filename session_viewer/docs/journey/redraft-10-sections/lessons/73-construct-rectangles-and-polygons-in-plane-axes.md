@@ -1,211 +1,93 @@
 # 14.3 · Planar boundaries and checked solid foundations
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.3** (Redraft `8.3`) · **21 checkpoints (`73-construct-rectangles-and-polygons-in-plane-axes` → `73t-build-regular-kernel-polyhedra`)** · **Study time: 14.400000000000004–21 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `73-construct-rectangles-and-polygons-in-plane-axes` → `73t-build-regular-kernel-polyhedra` (21 steps) · **Production source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs)
 
-> **What You Will Learn & Build:** Construct rectangles and polygons in plane axes. By the final checkpoint (`73t-build-regular-kernel-polyhedra`), you will connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
+> **Goal:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 14.3 Pipeline Schematic: Planar boundaries and checked solid foundations</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (21 Checkpoints: 73-construct-rectangles-and-polygons-in-plane-axes → 73t-build-regular-kernel-polyhedra)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">two original points</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">plane-axis</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">dimensions</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">closed original</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">boundary</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Build regular</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">kernel polyhedra</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Session kernel</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 14.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/planar.rs  ·  src/lib.rs  ·  src/tool.rs  ·  src/editor.rs  ·  src/commands.rs  ·  src/tool_preview.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">21 Checkpoints: 73-construct-rectangles-and-polygons-in-plane-axes → 73t-build-regular-kernel-polyhedra — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`73-construct-rectangles-and-polygons-in-plane-axes`](#checkpoint-73-construct-rectangles-and-polygons-in-plane-axes) | Construct rectangles and polygons in plane axes. | `src/planar.rs`, `src/lib.rs` | `two original points → plane-axis dimensions → closed original boundary` |
-| **2** | [`73a-bound-generated-original-construction-points`](#checkpoint-73a-bound-generated-original-construction-points) | Bound generated original construction points. | `src/planar.rs` | `original construction → generated doubles → point cap and finite bounds` |
-| **3** | [`73b-give-point-tools-a-plane-aware-construction-hook`](#checkpoint-73b-give-point-tools-a-plane-aware-construction-hook) | Give point tools a plane aware construction hook. | `src/tool.rs` | `existing point collector → plane-aware tool → original or temporary boundary` |
-| **4** | [`73c-build-original-rectangle-and-polygon-tool-results`](#checkpoint-73c-build-original-rectangle-and-polygon-tool-results) | Build original rectangle and polygon tool results. | `src/tool.rs` | `two accepted points → checked construction → original polyline tool result` |
-| **5** | [`73d-preserve-world-replay-for-multiword-construction-names`](#checkpoint-73d-preserve-world-replay-for-multiword-construction-names) | Preserve world replay for multiword construction names. | `src/tool.rs` | `multiword name → explicit world points → active frame construction` |
-| **6** | [`73e-keep-polygon-sides-in-the-current-draft`](#checkpoint-73e-keep-polygon-sides-in-the-current-draft) | Keep polygon sides in the current draft. | `src/tool.rs`, `src/editor.rs` | `Sides text → bounded current tool → prompt and preview` |
-| **7** | [`73f-register-current-planar-options-and-temporary-outlines`](#checkpoint-73f-register-current-planar-options-and-temporary-outlines) | Register current planar options and temporary outlines. | `src/tool.rs`, `src/commands.rs`, `src/tool_preview.rs` | `current command option → two-point collector → temporary full boundary` |
-| **8** | [`73g-exercise-oriented-original-planar-constructions`](#checkpoint-73g-exercise-oriented-original-planar-constructions) | Exercise oriented original planar constructions. | `src/planar_tests.rs`, `src/lib.rs` | `oriented original construction → temporary preview → completed polyline → original reopening` |
-| **9** | [`73h-match-solid-command-options`](#checkpoint-73h-match-solid-command-options) | Compare normalized option words while keeping Enter and Escape outside shape choices.. | `src/primitive_options.rs`, `src/lib.rs` | `Match solid command options → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **10** | [`73i-describe-solid-command-questions`](#checkpoint-73i-describe-solid-command-questions) | Represent typed coordinates and numbers explicitly. | `src/primitive_shape.rs`, `src/lib.rs` | `Describe solid command questions → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **11** | [`73j-build-a-right-handed-solid-frame`](#checkpoint-73j-build-a-right-handed-solid-frame) | Place kernel coordinates in a construction-plane frame. | `src/primitive_shape.rs` | `Build a right-handed solid frame → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **12** | [`73k-sample-solid-preview-wires`](#checkpoint-73k-sample-solid-preview-wires) | Sample circles and boxes in the existing frame. | `src/primitive_shape.rs` | `Sample solid preview wires → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **13** | [`73l-describe-solid-builders-and-dimensions`](#checkpoint-73l-describe-solid-builders-and-dimensions) | Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions.. | `src/primitive_shape.rs` | `Describe solid builders and dimensions → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **14** | [`73m-validate-solid-sizes-and-radius`](#checkpoint-73m-validate-solid-sizes-and-radius) | Reject nonfinite and degenerate dimensions. | `src/primitive_shape.rs` | `Validate solid sizes and radius → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **15** | [`73n-weld-solid-tessellation-once`](#checkpoint-73n-weld-solid-tessellation-once) | Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation. | `src/primitive_shape.rs` | `Weld solid tessellation once → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **16** | [`73o-scale-and-cache-polyhedron-faces`](#checkpoint-73o-scale-and-cache-polyhedron-faces) | Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame. | `src/primitive_shape.rs` | `Scale and cache polyhedron faces → original f64 kernel coordinates → later temporary preview and accepted geometry` |
-| **17** | [`73p-build-a-placed-kernel-box`](#checkpoint-73p-build-a-placed-kernel-box) | Build a box through the Session kernel and place its center half a signed height above the construction plane. | `src/primitive_box.rs`, `src/lib.rs` | `Build a placed kernel box → Session kernel geometry → existing preview and placement helpers` |
-| **18** | [`73q-read-box-questions-and-corner-clicks`](#checkpoint-73q-read-box-questions-and-corner-clicks) | Connect the box builder to its question sequence. | `src/primitive_box.rs` | `Read box questions and corner clicks → Session kernel geometry → existing preview and placement helpers` |
-| **19** | [`73r-build-an-oriented-kernel-pyramid`](#checkpoint-73r-build-an-oriented-kernel-pyramid) | Read a base diagonal and signed height. | `src/primitive_pyramid.rs`, `src/lib.rs` | `Build an oriented kernel pyramid → Session kernel geometry → existing preview and placement helpers` |
-| **20** | [`73s-build-a-block-with-a-kernel-hole`](#checkpoint-73s-build-a-block-with-a-kernel-hole) | Reuse the existing box questions and dimension reader. | `src/primitive_block_with_hole.rs`, `src/lib.rs` | `Build a block with a kernel hole → Session kernel geometry → existing preview and placement helpers` |
-| **21** | [`73t-build-regular-kernel-polyhedra`](#checkpoint-73t-build-regular-kernel-polyhedra) | Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. | `src/primitive_tetrahedron.rs`, `src/lib.rs`, `src/primitive_octahedron.rs` | `Build regular kernel polyhedra → Session kernel geometry → existing preview and placement helpers` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-73-construct-rectangles-and-polygons-in-plane-axes"></a>
 
 ### Step 1 of 21 · Construct rectangles and polygons in plane axes (`73-construct-rectangles-and-polygons-in-plane-axes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/21 Visual Trace (73-construct-rectangles-and-polygons-in-plane-axes): Construct rectangles and polygons in plane axes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/planar.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">two original points</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plane-axis dimensions</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">closed original boundary</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/planar.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">plane-axis dimensions</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">closed original boundary</text>
 </svg>
-</div>
-
-- **Goal:** Construct rectangles and polygons in plane axes.
-- **Data Flow Trace:** `two original points → plane-axis dimensions → closed original boundary`
-- **Files You Touch:** `src/planar.rs` (*Construct current planar polylines from signed dimensions and a checked orientation frame.*) · `src/lib.rs` (*Register the planar component.*)
 
 Measure the second point along the current frame and produce original closed kernel polylines.
 
-> **Self-Check Question:** *Does the second polygon point set a bounding-box corner?*  
-> **Answer:** No. It is a polygon corner on the radius from the first point, which is the center.
-
-- **What You Should See:** The original line, polyline and marker remain visible while current planar constructions extend the same draft. The completed exercise creates a closed rectangle and oriented polygon.
-- **Hands-On Lab Experiment:** Inspect signed rectangle dimensions and the polygon rotation that places a corner on the second point.
-
-<details>
-<summary>Implementation 73-construct-rectangles-and-polygons-in-plane-axes: Construct rectangles and polygons in plane axes</summary>
-
-Construct rectangles and polygons in plane axes.
-
-Data flow: two original points → plane-axis dimensions → closed original boundary.
+> **Check:** *Does the second polygon point set a bounding-box corner?* — No. It is a polygon corner on the radius from the first point, which is the center.
 
 ### 1. `src/planar.rs`
 
@@ -221,83 +103,50 @@ Create the file and type:
 
 Register the planar component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod drawing_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73-construct-rectangles-and-polygons-in-plane-axes-02.rs" skip=32
 ```
 
-</details>
+**Result after `73-construct-rectangles-and-polygons-in-plane-axes`:** The original line, polyline and marker remain visible while current planar constructions extend the same draft. The completed exercise creates a closed rectangle and oriented polygon.
+
+---
 
 <a id="checkpoint-73a-bound-generated-original-construction-points"></a>
 
 ### Step 2 of 21 · Bound generated original construction points (`73a-bound-generated-original-construction-points`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/21 Visual Trace (73a-bound-generated-original-construction-points): Bound generated original construction points</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/planar.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original construction</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">generated doubles</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">point cap and finite bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/planar.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">generated doubles</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">point cap and finite bo…</text>
 </svg>
-</div>
-
-- **Goal:** Bound generated original construction points.
-- **Data Flow Trace:** `original construction → generated doubles → point cap and finite bounds`
-- **Files You Touch:** `src/planar.rs` (*Bound original side counts and generated coordinates before preparing the resulting chain.*)
 
 Validate polygon sides and every generated original coordinate before preparing display geometry.
 
-> **Self-Check Question:** *Why reserve one point below4096 sides?*  
-> **Answer:** The closed original polyline repeats its first point at the end;4095 sides produce4096 original points.
-
-- **Hands-On Lab Experiment:** Try Sides2 and4096, zero-width rectangles and a generated point beyond the coordinate range.
-
-<details>
-<summary>Implementation 73a-bound-generated-original-construction-points: Bound generated original construction points</summary>
-
-Bound generated original construction points.
-
-Data flow: original construction → generated doubles → point cap and finite bounds.
+> **Check:** *Why reserve one point below4096 sides?* — The closed original polyline repeats its first point at the end;4095 sides produce4096 original points.
 
 ### 1. `src/planar.rs`
 
 Bound original side counts and generated coordinates before preparing the resulting chain.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -305,70 +154,42 @@ After that block, type:
 --8<-- "journey/code/73a-bound-generated-original-construction-points-01.rs" skip=3
 ```
 
-</details>
+---
 
 <a id="checkpoint-73b-give-point-tools-a-plane-aware-construction-hook"></a>
 
 ### Step 3 of 21 · Give point tools a plane aware construction hook (`73b-give-point-tools-a-plane-aware-construction-hook`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/21 Visual Trace (73b-give-point-tools-a-plane-aware-construction-hook): Give point tools a plane aware construction hook</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing point collector</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plane-aware tool</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original or temporary boundary</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">plane-aware tool</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original or temporary b…</text>
 </svg>
-</div>
-
-- **Goal:** Give point tools a plane aware construction hook.
-- **Data Flow Trace:** `existing point collector → plane-aware tool → original or temporary boundary`
-- **Files You Touch:** `src/tool.rs` (*Extend the point-tool interface with original construction frames and temporary boundary hooks.*)
 
 Extend the existing tool with plane-aware builds, temporary outlines and optional side-count input.
 
-> **Self-Check Question:** *Should every tool accept Sides?*  
-> **Answer:** No. Only Polygon owns a side count; other tools reject that input. Existing Point, Line and Move keep their behavior.
-
-- **Hands-On Lab Experiment:** Compare the default tool hooks with the explicit Polygon side-count hook.
-
-<details>
-<summary>Implementation 73b-give-point-tools-a-plane-aware-construction-hook: Give point tools a plane aware construction hook</summary>
-
-Give point tools a plane aware construction hook.
-
-Data flow: existing point collector → plane-aware tool → original or temporary boundary.
+> **Check:** *Should every tool accept Sides?* — No. Only Polygon owns a side count; other tools reject that input. Existing Point, Line and Move keep their behavior.
 
 ### 1. `src/tool.rs`
 
 Extend the point-tool interface with original construction frames and temporary boundary hooks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    fn count(&self) -> usize;
-    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str>;
-    fn buttons(&self) -> Vec<(String, String)> { vec![("Cancel".into(), "Escape".into())] }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -376,54 +197,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/73b-give-point-tools-a-plane-aware-construction-hook-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-73c-build-original-rectangle-and-polygon-tool-results"></a>
 
 ### Step 4 of 21 · Build original rectangle and polygon tool results (`73c-build-original-rectangle-and-polygon-tool-results`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/21 Visual Trace (73c-build-original-rectangle-and-polygon-tool-results): Build original rectangle and polygon tool results</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">two accepted points</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked construction</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original polyline tool result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked construction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original polyline tool…</text>
 </svg>
-</div>
-
-- **Goal:** Build original rectangle and polygon tool results.
-- **Data Flow Trace:** `two accepted points → checked construction → original polyline tool result`
-- **Files You Touch:** `src/tool.rs` (*Build precise original rectangle and polygon results through the current construction frame.*)
 
 Add two-point construction tools that generate one validated original polyline in the current frame.
 
-> **Self-Check Question:** *Should changing the construction frame flatten the shape to XY?*  
-> **Answer:** No. Generate every original point along the current plane axes and preserve its world placement.
-
-- **Hands-On Lab Experiment:** Compare Rectangle in XZ with a rotated Polygon on a translated three-point frame.
-
-<details>
-<summary>Implementation 73c-build-original-rectangle-and-polygon-tool-results: Build original rectangle and polygon tool results</summary>
-
-Build original rectangle and polygon tool results.
-
-Data flow: two accepted points → checked construction → original polyline tool result.
+> **Check:** *Should changing the construction frame flatten the shape to XY?* — No. Generate every original point along the current plane axes and preserve its world placement.
 
 ### 1. `src/tool.rs`
 
@@ -431,8 +236,7 @@ Build precise original rectangle and polygon results through the current constru
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let points=points.iter().map(|p|session_rust::Point::new(p[0],p[1],p[2])).collect();
@@ -442,8 +246,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -457,8 +259,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -473,8 +274,6 @@ impl Tool for Shape {
         let mut buttons=vec![("Cancel".into(),"Escape".into())];
         if matches!(self,Self::Polyline) {buttons.insert(0,("Close".into(),"Close".into()));}buttons
 ```
-
-</details>
 
 Replace it with:
 
@@ -500,8 +299,7 @@ impl Tool for Shape {
         if matches!(self,Self::Polyline) {buttons.insert(0,("Close".into(),"Close".into()));}buttons
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -597,90 +395,42 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/73c-build-original-rectangle-and-polygon-tool-results-01.rs"
-```
-
-```text
---8<-- "journey/code/73c-build-original-rectangle-and-polygon-tool-results-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-73d-preserve-world-replay-for-multiword-construction-names"></a>
 
 ### Step 5 of 21 · Preserve world replay for multiword construction names (`73d-preserve-world-replay-for-multiword-construction-names`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/21 Visual Trace (73d-preserve-world-replay-for-multiword-construction-names): Preserve world replay for multiword construction names</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">multiword name</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit world points</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">active frame construction</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit world points</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">active frame constructi…</text>
 </svg>
-</div>
-
-- **Goal:** Preserve world replay for multiword construction names.
-- **Data Flow Trace:** `multiword name → explicit world points → active frame construction`
-- **Files You Touch:** `src/tool.rs` (*Replay original world points independently of multiword names and derive temporary construction boundaries.*)
 
 Strip the complete tool name before replay and use the active frame for construction and temporary boundaries.
 
-> **Self-Check Question:** *Can splitting at the first space recover a Rectangle command?*  
-> **Answer:** No. Polyline Rectangle is a multiword name. Remove its full name before parsing the world-prefixed input points.
-
-- **Hands-On Lab Experiment:** Finish a tilted Rectangle and verify its first original coordinate is still the accepted world point.
-
-<details>
-<summary>Implementation 73d-preserve-world-replay-for-multiword-construction-names: Preserve world replay for multiword construction names</summary>
-
-Preserve world replay for multiword construction names.
-
-Data flow: multiword name → explicit world points → active frame construction.
+> **Check:** *Can splitting at the first space recover a Rectangle command?* — No. Polyline Rectangle is a multiword name. Remove its full name before parsing the world-prefixed input points.
 
 ### 1. `src/tool.rs`
 
 Replay original world points independently of multiword names and derive temporary construction boundaries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    pub fn build_world(&self, points:&[[f64;3]]) -> Result<Built,&'static str> {
-        let command=self.command(points);let text=command.split_once(' ').map_or("",|(_,text)|text);
-        let world=crate::drawing_input::points(text,crate::drawing_coords::plane(),self.frame,&[],None)?;
-        self.tool.build(&world)
-    }
-    pub fn hover(&mut self, point: Option<[f64; 3]>) -> Result<(), &'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -688,54 +438,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/73d-preserve-world-replay-for-multiword-construction-names-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-73e-keep-polygon-sides-in-the-current-draft"></a>
 
 ### Step 6 of 21 · Keep polygon sides in the current draft (`73e-keep-polygon-sides-in-the-current-draft`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/21 Visual Trace (73e-keep-polygon-sides-in-the-current-draft): Keep polygon sides in the current draft</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Sides text</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded current tool</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prompt and preview</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs, src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded current tool</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prompt and preview</text>
 </svg>
-</div>
-
-- **Goal:** Keep polygon sides in the current draft.
-- **Data Flow Trace:** `Sides text → bounded current tool → prompt and preview`
-- **Files You Touch:** `src/tool.rs` (*Keep validated polygon side counts beside unfinished original input.*) · `src/editor.rs` (*Route bounded Sides input to the current unfinished Polygon and preserve original draft points.*)
 
 Validate Sides before changing the tool; update the prompt without creating geometry or a history transaction.
 
-> **Self-Check Question:** *Does Sides5 commit a polygon?*  
-> **Answer:** No. It changes unfinished input. Completion still needs the center and corner, then commits exactly once.
-
-- **Hands-On Lab Experiment:** Start Polygon, set Sides5, reject2 and4096, and finish its second point.
-
-<details>
-<summary>Implementation 73e-keep-polygon-sides-in-the-current-draft: Keep polygon sides in the current draft</summary>
-
-Keep polygon sides in the current draft.
-
-Data flow: Sides text → bounded current tool → prompt and preview.
+> **Check:** *Does Sides5 commit a polygon?* — No. It changes unfinished input. Completion still needs the center and corner, then commits exactly once.
 
 ### 1. `src/tool.rs`
 
@@ -743,8 +477,7 @@ Keep validated polygon side counts beside unfinished original input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
@@ -754,8 +487,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         prompt
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -769,8 +500,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Tool for Shape {
@@ -780,8 +510,6 @@ impl Tool for Shape {
         let (kind,sides)=match self {Self::Rectangle=>("rectangle",4),Self::Polygon {sides}=>("polygon",*sides),_=>return self.build(points)};
         let points=crate::planar::points(kind,plane,sides,points)?;Self::Polyline.build(&points)
 ```
-
-</details>
 
 Replace it with:
 
@@ -799,8 +527,7 @@ impl Tool for Shape {
         let points=crate::planar::points(kind,plane,sides,points)?;Self::Polyline.build(&points)
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -906,31 +633,13 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/73e-keep-polygon-sides-in-the-current-draft-01.rs"
-```
-
-```text
---8<-- "journey/code/73e-keep-polygon-sides-in-the-current-draft-02.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Route bounded Sides input to the current unfinished Polygon and preserve original draft points.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -940,8 +649,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.construction_plane=plane;crate::drawing_coords::set_plane(plane);self.plane_menu=false;
                 let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
 ```
-
-</details>
 
 Replace it with:
 
@@ -957,8 +664,7 @@ Replace it with:
                 let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -969,8 +675,6 @@ Replace it with:
         self.gizmo_hover=None;
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -984,8 +688,7 @@ Replace it with:
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if text.trim().eq_ignore_ascii_case("Close") && draft.tool.count()==0 {return Some(Ok(Action::CloseTool));}
@@ -995,8 +698,6 @@ Replace it with:
         coordinate.then(|| {
             let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1013,8 +714,7 @@ Replace it with:
             let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1024,8 +724,6 @@ pub enum Action {
     Draw {shape:crate::tool::Shape,text:String}, ToolText(String), FinishTool, CloseTool,
     CanvasStart {from:[f32;2],to:[f32;2],size:[f64;2],modified:bool,pointer:i32},
 ```
-
-</details>
 
 Replace it with:
 
@@ -1039,8 +737,7 @@ pub enum Action {
     CanvasStart {from:[f32;2],to:[f32;2],size:[f64;2],modified:bool,pointer:i32},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1905,95 +1602,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/73e-keep-polygon-sides-in-the-current-draft-03.rs"
-```
-
-```text
---8<-- "journey/code/73e-keep-polygon-sides-in-the-current-draft-04.rs"
-```
-
-```text
---8<-- "journey/code/73e-keep-polygon-sides-in-the-current-draft-05.rs"
-```
-
-```text
---8<-- "journey/code/73e-keep-polygon-sides-in-the-current-draft-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-73f-register-current-planar-options-and-temporary-outlines"></a>
 
 ### Step 7 of 21 · Register current planar options and temporary outlines (`73f-register-current-planar-options-and-temporary-outlines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/21 Visual Trace (73f-register-current-planar-options-and-temporary-outlines): Register current planar options and temporary outlines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs, src/commands.rs, src/tool_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current command option</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">two-point collector</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary full boundary</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs, src/commands…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">two-point collector</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary full boundary</text>
 </svg>
-</div>
-
-- **Goal:** Register current planar options and temporary outlines.
-- **Data Flow Trace:** `current command option → two-point collector → temporary full boundary`
-- **Files You Touch:** `src/tool.rs` (*Offer current planar construction choices on the Polyline tools.*) · `src/commands.rs` (*Register current Polyline Points, Rectangle and Polygon options and direct coordinates.*) · `src/tool_preview.rs` (*Draw complete temporary construction boundaries while retaining the current cursor marker.*)
 
 Connect Points, Rectangle and Polygon options to the same collector and draw complete unfinished boundaries.
 
-> **Self-Check Question:** *Does the preview become part of Save?*  
-> **Answer:** No. The generated preview is temporary; only the completed original construction enters the scene and history.
-
-- **Hands-On Lab Experiment:** Hover the second Rectangle corner and compare its four preview edges with the unchanged original scene.
-
-<details>
-<summary>Implementation 73f-register-current-planar-options-and-temporary-outlines: Register current planar options and temporary outlines</summary>
-
-Register current planar options and temporary outlines.
-
-Data flow: current command option → two-point collector → temporary full boundary.
+> **Check:** *Does the preview become part of Save?* — No. The generated preview is temporary; only the completed original construction enters the scene and history.
 
 ### 1. `src/tool.rs`
 
 Offer current planar construction choices on the Polyline tools.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    fn buttons(&self)->Vec<(String,String)> {
-        let mut buttons=vec![("Cancel".into(),"Escape".into())];
-        if matches!(self,Self::Polyline) {buttons.insert(0,("Close".into(),"Close".into()));}buttons
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2007,8 +1651,7 @@ Register current Polyline Points, Rectangle and Polygon options and direct coord
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let words: Vec<_> = line.split_whitespace().collect();
@@ -2020,8 +1663,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
     if name == "Move" && words.len()>count {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2036,8 +1677,7 @@ Replace it with:
     if name == "Move" && words.len()>count {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
@@ -2047,8 +1687,6 @@ Replace it with:
     ("Hide",||Action::Hide),
     ("Show",||Action::Show),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2064,8 +1702,7 @@ Replace it with:
     ("Show",||Action::Show),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -2223,44 +1860,9 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/73f-register-current-planar-options-and-temporary-outlines-02.rs"
-```
-
-```text
---8<-- "journey/code/73f-register-current-planar-options-and-temporary-outlines-03.rs"
-```
-
-</details>
-
 ### 3. `src/tool_preview.rs`
 
 Draw complete temporary construction boundaries while retaining the current cursor marker.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let yellow = [1., 0.75, 0.05, 1.]; let mut strokes = Vec::new(); let mut markers = Vec::new();
-        if let Some(draft) = draft {
-            for pair in draft.points.windows(2) {if pair[0]!=pair[1] {strokes.push(crate::stroke::Stroke {start:pair[0].map(|v|v as f32),end:pair[1].map(|v|v as f32),width:2.,colour:yellow});}}
-            if let Some(cursor) = draft.cursor {
-            markers.push(crate::marker::Marker { center: cursor.map(|v| v as f32), diameter: 8., colour: yellow });
-            if let Some(&start) = draft.points.last().filter(|&&p| p != cursor) {
-                strokes.push(crate::stroke::Stroke { start: start.map(|v| v as f32), end: cursor.map(|v| v as f32), width: 2., colour: yellow });
-            }
-        } }
-        self.strokes.set(device, strokes)?; self.markers.set_points(device, markers)?; Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2268,63 +1870,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/73f-register-current-planar-options-and-temporary-outlines-04.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-73g-exercise-oriented-original-planar-constructions"></a>
 
 ### Step 8 of 21 · Exercise oriented original planar constructions (`73g-exercise-oriented-original-planar-constructions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/21 Visual Trace (73g-exercise-oriented-original-planar-constructions): Exercise oriented original planar constructions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/planar_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">oriented original</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">construction</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary preview</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">completed polyline</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original reopening</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/planar_tests.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">completed polyline</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original reopening</text>
 </svg>
-</div>
-
-- **Goal:** Exercise oriented original planar constructions.
-- **Data Flow Trace:** `oriented original construction → temporary preview → completed polyline → original reopening`
-- **Files You Touch:** `src/planar_tests.rs` (*Copy current oriented construction, original archive, side-cap, failed-input and temporary-preview fixtures.*) · `src/lib.rs` (*Register the planar component.*)
 
 Copy precise plane, side-count, preview, original persistence and single-transaction fixtures.
 
-> **Self-Check Question:** *What proves an oriented polygon keeps its source geometry?*  
-> **Answer:** Its original radius, closing point and tilted plane coordinates remain exact through Save/Open and Undo/Redo.
+> **Check:** *What proves an oriented polygon keeps its source geometry?* — Its original radius, closing point and tilted plane coordinates remain exact through Save/Open and Undo/Redo.
 
-- **What You Should See:** An original rectangle and five-sided polygon render on white. Both are closed kernel polylines in the chosen plane; hover remains temporary. Invalid input preserves the draft, and completion creates one Undo transaction with exact original Save/Open.
-- **Hands-On Lab Experiment:** Type Close, CPlane XY, Polyline Rectangle w-0.8,-0.4,0 w-0.1,0.4,0, Polyline Polygon, Sides5, w0.5,0,0, w0.8,0,0 and Fit. Try invalid corners, Escape and Undo/Redo.
-
-<details>
-<summary>Implementation 73g-exercise-oriented-original-planar-constructions: Exercise oriented original planar constructions</summary>
-
-Exercise oriented original planar constructions.
-
-Data flow: oriented original construction → temporary preview → completed polyline → original reopening.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2338,10 +1917,7 @@ Copy this supplied file:
 --8<-- "journey/code/73g-exercise-oriented-original-planar-constructions-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2349,73 +1925,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the planar component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod planar;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73g-exercise-oriented-original-planar-constructions-02.rs" skip=17
 ```
 
-</details>
+**Result after `73g-exercise-oriented-original-planar-constructions`:** An original rectangle and five-sided polygon render on white. Both are closed kernel polylines in the chosen plane; hover remains temporary. Invalid input preserves the draft, and completion creates one Undo transaction with exact original Save/Open.
 
-</details>
+---
 
 <a id="checkpoint-73h-match-solid-command-options"></a>
 
 ### Step 9 of 21 · Match solid command options (`73h-match-solid-command-options`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/21 Visual Trace (73h-match-solid-command-options): Match solid command options</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_options.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Match solid command options</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_options.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Compare normalized option words while keeping Enter and Escape outside shape choices..
-- **Data Flow Trace:** `Match solid command options → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_options.rs` (*Normalize option labels once and consume matching input words.*) · `src/lib.rs` (*Register the shared option matcher.*)
 
 Compare normalized option words while keeping Enter and Escape outside shape choices.
 
-> **Self-Check Question:** *Why exclude Escape from the option iterator?*  
-> **Answer:** Escape is an action that cancels an owner, rather than a solid representation.
-
-- **Hands-On Lab Experiment:** Try matching mixed case and a multiword label on paper; count how many input words the match consumes.
-
-<details>
-<summary>Implementation 73h-match-solid-command-options: Match solid command options</summary>
-
-Compare normalized option words while keeping Enter and Escape outside shape choices..
-
-Data flow: Match solid command options → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why exclude Escape from the option iterator?* — Escape is an action that cancels an owner, rather than a solid representation.
 
 ### 1. `src/primitive_options.rs`
 
@@ -2431,71 +1980,44 @@ Create the file and type:
 
 Register the shared option matcher.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod planar_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73h-match-solid-command-options-2.rs" skip=31
 ```
 
-</details>
+---
 
 <a id="checkpoint-73i-describe-solid-command-questions"></a>
 
 ### Step 10 of 21 · Describe solid command questions (`73i-describe-solid-command-questions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/21 Visual Trace (73i-describe-solid-command-questions): Describe solid command questions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Describe solid command questions</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Represent typed coordinates and numbers explicitly.
-- **Data Flow Trace:** `Describe solid command questions → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Describe the solid answers and questions using kernel points.*) · `src/lib.rs` (*Register the foundation as it is written.*)
 
 Represent typed coordinates and numbers explicitly. Give each question its interpretation and optional default.
 
-> **Self-Check Question:** *Why keep a numeric answer separate from a clicked point?*  
-> **Answer:** The same number can mean a size or a signed height; the question decides how to interpret it.
-
-- **Hands-On Lab Experiment:** Describe Center, Radius and Height using the three constructors. Predict which answers Enter can accept.
-
-<details>
-<summary>Implementation 73i-describe-solid-command-questions: Describe solid command questions</summary>
-
-Represent typed coordinates and numbers explicitly.
-
-Data flow: Describe solid command questions → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why keep a numeric answer separate from a clicked point?* — The same number can mean a size or a signed height; the question decides how to interpret it.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -2511,91 +2033,48 @@ Create the file and type:
 
 Register the foundation as it is written.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod primitive_options;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73i-describe-solid-command-questions-2.rs" skip=28
 ```
 
-</details>
+---
 
 <a id="checkpoint-73j-build-a-right-handed-solid-frame"></a>
 
 ### Step 11 of 21 · Build a right-handed solid frame (`73j-build-a-right-handed-solid-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/21 Visual Trace (73j-build-a-right-handed-solid-frame): Build a right-handed solid frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Build a right-handed solid frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Place kernel coordinates in a construction-plane frame.
-- **Data Flow Trace:** `Build a right-handed solid frame → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
 
 Place kernel coordinates in a construction-plane frame. Rotate, flip and roll its axes without changing original source geometry.
 
-> **Self-Check Question:** *Why reverse both y and z when flipping the frame?*  
-> **Answer:** Reversing both axes keeps x cross y equal to z, preserving a rotation.
-
-- **Hands-On Lab Experiment:** Use the Top and Front plane axes to calculate the normal. Predict a local point after flipping the frame.
-
-<details>
-<summary>Implementation 73j-build-a-right-handed-solid-frame: Build a right-handed solid frame</summary>
-
-Place kernel coordinates in a construction-plane frame.
-
-Data flow: Build a right-handed solid frame → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why reverse both y and z when flipping the frame?* — Reversing both axes keeps x cross y equal to z, preserving a rotation.
 
 ### 1. `src/primitive_shape.rs`
 
 Continue the shared solid foundation with this lesson’s functions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    /// Enter takes `value`.
-    pub fn or(self, value: f64) -> Self {
-        Self {
-            default: Some(value),
-            ..self
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2603,73 +2082,42 @@ After that block, type:
 --8<-- "journey/code/73j-build-a-right-handed-solid-frame-1.rs" skip=158
 ```
 
-</details>
+---
 
 <a id="checkpoint-73k-sample-solid-preview-wires"></a>
 
 ### Step 12 of 21 · Sample solid preview wires (`73k-sample-solid-preview-wires`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/21 Visual Trace (73k-sample-solid-preview-wires): Sample solid preview wires</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Sample solid preview wires</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Sample circles and boxes in the existing frame.
-- **Data Flow Trace:** `Sample solid preview wires → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
 
 Sample circles and boxes in the existing frame. These points describe temporary preview wires; the kernel still creates the accepted solid.
 
-> **Self-Check Question:** *Why include the first point again at the end of an oval?*  
-> **Answer:** The repeated endpoint closes the preview polyline. It is distinct from a duplicate solid vertex.
-
-- **Hands-On Lab Experiment:** Predict the number of circle points and box wire chains. Change the ring sample count temporarily and restore it.
-
-<details>
-<summary>Implementation 73k-sample-solid-preview-wires: Sample solid preview wires</summary>
-
-Sample circles and boxes in the existing frame.
-
-Data flow: Sample solid preview wires → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why include the first point again at the end of an oval?* — The repeated endpoint closes the preview polyline. It is distinct from a duplicate solid vertex.
 
 ### 1. `src/primitive_shape.rs`
 
 Continue the shared solid foundation with this lesson’s functions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    /// Local to world.
-    pub fn to_xform(&self) -> Xform {
-        Xform::frame_to_world(&self.origin, &self.x, &self.y, &self.z)
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2677,72 +2125,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/73k-sample-solid-preview-wires-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-73l-describe-solid-builders-and-dimensions"></a>
 
 ### Step 13 of 21 · Describe solid builders and dimensions (`73l-describe-solid-builders-and-dimensions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/21 Visual Trace (73l-describe-solid-builders-and-dimensions): Describe solid builders and dimensions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Describe solid builders and</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">dimensions</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions..
-- **Data Flow Trace:** `Describe solid builders and dimensions → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
 
 Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions.
 
-> **Self-Check Question:** *Why use function pointers in Shape?*  
-> **Answer:** Every solid follows the same question lifecycle while supplying its own dimension rules, preview and builder.
-
-- **Hands-On Lab Experiment:** Compare a negative typed height with a point below the plane. Trace which callback accepts the answer and which one builds geometry.
-
-<details>
-<summary>Implementation 73l-describe-solid-builders-and-dimensions: Describe solid builders and dimensions</summary>
-
-Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions..
-
-Data flow: Describe solid builders and dimensions → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why use function pointers in Shape?* — Every solid follows the same question lifecycle while supplying its own dimension rules, preview and builder.
 
 ### 1. `src/primitive_shape.rs`
 
 Continue the shared solid foundation with this lesson’s functions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        wires
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2750,72 +2168,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/73l-describe-solid-builders-and-dimensions-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-73m-validate-solid-sizes-and-radius"></a>
 
 ### Step 14 of 21 · Validate solid sizes and radius (`73m-validate-solid-sizes-and-radius`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/21 Visual Trace (73m-validate-solid-sizes-and-radius): Validate solid sizes and radius</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Validate solid sizes and radius</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Reject nonfinite and degenerate dimensions.
-- **Data Flow Trace:** `Validate solid sizes and radius → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
 
 Reject nonfinite and degenerate dimensions. Read a center and radius once, then reuse the same frame for three great-circle previews.
 
-> **Self-Check Question:** *Why can a height be negative while a radius must be positive?*  
-> **Answer:** Height specifies a direction along the frame normal. Radius measures a nonnegative distance.
-
-- **Hands-On Lab Experiment:** Predict the error for NaN, zero and an oversized radius. Trace the three rolled frames used by the sphere preview.
-
-<details>
-<summary>Implementation 73m-validate-solid-sizes-and-radius: Validate solid sizes and radius</summary>
-
-Reject nonfinite and degenerate dimensions.
-
-Data flow: Validate solid sizes and radius → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why can a height be negative while a radius must be positive?* — Height specifies a direction along the frame normal. Radius measures a nonnegative distance.
 
 ### 1. `src/primitive_shape.rs`
 
 Continue the shared solid foundation with this lesson’s functions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    /// The option `words` start with and how many words spell it, ignoring case and spaces.
-    pub(crate) fn option_in(&self, words: &[&str]) -> Option<(usize, usize)> {
-        options::find(self.options, words)
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2823,79 +2211,42 @@ After that block, type:
 --8<-- "journey/code/73m-validate-solid-sizes-and-radius-1.rs" skip=224
 ```
 
-</details>
+---
 
 <a id="checkpoint-73n-weld-solid-tessellation-once"></a>
 
 ### Step 15 of 21 · Weld solid tessellation once (`73n-weld-solid-tessellation-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/21 Visual Trace (73n-weld-solid-tessellation-once): Weld solid tessellation once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Weld solid tessellation once</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation.
-- **Data Flow Trace:** `Weld solid tessellation once → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
 
 Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation. Search neighboring cells to avoid cracks at a cell boundary.
 
-> **Self-Check Question:** *Why search neighboring cells as well as the rounded cell?*  
-> **Answer:** Two close points can round into adjacent cells. Their actual distance determines whether they share a corner.
-
-- **Hands-On Lab Experiment:** Choose two nearby points on opposite sides of a cell boundary. Predict whether a single-cell lookup would leave a crack.
-
-<details>
-<summary>Implementation 73n-weld-solid-tessellation-once: Weld solid tessellation once</summary>
-
-Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation.
-
-Data flow: Weld solid tessellation once → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why search neighboring cells as well as the rounded cell?* — Two close points can round into adjacent cells. Their actual distance determines whether they share a corner.
 
 ### 1. `src/primitive_shape.rs`
 
 Continue the shared solid foundation with this lesson’s functions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-/// Three great circles.
-pub fn sphere_outline(part: &Part) -> Vec<Vec<Point>> {
-    let [radius] = part.sizes[..] else {
-        return Vec::new();
-    };
-    let side = part.frame.rolled();
-    vec![
-        part.frame.ring(radius, 0.0),
-        side.ring(radius, 0.0),
-        side.rolled().ring(radius, 0.0),
-    ]
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2903,70 +2254,42 @@ After that block, type:
 --8<-- "journey/code/73n-weld-solid-tessellation-once-1.rs" skip=322
 ```
 
-</details>
+---
 
 <a id="checkpoint-73o-scale-and-cache-polyhedron-faces"></a>
 
 ### Step 16 of 21 · Scale and cache polyhedron faces (`73o-scale-and-cache-polyhedron-faces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/21 Visual Trace (73o-scale-and-cache-polyhedron-faces): Scale and cache polyhedron faces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_shape.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Scale and cache polyhedron faces</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original f64 kernel coordinates</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later temporary preview and accepted</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_shape.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original f64 kernel coo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later temporary preview…</text>
 </svg>
-</div>
-
-- **Goal:** Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame.
-- **Data Flow Trace:** `Scale and cache polyhedron faces → original f64 kernel coordinates → later temporary preview and accepted geometry`
-- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
 
 Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame. Supply the original frame validation fixture separately.
 
-> **Self-Check Question:** *Why normalize by circumradius instead of scaling by one chosen vertex coordinate?*  
-> **Answer:** Circumradius measures the furthest corner from the origin and is independent of axis orientation.
-
-- **Hands-On Lab Experiment:** Compare mesh and BRep output for a small radius. Explain the BRep tolerance check before rebuilding the browser.
-
-<details>
-<summary>Implementation 73o-scale-and-cache-polyhedron-faces: Scale and cache polyhedron faces</summary>
-
-Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame.
-
-Data flow: Scale and cache polyhedron faces → original f64 kernel coordinates → later temporary preview and accepted geometry.
+> **Check:** *Why normalize by circumradius instead of scaling by one chosen vertex coordinate?* — Circumradius measures the furthest corner from the origin and is independent of axis orientation.
 
 ### 1. `src/primitive_shape.rs`
 
 Continue the shared solid foundation with this lesson’s functions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    mesh.name = name.into();
-    Geometry::Mesh(Rc::new(mesh))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2974,8 +2297,7 @@ After that block, type:
 --8<-- "journey/code/73o-scale-and-cache-polyhedron-faces-1.rs" skip=66
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2983,74 +2305,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the existing original frame fixture and reusable builder validation helpers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let mesh = make(radius / circumradius(&make(1.0)));
-    Ok(polyhedron(mesh, option, &part.frame.to_xform(), name))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73o-scale-and-cache-polyhedron-faces-2.rs" skip=123
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-73p-build-a-placed-kernel-box"></a>
 
 ### Step 17 of 21 · Build a placed kernel box (`73p-build-a-placed-kernel-box`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/21 Visual Trace (73p-build-a-placed-kernel-box): Build a placed kernel box</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_box.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Build a placed kernel box</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Session kernel geometry</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing preview and placement</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">helpers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_box.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing preview and pl…</text>
 </svg>
-</div>
-
-- **Goal:** Build a box through the Session kernel and place its center half a signed height above the construction plane.
-- **Data Flow Trace:** `Build a placed kernel box → Session kernel geometry → existing preview and placement helpers`
-- **Files You Touch:** `src/primitive_box.rs` (*Build and place the kernel box, with its width and preview helpers.*) · `src/lib.rs` (*Register the box helpers before connecting their question sequence.*)
 
 Build a box through the Session kernel and place its center half a signed height above the construction plane. Draw its line, base and full-box preview from the shared frame.
 
-> **Self-Check Question:** *Why translate by half the signed height?*  
-> **Answer:** The kernel box is centered. The translation places its bottom on the construction plane; a negative height puts it below that plane.
-
-- **Hands-On Lab Experiment:** Trace positive and negative heights. Predict the preview coordinates on the Front plane.
-
-<details>
-<summary>Implementation 73p-build-a-placed-kernel-box: Build a placed kernel box</summary>
-
-Build a box through the Session kernel and place its center half a signed height above the construction plane.
-
-Data flow: Build a placed kernel box → Session kernel geometry → existing preview and placement helpers.
+> **Check:** *Why translate by half the signed height?* — The kernel box is centered. The translation places its bottom on the construction plane; a negative height puts it below that plane.
 
 ### 1. `src/primitive_box.rs`
 
@@ -3066,89 +2358,48 @@ Create the file and type:
 
 Register the box helpers before connecting their question sequence.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod primitive_shape;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73p-build-a-placed-kernel-box-2.rs" skip=26
 ```
 
-</details>
+---
 
 <a id="checkpoint-73q-read-box-questions-and-corner-clicks"></a>
 
 ### Step 18 of 21 · Read box questions and corner clicks (`73q-read-box-questions-and-corner-clicks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/21 Visual Trace (73q-read-box-questions-and-corner-clicks): Read box questions and corner clicks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_box.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Read box questions and corner clicks</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Session kernel geometry</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing preview and placement</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">helpers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_box.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing preview and pl…</text>
 </svg>
-</div>
-
-- **Goal:** Connect the box builder to its question sequence.
-- **Data Flow Trace:** `Read box questions and corner clicks → Session kernel geometry → existing preview and placement helpers`
-- **Files You Touch:** `src/primitive_box.rs` (*Insert the shape descriptor and question reader before the helpers already written.*)
 
 Connect the box builder to its question sequence. A corner click supplies two base dimensions, while typed dimensions ask for width separately.
 
-> **Self-Check Question:** *Why does one corner click supply two dimensions?*  
-> **Answer:** Its local u and v coordinates give half the centered base lengths; absolute values choose positive dimensions.
-
-- **Hands-On Lab Experiment:** Compare Center, a corner click and Height with Center, Length, Width and Height. Check their accepted solids have the same corners.
-
-<details>
-<summary>Implementation 73q-read-box-questions-and-corner-clicks: Read box questions and corner clicks</summary>
-
-Connect the box builder to its question sequence.
-
-Data flow: Read box questions and corner clicks → Session kernel geometry → existing preview and placement helpers.
+> **Check:** *Why does one corner click supply two dimensions?* — Its local u and v coordinates give half the centered base lengths; absolute values choose positive dimensions.
 
 ### 1. `src/primitive_box.rs`
 
 Insert the shape descriptor and question reader before the helpers already written.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::primitive_shape as shape;
-use crate::primitive_shape::{
-    Answer, Ask, BREP_MESH, Frame, Part, Shape, nonzero, positive,
-};
-use session_rust::{BRep, Geometry, Mesh, Point, Xform};
-use std::rc::Rc;
-```
-
-</details>
 
 After that block, type:
 
@@ -3156,8 +2407,7 @@ After that block, type:
 --8<-- "journey/code/73q-read-box-questions-and-corner-clicks-1.rs" skip=211
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3165,78 +2415,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the original corner, signed-height, orientation and invalid-size fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Ok(shape::solid(
-        BRep::create_box(length, width, height.abs()),
-        option,
-        &place,
-        "box",
-    ))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73q-read-box-questions-and-corner-clicks-2.rs" skip=133
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-73r-build-an-oriented-kernel-pyramid"></a>
 
 ### Step 19 of 21 · Build an oriented kernel pyramid (`73r-build-an-oriented-kernel-pyramid`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/21 Visual Trace (73r-build-an-oriented-kernel-pyramid): Build an oriented kernel pyramid</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_pyramid.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Build an oriented kernel pyramid</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Session kernel geometry</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing preview and placement</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">helpers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_pyramid.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing preview and pl…</text>
 </svg>
-</div>
-
-- **Goal:** Read a base diagonal and signed height.
-- **Data Flow Trace:** `Build an oriented kernel pyramid → Session kernel geometry → existing preview and placement helpers`
-- **Files You Touch:** `src/primitive_pyramid.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*) · `src/lib.rs` (*Register the completed original solid module.*)
 
 Read a base diagonal and signed height. Use the shared upright frame for the kernel pyramid and draw the matching temporary edges.
 
-> **Self-Check Question:** *Why make the height positive before building?*  
-> **Answer:** The flipped frame carries the downward direction, so the kernel receives a positive size without losing placement.
-
-- **Hands-On Lab Experiment:** Compare the pyramid below the Top plane with one along the Front plane. Predict the apex before checking the supplied fixture.
-
-<details>
-<summary>Implementation 73r-build-an-oriented-kernel-pyramid: Build an oriented kernel pyramid</summary>
-
-Read a base diagonal and signed height.
-
-Data flow: Build an oriented kernel pyramid → Session kernel geometry → existing preview and placement helpers.
+> **Check:** *Why make the height positive before building?* — The flipped frame carries the downward direction, so the kernel receives a positive size without losing placement.
 
 ### 1. `src/primitive_pyramid.rs`
 
@@ -3252,24 +2468,13 @@ Create the file and type:
 
 Register the completed original solid module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod primitive_box;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73r-build-an-oriented-kernel-pyramid-2.rs" skip=24
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3277,84 +2482,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the existing accepted-solid validation fixture separately.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// A kernel pyramid on the base, apex along the normal.
-fn build(part: &Part, option: &str) -> Result<Geometry, String> {
-    let [edge, height] = part.sizes[..] else {
-        return Err("Pyramid needs an edge and a height".into());
-    };
-    let (frame, height) = part.frame.upright(height);
-    Ok(shape::solid(
-        BRep::create_pyramid(edge, height),
-        option,
-        &frame.to_xform(),
-        "pyramid",
-    ))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73r-build-an-oriented-kernel-pyramid-3.rs" skip=433
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-73s-build-a-block-with-a-kernel-hole"></a>
 
 ### Step 20 of 21 · Build a block with a kernel hole (`73s-build-a-block-with-a-kernel-hole`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/21 Visual Trace (73s-build-a-block-with-a-kernel-hole): Build a block with a kernel hole</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_block_with_hole.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Build a block with a kernel hole</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Session kernel geometry</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing preview and placement</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">helpers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_block_with_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing preview and pl…</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the existing box questions and dimension reader.
-- **Data Flow Trace:** `Build a block with a kernel hole → Session kernel geometry → existing preview and placement helpers`
-- **Files You Touch:** `src/primitive_block_with_hole.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*) · `src/lib.rs` (*Register the completed original solid module.*)
 
 Reuse the existing box questions and dimension reader. Add a bounded hole radius and place the Session kernel block in the same frame.
 
-> **Self-Check Question:** *Why reuse the box reader for the outer dimensions?*  
-> **Answer:** The block and box accept the same centered dimensions. Only the additional hole question and kernel builder differ.
-
-- **Hands-On Lab Experiment:** Compare a radius that fits with one exceeding half the smaller base dimension. Explain the refusal before the kernel call.
-
-<details>
-<summary>Implementation 73s-build-a-block-with-a-kernel-hole: Build a block with a kernel hole</summary>
-
-Reuse the existing box questions and dimension reader.
-
-Data flow: Build a block with a kernel hole → Session kernel geometry → existing preview and placement helpers.
+> **Check:** *Why reuse the box reader for the outer dimensions?* — The block and box accept the same centered dimensions. Only the additional hole question and kernel builder differ.
 
 ### 1. `src/primitive_block_with_hole.rs`
 
@@ -3370,24 +2535,13 @@ Create the file and type:
 
 Register the completed original solid module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod primitive_pyramid;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73s-build-a-block-with-a-kernel-hole-2.rs" skip=28
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3395,80 +2549,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the existing accepted-solid validation fixture separately.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// A kernel block centered on the axis, standing on the plane, the hole along the normal.
-fn build(part: &Part, option: &str) -> Result<Geometry, String> {
-    let [length, width, height, hole] = part.sizes[..] else {
-        return Err("Block With Hole needs its sides and a hole radius".into());
-    };
-    let place = &part.frame.to_xform() * &Xform::translation(0.0, 0.0, height * 0.5);
-    let brep = BRep::create_block_with_hole(length, width, height.abs(), hole);
-    Ok(shape::solid(brep, option, &place, "block with hole"))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73s-build-a-block-with-a-kernel-hole-3.rs" skip=537
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-73t-build-regular-kernel-polyhedra"></a>
 
 ### Step 21 of 21 · Build regular kernel polyhedra (`73t-build-regular-kernel-polyhedra`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/21 Visual Trace (73t-build-regular-kernel-polyhedra): Build regular kernel polyhedra</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_tetrahedron.rs, src/lib.rs, src/primitive_octahedron.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Build regular kernel polyhedra</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Session kernel geometry</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing preview and placement</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">helpers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_tetrahedron…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing preview and pl…</text>
 </svg>
-</div>
-
-- **Goal:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
-- **Data Flow Trace:** `Build regular kernel polyhedra → Session kernel geometry → existing preview and placement helpers`
-- **Files You Touch:** `src/primitive_tetrahedron.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*) · `src/lib.rs` (*Register the completed original solid module.*) · `src/primitive_octahedron.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*)
 
 Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. Reuse the same foundation for the remaining regular solids.
 
-> **Self-Check Question:** *Why share the radius reader and polyhedron builder?*  
-> **Answer:** Their question and placement rules match; only the kernel constructor and cached face outlines differ.
-
-- **Hands-On Lab Experiment:** Compare tetrahedron and octahedron corner counts. Explain why both use the same radius and frame rules.
-
-<details>
-<summary>Implementation 73t-build-regular-kernel-polyhedra: Build regular kernel polyhedra</summary>
-
-Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
-
-Data flow: Build regular kernel polyhedra → Session kernel geometry → existing preview and placement helpers.
+> **Check:** *Why share the radius reader and polyhedron builder?* — Their question and placement rules match; only the kernel constructor and cached face outlines differ.
 
 ### 1. `src/primitive_tetrahedron.rs`
 
@@ -3484,24 +2602,13 @@ Create the file and type:
 
 Register the completed original solid module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod primitive_block_with_hole;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73t-build-regular-kernel-polyhedra-2.rs" skip=36
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3509,25 +2616,11 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the existing accepted-solid validation fixture separately.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// The kernel mesh scaled so its corners lie at the radius.
-fn build(part: &Part, option: &str) -> Result<Geometry, String> {
-    shape::polyhedron_of(part, option, make, "tetrahedron")
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73t-build-regular-kernel-polyhedra-3.rs" skip=190
 ```
-
-</details>
 
 ### 4. `src/primitive_octahedron.rs`
 
@@ -3543,24 +2636,13 @@ Create the file and type:
 
 Register the completed original solid module.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod primitive_tetrahedron;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/73t-build-regular-kernel-polyhedra-5.rs" skip=32
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3568,47 +2650,26 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply the existing accepted-solid validation fixture separately.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-/// The kernel mesh scaled so its corners lie at the radius.
-fn build(part: &Part, option: &str) -> Result<Geometry, String> {
-    shape::polyhedron_of(part, option, make, "octahedron")
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/73t-build-regular-kernel-polyhedra-6.rs" skip=189
 ```
 
-</details>
-
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 73t-build-regular-kernel-polyhedra
-npm --prefix ../session_tests run course -- check 73t-build-regular-kernel-polyhedra
-npm --prefix ../session_tests run course -- save 73t-build-regular-kernel-polyhedra
+npm --prefix ../session_tests run course -- dependencies 14.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 14.3
+npm --prefix ../session_tests run course -- save 14.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-- **Final Lesson Experiment:** Compare tetrahedron and octahedron corner counts. Explain why both use the same radius and frame rules.
-
-Continue with [Solid questions, previews and one original commit](../../consolidation/74-copy-current-solid-geometry-and-question-definitions.md).
+Continue with [14.4 · Solid questions, previews and one original commit](../../consolidation/74-copy-current-solid-geometry-and-question-definitions.md).

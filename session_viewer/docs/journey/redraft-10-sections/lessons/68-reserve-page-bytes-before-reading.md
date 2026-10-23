@@ -1,229 +1,94 @@
 # 12.4 · Charged residency and current streamed pages
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.4** (Redraft `7.4`) · **31 checkpoints (`68-reserve-page-bytes-before-reading` → `68ac-connect-current-pages-to-the-browser-renderer`)** · **Study time: 15.5–31 h**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Checkpoints:** `68-reserve-page-bytes-before-reading` → `68ac-connect-current-pages-to-the-browser-renderer` (31 steps) · **Production source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs) · [app/fetch.rs](../../../../src/app/fetch.rs) · [app/loader.rs](../../../../src/app/loader.rs) · [app/live.rs](../../../../src/app/live.rs)
 
-> **What You Will Learn & Build:** Reserve page bytes before reading. By the final checkpoint (`68ac-connect-current-pages-to-the-browser-renderer`), you will connect current pages to the browser renderer.
+> **Goal:** Connect current pages to the browser renderer.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 7 Visual Explanation: HTTP 206 Range Streaming, GPU Hardware Instancing & 2D Drawing Sheets</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Fetching frustum-prioritized byte ranges. Center: 1 mesh buffer × N instance transforms. Right: Paper-space sheets.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. HTTP 206 Byte-Range Stream</text>
-    <rect x="34" y="98" width="212" height="30" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <rect x="74" y="98" width="60" height="30" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <rect x="164" y="98" width="48" height="30" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="144" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Range: bytes=start-end (Visible First)</text>
-    <text x="140" y="164" text-anchor="middle" font-size="9.5" fill="#111111">• Bounded Permit Pool &amp; Page Cache</text>
-    <text x="140" y="182" text-anchor="middle" font-size="9.5" fill="#111111">• Evicts cold off-screen chunks safely</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. GPU Hardware Instancing (1 → N)</text>
-    <rect x="305" y="114" width="68" height="48" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="339" y="142" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">1 Source</text>
-    <line x1="373" y1="126" x2="425" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="373" y1="138" x2="425" y2="138" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="373" y1="150" x2="425" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="428" y="92" width="118" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="487" y="108" text-anchor="middle" font-size="9" fill="#111111">Instance #0 (M0, ID0)</text>
-    <rect x="428" y="126" width="118" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="487" y="142" text-anchor="middle" font-size="9" fill="#111111">Instance #1 (M1, ID1)</text>
-    <rect x="428" y="160" width="118" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="487" y="176" text-anchor="middle" font-size="9" fill="#111111">Instance #N (MN, IDN)</text>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">@builtin(instance_index) draw_indexed</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 2D Drawing Sheet &amp; Title Block</text>
-    <rect x="612" y="96" width="184" height="104" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <rect x="716" y="168" width="80" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="756" y="188" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Title Block</text>
-    <text x="704" y="220" text-anchor="middle" font-size="9.5" fill="#111111">Paper-space mm/inch pen widths</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 12.4 Pipeline Schematic: Charged residency and current streamed pages</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (31 Checkpoints: 68-reserve-page-bytes-before-reading → 68ac-connect-current-pages-to-the-browser-renderer)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">byte budget</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">reserved charge</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">allocation</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">automatic release</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">adopted original</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 12.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/page_cache.rs  ·  src/lib.rs  ·  src/stream_generation.rs  ·  src/stream_budget.rs  ·  src/stream_properties.rs  ·  src/stream.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">31 Checkpoints: 68-reserve-page-bytes-before-reading → 68ac-connect-current-pages-to-the-browser-renderer — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Authoritative production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`68-reserve-page-bytes-before-reading`](#checkpoint-68-reserve-page-bytes-before-reading) | Reserve page bytes before reading. | `src/page_cache.rs`, `src/lib.rs` | `byte budget → reserved charge → allocation → automatic release` |
-| **2** | [`68a-keep-shared-pages-alive-during-eviction`](#checkpoint-68a-keep-shared-pages-alive-during-eviction) | Keep shared pages alive during eviction. | `src/page_cache.rs` | `shared page → access order → removed entry → retained external owner` |
-| **3** | [`68b-evict-unpinned-pages-in-access-order`](#checkpoint-68b-evict-unpinned-pages-in-access-order) | Evict unpinned pages in access order. | `src/page_cache.rs` | `required bytes → unpinned old pages → sufficient room → reserved read` |
-| **4** | [`68c-reject-late-source-generations`](#checkpoint-68c-reject-late-source-generations) | Reject late source generations. | `src/stream_generation.rs`, `src/lib.rs` | `source generation → request ticket → current completion → one adoption` |
-| **5** | [`68d-bound-source-prefixes-and-decode-work`](#checkpoint-68d-bound-source-prefixes-and-decode-work) | Bound source prefixes and decode work. | `src/stream_budget.rs`, `src/lib.rs` | `source count → point ceiling → checked temporary bytes → bounded page` |
-| **6** | [`68e-validate-original-streamed-presentation`](#checkpoint-68e-validate-original-streamed-presentation) | Validate original streamed presentation. | `src/stream_properties.rs`, `src/lib.rs` | `original style fields → checked values → source properties` |
-| **7** | [`68f-reuse-a-checked-source-probe`](#checkpoint-68f-reuse-a-checked-source-probe) | Reuse a checked source probe. | `src/stream.rs`, `src/range_source.rs` | `source probe → bounded metadata → original properties → source descriptor` |
-| **8** | [`68fa-validate-complete-source-metadata`](#checkpoint-68fa-validate-complete-source-metadata) | Refuse mixed or placed originals before choosing sampled range display. | `src/range_shape.rs`, `src/lib.rs`, `src/range_source.rs` | `source header → one original cloud → bounded root metadata → safe range display` |
-| **9** | [`68g-slice-original-pages-without-losing-attributes`](#checkpoint-68g-slice-original-pages-without-losing-attributes) | Slice original pages without losing attributes. | `src/range_page.rs` | `original page → checked slice → original identities → retained byte charge` |
-| **10** | [`68h-prepare-shared-remote-source-owners`](#checkpoint-68h-prepare-shared-remote-source-owners) | Prepare shared remote source owners. | `src/range_cloud.rs`, `src/lib.rs` | `original descriptor → checked octree → precise bounds → shared owner` |
-| **11** | [`68i-keep-independent-streamed-placements`](#checkpoint-68i-keep-independent-streamed-placements) | Keep independent streamed placements. | `src/range_cloud.rs` | `shared original → independent row → f64 model → placed bounds` |
-| **12** | [`68j-pin-coarse-pages-and-adopt-checked-ranges`](#checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges) | Pin coarse pages and adopt checked ranges. | `src/range_cloud.rs` | `coarse pin → checked source page → shared cached value → independent eviction` |
-| **13** | [`68k-supply-coarse-and-detailed-page-specimens`](#checkpoint-68k-supply-coarse-and-detailed-page-specimens) | Supply coarse and detailed page specimens. | `src/range_example.rs`, `src/lib.rs` | `original source specimen → pinned coarse page → retained detailed page` |
-| **14** | [`68l-insert-streamed-rows-on-the-current-layer`](#checkpoint-68l-insert-streamed-rows-on-the-current-layer) | Insert streamed rows on the current layer. | `src/scene.rs` | `validated source placement → stable row → original flags → current layer` |
-| **15** | [`68m-carry-source-placement-through-scene-operations`](#checkpoint-68m-carry-source-placement-through-scene-operations) | Carry source placement through scene operations. | `src/scene.rs`, `src/hierarchy.rs` | `source row → model operation → shared source → independent owner identity` |
-| **16** | [`68n-resolve-compact-picks-to-original-point-ids`](#checkpoint-68n-resolve-compact-picks-to-original-point-ids) | Resolve compact picks to original point IDs. | `src/cloud_pick.rs`, `src/pick_sources.rs`, `src/editor.rs`, `src/scene_archive.rs` | `GPU page address → source page → original ID → f64 world position` |
-| **17** | [`68o-account-for-original-and-retained-source-data`](#checkpoint-68o-account-for-original-and-retained-source-data) | Account for original and retained source data. | `src/memory.rs`, `src/stream_row_tests.rs`, `src/lib.rs` | `scene snapshots → shared original owners → retained pages → independent counts` |
-| **18** | [`68p-keep-original-attributes-in-ranged-pages`](#checkpoint-68p-keep-original-attributes-in-ranged-pages) | Keep original attributes in ranged pages. | `src/stream.rs`, `src/range_source.rs` | `coordinate and ID range → matching attributes → checked original page` |
-| **19** | [`68q-retain-page-owners-beside-gpu-buffers`](#checkpoint-68q-retain-page-owners-beside-gpu-buffers) | Retain page owners beside GPU buffers. | `src/cloud_gpu.rs` | `charged original page → derived GPU columns → retained pick identity` |
-| **20** | [`68r-describe-resident-and-streamed-draw-rows`](#checkpoint-68r-describe-resident-and-streamed-draw-rows) | Describe resident and streamed draw rows. | `src/cloud_gpu.rs` | `source owner → shared node table → placed draw row → compact page address` |
-| **21** | [`68s-draw-shared-source-pages-at-independent-placements`](#checkpoint-68s-draw-shared-source-pages-at-independent-placements) | Draw shared source pages at independent placements. | `src/cloud_gpu.rs`, `src/cloud_points.wgsl`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `shared page columns → independent placement records → clipped LOD range → visible pixels` |
-| **22** | [`68t-validate-encoded-source-metadata`](#checkpoint-68t-validate-encoded-source-metadata) | Validate encoded source metadata. | `src/source_encoding.rs`, `src/lib.rs` | `manifest encoding → supported codec → declared decoded limit` |
-| **23** | [`68u-decode-bounded-cancellable-source-streams`](#checkpoint-68u-decode-bounded-cancellable-source-streams) | Decode bounded cancellable source streams. | `Cargo.toml`, `src/source_unpack.rs`, `src/lib.rs` | `packed source → decompression stream → bounded chunks → exact original bytes` |
-| **24** | [`68v-refuse-conflicting-source-encoding-revisions`](#checkpoint-68v-refuse-conflicting-source-encoding-revisions) | Refuse conflicting source encoding revisions. | `src/publication_index.rs` | `new manifest → checked repeated formats → original inventory → atomic replacement` |
-| **25** | [`68w-adopt-remote-original-revisions-independently`](#checkpoint-68w-adopt-remote-original-revisions-independently) | Adopt remote original revisions independently. | `src/publication_index.rs` | `remote validator → prepared original → manifest placements → independent viewer rows` |
-| **26** | [`68x-prepare-a-coarse-pin-and-bounded-prefix`](#checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix) | Prepare a coarse pin and bounded prefix. | `src/stream_load.rs`, `src/lib.rs` | `source metadata → coarse pin → bounded prefix → initial source owner` |
-| **27** | [`68y-redraw-before-reusing-evicted-page-addresses`](#checkpoint-68y-redraw-before-reusing-evicted-page-addresses) | Redraw before reusing evicted page addresses. | `src/stream_load.rs` | `explicit eviction → cancelled pick → renderer release → reserved page` |
-| **28** | [`68z-continue-pages-only-for-current-source-owners`](#checkpoint-68z-continue-pages-only-for-current-source-owners) | Continue pages only for current source owners. | `src/stream_load.rs` | `current owner → reserved page → revision-bound read → checked completion → redraw` |
-| **29** | [`68aa-own-cancellation-for-each-published-source`](#checkpoint-68aa-own-cancellation-for-each-published-source) | Own cancellation for each published source. | `src/range_fetch.rs`, `src/browser_publication.rs` | `publication owner → weak source membership → closed generation → aborted ranges` |
-| **30** | [`68ab-choose-bounded-range-loading-for-large-originals`](#checkpoint-68ab-choose-bounded-range-loading-for-large-originals) | Choose bounded range loading for large originals. | `src/browser_publication.rs` | `manifest source → range probe → original descriptor → bounded prefix → staged replacement` |
-| **31** | [`68ac-connect-current-pages-to-the-browser-renderer`](#checkpoint-68ac-connect-current-pages-to-the-browser-renderer) | Connect current pages to the browser renderer. | `src/browser_publication.rs`, `src/browser.rs` | `adopted original → current page delivery → cancelled old pick → GPU refresh → source diagnostics` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-68-reserve-page-bytes-before-reading"></a>
 
 ### Step 1 of 31 · Reserve page bytes before reading (`68-reserve-page-bytes-before-reading`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/31 Visual Trace (68-reserve-page-bytes-before-reading): Reserve page bytes before reading</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/page_cache.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">byte budget</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reserved charge</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">allocation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">automatic release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/page_cache.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">allocation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">automatic release</text>
 </svg>
-</div>
-
-- **Goal:** Reserve page bytes before reading.
-- **Data Flow Trace:** `byte budget → reserved charge → allocation → automatic release`
-- **Files You Touch:** `src/page_cache.rs` (*Reserve bytes before allocation and release them with the owning charge.*) · `src/lib.rs` (*Register the source component.*)
 
 Account for retained and pending payload before allocating a page. A dropped charge releases its reservation.
 
-> **Self-Check Question:** *Does removing a cache entry necessarily release its memory?*  
-> **Answer:** No. A renderer or reader may still own that page. Its charge lasts until the final shared owner is dropped.
-
-- **What You Should See:** The mixed original CAD and surface scene remains visible. The final cache checkpoint draws actual coarse and detailed source pages; URL streaming connects after its owners and renderer are ready.
-- **Hands-On Lab Experiment:** Reserve10bytes from12, refuse13, shrink to6 and release the charge.
-
-<details>
-<summary>Implementation 68-reserve-page-bytes-before-reading: Reserve page bytes before reading</summary>
-
-Reserve page bytes before reading.
-
-Data flow: byte budget → reserved charge → allocation → automatic release.
+> **Check:** *Does removing a cache entry necessarily release its memory?* — No. A renderer or reader may still own that page. Its charge lasts until the final shared owner is dropped.
 
 ### 1. `src/page_cache.rs`
 
@@ -239,87 +104,50 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod range_source;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68-reserve-page-bytes-before-reading-02.rs" skip=23
 ```
 
-</details>
+**Result after `68-reserve-page-bytes-before-reading`:** The mixed original CAD and surface scene remains visible. The final cache checkpoint draws actual coarse and detailed source pages; URL streaming connects after its owners and renderer are ready.
+
+---
 
 <a id="checkpoint-68a-keep-shared-pages-alive-during-eviction"></a>
 
 ### Step 2 of 31 · Keep shared pages alive during eviction (`68a-keep-shared-pages-alive-during-eviction`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/31 Visual Trace (68a-keep-shared-pages-alive-during-eviction): Keep shared pages alive during eviction</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/page_cache.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared page</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">access order</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removed entry</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained external owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/page_cache.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">removed entry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained external owner</text>
 </svg>
-</div>
-
-- **Goal:** Keep shared pages alive during eviction.
-- **Data Flow Trace:** `shared page → access order → removed entry → retained external owner`
-- **Files You Touch:** `src/page_cache.rs` (*Keep page values and their accounting alive across cache removal.*)
 
 Wrap each page with its charge and record access order. Removing an entry leaves external owners usable.
 
-> **Self-Check Question:** *What prevents an evicted page from becoming dangling data?*  
-> **Answer:** Its shared owner retains the value and charge until every renderer and pending reader releases it.
-
-- **Hands-On Lab Experiment:** Trace one externally held page through cache removal and inspect its unchanged bytes.
-
-<details>
-<summary>Implementation 68a-keep-shared-pages-alive-during-eviction: Keep shared pages alive during eviction</summary>
-
-Keep shared pages alive during eviction.
-
-Data flow: shared page → access order → removed entry → retained external owner.
+> **Check:** *What prevents an evicted page from becoming dangling data?* — Its shared owner retains the value and charge until every renderer and pending reader releases it.
 
 ### 1. `src/page_cache.rs`
 
 Keep page values and their accounting alive across cache removal.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -327,74 +155,42 @@ After that block, type:
 --8<-- "journey/code/68a-keep-shared-pages-alive-during-eviction-01.rs" skip=3
 ```
 
-</details>
+---
 
 <a id="checkpoint-68b-evict-unpinned-pages-in-access-order"></a>
 
 ### Step 3 of 31 · Evict unpinned pages in access order (`68b-evict-unpinned-pages-in-access-order`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/31 Visual Trace (68b-evict-unpinned-pages-in-access-order): Evict unpinned pages in access order</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/page_cache.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">required bytes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unpinned old pages</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sufficient room</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reserved read</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/page_cache.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sufficient room</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reserved read</text>
 </svg>
-</div>
-
-- **Goal:** Evict unpinned pages in access order.
-- **Data Flow Trace:** `required bytes → unpinned old pages → sufficient room → reserved read`
-- **Files You Touch:** `src/page_cache.rs` (*Reclaim sufficient unpinned payload before reserving a new page.*)
 
 Choose enough old unpinned entries before changing the cache. Failed reservation preserves current entries.
 
-> **Self-Check Question:** *May a failed reservation remove half the drawing?*  
-> **Answer:** No. The reservation first proves enough reclaimable room. Explicit visible eviction later redraws and cancels picks before reuse.
-
-- **Hands-On Lab Experiment:** Inspect eviction, pinned failure, foreign-budget refusal and retained-owner release tests.
-
-<details>
-<summary>Implementation 68b-evict-unpinned-pages-in-access-order: Evict unpinned pages in access order</summary>
-
-Evict unpinned pages in access order.
-
-Data flow: required bytes → unpinned old pages → sufficient room → reserved read.
+> **Check:** *May a failed reservation remove half the drawing?* — No. The reservation first proves enough reclaimable room. Explicit visible eviction later redraws and cancels picks before reuse.
 
 ### 1. `src/page_cache.rs`
 
 Reclaim sufficient unpinned payload before reserving a new page.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.clock=self.clock.checked_add(1)?;let entry=self.entries.get_mut(key)?;entry.touch=self.clock;Some(entry.value.clone())
-    }
-    pub fn oldest(&self)->Option<K> {self.entries.iter().min_by_key(|(_,entry)|entry.touch).map(|(key,_)|key.clone())}
-    pub fn remove(&mut self,key:&K)->bool {self.entries.remove(key).is_some()}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -402,8 +198,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68b-evict-unpinned-pages-in-access-order-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -411,76 +206,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy cache ownership, reservation and eviction regression fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    pub fn used(&self)->usize {self.budget.used()}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68b-evict-unpinned-pages-in-access-order-02.rs" skip=53
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68c-reject-late-source-generations"></a>
 
 ### Step 4 of 31 · Reject late source generations (`68c-reject-late-source-generations`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/31 Visual Trace (68c-reject-late-source-generations): Reject late source generations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream_generation.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source generation</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">request ticket</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current completion</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one adoption</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream_generation.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current completion</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one adoption</text>
 </svg>
-</div>
-
-- **Goal:** Reject late source generations.
-- **Data Flow Trace:** `source generation → request ticket → current completion → one adoption`
-- **Files You Touch:** `src/stream_generation.rs` (*Check source generation and exactly one completion per request.*) · `src/lib.rs` (*Register the source component.*)
 
 Give concurrent reads distinct tickets. Close invalidates every outstanding ticket without wrapping counters.
 
-> **Self-Check Question:** *Can an old read finish into a reopened source?*  
-> **Answer:** No. Reopening changes the generation; completion must still belong to the active generation and pending request.
-
-- **Hands-On Lab Experiment:** Complete concurrent reads out of order, close, reopen and refuse old tickets or exhausted counters.
-
-<details>
-<summary>Implementation 68c-reject-late-source-generations: Reject late source generations</summary>
-
-Reject late source generations.
-
-Data flow: source generation → request ticket → current completion → one adoption.
+> **Check:** *Can an old read finish into a reopened source?* — No. Reopening changes the generation; completion must still belong to the active generation and pending request.
 
 ### 1. `src/stream_generation.rs`
 
@@ -496,24 +259,13 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod page_cache;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68c-reject-late-source-generations-02.rs" skip=21
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -521,77 +273,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy concurrent completion, cancellation and overflow tests.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    pub fn close(&mut self) {self.active=false;self.pending.clear();}
-    pub fn pending(&self)->usize {self.pending.len()}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68c-reject-late-source-generations-03.rs" skip=125
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68d-bound-source-prefixes-and-decode-work"></a>
 
 ### Step 5 of 31 · Bound source prefixes and decode work (`68d-bound-source-prefixes-and-decode-work`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/31 Visual Trace (68d-bound-source-prefixes-and-decode-work): Bound source prefixes and decode work</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream_budget.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source count</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">point ceiling</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked temporary bytes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream_budget.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked temporary bytes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded page</text>
 </svg>
-</div>
-
-- **Goal:** Bound source prefixes and decode work.
-- **Data Flow Trace:** `source count → point ceiling → checked temporary bytes → bounded page`
-- **Files You Touch:** `src/stream_budget.rs` (*Limit point ranges and reserve checked decode work.*) · `src/lib.rs` (*Register the source component.*)
 
 Use explicit point ceilings and reserve temporary original/derived decode work before reading arrays.
 
-> **Self-Check Question:** *Does the page budget measure all browser memory?*  
-> **Answer:** No. It bounds charged CPU page work. GPU allocations, metadata, old/new staged scenes and browser overhead require separate measurement.
-
-- **Hands-On Lab Experiment:** Compare a2m page estimate with the256MiB budget and reduce the read before allocation.
-
-<details>
-<summary>Implementation 68d-bound-source-prefixes-and-decode-work: Bound source prefixes and decode work</summary>
-
-Bound source prefixes and decode work.
-
-Data flow: source count → point ceiling → checked temporary bytes → bounded page.
+> **Check:** *Does the page budget measure all browser memory?* — No. It bounds charged CPU page work. GPU allocations, metadata, old/new staged scenes and browser overhead require separate measurement.
 
 ### 1. `src/stream_budget.rs`
 
@@ -607,24 +326,13 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod stream_generation;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68d-bound-source-prefixes-and-decode-work-02.rs" skip=28
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -632,72 +340,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy range ceiling and allocation overflow fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-}
-pub fn temporary_page_bytes(count:u32)->Option<usize> {usize::try_from(count).ok()?.checked_mul(160)}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68d-bound-source-prefixes-and-decode-work-03.rs" skip=104
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68e-validate-original-streamed-presentation"></a>
 
 ### Step 6 of 31 · Validate original streamed presentation (`68e-validate-original-streamed-presentation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/31 Visual Trace (68e-validate-original-streamed-presentation): Validate original streamed presentation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream_properties.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original style fields</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked values</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source properties</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream_properties.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked values</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source properties</text>
 </svg>
-</div>
-
-- **Goal:** Validate original streamed presentation.
-- **Data Flow Trace:** `original style fields → checked values → source properties`
-- **Files You Touch:** `src/stream_properties.rs` (*Retain and validate original presentation fields.*) · `src/lib.rs` (*Register the source component.*)
 
 Read source point size and visibility/lock fields independently of cached display pages.
 
-> **Self-Check Question:** *May an invalid point size silently become a default?*  
-> **Answer:** No. Refuse nonfinite or nonpositive original size and malformed or repeated presentation fields.
-
-- **Hands-On Lab Experiment:** Check default source properties and malformed original scalar fields.
-
-<details>
-<summary>Implementation 68e-validate-original-streamed-presentation: Validate original streamed presentation</summary>
-
-Validate original streamed presentation.
-
-Data flow: original style fields → checked values → source properties.
+> **Check:** *May an invalid point size silently become a default?* — No. Refuse nonfinite or nonpositive original size and malformed or repeated presentation fields.
 
 ### 1. `src/stream_properties.rs`
 
@@ -713,24 +393,13 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod stream_budget;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68e-validate-original-streamed-presentation-02.rs" skip=24
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -738,92 +407,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy original presentation value/error fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68e-validate-original-streamed-presentation-03.rs" skip=8
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68f-reuse-a-checked-source-probe"></a>
 
 ### Step 7 of 31 · Reuse a checked source probe (`68f-reuse-a-checked-source-probe`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/31 Visual Trace (68f-reuse-a-checked-source-probe): Reuse a checked source probe</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream.rs, src/range_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source probe</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded metadata</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source descriptor</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream.rs, src/range_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original properties</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source descriptor</text>
 </svg>
-</div>
-
-- **Goal:** Reuse a checked source probe.
-- **Data Flow Trace:** `source probe → bounded metadata → original properties → source descriptor`
-- **Files You Touch:** `src/stream.rs` (*Read checked original style fields through bounded metadata windows.*) · `src/range_source.rs` (*Reuse the probe and retain original source properties.*)
 
 Read metadata from bounded windows and reuse the initial revision-bound probe.
 
-> **Self-Check Question:** *Why retain the original point size beside a placement override?*  
-> **Answer:** The source value stays unchanged while each placed owner may choose its own display size.
-
-- **Hands-On Lab Experiment:** Trace source identity, ETag, array offsets, style fields and octree without downloading coordinates.
-
-<details>
-<summary>Implementation 68f-reuse-a-checked-source-probe: Reuse a checked source probe</summary>
-
-Reuse a checked source probe.
-
-Data flow: source probe → bounded metadata → original properties → source descriptor.
+> **Check:** *Why retain the original point size beside a placement override?* — The source value stays unchanged while each placed owner may choose its own display size.
 
 ### 1. `src/stream.rs`
 
 Read checked original style fields through bounded metadata windows.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    /// Points `[from, to)` of the cloud.
-    pub async fn fetch_positions(
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -835,55 +460,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Reuse the probe and retain original source properties.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch="wasm32")]
-pub struct Source {pub guid:String,pub name:String,pub url:String,pub fields:crate::stream::CloudFields,pub lod:crate::stream::CloudLod}
-
-#[cfg(target_arch="wasm32")]
-impl Source {
-    pub async fn open(url:String)->Result<Self,String> {
-        let probe=crate::stream::probe(&url).await.ok_or("Source probe failed")?;
-        if probe.etag.is_none()&&!crate::manifest::immutable_key(&url) {return Err("Streaming requires an ETag or immutable source URL".into());}
-        let (guid,name)=crate::stream::cloud_identity(&probe.bytes).ok_or("Missing original cloud identity")?;
-        let mut fields=crate::stream::cloud_fields(&url,&probe).await.ok_or("Not a single range-readable cloud")?;
-        let lod=crate::stream::cloud_lod(&url,&mut fields).await.ok_or("Invalid original cloud array or octree layout")?;
-        Ok(Self {guid,name,url,fields,lod})
-    }
-    pub async fn page(&self,rows:std::ops::Range<u32>)->Result<crate::range_page::Page,String> {
-        if rows.start>rows.end||rows.end>self.fields.count {return Err("Point rows outside source".into());}
-        let count=u64::from(rows.end-rows.start);
-        let at=self.fields.coords_at.checked_add(u64::from(rows.start)*24).ok_or("Coordinate offset overflow")?;
-        let raw=crate::stream::source_range(&self.url,at,count*24,&self.fields.revision).await.ok_or("Coordinate range failed")?;
-        let ids=if self.fields.ids_len==0 {None} else {
-            let at=self.fields.ids_at.checked_add(u64::from(rows.start)*4).ok_or("ID offset overflow")?;
-            Some(crate::stream::source_range(&self.url,at,count*4,&self.fields.revision).await.ok_or("Original ID range failed")?)
-        };
-        crate::range_page::Page::decode(rows,self.fields.count,&raw,ids.as_deref()).map_err(str::to_owned)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use prost::Message;
-    #[test]
-    fn range_layout_and_original_pages_match_the_kernel_protobuf() {
-        let mut cloud=session_rust::PointCloud::from_coords(vec![1_000_000_000.125,2.,3.,1_000_000_000.375,4.,5.],vec![],vec![]);
-        cloud.name="Precise ranged source".into();let _=cloud.guid();let mut proto=cloud.to_proto();proto.point_ids=vec![u32::MAX,7];
-        let mut objects=session_rust::proto::Objects::default();objects.pointclouds.push(proto.clone());let document=session_rust::proto::Session {objects:Some(objects),..Default::default()};let raw=document.encode_to_vec();
-        assert_eq!(crate::stream::cloud_identity(&raw).unwrap(),(proto.guid.clone(),proto.name.clone()));
-        let (at,length)=crate::stream::walk_to_coords(&raw).unwrap();assert_eq!(length,48);
-        let page=crate::range_page::Page::decode(0..2,2,&raw[at as usize..(at+length) as usize],Some(&proto.point_ids.iter().flat_map(|id|id.to_le_bytes()).collect::<Vec<_>>())).unwrap();
-        assert_eq!(page.coordinates,proto.coords);assert_eq!(page.ids,proto.point_ids);
-        assert!(crate::stream::walk_to_coords(&raw[..at as usize-1]).is_none());
-    }
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -934,77 +510,38 @@ mod tests {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68f-reuse-a-checked-source-probe-02.rs"
-```
-
-```text
---8<-- "journey/code/68f-reuse-a-checked-source-probe-03.rs"
-```
-
-```text
---8<-- "journey/code/68f-reuse-a-checked-source-probe-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68fa-validate-complete-source-metadata"></a>
 
 ### Step 8 of 31 · Validate complete source metadata (`68fa-validate-complete-source-metadata`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/31 Visual Trace (68fa-validate-complete-source-metadata): Validate complete source metadata</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_shape.rs, src/lib.rs, src/range_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source header</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one original cloud</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded root metadata</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">safe range display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_shape.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded root metadata</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">safe range display</text>
 </svg>
-</div>
-
-- **Goal:** Refuse mixed or placed originals before choosing sampled range display.
-- **Data Flow Trace:** `source header → one original cloud → bounded root metadata → safe range display`
-- **Files You Touch:** `src/range_shape.rs` (*Validate single-cloud layout and complete original metadata before sampling.*) · `src/lib.rs` (*Register complete original metadata validation.*) · `src/range_source.rs` (*Refuse unapplied original metadata and mixed source geometry before range adoption.*)
 
 Validate the complete source envelope before adopting range pages. Unapplied placements and extended originals require complete document loading.
 
-> **Self-Check Question:** *Can a source point or placement be silently skipped by a cloud range reader?*  
-> **Answer:** No. Require one original cloud, validate its trailing metadata and refuse unapplied placements, extra objects, definitions or interactions.
-
-- **Hands-On Lab Experiment:** Compare a single cloud with a tiny point preceding it; refuse a precise source placement instead of displaying it in the wrong frame.
-
-<details>
-<summary>Implementation 68fa-validate-complete-source-metadata: Validate complete source metadata</summary>
-
-Refuse mixed or placed originals before choosing sampled range display.
-
-Data flow: source header → one original cloud → bounded root metadata → safe range display.
+> **Check:** *Can a source point or placement be silently skipped by a cloud range reader?* — No. Require one original cloud, validate its trailing metadata and refuse unapplied placements, extra objects, definitions or interactions.
 
 ### 1. `src/range_shape.rs`
 
@@ -1016,8 +553,7 @@ Create the file and type:
 --8<-- "journey/code/68fa-validate-complete-source-metadata-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1025,37 +561,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy original placement, source extension and metadata refusal fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    Ok(())
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68fa-validate-complete-source-metadata-02.rs" skip=13
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register complete original metadata validation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod stream_properties;
-```
-
-</details>
 
 After that block, type:
 
@@ -1067,64 +581,10 @@ After that block, type:
 
 Refuse unapplied original metadata and mixed source geometry before range adoption.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Source {pub properties:crate::stream_properties::Properties,pub guid:String,pub name:String,pub url:String,pub fields:crate::stream::CloudFields,pub lod:crate::stream::CloudLod}
-
-#[cfg(target_arch="wasm32")]
-impl Source {
-    pub async fn open(url:String)->Result<Self,String> {
-        let probe=crate::stream::probe(&url).await.ok_or("Source probe failed")?;
-        Self::from_probe(url,&probe).await
-    }
-    pub async fn from_probe(url:String,probe:&crate::range_fetch::Reply)->Result<Self,String> {
-        if probe.etag.is_none()&&!crate::manifest::immutable_key(&url) {return Err("Streaming requires an ETag or immutable source URL".into());}
-        let (guid,name)=crate::stream::cloud_identity(&probe.bytes).ok_or("Missing original cloud identity")?;
-        let mut fields=crate::stream::cloud_fields(&url,probe).await.ok_or("Not a single range-readable cloud")?;
-        let lod=crate::stream::cloud_lod(&url,&mut fields).await.ok_or("Invalid original cloud array or octree layout")?;
-        let properties=crate::stream::cloud_properties(&url,&fields).await.ok_or("Invalid original cloud presentation fields")?;
-        Ok(Self {properties,guid,name,url,fields,lod})
-    }
-    pub async fn page(&self,rows:std::ops::Range<u32>)->Result<crate::range_page::Page,String> {
-        if rows.start>rows.end||rows.end>self.fields.count {return Err("Point rows outside source".into());}
-        let count=u64::from(rows.end-rows.start);
-        let at=self.fields.coords_at.checked_add(u64::from(rows.start)*24).ok_or("Coordinate offset overflow")?;
-        let raw=crate::stream::source_range(&self.url,at,count*24,&self.fields.revision).await.ok_or("Coordinate range failed")?;
-        let ids=if self.fields.ids_len==0 {None} else {
-            let at=self.fields.ids_at.checked_add(u64::from(rows.start)*4).ok_or("ID offset overflow")?;
-            Some(crate::stream::source_range(&self.url,at,count*4,&self.fields.revision).await.ok_or("Original ID range failed")?)
-        };
-        crate::range_page::Page::decode(rows,self.fields.count,&raw,ids.as_deref()).map_err(str::to_owned)
-    }
-
-}
-
-#[cfg(test)]
-mod tests {
-    use prost::Message;
-    #[test]
-    fn range_layout_and_original_pages_match_the_kernel_protobuf() {
-        let mut cloud=session_rust::PointCloud::from_coords(vec![1_000_000_000.125,2.,3.,1_000_000_000.375,4.,5.],vec![],vec![]);
-        cloud.name="Precise ranged source".into();let _=cloud.guid();let mut proto=cloud.to_proto();proto.point_ids=vec![u32::MAX,7];
-        let mut objects=session_rust::proto::Objects::default();objects.pointclouds.push(proto.clone());let document=session_rust::proto::Session {objects:Some(objects),..Default::default()};let raw=document.encode_to_vec();
-        assert_eq!(crate::stream::cloud_identity(&raw).unwrap(),(proto.guid.clone(),proto.name.clone()));
-        let (at,length)=crate::stream::walk_to_coords(&raw).unwrap();assert_eq!(length,48);
-        let page=crate::range_page::Page::decode(0..2,2,&raw[at as usize..(at+length) as usize],Some(&proto.point_ids.iter().flat_map(|id|id.to_le_bytes()).collect::<Vec<_>>())).unwrap();
-        assert_eq!(page.coordinates,proto.coords);assert_eq!(page.ids,proto.point_ids);
-        assert!(crate::stream::walk_to_coords(&raw[..at as usize-1]).is_none());
-    }
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 pub struct Source {pub properties:crate::stream_properties::Properties,pub guid:String,pub name:String,pub url:String,pub fields:crate::stream::CloudFields,pub lod:crate::stream::CloudLod}
-
 
 #[cfg(target_arch="wasm32")]
 impl Source {
@@ -1179,134 +639,42 @@ mod tests {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68fa-validate-complete-source-metadata-04.rs"
-```
-
-```text
---8<-- "journey/code/68fa-validate-complete-source-metadata-05.rs"
-```
-
-```text
---8<-- "journey/code/68fa-validate-complete-source-metadata-06.rs"
-```
-
-```text
---8<-- "journey/code/68fa-validate-complete-source-metadata-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68g-slice-original-pages-without-losing-attributes"></a>
 
 ### Step 9 of 31 · Slice original pages without losing attributes (`68g-slice-original-pages-without-losing-attributes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/31 Visual Trace (68g-slice-original-pages-without-losing-attributes): Slice original pages without losing attributes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_page.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original page</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked slice</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original identities</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained byte charge</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_page.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original identities</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained byte charge</text>
 </svg>
-</div>
-
-- **Goal:** Slice original pages without losing attributes.
-- **Data Flow Trace:** `original page → checked slice → original identities → retained byte charge`
-- **Files You Touch:** `src/range_page.rs` (*Keep original attributes and slices with checked page lengths.*)
 
 Retain exact original coordinates, IDs, colours and packed normals for a checked source interval.
 
-> **Self-Check Question:** *Does slicing a page renumber its original points?*  
-> **Answer:** No. The slice preserves the original source row interval and ID column.
-
-- **Hands-On Lab Experiment:** Slice the second point, compare exact colour/normal words and reject incomplete attribute columns.
-
-<details>
-<summary>Implementation 68g-slice-original-pages-without-losing-attributes: Slice original pages without losing attributes</summary>
-
-Slice original pages without losing attributes.
-
-Data flow: original page → checked slice → original identities → retained byte charge.
+> **Check:** *Does slicing a page renumber its original points?* — No. The slice preserves the original source row interval and ID column.
 
 ### 1. `src/range_page.rs`
 
 Keep original attributes and slices with checked page lengths.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::ops::Range;
-
-pub struct Page {
-    pub rows:Range<u32>,
-    pub coordinates:Vec<f64>,
-    pub display:Vec<f32>,
-    pub ids:Vec<u32>,
-}
-impl Page {
-    pub fn decode(rows:Range<u32>,total:u32,raw:&[u8],ids:Option<&[u8]>)->Result<Self,&'static str> {
-        if rows.start>rows.end||rows.end>total {return Err("Point rows outside source");}
-        let count=(rows.end-rows.start) as usize;
-        if raw.len()!=count.checked_mul(24).ok_or("Page size overflow")? {return Err("Incomplete original coordinate page");}
-        let coordinates=raw.chunks_exact(8).map(|v|f64::from_le_bytes(v.try_into().unwrap())).collect::<Vec<_>>();
-        if coordinates.iter().any(|v|!v.is_finite()||!(*v as f32).is_finite()) {return Err("Invalid source coordinates");}
-        let ids=if let Some(ids)=ids {
-            if ids.len()!=count.checked_mul(4).ok_or("ID page size overflow")? {return Err("Incomplete original point ID page");}
-            ids.chunks_exact(4).map(|v|u32::from_le_bytes(v.try_into().unwrap())).collect::<Vec<_>>()
-        } else {rows.clone().collect()};
-        if ids.iter().copied().collect::<std::collections::HashSet<_>>().len()!=count {return Err("Repeated original point IDs");}
-        let display=coordinates.iter().map(|v|*v as f32).collect();Ok(Self {rows,coordinates,display,ids})
-    }
-    pub fn bytes(&self)->usize {self.coordinates.capacity()*8+self.display.capacity()*4+self.ids.capacity()*4}
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn pages_keep_original_f64_coordinates_high_ids_and_fallback_rows() {
-        let raw=[1_000_000_000.125f64,2.,3.,1_000_000_000.375,4.,5.].into_iter().flat_map(f64::to_le_bytes).collect::<Vec<_>>();
-        let ids=[u32::MAX,7].into_iter().flat_map(u32::to_le_bytes).collect::<Vec<_>>();let page=Page::decode(8..10,20,&raw,Some(&ids)).unwrap();
-        assert_eq!(page.coordinates[0],1_000_000_000.125);assert_eq!(page.coordinates[3],1_000_000_000.375);assert_eq!(page.display[0],page.display[3]);assert_eq!(page.ids,[u32::MAX,7]);assert_eq!(Page::decode(8..10,20,&raw,None).unwrap().ids,[8,9]);
-        assert!(Page::decode(8..10,20,&raw[..47],Some(&ids)).is_err());assert!(Page::decode(8..10,20,&raw,Some(&ids[..7])).is_err());assert!(Page::decode(8..10,9,&raw,None).is_err());assert!(Page::decode(10..8,20,&raw,None).is_err());
-        let duplicates=[7u32,7].into_iter().flat_map(u32::to_le_bytes).collect::<Vec<_>>();assert!(Page::decode(8..10,20,&raw,Some(&duplicates)).is_err());
-    }
-    #[test]
-    fn invalid_original_doubles_never_become_a_display_page() {
-        for value in [f64::NAN,f64::INFINITY,f64::MAX] {let raw=[value,0.,0.].into_iter().flat_map(f64::to_le_bytes).collect::<Vec<_>>();assert!(Page::decode(0..1,1,&raw,None).is_err());}
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1368,27 +736,7 @@ mod tests {
 impl crate::page_cache::ByteSize for Page {fn bytes(&self)->usize {Page::bytes(self)}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68g-slice-original-pages-without-losing-attributes-01.rs"
-```
-
-```text
---8<-- "journey/code/68g-slice-original-pages-without-losing-attributes-02.rs"
-```
-
-```text
---8<-- "journey/code/68g-slice-original-pages-without-losing-attributes-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1396,76 +744,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy exact attribute and slice regression fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-impl crate::page_cache::ByteSize for Page {fn bytes(&self)->usize {Page::bytes(self)}}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68g-slice-original-pages-without-losing-attributes-04.rs" skip=88
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68h-prepare-shared-remote-source-owners"></a>
 
 ### Step 10 of 31 · Prepare shared remote source owners (`68h-prepare-shared-remote-source-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/31 Visual Trace (68h-prepare-shared-remote-source-owners): Prepare shared remote source owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_cloud.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original descriptor</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked octree</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">precise bounds</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_cloud.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">precise bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared owner</text>
 </svg>
-</div>
-
-- **Goal:** Prepare shared remote source owners.
-- **Data Flow Trace:** `original descriptor → checked octree → precise bounds → shared owner`
-- **Files You Touch:** `src/range_cloud.rs` (*Own the complete remote descriptor and precise original bounds.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep original source identity, full octree bounds and charged cached pages in one shared owner.
 
-> **Self-Check Question:** *Does a sampled page define the complete source bounds?*  
-> **Answer:** No. The checked original octree retains the source extent even when detailed pages are absent.
-
-- **Hands-On Lab Experiment:** Reject an unversioned mutable source and compare original f64 bounds with derived node floats.
-
-<details>
-<summary>Implementation 68h-prepare-shared-remote-source-owners: Prepare shared remote source owners</summary>
-
-Prepare shared remote source owners.
-
-Data flow: original descriptor → checked octree → precise bounds → shared owner.
+> **Check:** *Does a sampled page define the complete source bounds?* — No. The checked original octree retains the source extent even when detailed pages are absent.
 
 ### 1. `src/range_cloud.rs`
 
@@ -1481,88 +797,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod stream_properties;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68h-prepare-shared-remote-source-owners-02.rs" skip=28
 ```
 
-</details>
+---
 
 <a id="checkpoint-68i-keep-independent-streamed-placements"></a>
 
 ### Step 11 of 31 · Keep independent streamed placements (`68i-keep-independent-streamed-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/31 Visual Trace (68i-keep-independent-streamed-placements): Keep independent streamed placements</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_cloud.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent row</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">f64 model</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">placed bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_cloud.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">f64 model</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed bounds</text>
 </svg>
-</div>
-
-- **Goal:** Keep independent streamed placements.
-- **Data Flow Trace:** `shared original → independent row → f64 model → placed bounds`
-- **Files You Touch:** `src/range_cloud.rs` (*Keep independent owner placements and precise world bounds.*)
 
 Give placed owners distinct viewer identities, models and point-size overrides while sharing their source.
 
-> **Self-Check Question:** *May one placement rewrite the shared source coordinates?*  
-> **Answer:** No. Its model transforms the world bounds while the original descriptor and pages remain shared.
-
-- **Hands-On Lab Experiment:** Translate one owner and compare the original bounds with all eight transformed corners.
-
-<details>
-<summary>Implementation 68i-keep-independent-streamed-placements: Keep independent streamed placements</summary>
-
-Keep independent streamed placements.
-
-Data flow: shared original → independent row → f64 model → placed bounds.
+> **Check:** *May one placement rewrite the shared source coordinates?* — No. Its model transforms the world bounds while the original descriptor and pages remain shared.
 
 ### 1. `src/range_cloud.rs`
 
 Keep independent owner placements and precise world bounds.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1570,73 +846,42 @@ After that block, type:
 --8<-- "journey/code/68i-keep-independent-streamed-placements-01.rs" skip=8
 ```
 
-</details>
+---
 
 <a id="checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges"></a>
 
 ### Step 12 of 31 · Pin coarse pages and adopt checked ranges (`68j-pin-coarse-pages-and-adopt-checked-ranges`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/31 Visual Trace (68j-pin-coarse-pages-and-adopt-checked-ranges): Pin coarse pages and adopt checked ranges</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_cloud.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coarse pin</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source page</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared cached value</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent eviction</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_cloud.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared cached value</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent eviction</text>
 </svg>
-</div>
-
-- **Goal:** Pin coarse pages and adopt checked ranges.
-- **Data Flow Trace:** `coarse pin → checked source page → shared cached value → independent eviction`
-- **Files You Touch:** `src/range_cloud.rs` (*Adopt checked original pages and retain a coarse fallback.*)
 
 Keep a coarse source page available after detailed eviction. Refuse overlapping retained ranges and repeated original IDs.
 
-> **Self-Check Question:** *Can eviction make the complete source disappear?*  
-> **Answer:** The pinned coarse page remains available. Detailed pages may leave the cache while external owners retain their charges.
-
-- **Hands-On Lab Experiment:** Inspect original ID/precision, overlap refusal, unversioned source and retained-charge cleanup fixtures.
-
-<details>
-<summary>Implementation 68j-pin-coarse-pages-and-adopt-checked-ranges: Pin coarse pages and adopt checked ranges</summary>
-
-Pin coarse pages and adopt checked ranges.
-
-Data flow: coarse pin → checked source page → shared cached value → independent eviction.
+> **Check:** *Can eviction make the complete source disappear?* — The pinned coarse page remains available. Detailed pages may leave the cache while external owners retain their charges.
 
 ### 1. `src/range_cloud.rs`
 
 Adopt checked original pages and retain a coarse fallback.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(Rc::new(Self {source,nodes:Rc::new(nodes),bounds:Bounds {min,max},pages:RefCell::new(Cache::new(budget)),root:RefCell::new(None),generation:RefCell::new(Default::default()),loaded:std::cell::Cell::new(0)}))
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1644,8 +889,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68j-pin-coarse-pages-and-adopt-checked-ranges-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1653,76 +897,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy source descriptor, page identity and lifetime fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        for x in [bounds.min[0],bounds.max[0]] {for y in [bounds.min[1],bounds.max[1]] {for z in [bounds.min[2],bounds.max[2]] {let p=self.model.transform_point(&session_rust::Point::new(x,y,z));result.include([p[0],p[1],p[2]]);}}}result
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68j-pin-coarse-pages-and-adopt-checked-ranges-02.rs" skip=246
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68k-supply-coarse-and-detailed-page-specimens"></a>
 
 ### Step 13 of 31 · Supply coarse and detailed page specimens (`68k-supply-coarse-and-detailed-page-specimens`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/31 Visual Trace (68k-supply-coarse-and-detailed-page-specimens): Supply coarse and detailed page specimens</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_example.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source specimen</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pinned coarse page</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained detailed page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_example.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pinned coarse page</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained detailed page</text>
 </svg>
-</div>
-
-- **Goal:** Supply coarse and detailed page specimens.
-- **Data Flow Trace:** `original source specimen → pinned coarse page → retained detailed page`
-- **Files You Touch:** `src/range_example.rs` (*Copy source-page rendering and ownership specimens.*) · `src/lib.rs` (*Register the source component.*)
 
 Copy original page specimens with exact coordinates, colour words and full-u32 point identities.
 
-> **Self-Check Question:** *Are these specimens evidence of browser network reads?*  
-> **Answer:** No. They isolate original page ownership and rendering. Actual HTTP ranges are exercised by the later browser contract.
+> **Check:** *Are these specimens evidence of browser network reads?* — No. They isolate original page ownership and rendering. Actual HTTP ranges are exercised by the later browser contract.
 
-- **Hands-On Lab Experiment:** Compare original IDs10,11,4294967295 and16777217 across their two page ranges.
-
-<details>
-<summary>Implementation 68k-supply-coarse-and-detailed-page-specimens: Supply coarse and detailed page specimens</summary>
-
-Supply coarse and detailed page specimens.
-
-Data flow: original source specimen → pinned coarse page → retained detailed page.
-
-<details>
-<summary>Supplied example data</summary>
+**Supplied example data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -1736,21 +950,9 @@ Copy this supplied file:
 --8<-- "journey/code/68k-supply-coarse-and-detailed-page-specimens-01.rs"
 ```
 
-</details>
-
 ### 2. `src/lib.rs`
 
 Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod range_cloud;
-```
-
-</details>
 
 After that block, type:
 
@@ -1758,58 +960,38 @@ After that block, type:
 --8<-- "journey/code/68k-supply-coarse-and-detailed-page-specimens-02.rs" skip=22
 ```
 
-</details>
+---
 
 <a id="checkpoint-68l-insert-streamed-rows-on-the-current-layer"></a>
 
 ### Step 14 of 31 · Insert streamed rows on the current layer (`68l-insert-streamed-rows-on-the-current-layer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/31 Visual Trace (68l-insert-streamed-rows-on-the-current-layer): Insert streamed rows on the current layer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated source placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable row</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original flags</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current layer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original flags</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current layer</text>
 </svg>
-</div>
-
-- **Goal:** Insert streamed rows on the current layer.
-- **Data Flow Trace:** `validated source placement → stable row → original flags → current layer`
-- **Files You Touch:** `src/scene.rs` (*Insert validated streamed rows and release them with the scene.*)
 
 Validate placement and point size before allocating the row. Attach its original visibility and lock state.
 
-> **Self-Check Question:** *Can a refused placement consume a visible row identity?*  
-> **Answer:** No. Validate its world bounds and display range before allocating the independent owner.
-
-- **Hands-On Lab Experiment:** Insert two owners of one source and inspect independent identities and point sizes.
-
-<details>
-<summary>Implementation 68l-insert-streamed-rows-on-the-current-layer: Insert streamed rows on the current layer</summary>
-
-Insert streamed rows on the current layer.
-
-Data flow: validated source placement → stable row → original flags → current layer.
+> **Check:** *Can a refused placement consume a visible row identity?* — No. Validate its world bounds and display range before allocating the independent owner.
 
 ### 1. `src/scene.rs`
 
@@ -1817,8 +999,7 @@ Insert validated streamed rows and release them with the scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn remove(&mut self, id: ObjectId) -> bool {
@@ -1830,8 +1011,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1844,8 +1023,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.ids=Default::default();
@@ -1857,8 +1035,6 @@ Replace it with:
         self.paths = Vec::new();
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1871,8 +1047,7 @@ Replace it with:
         self.paths = Vec::new();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let parent=parent.filter(|id|self.pick_id(id.value()).is_some());
@@ -1882,8 +1057,6 @@ Replace it with:
     pub fn insert_cloud(&mut self,prepared:crate::cloud::Prepared)->Result<ObjectId,&'static str> {
         let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1910,8 +1083,7 @@ Replace it with:
         let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1923,8 +1095,6 @@ Replace it with:
     pub fn demo() -> Self {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1937,8 +1107,7 @@ Replace it with:
     pub fn demo() -> Self {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ids:Rc<std::collections::HashSet<ObjectId>>,
@@ -1948,8 +1117,6 @@ Replace it with:
     texts:Vec<crate::scene_label::Row>,
     points: Vec<PointObject>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1963,8 +1130,7 @@ Replace it with:
     points: Vec<PointObject>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2071,7 +1237,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2657,87 +1822,38 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68l-insert-streamed-rows-on-the-current-layer-01.rs"
-```
-
-```text
---8<-- "journey/code/68l-insert-streamed-rows-on-the-current-layer-02.rs"
-```
-
-```text
---8<-- "journey/code/68l-insert-streamed-rows-on-the-current-layer-03.rs"
-```
-
-```text
---8<-- "journey/code/68l-insert-streamed-rows-on-the-current-layer-04.rs"
-```
-
-```text
---8<-- "journey/code/68l-insert-streamed-rows-on-the-current-layer-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68m-carry-source-placement-through-scene-operations"></a>
 
 ### Step 15 of 31 · Carry source placement through scene operations (`68m-carry-source-placement-through-scene-operations`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/31 Visual Trace (68m-carry-source-placement-through-scene-operations): Carry source placement through scene operations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/hierarchy.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source row</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">model operation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent owner identity</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/hierarc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent owner ident…</text>
 </svg>
-</div>
-
-- **Goal:** Carry source placement through scene operations.
-- **Data Flow Trace:** `source row → model operation → shared source → independent owner identity`
-- **Files You Touch:** `src/scene.rs` (*Carry streamed owners through scene identity and placement operations.*) · `src/hierarchy.rs` (*Name streamed source rows in the original hierarchy.*)
 
 Include streamed owners in bounds, copying, manifest placement and monotonic row traversal.
 
-> **Self-Check Question:** *Does Copy duplicate every streamed coordinate page?*  
-> **Answer:** No. It shares the immutable source owner and gives the copy a new row GUID, ID and model.
-
-- **Hands-On Lab Experiment:** Move, copy, Fit, traverse and remove streamed owners without changing original coordinates.
-
-<details>
-<summary>Implementation 68m-carry-source-placement-through-scene-operations: Carry source placement through scene operations</summary>
-
-Carry source placement through scene operations.
-
-Data flow: source row → model operation → shared source → independent owner identity.
+> **Check:** *Does Copy duplicate every streamed coordinate page?* — No. It shares the immutable source owner and gives the copy a new row GUID, ID and model.
 
 ### 1. `src/scene.rs`
 
@@ -2745,8 +1861,7 @@ Carry streamed owners through scene identity and placement operations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
@@ -2757,8 +1872,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2772,8 +1885,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let mut guid=source.row_guid(*old).ok_or("Original source owner is missing")?.to_owned();while !used.insert(guid.clone()) {guid=uuid::Uuid::new_v4().to_string();}names.insert(*old,guid);
@@ -2789,8 +1901,6 @@ Replace it with:
         for doc in &source.forest.documents {
             let mut doc=(**doc).clone();let old_key=doc.key;doc.key=candidate.reserve_document_key()?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2810,8 +1920,7 @@ Replace it with:
             let mut doc=(**doc).clone();let old_key=doc.key;doc.key=candidate.reserve_document_key()?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
@@ -2820,8 +1929,6 @@ Replace it with:
             .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2834,8 +1941,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.lines.push(row);}
@@ -2845,8 +1951,6 @@ Replace it with:
         else if let Some(row)=self.texts.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.texts.push(row);}
         self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2860,8 +1964,7 @@ Replace it with:
         self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn cloud_controls(&mut self,parent:Option<ObjectId>) {
@@ -2871,8 +1974,6 @@ Replace it with:
     pub fn streams(&self)->&[crate::range_cloud::Row] {&self.streamed}
     pub fn insert_stream(&mut self,prepared:Rc<crate::range_cloud::Prepared>,model:session_rust::Xform,point_px:f32)->Result<ObjectId,&'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2886,8 +1987,7 @@ Replace it with:
     pub fn insert_stream(&mut self,prepared:Rc<crate::range_cloud::Prepared>,model:session_rust::Xform,point_px:f32)->Result<ObjectId,&'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
@@ -2897,8 +1997,6 @@ Replace it with:
         let object = self.objects.iter().find(|object| object.id == id)?;
         let mut vertices = object.mesh.vertices().iter();
 ```
-
-</details>
 
 Replace it with:
 
@@ -2912,8 +2010,7 @@ Replace it with:
         let mut vertices = object.mesh.vertices().iter();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
@@ -2923,8 +2020,6 @@ Replace it with:
         if let Some(row)=self.texts.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_text(id,model);}
         Err("Object not found")
 ```
-
-</details>
 
 Replace it with:
 
@@ -2938,8 +2033,7 @@ Replace it with:
         Err("Object not found")
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
@@ -2949,8 +2043,6 @@ Replace it with:
         else { self.place_point(id,model) }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2964,8 +2056,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
@@ -2974,8 +2065,6 @@ Replace it with:
             .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2988,8 +2077,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
@@ -2999,8 +2087,6 @@ Replace it with:
         bounds
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3014,8 +2100,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -3122,7 +2207,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -3717,75 +2801,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-01.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-02.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-03.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-04.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-05.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-06.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-07.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-08.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-09.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-10.rs"
-```
-
-```text
---8<-- "journey/code/68m-carry-source-placement-through-scene-operations-11.rs"
-```
-
-</details>
-
 ### 2. `src/hierarchy.rs`
 
 Name streamed source rows in the original hierarchy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.texts().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.clouds().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3793,86 +2811,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68m-carry-source-placement-through-scene-operations-12.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-68n-resolve-compact-picks-to-original-point-ids"></a>
 
 ### Step 16 of 31 · Resolve compact picks to original point IDs (`68n-resolve-compact-picks-to-original-point-ids`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/31 Visual Trace (68n-resolve-compact-picks-to-original-point-ids): Resolve compact picks to original point IDs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_pick.rs, src/pick_sources.rs, src/editor.rs, src/scene_archive.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">GPU page address</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source page</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original ID</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">f64 world position</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_pick.rs, src/pi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">f64 world position</text>
 </svg>
-</div>
-
-- **Goal:** Resolve compact picks to original point IDs.
-- **Data Flow Trace:** `GPU page address → source page → original ID → f64 world position`
-- **Files You Touch:** `src/cloud_pick.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*) · `src/pick_sources.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*) · `src/editor.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*) · `src/scene_archive.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*)
 
 Map compact retained-page addresses back to full original point IDs and precise world coordinates.
 
-> **Self-Check Question:** *May a full-u32 source ID be packed into a tagged GPU address?*  
-> **Answer:** No. Compact GPU addresses identify retained columns. The original ID remains in the source page and may use every u32 bit.
-
-- **Hands-On Lab Experiment:** Resolve the detailed page first and the coarse fallback second; preserve the original ID4294967295.
-
-<details>
-<summary>Implementation 68n-resolve-compact-picks-to-original-point-ids: Resolve compact picks to original point IDs</summary>
-
-Resolve compact picks to original point IDs.
-
-Data flow: GPU page address → source page → original ID → f64 world position.
+> **Check:** *May a full-u32 source ID be packed into a tagged GPU address?* — No. Compact GPU addresses identify retained columns. The original ID remains in the source page and may use every u32 bit.
 
 ### 1. `src/cloud_pick.rs`
 
 Connect streamed selection and original identities while refusing incomplete editable Save.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{pick_sources::{Part,Target},scene::{ObjectId,Scene}};
-
-// Storage indices address current GPU columns; original IDs survive octree reordering and may use every bit of a u32.
-pub fn resolve(scene:&Scene,owner:ObjectId,index:usize)->Option<Target> {
-    let row=scene.clouds().iter().find(|r|r.id==owner && r.controls_visible)?;
-    if scene.pick_id(owner.value()).is_none() || index>=row.prepared.source.point_count() {return None;}
-    let target=Target {owner,part:Part::CloudPoint(row.prepared.source.point_id(index))};
-    Some(target)
-}
-
-pub fn position(scene:&Scene,owner:ObjectId,id:u32)->Option<session_rust::Point> {
-    let row=scene.clouds().iter().find(|r|r.id==owner && r.controls_visible)?;
-    scene.pick_id(owner.value())?;
-    let index=row.prepared.source.index_of_id(id)?;
-    Some(row.model.transform_point(&row.prepared.source.get_point(index)))
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3902,37 +2876,9 @@ pub fn position(scene:&Scene,owner:ObjectId,id:u32)->Option<session_rust::Point>
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-01.rs"
-```
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-02.rs"
-```
-
-</details>
-
 ### 2. `src/pick_sources.rs`
 
 Connect streamed selection and original identities while refusing incomplete editable Save.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if mode == Mode::Object { return Some(Target { owner, part: Part::Object }); }
-        let (kind, address) = sub_id::decode(pixel[1])?;
-        if mode==Mode::Control && kind==Kind::Control && scene.clouds().iter().any(|r|r.id==owner) {
-            return crate::cloud_pick::resolve(scene,owner,address);
-        }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3946,8 +2892,7 @@ Connect streamed selection and original identities while refusing incomplete edi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
@@ -3959,8 +2904,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.scene.show_controls(visible);
                 if parent.is_some() {self.pick_mode=crate::pick_sources::Mode::Control;self.objects.clear();self.selected_part=None;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3975,8 +2918,7 @@ Replace it with:
                 if parent.is_some() {self.pick_mode=crate::pick_sources::Mode::Control;self.objects.clear();self.selected_part=None;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -3987,8 +2929,6 @@ Replace it with:
             }
             Action::PickedTarget(target) => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4002,8 +2942,7 @@ Replace it with:
             Action::PickedTarget(target) => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4013,8 +2952,6 @@ Replace it with:
             Action::CanvasStart {from,to,size,modified,pointer}=>{self.canvas_drag=crate::canvas_drag::Drag::new(from,to,size,modified);if let Some(drag)=self.canvas_drag.as_mut() {drag.pointer=pointer;}return Ok(Change::View);},
             Action::CanvasMove {screen,size}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.released.is_none()&&drag.size==size&&screen.iter().all(|v|v.is_finite()) {drag.to=screen;drag.update(&self.camera)?;}if drag.preview.is_some() {return Ok(Change::Preview);}}return Ok(Change::View);},
 ```
-
-</details>
 
 Replace it with:
 
@@ -4028,8 +2965,7 @@ Replace it with:
             Action::CanvasMove {screen,size}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.released.is_none()&&drag.size==size&&screen.iter().all(|v|v.is_finite()) {drag.to=screen;drag.update(&self.camera)?;}if drag.preview.is_some() {return Ok(Change::Preview);}}return Ok(Change::View);},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4040,8 +2976,6 @@ Replace it with:
         if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
-
-</details>
 
 Replace it with:
 
@@ -4055,8 +2989,7 @@ Replace it with:
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4066,8 +2999,6 @@ pub enum Action {
     CanvasMove {screen:[f32;2],size:[f64;2]},
     CanvasRelease {screen:[f32;2],size:[f64;2],add:bool,remove:bool},
 ```
-
-</details>
 
 Replace it with:
 
@@ -4081,8 +3012,7 @@ pub enum Action {
     CanvasRelease {screen:[f32;2],size:[f64;2],add:bool,remove:bool},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4841,50 +3771,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-04.rs"
-```
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-05.rs"
-```
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-06.rs"
-```
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-07.rs"
-```
-
-```text
---8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-08.rs"
-```
-
-</details>
-
 ### 4. `src/scene_archive.rs`
 
 Connect streamed selection and original identities while refusing incomplete editable Save.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub fn save(scene:&Scene)->Result<Vec<u8>,String> {
-    let mut namespaces=HashSet::new();let mut documents=Vec::new();let mut bytes_used=0usize;
-    let mut metadata=Metadata {created_doc:None,current_layer:None,documents:vec![],hidden:vec![],locked:vec![],colors:vec![],edge_colors:Some(vec![]),texts:vec![],groups:vec![]};
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4892,72 +3781,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68n-resolve-compact-picks-to-original-point-ids-09.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-68o-account-for-original-and-retained-source-data"></a>
 
 ### Step 17 of 31 · Account for original and retained source data (`68o-account-for-original-and-retained-source-data`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/31 Visual Trace (68o-account-for-original-and-retained-source-data): Account for original and retained source data</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/stream_row_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene snapshots</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original owners</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained pages</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent counts</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/memory.rs, src/stream…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained pages</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent counts</text>
 </svg>
-</div>
-
-- **Goal:** Account for original and retained source data.
-- **Data Flow Trace:** `scene snapshots → shared original owners → retained pages → independent counts`
-- **Files You Touch:** `src/memory.rs` (*Count shared streamed sources and retained payload separately.*) · `src/stream_row_tests.rs` (*Copy streamed identity, placement, accounting and lifetime regressions.*) · `src/lib.rs` (*Register the source component.*)
 
 Count shared originals once and distinguish full source point count from charged retained page payload.
 
-> **Self-Check Question:** *Does the retained page count equal the complete original point count?*  
-> **Answer:** Only when every point is retained. The full original count survives eviction and shared snapshots do not duplicate payload accounting.
-
-- **Hands-On Lab Experiment:** Inspect shared row, original ID, coarse fallback, incomplete Save, Select All and Close fixtures.
-
-<details>
-<summary>Implementation 68o-account-for-original-and-retained-source-data: Account for original and retained source data</summary>
-
-Account for original and retained source data.
-
-Data flow: scene snapshots → shared original owners → retained pages → independent counts.
+> **Check:** *Does the retained page count equal the complete original point count?* — Only when every point is retained. The full original count survives eviction and shared snapshots do not duplicate payload accounting.
 
 ### 1. `src/memory.rs`
 
 Count shared streamed sources and retained payload separately.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    usage[1]=seen.len();usage
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4965,8 +3824,7 @@ After that block, type:
 --8<-- "journey/code/68o-account-for-original-and-retained-source-data-01.rs" skip=32
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4980,21 +3838,9 @@ Copy this supplied file:
 --8<-- "journey/code/68o-account-for-original-and-retained-source-data-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod range_example;
-```
-
-</details>
 
 After that block, type:
 
@@ -5002,8 +3848,7 @@ After that block, type:
 --8<-- "journey/code/68o-account-for-original-and-retained-source-data-03.rs" skip=24
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5011,73 +3856,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep regression fixtures outside browser builds.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub mod range_example;
-
-pub mod stream_row_tests;
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/68o-account-for-original-and-retained-source-data-04.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68p-keep-original-attributes-in-ranged-pages"></a>
 
 ### Step 18 of 31 · Keep original attributes in ranged pages (`68p-keep-original-attributes-in-ranged-pages`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/31 Visual Trace (68p-keep-original-attributes-in-ranged-pages): Keep original attributes in ranged pages</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream.rs, src/range_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coordinate and ID range</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching attributes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked original page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream.rs, src/range_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching attributes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked original page</text>
 </svg>
-</div>
-
-- **Goal:** Keep original attributes in ranged pages.
-- **Data Flow Trace:** `coordinate and ID range → matching attributes → checked original page`
-- **Files You Touch:** `src/stream.rs` (*Validate present colour and normal columns before decoding.*) · `src/range_source.rs` (*Read matching original attributes for each source page.*)
 
 Read original colour and normal columns under the same source revision. Refuse malformed present attributes.
 
-> **Self-Check Question:** *May malformed original colours be silently truncated to bytes?*  
-> **Answer:** No. Reject an out-of-range channel or invalid normal column before adopting that page.
-
-- **Hands-On Lab Experiment:** Compare matching point rows and colour cursors; a missing column differs from an incomplete present column.
-
-<details>
-<summary>Implementation 68p-keep-original-attributes-in-ranged-pages: Keep original attributes in ranged pages</summary>
-
-Keep original attributes in ranged pages.
-
-Data flow: coordinate and ID range → matching attributes → checked original page.
+> **Check:** *May malformed original colours be silently truncated to bytes?* — No. Reject an out-of-range channel or invalid normal column before adopting that page.
 
 ### 1. `src/stream.rs`
 
@@ -5085,8 +3901,7 @@ Validate present colour and normal columns before decoding.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             body_end(fields.normals_at, fields.normals_len, fields.end)?,
@@ -5095,8 +3910,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         (raw.len() as u64 == length).then(|| normals_from(&raw))
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5109,8 +3922,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 seen[field - 8] = true;
@@ -5120,8 +3932,6 @@ Replace it with:
                 normals = (body, length);
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5135,8 +3945,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for k in &mut rgba {
@@ -5147,8 +3956,6 @@ Replace it with:
 
         out.push(u32::from_le_bytes(rgba));
 ```
-
-</details>
 
 Replace it with:
 
@@ -5162,8 +3969,7 @@ Replace it with:
         out.push(u32::from_le_bytes(rgba));
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::source_validate::varint;
@@ -5555,7 +4361,6 @@ pub fn sheet_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
 pub fn plain(head: &[u8]) -> bool {
     cloud_layout(head).is_none() && sheet_layout(head).is_none()
 }
-
 
 impl SheetFields {
     /// Bytes per segment: six doubles.
@@ -6356,42 +5161,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68p-keep-original-attributes-in-ranged-pages-01.rs"
-```
-
-```text
---8<-- "journey/code/68p-keep-original-attributes-in-ranged-pages-02.rs"
-```
-
-```text
---8<-- "journey/code/68p-keep-original-attributes-in-ranged-pages-03.rs"
-```
-
-</details>
-
 ### 2. `src/range_source.rs`
 
 Read matching original attributes for each source page.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        crate::range_page::Page::decode(rows,self.fields.count,&raw,ids.as_deref()).map_err(str::to_owned)
-    }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6399,54 +5171,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68p-keep-original-attributes-in-ranged-pages-04.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-68q-retain-page-owners-beside-gpu-buffers"></a>
 
 ### Step 19 of 31 · Retain page owners beside GPU buffers (`68q-retain-page-owners-beside-gpu-buffers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/31 Visual Trace (68q-retain-page-owners-beside-gpu-buffers): Retain page owners beside GPU buffers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">charged original page</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived GPU columns</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained pick identity</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived GPU columns</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained pick identity</text>
 </svg>
-</div>
-
-- **Goal:** Retain page owners beside GPU buffers.
-- **Data Flow Trace:** `charged original page → derived GPU columns → retained pick identity`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Retain charged original page owners with their derived GPU columns.*)
 
 Upload derived positions and original colour/normal words. Retain precise page identity while the GPU still uses it.
 
-> **Self-Check Question:** *Can evicting a CPU cache entry invalidate an active GPU address?*  
-> **Answer:** The GPU columns retain the original page. Redrawing drops old column owners and cancels picks before compact addresses are reused.
-
-- **Hands-On Lab Experiment:** Trace the page owner across cache removal, renderer synchronization and final release.
-
-<details>
-<summary>Implementation 68q-retain-page-owners-beside-gpu-buffers: Retain page owners beside GPU buffers</summary>
-
-Retain page owners beside GPU buffers.
-
-Data flow: charged original page → derived GPU columns → retained pick identity.
+> **Check:** *Can evicting a CPU cache entry invalidate an active GPU address?* — The GPU columns retain the original page. Redrawing drops old column owners and cancels picks before compact addresses are reused.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -6454,8 +5210,7 @@ Retain charged original page owners with their derived GPU columns.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       .flat_map(u32::to_ne_bytes)
@@ -6471,8 +5226,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     self.positions.size() + self.colors.size() + self.normals.size()
   }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6498,8 +5251,7 @@ Replace it with:
   }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   }
@@ -6509,8 +5261,6 @@ struct Columns {
   colors: wgpu::Buffer,
   normals: wgpu::Buffer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6524,8 +5274,7 @@ struct Columns {
   normals: wgpu::Buffer,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -7132,95 +5881,42 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68q-retain-page-owners-beside-gpu-buffers-01.rs"
-```
-
-```text
---8<-- "journey/code/68q-retain-page-owners-beside-gpu-buffers-02.rs"
-```
-
-```text
---8<-- "journey/code/68q-retain-page-owners-beside-gpu-buffers-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68r-describe-resident-and-streamed-draw-rows"></a>
 
 ### Step 20 of 31 · Describe resident and streamed draw rows (`68r-describe-resident-and-streamed-draw-rows`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/31 Visual Trace (68r-describe-resident-and-streamed-draw-rows): Describe resident and streamed draw rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared node table</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed draw row</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compact page address</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed draw row</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">compact page address</text>
 </svg>
-</div>
-
-- **Goal:** Describe resident and streamed draw rows.
-- **Data Flow Trace:** `source owner → shared node table → placed draw row → compact page address`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Describe source ownership and compact retained-page addresses independently.*)
 
 Represent either original source family with one draw descriptor while keeping row models and source ownership separate.
 
-> **Self-Check Question:** *Must the original full source row index fit the GPU sub-object tag?*  
-> **Answer:** No. Each retained page has a compact base address. Resolve it through the original page ID column.
-
-- **Hands-On Lab Experiment:** Compare resident row0 with a later streamed source interval and its independent compact base.
-
-<details>
-<summary>Implementation 68r-describe-resident-and-streamed-draw-rows: Describe resident and streamed draw rows</summary>
-
-Describe resident and streamed draw rows.
-
-Data flow: source owner → shared node table → placed draw row → compact page address.
+> **Check:** *Must the original full source row index fit the GPU sub-object tag?* — No. Each retained page has a compact base address. Resolve it through the original page ID column.
 
 ### 1. `src/cloud_gpu.rs`
 
 Describe source ownership and compact retained-page addresses independently.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    usage: wgpu::BufferUsages::STORAGE,
-  })
-}
-struct Draw {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7228,59 +5924,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68r-describe-resident-and-streamed-draw-rows-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-68s-draw-shared-source-pages-at-independent-placements"></a>
 
 ### Step 21 of 31 · Draw shared source pages at independent placements (`68s-draw-shared-source-pages-at-independent-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/31 Visual Trace (68s-draw-shared-source-pages-at-independent-placements): Draw shared source pages at independent placements</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/cloud_points.wgsl, src/renderer.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared page columns</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent placement</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">records</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clipped LOD range</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible pixels</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs, src/clo…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">clipped LOD range</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible pixels</text>
 </svg>
-</div>
-
-- **Goal:** Draw shared source pages at independent placements.
-- **Data Flow Trace:** `shared page columns → independent placement records → clipped LOD range → visible pixels`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Connect resident and streamed original columns to compact bounded draw records.*) · `src/cloud_points.wgsl` (*Connect resident and streamed original columns to compact bounded draw records.*) · `src/renderer.rs` (*Connect resident and streamed original columns to compact bounded draw records.*) · `src/pick_gpu_tests.rs` (*Copy actual GPU source ID, page ownership, colour, reuse, eviction and cleanup fixtures.*)
 
 Reuse uploads for the same source/page interval and build bounded draw records for each placed owner.
 
-> **Self-Check Question:** *Does moving a row require uploading its original page again?*  
-> **Answer:** No. Shared columns remain unchanged; placement and ownership live in the draw record.
-
-- **Hands-On Lab Experiment:** Inspect actual GPU point IDs, colours, shared uploads, locked occlusion, retained-page eviction and Close tests.
-
-<details>
-<summary>Implementation 68s-draw-shared-source-pages-at-independent-placements: Draw shared source pages at independent placements</summary>
-
-Draw shared source pages at independent placements.
-
-Data flow: shared page columns → independent placement records → clipped LOD range → visible pixels.
+> **Check:** *Does moving a row require uploading its original page again?* — No. Shared columns remain unchanged; placement and ownership live in the draw record.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -7288,8 +5963,7 @@ Connect resident and streamed original columns to compact bounded draw records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       .map(f32::to_bits)
@@ -7302,8 +5976,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
   }
   bytes[..4].copy_from_slice(&(ranges.len() as u32).to_ne_bytes());
 ```
-
-</details>
 
 Replace it with:
 
@@ -7319,8 +5991,7 @@ Replace it with:
   bytes[..4].copy_from_slice(&(ranges.len() as u32).to_ne_bytes());
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     model[14],
@@ -7331,8 +6002,6 @@ Replace it with:
   let instance = if draw.pickable { row.id.value() - 1 } else { u32::MAX };
   let mut bytes = vec![0; 16];
 ```
-
-</details>
 
 Replace it with:
 
@@ -7346,8 +6015,7 @@ Replace it with:
   let mut bytes = vec![0; 16];
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   ranges: &[crate::cloud_lod::Range],
@@ -7358,8 +6026,6 @@ Replace it with:
   let scale = row.model.uniform_scale();
   let mut total = 0u32;
 ```
-
-</details>
 
 Replace it with:
 
@@ -7372,8 +6038,7 @@ Replace it with:
   let mut total = 0u32;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ortho_h: view.ortho_h,
@@ -7386,8 +6051,6 @@ Replace it with:
       if records_used > MAX_RECORDS {
         return Err("Cloud view exceeds the 4096-record budget");
 ```
-
-</details>
 
 Replace it with:
 
@@ -7404,8 +6067,7 @@ Replace it with:
         return Err("Cloud view exceeds the 4096-record budget");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     scene: &crate::scene::Scene,
@@ -7465,8 +6127,6 @@ Replace it with:
     self.revision = self.revision.wrapping_add(1);
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -7491,8 +6151,7 @@ Replace it with:
     self.revision = self.revision.wrapping_add(1);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   fn key(&self)->(usize,u32,u32) {let (source,first)=self.keep.key(self.rows.start);(source,first,self.rows.end)}
@@ -7511,8 +6170,6 @@ struct Draw {
 struct Image {
   texture: wgpu::Texture,
 ```
-
-</details>
 
 Replace it with:
 
@@ -7534,8 +6191,7 @@ struct Image {
   texture: wgpu::Texture,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -8126,55 +6782,9 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-01.rs"
-```
-
-```text
---8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-02.rs"
-```
-
-```text
---8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-03.rs"
-```
-
-```text
---8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-04.rs"
-```
-
-```text
---8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-05.rs"
-```
-
-```text
---8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-06.rs"
-```
-
-</details>
-
 ### 2. `src/cloud_points.wgsl`
 
 Connect resident and streamed original columns to compact bounded draw records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-        vec4<f32>(rec_f(base, 12u), rec_f(base, 13u), rec_f(base, 14u), rec_f(base, 15u)),
-    );
-    s.row = i;
-    s.instance = table[base + 37u];
-    let point = vec3<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u]);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8186,27 +6796,13 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Connect resident and streamed original columns to compact bounded draw records.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn cloud_error(&self)->Option<String> {self.cloud_error.borrow().clone()}
-    fn set_clouds(&self,scene:&Scene,selected:&[ObjectId])->Result<(),&'static str> {
-        if scene.clouds().is_empty() {self.clouds.borrow_mut().take();self.cloud_error.borrow_mut().take();return Ok(());}
-        let mut owner=self.clouds.borrow_mut();let lane=owner.get_or_insert_with(||crate::cloud_gpu::Lane::new(&self.text_context(),self.format));lane.set_scene(&self.text_context(),scene,selected)
-    }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-08.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8214,73 +6810,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual GPU source ID, page ownership, colour, reuse, eviction and cleanup fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    scene.cloud_controls(None);renderer.set_scene(&scene,None);renderer.set_pick_mode(Mode::Object);camera_pixels(&mut renderer,&camera);assert_eq!(renderer.cloud_usage()[0],64);assert_eq!(renderer.cloud_usage()[2],uploads);
-    scene.clear();renderer.set_scene(&scene,None);assert_eq!(renderer.cloud_usage(),[0;5]);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68s-draw-shared-source-pages-at-independent-placements-09.rs" skip=319
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68t-validate-encoded-source-metadata"></a>
 
 ### Step 22 of 31 · Validate encoded source metadata (`68t-validate-encoded-source-metadata`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/31 Visual Trace (68t-validate-encoded-source-metadata): Validate encoded source metadata</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_encoding.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">manifest encoding</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">supported codec</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">declared decoded limit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_encoding.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">supported codec</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">declared decoded limit</text>
 </svg>
-</div>
-
-- **Goal:** Validate encoded source metadata.
-- **Data Flow Trace:** `manifest encoding → supported codec → declared decoded limit`
-- **Files You Touch:** `src/source_encoding.rs` (*Validate supported source encodings and exact decoded size.*) · `src/lib.rs` (*Register the source component.*)
 
 Require a supported codec and bounded declared decoded size before reading an encoded source.
 
-> **Self-Check Question:** *Can an encoded source omit its decoded byte limit?*  
-> **Answer:** No. Require a positive bounded size and match the decoded byte count exactly.
-
-- **Hands-On Lab Experiment:** Refuse an unsupported codec, zero or oversized limit and mismatched decoded length.
-
-<details>
-<summary>Implementation 68t-validate-encoded-source-metadata: Validate encoded source metadata</summary>
-
-Validate encoded source metadata.
-
-Data flow: manifest encoding → supported codec → declared decoded limit.
+> **Check:** *Can an encoded source omit its decoded byte limit?* — No. Require a positive bounded size and match the decoded byte count exactly.
 
 ### 1. `src/source_encoding.rs`
 
@@ -8296,24 +6863,13 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod stream_row_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68t-validate-encoded-source-metadata-02.rs" skip=35
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8321,132 +6877,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy encoded size and codec refusal fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        if bytes>crate::archive::LIMIT||self.decoded.is_some_and(|size|size!=bytes) {return Err("Decoded source size does not match its manifest".into());}Ok(())
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68t-validate-encoded-source-metadata-03.rs" skip=169
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68u-decode-bounded-cancellable-source-streams"></a>
 
 ### Step 23 of 31 · Decode bounded cancellable source streams (`68u-decode-bounded-cancellable-source-streams`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/31 Visual Trace (68u-decode-bounded-cancellable-source-streams): Decode bounded cancellable source streams</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/source_unpack.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">packed source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">decompression stream</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded chunks</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact original bytes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/source_un…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded chunks</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact original bytes</text>
 </svg>
-</div>
-
-- **Goal:** Decode bounded cancellable source streams.
-- **Data Flow Trace:** `packed source → decompression stream → bounded chunks → exact original bytes`
-- **Files You Touch:** `Cargo.toml` (*Copy the pinned browser stream dependency configuration.*) · `src/source_unpack.rs` (*Decode bounded cancellable original source streams.*) · `src/lib.rs` (*Register the source component.*)
 
 Read decompressed chunks under the declared byte limit. Cancel the reader and release its lock on failed work.
 
-> **Self-Check Question:** *Does array_buffer keep decompressed reads bounded?*  
-> **Answer:** No. Consume chunks under the declared limit so excess output is refused before building a whole oversized buffer.
-
-- **Hands-On Lab Experiment:** Trace explicit cancellation, gzip magic, HTTP-decoded gzip and exact final byte validation.
-
-<details>
-<summary>Implementation 68u-decode-bounded-cancellable-source-streams: Decode bounded cancellable source streams</summary>
-
-Decode bounded cancellable source streams.
-
-Data flow: packed source → decompression stream → bounded chunks → exact original bytes.
+> **Check:** *Does array_buffer keep decompressed reads bounded?* — No. Consume chunks under the declared limit so excess output is refused before building a whole oversized buffer.
 
 ### 1. `Cargo.toml`
 
 Copy the pinned browser stream dependency configuration.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-[package]
-name = "viewer_journey"
-version = "0.1.0"
-edition = "2024"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[workspace]
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-console_error_panic_hook = "=0.1.7"
-prost = "=0.14.4"
-sha2 = "=0.10.8"
-uuid = { version = "=1.26.1", features = ["v4", "js"] }
-js-sys = "=0.3.105"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-session_rust = { path = "../../../session_rust", default-features = false }
-getrandom = { version = "=0.2.17", features = ["js"] }
-
-egui = { version = "=0.34.3", default-features = false }
-egui-wgpu = { version = "=0.34.3", default-features = false }
-
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", features = ["float_roundtrip"] }
-
-glyphon = "=0.11.0"
-anyhow = "=1.0.104"
-ttf-parser = {version="=0.25.1",default-features=false}
-
-serde_yaml_ng = "=0.10.0"
-toml = { version = "=0.8.23", optional = true }
-
-[features]
-json-sessions = []
-toml-manifests = ["dep:toml"]
-
-[dev-dependencies]
-pollster = "=0.4.0"
-log = "=0.4.34"
-```
-
-</details>
 
 Update the existing block with this supplied code; keep unchanged lines:
 
@@ -8468,140 +6940,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod source_encoding;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68u-decode-bounded-cancellable-source-streams-02.rs" skip=26
 ```
 
-</details>
+---
 
 <a id="checkpoint-68v-refuse-conflicting-source-encoding-revisions"></a>
 
 ### Step 24 of 31 · Refuse conflicting source encoding revisions (`68v-refuse-conflicting-source-encoding-revisions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/31 Visual Trace (68v-refuse-conflicting-source-encoding-revisions): Refuse conflicting source encoding revisions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/publication_index.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">new manifest</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked repeated formats</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original inventory</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">atomic replacement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/publication_index.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original inventory</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">atomic replacement</text>
 </svg>
-</div>
-
-- **Goal:** Refuse conflicting source encoding revisions.
-- **Data Flow Trace:** `new manifest → checked repeated formats → original inventory → atomic replacement`
-- **Files You Touch:** `src/publication_index.rs` (*Validate manifest source formats before changing the original inventory.*)
 
 Validate source formats before adopting a changed manifest. Failed metadata keeps the previous valid source inventory.
 
-> **Self-Check Question:** *May a repeated source declare two different decoded sizes?*  
-> **Answer:** No. Every placement of the same URL must agree on its source encoding and decoded size.
-
-- **Hands-On Lab Experiment:** Refuse conflicting formats, keep old original sources and retry a valid manifest after the failure.
-
-<details>
-<summary>Implementation 68v-refuse-conflicting-source-encoding-revisions: Refuse conflicting source encoding revisions</summary>
-
-Refuse conflicting source encoding revisions.
-
-Data flow: new manifest → checked repeated formats → original inventory → atomic replacement.
+> **Check:** *May a repeated source declare two different decoded sizes?* — No. Every placement of the same URL must agree on its source encoding and decoded size.
 
 ### 1. `src/publication_index.rs`
 
 Validate manifest source formats before changing the original inventory.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{manifest::Manifest,scene::Scene};
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub struct Index {
-    base:String,
-    revisions:crate::live_revision::Revisions,
-    manifest:Option<Manifest>,
-    sources:HashMap<String,Scene>,
-    sizes:HashMap<String,usize>,
-    pending:bool,
-}
-impl Index {
-    pub fn new(base:String)->Self {Self {base,revisions:Default::default(),manifest:None,sources:HashMap::new(),sizes:HashMap::new(),pending:false}}
-    pub fn etag(&self,url:&str)->Option<String> {self.revisions.etag(url)}
-    pub fn has_manifest(&self)->bool {self.manifest.is_some()}
-    pub fn cached(&self,url:&str)->bool {self.sources.contains_key(url)}
-    pub fn forget(&mut self,url:&str) {self.revisions.forget(url);}
-    pub fn urls(&self)->Vec<String> {self.manifest.as_ref().map_or_else(Vec::new,|manifest|manifest.items.iter().map(|item|crate::publication_route::join(&self.base,&item.file)).collect())}
-    pub fn manifest(&mut self,url:&str,etag:Option<String>,bytes:&[u8])->Result<bool,String> {
-        if !self.revisions.changed(url,etag,bytes) {return Ok(false);}
-        let manifest=match Manifest::parse(bytes) {Ok(value)=>value,Err(error)=>{self.revisions.forget(url);return Err(error);}};
-        self.manifest=Some(manifest);self.pending=true;let used=self.urls().into_iter().collect::<HashSet<_>>();self.sources.retain(|url,_|used.contains(url));self.sizes.retain(|url,_|used.contains(url));Ok(true)
-    }
-    pub fn source(&mut self,url:&str,etag:Option<String>,bytes:&[u8])->Result<bool,String> {
-        if !self.revisions.changed(url,etag,bytes) {return Ok(false);}
-        let size=self.sizes.iter().filter(|(key,_)|key.as_str()!=url).try_fold(bytes.len(),|sum,(_,size)|sum.checked_add(*size)).ok_or("Source inventory size overflow")?;
-        if size>crate::archive::LIMIT {self.revisions.forget(url);return Err("Source inventory exceeds the 512 MiB file limit".into());}
-        let source=match crate::publication::prepare(&Scene::empty(),bytes,true,Some(Rc::new(crate::reload_url::ReloadUrl::new(url.into())))) {Ok(source)=>source,Err(error)=>{self.revisions.forget(url);return Err(error);}};
-        self.sources.insert(url.into(),source);self.sizes.insert(url.into(),bytes.len());self.pending=true;Ok(true)
-    }
-    pub fn replacement(&mut self,previous:&Scene)->Result<Option<Scene>,String> {
-        if !self.pending {return Ok(None);}
-        let manifest=self.manifest.as_ref().ok_or("Live manifest is missing")?;
-        for (item,url) in manifest.items.iter().zip(self.urls()) {if let Some(expected)=item.encoded_size() {if self.sizes.get(&url).copied().map(|size|size as u64)!=Some(expected) {self.revisions.forget(&url);return Err("Encoded source decoded size does not match the manifest".into());}}}
-        let scene=crate::scene_manifest::prepare(previous,manifest,&self.urls(),&self.sources)?;self.pending=false;Ok(Some(scene))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn validators_and_unchanged_bytes_keep_original_sources_and_viewer_ids() {
-        let mut index=Index::new("files/".into());let manifest=b"items: [{file: mesh.pb}]";let raw=crate::specimen::bytes();let mut scene=Scene::empty();assert!(index.manifest("scene",Some("a".into()),manifest).unwrap());assert!(index.source("files/mesh.pb",Some("b".into()),&raw).unwrap());scene=index.replacement(&scene).unwrap().unwrap();let id=scene.objects()[0].id;let geometry=Rc::clone(scene.objects()[0].geometry().unwrap());
-        assert!(!index.manifest("scene",Some("W/c".into()),manifest).unwrap());assert!(!index.source("files/mesh.pb",None,&raw).unwrap());assert_eq!(index.etag("scene"),Some("W/c".into()));assert_eq!(index.etag("files/mesh.pb"),None);assert!(index.replacement(&scene).unwrap().is_none());assert_eq!(scene.objects()[0].id,id);assert!(Rc::ptr_eq(scene.objects()[0].geometry().unwrap(),&geometry));
-        assert!(index.source("files/mesh.pb",None,&crate::specimen::precise_bytes()).unwrap());let changed=index.replacement(&scene).unwrap().unwrap();assert_ne!(changed.objects()[0].id,id);assert!(!Rc::ptr_eq(changed.objects()[0].geometry().unwrap(),&geometry));assert!(Rc::ptr_eq(scene.objects()[0].geometry().unwrap(),&geometry));
-    }
-    #[test]
-    fn invalid_or_incomplete_live_updates_keep_the_last_display_and_retry_failed_bytes() {
-        let mut index=Index::new(String::new());let manifest=b"items: [{file: mesh.pb}]";let raw=crate::specimen::bytes();index.manifest("scene",None,manifest).unwrap();assert!(index.replacement(&Scene::empty()).is_err());index.source("mesh.pb",Some("good".into()),&raw).unwrap();let scene=index.replacement(&Scene::empty()).unwrap().unwrap();let id=scene.objects()[0].id;
-        assert!(index.source("mesh.pb",Some("bad".into()),b"broken").is_err());assert_eq!(index.etag("mesh.pb"),None);assert!(index.replacement(&scene).unwrap().is_none());assert_eq!(scene.objects()[0].id,id);assert!(index.manifest("scene",None,b"invalid: manifest").is_err());assert_eq!(index.etag("scene"),None);assert!(index.manifest("scene",None,manifest).unwrap());assert!(index.replacement(&scene).unwrap().is_some());
-        let mesh=Rc::downgrade(scene.objects()[0].geometry().unwrap());drop(scene);index.manifest("scene",None,b"items: []").unwrap();assert!(mesh.upgrade().is_none());assert!(!index.cached("mesh.pb"));
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8684,89 +7064,42 @@ mod tests {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68v-refuse-conflicting-source-encoding-revisions-01.rs"
-```
-
-```text
---8<-- "journey/code/68v-refuse-conflicting-source-encoding-revisions-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68w-adopt-remote-original-revisions-independently"></a>
 
 ### Step 25 of 31 · Adopt remote original revisions independently (`68w-adopt-remote-original-revisions-independently`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/31 Visual Trace (68w-adopt-remote-original-revisions-independently): Adopt remote original revisions independently</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/publication_index.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">remote validator</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared original</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">manifest placements</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent viewer rows</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/publication_index.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">manifest placements</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent viewer rows</text>
 </svg>
-</div>
-
-- **Goal:** Adopt remote original revisions independently.
-- **Data Flow Trace:** `remote validator → prepared original → manifest placements → independent viewer rows`
-- **Files You Touch:** `src/publication_index.rs` (*Adopt versioned remote originals while retaining complete-source byte identity for whole documents.*)
 
 Keep versioned remote sources separate from whole-file byte hashes. Repeated placements share the same prepared original.
 
-> **Self-Check Question:** *Do sampled bytes prove whole-file byte equality?*  
-> **Answer:** No. Ranged originals use their revision validator. A changed validator prepares a new remote original even if retained samples happen to match.
-
-- **Hands-On Lab Experiment:** Inspect repeated placement, unchanged validator and changed revision fixtures while retaining the prior displayed scene.
-
-<details>
-<summary>Implementation 68w-adopt-remote-original-revisions-independently: Adopt remote original revisions independently</summary>
-
-Adopt remote original revisions independently.
-
-Data flow: remote validator → prepared original → manifest placements → independent viewer rows.
+> **Check:** *Do sampled bytes prove whole-file byte equality?* — No. Ranged originals use their revision validator. A changed validator prepares a new remote original even if retained samples happen to match.
 
 ### 1. `src/publication_index.rs`
 
 Adopt versioned remote originals while retaining complete-source byte identity for whole documents.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.sources.insert(url.into(),source);self.sizes.insert(url.into(),bytes.len());self.pending=true;Ok(true)
-    }
-    pub fn replacement(&mut self,previous:&Scene)->Result<Option<Scene>,String> {
-        if !self.pending {return Ok(None);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8774,8 +7107,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/68w-adopt-remote-original-revisions-independently-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8783,77 +7115,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy remote revision, placement and previous-scene retention fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/68w-adopt-remote-original-revisions-independently-02.rs" skip=9
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix"></a>
 
 ### Step 26 of 31 · Prepare a coarse pin and bounded prefix (`68x-prepare-a-coarse-pin-and-bounded-prefix`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/31 Visual Trace (68x-prepare-a-coarse-pin-and-bounded-prefix): Prepare a coarse pin and bounded prefix</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream_load.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source metadata</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coarse pin</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded prefix</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">initial source owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream_load.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded prefix</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">initial source owner</text>
 </svg>
-</div>
-
-- **Goal:** Prepare a coarse pin and bounded prefix.
-- **Data Flow Trace:** `source metadata → coarse pin → bounded prefix → initial source owner`
-- **Files You Touch:** `src/stream_load.rs` (*Prepare a pinned original coarse page and a budgeted initial prefix.*) · `src/lib.rs` (*Register the source component.*)
 
 Read the original coarse node and an initial prefix after reserving checked temporary memory.
 
-> **Self-Check Question:** *May a huge coarse node bypass the initial read limit?*  
-> **Answer:** No. Refuse a coarse node that exceeds the initial page or memory limit instead of downloading the complete source.
-
-- **Hands-On Lab Experiment:** Trace prefix reduction before allocation and inspect original IDs and colour cursors in the returned owner.
-
-<details>
-<summary>Implementation 68x-prepare-a-coarse-pin-and-bounded-prefix: Prepare a coarse pin and bounded prefix</summary>
-
-Prepare a coarse pin and bounded prefix.
-
-Data flow: source metadata → coarse pin → bounded prefix → initial source owner.
+> **Check:** *May a huge coarse node bypass the initial read limit?* — No. Refuse a coarse node that exceeds the initial page or memory limit instead of downloading the complete source.
 
 ### 1. `src/stream_load.rs`
 
@@ -8869,89 +7168,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch = "wasm32")]
-pub mod source_unpack;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/68x-prepare-a-coarse-pin-and-bounded-prefix-02.rs" skip=54
 ```
 
-</details>
+---
 
 <a id="checkpoint-68y-redraw-before-reusing-evicted-page-addresses"></a>
 
 ### Step 27 of 31 · Redraw before reusing evicted page addresses (`68y-redraw-before-reusing-evicted-page-addresses`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/31 Visual Trace (68y-redraw-before-reusing-evicted-page-addresses): Redraw before reusing evicted page addresses</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream_load.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit eviction</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancelled pick</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">renderer release</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reserved page</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream_load.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">renderer release</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reserved page</text>
 </svg>
-</div>
-
-- **Goal:** Redraw before reusing evicted page addresses.
-- **Data Flow Trace:** `explicit eviction → cancelled pick → renderer release → reserved page`
-- **Files You Touch:** `src/stream_load.rs` (*Synchronize visible eviction before reusing released page memory.*)
 
 Remove an old cache entry, then cancel picks and rebuild columns before reserving its released payload.
 
-> **Self-Check Question:** *What keeps eviction safe while a GPU page is still owned?*  
-> **Answer:** The removed page remains charged until its GPU owner drops. Synchronize the renderer before reusing compact addresses.
-
-- **Hands-On Lab Experiment:** Hold a page externally, evict its cache entry and verify its charge persists until final release.
-
-<details>
-<summary>Implementation 68y-redraw-before-reusing-evicted-page-addresses: Redraw before reusing evicted page addresses</summary>
-
-Redraw before reusing evicted page addresses.
-
-Data flow: explicit eviction → cancelled pick → renderer release → reserved page.
+> **Check:** *What keeps eviction safe while a GPU page is still owned?* — The removed page remains charged until its GPU owner drops. Synchronize the renderer before reusing compact addresses.
 
 ### 1. `src/stream_load.rs`
 
 Synchronize visible eviction before reusing released page memory.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    Err("Empty streamed source page".into())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -8959,76 +7217,42 @@ After that block, type:
 --8<-- "journey/code/68y-redraw-before-reusing-evicted-page-addresses-01.rs" skip=54
 ```
 
-</details>
+---
 
 <a id="checkpoint-68z-continue-pages-only-for-current-source-owners"></a>
 
 ### Step 28 of 31 · Continue pages only for current source owners (`68z-continue-pages-only-for-current-source-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/31 Visual Trace (68z-continue-pages-only-for-current-source-owners): Continue pages only for current source owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stream_load.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current owner</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reserved page</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">revision-bound read</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked completion</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">redraw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stream_load.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">revision-bound read</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">redraw</text>
 </svg>
-</div>
-
-- **Goal:** Continue pages only for current source owners.
-- **Data Flow Trace:** `current owner → reserved page → revision-bound read → checked completion → redraw`
-- **Files You Touch:** `src/stream_load.rs` (*Continue checked source pages only while their scene/runtime owner remains current.*)
 
 Read sequential bounded pages under source tickets, runtime membership and cancellation. A stopped source cannot adopt late work.
 
-> **Self-Check Question:** *Does background page delivery create a modelling Undo entry?*  
-> **Answer:** No. It completes derived display work for an existing original source. Modelling history retains source placements independently.
-
-- **Hands-On Lab Experiment:** Trace closed source, failed range, late ticket and point ceiling paths without adopting partial original data.
-
-<details>
-<summary>Implementation 68z-continue-pages-only-for-current-source-owners: Continue pages only for current source owners</summary>
-
-Continue pages only for current source owners.
-
-Data flow: current owner → reserved page → revision-bound read → checked completion → redraw.
+> **Check:** *Does background page delivery create a modelling Undo entry?* — No. It completes derived display work for an existing original source. Modelling history retains source placements independently.
 
 ### 1. `src/stream_load.rs`
 
 Continue checked source pages only while their scene/runtime owner remains current.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Ok(Cursor {prepared,from:count,color_at,loaded:count,ceiling:count})
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9036,58 +7260,38 @@ After that block, type:
 --8<-- "journey/code/68z-continue-pages-only-for-current-source-owners-01.rs" skip=76
 ```
 
-</details>
+---
 
 <a id="checkpoint-68aa-own-cancellation-for-each-published-source"></a>
 
 ### Step 29 of 31 · Own cancellation for each published source (`68aa-own-cancellation-for-each-published-source`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/31 Visual Trace (68aa-own-cancellation-for-each-published-source): Own cancellation for each published source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/range_fetch.rs, src/browser_publication.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">publication owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">weak source membership</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">closed generation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">aborted ranges</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/range_fetch.rs, src/b…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">closed generation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">aborted ranges</text>
 </svg>
-</div>
-
-- **Goal:** Own cancellation for each published source.
-- **Data Flow Trace:** `publication owner → weak source membership → closed generation → aborted ranges`
-- **Files You Touch:** `src/range_fetch.rs` (*Cancel active range reads belonging to replaced source URLs.*) · `src/browser_publication.rs` (*Own pending source cursors and close every source reader with its publication.*)
 
 Track pending page cursors and weak source owners. Runtime closure cancels active ranges and releases pending work.
 
-> **Self-Check Question:** *Must a replaced source keep reading until its timeout?*  
-> **Answer:** No. Abort its URL reads after preparing the replacement and invalidate the old source generation.
-
-- **Hands-On Lab Experiment:** Trace live source replacement and Close without retaining old page readers or revival tickets.
-
-<details>
-<summary>Implementation 68aa-own-cancellation-for-each-published-source: Own cancellation for each published source</summary>
-
-Own cancellation for each published source.
-
-Data flow: publication owner → weak source membership → closed generation → aborted ranges.
+> **Check:** *Must a replaced source keep reading until its timeout?* — No. Abort its URL reads after preparing the replacement and invalidate the old source generation.
 
 ### 1. `src/range_fetch.rs`
 
@@ -9095,8 +7299,7 @@ Cancel active range reads belonging to replaced source URLs.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let (start,length)=opts.range.ok_or("This reader requires a byte range")?;
@@ -9107,8 +7310,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if opts.revalidate {init.set_cache(web_sys::RequestCache::NoCache);}
     let headers=web_sys::Headers::new().map_err(|error|describe(error.into()))?;headers.set("Range",&range).map_err(|error|describe(error.into()))?;init.set_headers(&headers);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9122,8 +7323,7 @@ Replace it with:
     let headers=web_sys::Headers::new().map_err(|error|describe(error.into()))?;headers.set("Range",&range).map_err(|error|describe(error.into()))?;init.set_headers(&headers);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     callback:Closure<dyn FnMut()>,
@@ -9140,8 +7340,6 @@ impl Read {
     fn touch(&mut self)->Result<(),String> {
         let window=web_sys::window().ok_or("No browser window")?;window.clear_timeout_with_handle(self.timer);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9161,8 +7359,7 @@ impl Read {
         let window=web_sys::window().ok_or("No browser window")?;window.clear_timeout_with_handle(self.timer);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub use crate::range_rules::PROBE_BYTES;
@@ -9180,8 +7377,6 @@ struct Read {
     key:u64,
     controller:web_sys::AbortController,
 ```
-
-</details>
 
 Replace it with:
 
@@ -9204,8 +7399,7 @@ struct Read {
     controller:web_sys::AbortController,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::{cell::{Cell,RefCell},collections::BTreeMap,rc::Rc};
@@ -9311,39 +7505,13 @@ impl<T:'static> Task<T> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-01.rs"
-```
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-02.rs"
-```
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-03.rs"
-```
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-04.rs"
-```
-
-</details>
-
 ### 2. `src/browser_publication.rs`
 
 Own pending source cursors and close every source reader with its publication.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         poll(state);
@@ -9354,8 +7522,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if let Some(source)=state.notify.take() {source.set_onmessage(None);source.close();}state.message=None;state.tick=None;
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9369,8 +7535,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let window=web_sys::window().ok_or("No browser window")?;let url=web_sys::Url::new(&window.location().href()?)?;let q=url.search_params();
@@ -9381,8 +7546,6 @@ Replace it with:
     pub fn control(&self)->Control {Control(self.0.as_ref().map(Rc::downgrade))}
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9396,8 +7559,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{publication_index::Index,publication_route::Route};
@@ -9411,8 +7573,6 @@ struct State {
     route:Route,index:Option<Index>,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -9428,8 +7588,7 @@ struct State {
     route:Route,index:Option<Index>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{publication_index::Index,publication_route::Route};
@@ -9515,83 +7674,38 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-05.rs"
-```
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-06.rs"
-```
-
-```text
---8<-- "journey/code/68aa-own-cancellation-for-each-published-source-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68ab-choose-bounded-range-loading-for-large-originals"></a>
 
 ### Step 30 of 31 · Choose bounded range loading for large originals (`68ab-choose-bounded-range-loading-for-large-originals`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/31 Visual Trace (68ab-choose-bounded-range-loading-for-large-originals): Choose bounded range loading for large originals</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_publication.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">manifest source</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">range probe</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original descriptor</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded prefix</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">staged replacement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_publication.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original descriptor</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">staged replacement</text>
 </svg>
-</div>
-
-- **Goal:** Choose bounded range loading for large originals.
-- **Data Flow Trace:** `manifest source → range probe → original descriptor → bounded prefix → staged replacement`
-- **Files You Touch:** `src/browser_publication.rs` (*Stage original ranged prefixes and keep failed revisions off the current scene.*)
 
 Probe unencoded single-cloud sources and stage their checked prefix. Small, mixed or encoded documents retain whole-original loading.
 
-> **Self-Check Question:** *Can a failed large source range fall back to an unbounded whole decode?*  
-> **Answer:** No. Once the large range-readable original is identified, refuse failed ranges while retaining the prior displayed scene.
-
-- **Hands-On Lab Experiment:** Compare large cloud, small/mixed original document, encoded source, missing range support and failed source revision routes.
-
-<details>
-<summary>Implementation 68ab-choose-bounded-range-loading-for-large-originals: Choose bounded range loading for large originals</summary>
-
-Choose bounded range loading for large originals.
-
-Data flow: manifest source → range probe → original descriptor → bounded prefix → staged replacement.
+> **Check:** *Can a failed large source range fall back to an unbounded whole decode?* — No. Once the large range-readable original is identified, refuse failed ranges while retaining the prior displayed scene.
 
 ### 1. `src/browser_publication.rs`
 
@@ -9599,8 +7713,7 @@ Stage original ranged prefixes and keep failed revisions off the current scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     });
@@ -9623,8 +7736,6 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9670,8 +7781,7 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let result=read(&route,&mut index,&abort.signal()).await;
@@ -9682,8 +7792,6 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
         let again=std::mem::take(&mut owner.again);drop(owner);
         if changed {if let Some(window)=web_sys::window() {if let Ok(event)=web_sys::Event::new("viewer-publication") {let _=window.dispatch_event(&event);}}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -9697,8 +7805,7 @@ Replace it with:
         if changed {if let Some(window)=web_sys::window() {if let Ok(event)=web_sys::Event::new("viewer-publication") {let _=window.dispatch_event(&event);}}}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{publication_index::Index,publication_route::Route};
@@ -9804,101 +7911,42 @@ async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Resul
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68ab-choose-bounded-range-loading-for-large-originals-01.rs"
-```
-
-```text
---8<-- "journey/code/68ab-choose-bounded-range-loading-for-large-originals-02.rs"
-```
-
-```text
---8<-- "journey/code/68ab-choose-bounded-range-loading-for-large-originals-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-68ac-connect-current-pages-to-the-browser-renderer"></a>
 
 ### Step 31 of 31 · Connect current pages to the browser renderer (`68ac-connect-current-pages-to-the-browser-renderer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/31 Visual Trace (68ac-connect-current-pages-to-the-browser-renderer): Connect current pages to the browser renderer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_publication.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">adopted original</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current page</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">delivery</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancelled old pick</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">GPU refresh</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source diagnostics</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_publication.r…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cancelled old pick</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source diagnostics</text>
 </svg>
-</div>
-
-- **Goal:** Connect current pages to the browser renderer.
-- **Data Flow Trace:** `adopted original → current page delivery → cancelled old pick → GPU refresh → source diagnostics`
-- **Files You Touch:** `src/browser_publication.rs` (*Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.*) · `src/browser.rs` (*Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.*)
 
 Begin retained page work after source adoption. Refresh display without history and report original/retained counts separately.
 
-> **Self-Check Question:** *May Close be undone by a late page event?*  
-> **Answer:** No. The publication owner, source ticket and current scene membership must all remain valid before adopting a page.
-
-- **What You Should See:** The browser reference separates the original CAD bore and NURBS roof so the hole stays open. Two placed instances of the same 2,000,064-point original source display actual colored range pages. The separate four-point native fixture shows red coarse samples, blue detailed samples and the yellow marker for original point 4294967295; its colors and point count are different test data.
-- **Hands-On Lab Experiment:** Compare the two placed cloud instances: source identity stays shared while placements and display point sizes differ. In the supplied browser acceptance scene, inspect the open CAD bore, the separate roof, ranged source counts and zero retained owners after Close. Do not expect the four-point native fixture and the large browser source to have the same colors or density.
-
-<details>
-<summary>Implementation 68ac-connect-current-pages-to-the-browser-renderer: Connect current pages to the browser renderer</summary>
-
-Connect current pages to the browser renderer.
-
-Data flow: adopted original → current page delivery → cancelled old pick → GPU refresh → source diagnostics.
+> **Check:** *May Close be undone by a late page event?* — No. The publication owner, source ticket and current scene membership must all remain valid before adopting a page.
 
 ### 1. `src/browser_publication.rs`
 
 Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if let Some(source)=state.notify.take() {source.set_onmessage(None);source.close();}state.message=None;state.tick=None;
-    }
-    pub fn take(&self)->Result<Option<crate::editor::Action>,String> {let Some(state)=self.state() else {return Ok(None);};let mut state=state.borrow_mut();if !state.active {state.delivery=None;return Ok(None);}state.delivery.take().transpose().map(|scene|scene.map(crate::editor::Action::Live))}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9912,8 +7960,7 @@ Connect current streamed page delivery, original source diagnostics and bounded 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
@@ -9923,8 +7970,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-part-usage", &serde_json::to_string(&renderer.part_usage()).unwrap())?;
     canvas.set_attribute("data-selected-ids", &serde_json::to_string(&editor.selected_objects().iter().map(|id| id.value()).collect::<Vec<_>>()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -9942,8 +7987,7 @@ Replace it with:
     canvas.set_attribute("data-selected-ids", &serde_json::to_string(&editor.selected_objects().iter().map(|id| id.value()).collect::<Vec<_>>()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     listeners.listen(document.as_ref(), "cancel")?;
@@ -9953,8 +7997,6 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-file-error")?;
     listeners.listen(window.as_ref(), "viewer-reload")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -9968,8 +8010,7 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-reload")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -9979,8 +8020,6 @@ Replace it with:
             match publication_control.take() {Ok(action)=>action,Err(error)=>{let message=format!("Cannot load scene: {error}");report(&message);panel.result(&message);None}}
         } else if event.type_() == "viewer-file" {
 ```
-
-</details>
 
 Replace it with:
 
@@ -9995,8 +8034,7 @@ Replace it with:
         } else if event.type_() == "viewer-file" {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -10811,48 +8849,22 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/68ac-connect-current-pages-to-the-browser-renderer-02.rs"
-```
-
-```text
---8<-- "journey/code/68ac-connect-current-pages-to-the-browser-renderer-03.rs"
-```
-
-```text
---8<-- "journey/code/68ac-connect-current-pages-to-the-browser-renderer-04.rs"
-```
-
-</details>
-
-</details>
+**Result after `68ac-connect-current-pages-to-the-browser-renderer`:** The browser reference separates the original CAD bore and NURBS roof so the hole stays open. Two placed instances of the same 2,000,064-point original source display actual colored range pages. The separate four-point native fixture shows red coarse samples, blue detailed samples and the yellow marker for original point 4294967295; its colors and point count are different test data.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 68ac-connect-current-pages-to-the-browser-renderer
-npm --prefix ../session_tests run course -- check 68ac-connect-current-pages-to-the-browser-renderer
-npm --prefix ../session_tests run course -- save 68ac-connect-current-pages-to-the-browser-renderer
+npm --prefix ../session_tests run course -- dependencies 12.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 12.4
+npm --prefix ../session_tests run course -- save 12.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The browser reference separates the original CAD bore and NURBS roof so the hole stays open. Two placed instances of the same 2,000,064-point original source display actual colored range pages. The separate four-point native fixture shows red coarse samples, blue detailed samples and the yellow marker for original point 4294967295; its colors and point count are different test data.
-
-- **Final Lesson Experiment:** Compare the two placed cloud instances: source identity stays shared while placements and display point sizes differ. In the supplied browser acceptance scene, inspect the open CAD bore, the separate roof, ranged source counts and zero retained owners after Close. Do not expect the four-point native fixture and the large browser source to have the same colors or density.
+Continue with [13.1 · Shared original definitions and independently placed instances](../../consolidation/69-validate-original-definition-references.md).

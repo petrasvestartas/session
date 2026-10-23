@@ -1,236 +1,100 @@
 # 22.4 · Original ambient inputs and real pass ordering
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.4** (Redraft `10.19`) · **3 checkpoints (`96zzzzzzr-share-geometric-ambient-inputs` → `96zzzzzzt-keep-contact-ambient-inputs-on-originals`)** · **Study time: 3–6 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzzzzzr-share-geometric-ambient-inputs` → `96zzzzzzt-keep-contact-ambient-inputs-on-originals` (3 steps) · **Production source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs)
 
-> **What You Will Learn & Build:** Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner. By the final checkpoint (`96zzzzzzt-keep-contact-ambient-inputs-on-originals`), you will match the displayed contact depth and original visual radius without adding GPU resources.
+> **Goal:** Match the displayed contact depth and original visual radius without adding GPU resources.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 22.4 Pipeline Schematic: Original ambient inputs and real pass ordering</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (3 Checkpoints: 96zzzzzzr-share-geometric-ambient-inputs → 96zzzzzzt-keep-contact-ambient-inputs-on-originals)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original mesh and</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">retained object</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">radius</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">geometric source</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">normal</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">ambient contact</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">shading</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Original visual</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">owner</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 22.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/ambient_sources.wgsl  ·  src/ambient_source_gpu.rs  ·  src/ambient_source_pipeline.rs  ·  src/renderer.rs  ·  src/ambient_gpu.rs  ·  src/ambient_input_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">3 Checkpoints: 96zzzzzzr-share-geometric-ambient-inputs → 96zzzzzzt-keep-contact-ambient-inputs-on-originals — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzzzzzr-share-geometric-ambient-inputs`](#checkpoint-96zzzzzzr-share-geometric-ambient-inputs) | Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner. | `src/ambient_sources.wgsl`, `src/ambient_source_gpu.rs`, `src/ambient_source_pipeline.rs`, `src/renderer.rs` | `Original mesh and placement → retained object radius → geometric source normal → ambient contact shading` |
-| **2** | [`96zzzzzzs-shade-surfaces-before-drawing-ink`](#checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink) | Preserve authored drawing colours and independent widget pixels by ordering existing passes. | `src/renderer.rs`, `src/ambient_order_tests.rs` | `Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget` |
-| **3** | [`96zzzzzzt-keep-contact-ambient-inputs-on-originals`](#checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals) | Match the displayed contact depth and original visual radius without adding GPU resources. | `src/feature_owner.rs`, `src/ambient_rows.rs`, `src/ambient_sources.wgsl`, `src/ambient_source_pipeline.rs` | `Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzzzzzr-share-geometric-ambient-inputs"></a>
 
 ### Step 1 of 3 · Share geometric ambient inputs (`96zzzzzzr-share-geometric-ambient-inputs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/3 Visual Trace (96zzzzzzr-share-geometric-ambient-inputs): Share geometric ambient inputs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_sources.wgsl, src/ambient_source_gpu.rs, src/ambient_source_pipeline.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original mesh and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained object radius</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">geometric source normal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ambient contact shading</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_sources.wgsl,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">geometric source normal</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ambient contact shading</text>
 </svg>
-</div>
-
-- **Goal:** Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
-- **Data Flow Trace:** `Original mesh and placement → retained object radius → geometric source normal → ambient contact shading`
-- **Files You Touch:** `src/ambient_sources.wgsl` (*Read both source paths from the existing object record instead of a separate radius uniform.*) · `src/ambient_source_gpu.rs` (*Remove the redundant per-object property cache.*) · `src/ambient_source_pipeline.rs` (*Keep only the actual render pipelines.*) · `src/renderer.rs` (*Prepare bounds and object radii once, without maintaining a second property store.*) · `src/ambient_gpu.rs` (*Only image and camera state need clearing.*) · `src/ambient_input_tests.rs` (*Check actual production property readbacks, preserved lighting, both object paths, shared placed radii and source release.*)
 
 Ambient occlusion follows the actual face geometry; authored normals continue to control lighting. Read each placed contact radius from its existing object record and remove the duplicate radius resources.
 
 The current ambient pass incorrectly prefers the interpolated lighting normal. An original cube with sideways authored normals exposes a false dark gradient across its flat top. Read back the actual production GPU source pass, then keep geometric and lighting normals in their distinct roles.
 
-Each object record already contains its placed radius. Both storage and uniform object paths can read that same field. Retain shared geometry storage where vertex pulling needs it; remove the second per-object radius buffer, bind group, scalar cache and reset path.
-
-> **Self-Check Question:** *Why can a correct lighting normal still be wrong for ambient contacts?*  
-> **Answer:** A source may intentionally smooth or author its lighting normals. Ambient contact geometry must follow the actual rendered face plane, so it uses the geometric normal and leaves the lighting data unchanged.
-
-- **What You Should See:** The flat top no longer receives a false dark contact gradient. Authored lighting remains intact, and additional shared placements allocate no additional ambient-radius buffers.
-- **Hands-On Lab Experiment:** Compare the actual original authored-normal cube with the preceding dark top and the maintained camera-matched reference. Check both object paths, projections and densities, mirrored nonuniform placements, complete decoded archives and source release. Definition instances retain the existing ineligible-source rejection; source unload/reload checks use an eligible original mesh.
-
-<details>
-<summary>Implementation 96zzzzzzr-share-geometric-ambient-inputs: Share geometric ambient inputs</summary>
-
-Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
-
-Data flow: Original mesh and placement → retained object radius → geometric source normal → ambient contact shading.
+> **Check:** *Why can a correct lighting normal still be wrong for ambient contacts?* — A source may intentionally smooth or author its lighting normals. Ambient contact geometry must follow the actual rendered face plane, so it uses the geometric normal and leaves the lighting data unchanged.
 
 ### 1. `src/ambient_sources.wgsl`
 
 Read both source paths from the existing object record instead of a separate radius uniform. Ambient contacts use geometric normals; lighting normals remain in the surface shading path. Use one radius owner and avoid decoding or interpolating a lighting normal for the ambient source pass. A face normal follows the rendered geometry even when the source provides a different lighting normal.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(3) @binding(0) var<uniform> ambient_radius:vec4<f32>;
-struct Vertex{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(1) normal:vec3<f32>,@location(2) @interpolate(flat) flags:u32,@location(3) @interpolate(flat) radius:f32}
-fn ambient_vertex(position:vec3<f32>,normal:vec3<f32>,object:ObjectSettings,radius:f32)->Vertex {
- let world=object.model*vec4<f32>(position,1.);return Vertex(view.transform*world,world.xyz,(object.normal_matrix*vec4<f32>(normal,0.)).xyz,object.selection.z,radius);
-}
-@vertex fn vs_main(@location(0) position:vec3<f32>,@location(2) normal:u32)->Vertex {return ambient_vertex(position,oct32_decode(normal),object_at(0u),ambient_radius.x);}
-@vertex fn vs_record(@builtin(vertex_index) occurrence:u32,@location(0) row:u32)->Vertex {let object=object_at(row);let input=mesh_vertex(occurrence,object.range.x);return ambient_vertex(input.position,input.normal,object,bitcast<f32>(object.range.z));}
-fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z));let folded=(1.-abs(p.yx))*select(vec2<f32>(-1.),vec2<f32>(1.),p>=vec2<f32>(0.));return select(folded,p,n.z>=0.);}
-struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
-@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
- let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
- let normal=normalize(select(select(face,-face,front),in.normal,dot(in.normal,in.normal)>0.));
- return Source(in.radius,encode_normal(normal)*0.5+0.5);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -250,44 +114,9 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-04.rs"
-```
-
-</details>
-
 ### 2. `src/ambient_source_gpu.rs`
 
 Remove the redundant per-object property cache. The source owner retains only its two existing pipelines. No per-object radius buffers or bind groups are allocated. The existing object records already contain each placed contact radius. Both actual storage and uniform object paths use the same retained radius, without a second per-mesh binding. There is no separate ambient source buffer allocation to report.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::collections::HashMap;
-pub struct Sources{pipes:crate::ambient_source_pipeline::Pipeline,rows:HashMap<u32,(wgpu::Buffer,wgpu::BindGroup,f32)>,pub writes:u64,pub draws:u64}
-impl Sources{
- pub fn new(device:&wgpu::Device)->Self{Self{pipes:crate::ambient_source_pipeline::Pipeline::new(device),rows:Default::default(),writes:0,draws:0}}
- pub fn set(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,specs:&[(u32,f32)]){
-  let live=specs.iter().map(|(id,_)|*id).collect::<std::collections::HashSet<_>>();self.rows.retain(|id,_|live.contains(id));for &(id,radius)in specs{let row=self.rows.entry(id).or_insert_with(||{let buffer=device.create_buffer(&wgpu::BufferDescriptor{label:Some("original ambient contact radius"),size:16,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let group=crate::gpu_layout::group(device,&self.pipes.radius,&buffer);(buffer,group,f32::NAN)});if row.2!=radius{queue.write_buffer(&row.0,0,&radius.to_ne_bytes());row.2=radius;self.writes+=1;}}if self.rows.is_empty(){self.rows.shrink_to_fit();}
- }
- pub fn encode(&mut self,encoder:&mut wgpu::CommandEncoder,radius:&wgpu::TextureView,normals:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clip:&wgpu::BindGroup,meshes:&[crate::gpu_mesh::GpuMesh],records:Option<&crate::instance_gpu::Lane>){
-  let attachments=[radius,normals].map(|view|Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}));let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original ambient source properties"),color_attachments:&attachments,depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&self.pipes.draw);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clip,&[]);for mesh in meshes{if let Some((_,group,_))=self.rows.get(&mesh.id.value()){if records.is_some_and(|rows|rows.bind_record(&mut pass,mesh)){pass.set_pipeline(&self.pipes.record_draw);mesh.geometry.draw_pulled(&mut pass,1);}else{pass.set_pipeline(&self.pipes.draw);mesh.bind_model(&mut pass);pass.set_bind_group(3,group,&[]);mesh.geometry.draw(&mut pass);}self.draws+=1;}}
- }
- pub fn bytes(&self)->u64{self.rows.values().map(|r|r.0.size()).sum()}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -301,37 +130,9 @@ impl Sources{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-09.rs"
-```
-
-</details>
-
 ### 3. `src/ambient_source_pipeline.rs`
 
 Keep only the actual render pipelines. Remove the unused radius layout. Shared vertex pulling still needs its geometry storage group; the uniform object path needs only the first three groups. The geometric source pass reads positions only. Cache the existing source pipelines without a radius layout owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Pipeline{pub draw:wgpu::RenderPipeline,pub record_draw:wgpu::RenderPipeline,pub radius:wgpu::BindGroupLayout}
-impl Pipeline{
- pub fn new(device:&wgpu::Device)->Self{
-  let radius=crate::gpu_layout::uniform(device,16);let create=|shared| {
-  let view=crate::surface_view::layout(device);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(if shared {&geometry}else{&radius})],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
-",include_str!("ambient_sources.wgsl"));let source=if shared {crate::object_rows::source(source)}else{source.into()};let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient original normals and radii"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(&source,2,0).into())});
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3,2=>Uint32];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw,radius}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -347,33 +148,13 @@ impl Pipeline{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-15.rs"
-```
-
-</details>
-
 ### 4. `src/renderer.rs`
 
 Prepare bounds and object radii once, without maintaining a second property store. Enabling ambient shading reuses the object records already uploaded by set_scene. Disabling ambient shading releases its images without a redundant source reset.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
@@ -384,8 +165,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
     pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -399,8 +178,7 @@ Replace it with:
     pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -411,8 +189,6 @@ Replace it with:
         self.clipping.borrow_mut().set(scene);
         if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
 ```
-
-</details>
 
 Replace it with:
 
@@ -426,8 +202,7 @@ Replace it with:
         if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1079,69 +854,9 @@ mod mesh_marker_tests;
 mod mesh_density_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-18.rs"
-```
-
-</details>
-
 ### 5. `src/ambient_gpu.rs`
 
 Only image and camera state need clearing. Empty scenes release ambient images without per-object GPU properties. Report actual retained frame/image/work allocations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{ambient_images::Images,ambient_groups::Groups,ambient_pass::draw};
-struct State{images:Images,groups:Groups,input:(wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)}
-pub struct Ambient{pipes:crate::ambient_pipeline::Pipelines,pub sources:crate::ambient_source_gpu::Sources,frame:wgpu::Buffer,state:Option<State>,cached:Option<([f32;80],[u64;2])>,pub preparations:u64,pub writes:u64,pub passes:u64,pub error:Option<&'static str>}
-impl Ambient{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self,device:&wgpu::Device,queue:&wgpu::Queue){self.state=None;self.cached=None;self.sources.set(device,queue,&[]);self.error=None;}
- fn prepare(&mut self,device:&wgpu::Device,full:[u32;2],density:f32,depth:&wgpu::TextureView,sections:&wgpu::TextureView,clip:&wgpu::Buffer){
-  let(w,h)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[w.max(32),h.max(32)];
-  if self.state.as_ref().is_none_or(|s|s.images.full!=full||s.images.size!=size){let images=Images::new(device,full,density);let groups=Groups::new(device,&self.pipes,&images);let group=Groups::source(device,&self.pipes,&images,depth,sections,&self.frame,clip);self.state=Some(State{images,groups,input:(depth.clone(),sections.clone(),group)});self.cached=None;self.preparations+=1;}
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
- pub fn draw(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,clip:&wgpu::Buffer,sections:&wgpu::TextureView,meshes:&[crate::gpu_mesh::GpuMesh],matrix:[f32;16],full:[u32;2],density:f32,ground:[f32;2],revision:[u64;2],records:Option<&crate::instance_gpu::Lane>){
-  if ground[1]<=0.0{self.clear(device,queue);return;}if matrix.iter().any(|v|!v.is_finite())||full.contains(&0)||!density.is_finite()||density<=0.{self.error=Some("Invalid ambient view");return;}
-  self.prepare(device,full,density,depth,sections,clip);let state=self.state.as_ref().unwrap();let Some(uniform)=crate::ambient_camera::uniform(matrix,full,state.images.size,ground)else{self.error=Some("Invalid ambient camera inverse");return;};
-  if self.cached!=Some((uniform,revision)){
-   queue.write_buffer(&self.frame,0,&uniform.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());self.writes+=1;
-   let images=&state.images;let groups=&state.groups;let source=&state.input.2;self.sources.encode(encoder,&images.source_radius.view,&images.source_normals.view,depth,view,clipping,meshes,records);self.passes+=1;
-   draw(encoder,&self.pipes.prepare,&[&images.linear.levels[0],&images.radii.levels[0],&images.normals.view],&[(0,source)],true);
-   for level in 1..6{draw(encoder,&self.pipes.reduce,&[&images.linear.levels[level],&images.radii.levels[level]],&[(0,&groups.levels[level-1])],true);}self.passes+=6;
-   draw(encoder,&self.pipes.occupancy,&[&images.occupancy.view],&[(0,&groups.levels[0])],true);
-   draw(encoder,&self.pipes.ground,&[&images.ground.view],&[(0,source),(1,&groups.levels[0]),(2,&groups.occupancy),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.raw,&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ground),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[0],&[&images.ao[1].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[1],&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[1]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.upsample,&[&images.ao[2].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);self.passes+=6;
-   self.cached=Some((uniform,revision));
-  }
-  draw(encoder,&self.pipes.composite,&[color],&[(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.sources.bytes()+self.state.as_ref().map_or(0,|s|s.images.bytes()+s.groups.buffers.iter().map(wgpu::Buffer::size).sum::<u64>()),1,self.preparations,self.writes,self.passes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1179,23 +894,7 @@ impl Ambient{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-20.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1209,10 +908,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-22.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1220,81 +916,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the two actual geometric ambient-input GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod mesh_density_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-23.rs" skip=23
 ```
 
-</details>
+**Result after `96zzzzzzr-share-geometric-ambient-inputs`:** The flat top no longer receives a false dark contact gradient. Authored lighting remains intact, and additional shared placements allocate no additional ambient-radius buffers.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink"></a>
 
 ### Step 2 of 3 · Shade surfaces before drawing ink (`96zzzzzzs-shade-surfaces-before-drawing-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/3 Visual Trace (96zzzzzzs-shade-surfaces-before-drawing-ink): Shade surfaces before drawing ink</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/ambient_order_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Faces, sections and cloud</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ambient contacts</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drawing ink and scene text</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent widget</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/ambi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">drawing ink and scene t…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent widget</text>
 </svg>
-</div>
-
-- **Goal:** Preserve authored drawing colours and independent widget pixels by ordering existing passes.
-- **Data Flow Trace:** `Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget`
-- **Files You Touch:** `src/renderer.rs` (*Remove ambient multiplication from the end of the completed scene.*) · `src/ambient_order_tests.rs` (*Check real ground contacts, authored point/stroke colour, picks, source restoration and independent widget GPU output.*)
 
 Complete ambient contact shading before drawing ink, then place the existing widget after scene text. Original point and stroke colours remain unchanged over ground shadows.
 
 An actual original red point loses more than half its colour when ambient shading multiplies the finished image. The same pass changes opaque widget pixels even though the widget already has its own depth buffer. Read back these actual GPU results, then move the existing pass calls into their correct order.
 
-Keep the current depth, shared records and geometry owners. This change introduces no additional texture, buffer or pipeline.
-
-> **Self-Check Question:** *Why does a widget with its own depth buffer still need to draw after ambient shading?*  
-> **Answer:** Its depth buffer orders the widget handles internally. A later full-screen colour multiplication still modifies the already composited widget, so ambient shading must finish before that overlay.
-
-- **What You Should See:** Ambient shadows still shade the scene, while original ink retains its authored colour and opaque widget pixels match an independent render of the same production widget.
-- **Hands-On Lab Experiment:** Compare actual original points, lines and paths over measured ground-contact shadows in both projections and densities. Check the widget against its actual independent GPU output, source restoration, real picks and unchanged geometry uploads.
-
-<details>
-<summary>Implementation 96zzzzzzs-shade-surfaces-before-drawing-ink: Shade surfaces before drawing ink</summary>
-
-Preserve authored drawing colours and independent widget pixels by ordering existing passes.
-
-Data flow: Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget.
+> **Check:** *Why does a widget with its own depth buffer still need to draw after ambient shading?* — Its depth buffer orders the widget handles internally. A later full-screen colour multiplication still modifies the already composited widget, so ambient shading must finish before that overlay.
 
 ### 1. `src/renderer.rs`
 
@@ -1302,8 +965,7 @@ Remove ambient multiplication from the end of the completed scene. Finish ambien
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
@@ -1314,8 +976,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);tiles.map_report();
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1329,8 +989,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
@@ -1341,8 +1000,6 @@ Replace it with:
         if let Some(lane)=self.text.borrow_mut().as_mut() {
             match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1355,8 +1012,7 @@ Replace it with:
             match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -1366,8 +1022,6 @@ Replace it with:
             let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
             pass.set_bind_group(2,&clip_group,&[]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1381,8 +1035,7 @@ Replace it with:
             pass.set_bind_group(2,&clip_group,&[]);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2037,25 +1690,7 @@ mod mesh_density_tests;
 mod ambient_input_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2069,10 +1704,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-05.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2080,150 +1712,52 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the two actual pass-order GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod ambient_input_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-06.rs" skip=24
 ```
 
-</details>
+**Result after `96zzzzzzs-shade-surfaces-before-drawing-ink`:** Ambient shadows still shade the scene, while original ink retains its authored colour and opaque widget pixels match an independent render of the same production widget.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals"></a>
 
 ### Step 3 of 3 · Keep contact ambient inputs on originals (`96zzzzzzt-keep-contact-ambient-inputs-on-originals`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/3 Visual Trace (96zzzzzzt-keep-contact-ambient-inputs-on-originals): Keep contact ambient inputs on originals</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/feature_owner.rs, src/ambient_rows.rs, src/ambient_sources.wgsl, src/ambient_source_pipeline.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original visual</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owner</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing radius word</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared contact</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">geometry</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact source depth</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometric ambient</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">normal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/feature_owner.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared contact geometry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">geometric ambient normal</text>
 </svg>
-</div>
-
-- **Goal:** Match the displayed contact depth and original visual radius without adding GPU resources.
-- **Data Flow Trace:** `Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal`
-- **Files You Touch:** `src/feature_owner.rs` (*Resolve the existing original visual ancestor before applying pickability.*) · `src/ambient_rows.rs` (*Remove the obsolete maximum before visual-owner mapping.*) · `src/ambient_sources.wgsl` (*Reuse the actual geometry function, including contact depth and clipping flags.*) · `src/ambient_source_pipeline.rs` (*Use the existing 20-byte vertex layout; no additional buffer or attribute storage.*) · `src/ambient_contact_tests.rs` (*Check real contact coverage/radius, both object paths and device budgets, locks, original picks, source semantics and placed definitions.*) · `src/renderer.rs` (*Register the two actual original contact-input GPU checks.*)
 
 Read ambient properties at the contact surface’s actual display depth and use its original object’s radius. Reuse the same geometry function as the face pass so contact shading stays correct without new GPU resources.
 
 A real original panel and contact feature expose a zero ambient radius even though an independent GPU query resolves the original face. The contact depth is seven float steps closer than the original plane; the separate source vertex path fails the exact depth test. Its separate radius also differs from the original object’s radius.
 
-Call the existing geometry function from both source vertex paths. It already handles contact placement and clipping flags. Reuse the packed colour and normal words in the existing 20-byte vertex layout, while ambient normals still come from geometric face derivatives. Resolve visual ancestry before applying picking filters, so locking never removes visible contact shading.
-
-> **Self-Check Question:** *Why can a visually aligned contact surface still lose its ambient input?*  
-> **Answer:** The displayed contact uses a deliberate depth shift. A second vertex path without that shift fails exact depth matching. Sharing geometry fixes coverage, and the original visual owner supplies the correct radius independently of picking locks.
-
-- **What You Should See:** Actual contact pixels retain their original radius and receive ambient shading. Uniform and storage paths share the existing contact geometry function, including device fallback and original ownership.
-- **Hands-On Lab Experiment:** Inspect actual source-radius readbacks and matching whole frames, both projections and densities, real 64 KiB device fallback, locked original owners, mirrored nonuniform definition placements and complete source values.
-
-<details>
-<summary>Implementation 96zzzzzzt-keep-contact-ambient-inputs-on-originals: Keep contact ambient inputs on originals</summary>
-
-Match the displayed contact depth and original visual radius without adding GPU resources.
-
-Data flow: Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal.
+> **Check:** *Why can a visually aligned contact surface still lose its ambient input?* — The displayed contact uses a deliberate depth shift. A second vertex path without that shift fails exact depth matching. Sharing geometry fixes coverage, and the original visual owner supplies the correct radius independently of picking locks.
 
 ### 1. `src/feature_owner.rs`
 
 Resolve the existing original visual ancestor before applying pickability. A locked original still owns its visible contact shading. Keep existing pick and highlight filtering while exposing raw visual ownership. Use the same original hierarchy for visual shading. Preserve the existing original picking contract.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{hierarchy::Document, scene::{ObjectId, Scene}};
-
-fn ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<ObjectId> {
-    let mut parent = doc.nodes[index].parent;
-    while let Some(index) = parent {
-        let node = &doc.nodes[index];
-        if let Some(id) = node.object {
-            if scene.instances.contains_key(&id) || scene.objects().iter().any(|row| row.id == id
-                && matches!(row.original.as_ref(), Some(session_rust::Geometry::Element(_)))) {
-                return scene.pick_id(id.value());
-            }
-        }
-        parent = node.parent;
-    }
-    None
-}
-
-pub fn display_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
-    if !scene.forest.derived(id) { return scene.pick_id(id.value()); }
-    for doc in &scene.forest.documents {
-        if let Some(index) = doc.nodes.iter().position(|node| node.object == Some(id)) {
-            return ancestor(scene, doc, index);
-        }
-    }
-    None
-}
-
-pub fn row_owner(scene: &Scene, key: &str) -> Option<ObjectId> {
-    let (document, guid) = key.split_once('/')?;
-    let document = document.parse::<u32>().ok()?;
-    let doc = scene.forest.documents.iter().find(|doc| doc.key == document)?;
-    let index = doc.nodes.iter().position(|node| node.source.guid == guid)?;
-    if !doc.nodes[index].readonly { return None; }
-    ancestor(scene, doc, index)
-}
-
-pub fn highlighted(scene: &Scene, selected: &[ObjectId]) -> Vec<ObjectId> {
-    let mut ids = selected.to_vec();
-    for doc in &scene.forest.documents {
-        for (index, node) in doc.nodes.iter().enumerate() {
-            if !node.derived { continue; }
-            let Some(id) = node.object.filter(|id| scene.visible(*id)) else { continue; };
-            if ancestor(scene, doc, index).is_some_and(|owner| selected.contains(&owner)) {
-                ids.push(id);
-            }
-        }
-    }
-    ids.sort_unstable_by_key(|id| id.value());
-    ids.dedup();
-    ids
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2289,50 +1823,9 @@ pub fn highlighted(scene: &Scene, selected: &[ObjectId]) -> Vec<ObjectId> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-05.rs"
-```
-
-</details>
-
 ### 2. `src/ambient_rows.rs`
 
 Remove the obsolete maximum before visual-owner mapping. Compute the maximum after resolving original visual radii. Map temporary numeric radii to original visual owners, without retaining another source or property cache.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Default)]
-pub struct Rows{bounds:crate::cap_source_bounds::Bounds,pub specs:Vec<(u32,f32)>,pub ground:[f64;2]}
-impl Rows{
- pub fn ground_at(&self,anchor:[f64;3])->[f32;2] {[(self.ground[0]-anchor[2])as f32,self.ground[1]as f32]}
- pub fn set(&mut self,scene:&crate::scene::Scene){self.specs.clear();let mut floor=f64::INFINITY;let mut radius=0f32;for object in scene.objects().iter().filter(|r|scene.visible(r.id)&&!r.mesh.indices().is_empty()){if let Some(bounds)=self.bounds.placed(&object.mesh,&object.model){let r=crate::ambient_radius::ambient_radius(&bounds);self.specs.push((object.id.value(),r));floor=floor.min(bounds.cz-bounds.hz);radius=radius.max(r);}}self.ground=[if floor.is_finite(){floor}else{0.},f64::from(radius)];self.bounds.prune();if self.specs.is_empty(){self.specs.shrink_to_fit();}}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2345,41 +1838,9 @@ impl Rows{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-08.rs"
-```
-
-</details>
-
 ### 3. `src/ambient_sources.wgsl`
 
 Reuse the actual geometry function, including contact depth and clipping flags. Read existing packed colour and normal words for the shared contact-depth function. Match contact coverage in the existing shared object path too.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct Vertex{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(2) @interpolate(flat) flags:u32,@location(3) @interpolate(flat) radius:f32}
-fn ambient_vertex(position:vec3<f32>,object:ObjectSettings)->Vertex {
- let world=object.model*vec4<f32>(position,1.);return Vertex(view.transform*world,world.xyz,object.selection.z,bitcast<f32>(object.range.z));
-}
-@vertex fn vs_main(@location(0) position:vec3<f32>)->Vertex {return ambient_vertex(position,object_at(0u));}
-@vertex fn vs_record(@builtin(vertex_index) occurrence:u32,@location(0) row:u32)->Vertex {let object=object_at(row);let input=mesh_vertex(occurrence,object.range.x);return ambient_vertex(input.position,object);}
-fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z));let folded=(1.-abs(p.yx))*select(vec2<f32>(-1.),vec2<f32>(1.),p>=vec2<f32>(0.));return select(folded,p,n.z>=0.);}
-struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
-@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
- let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
- let normal=normalize(select(face,-face,front));
- return Source(in.radius,encode_normal(normal)*0.5+0.5);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2399,37 +1860,9 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-11.rs"
-```
-
-</details>
-
 ### 4. `src/ambient_source_pipeline.rs`
 
 Use the existing 20-byte vertex layout; no additional buffer or attribute storage.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2437,19 +1870,7 @@ Edit the existing block to match this code; keep unchanged lines:
   let attributes=wgpu::vertex_attr_array![0=>Float32x3,1=>Uint32,2=>Uint32];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-12.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2463,10 +1884,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-13.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2474,46 +1892,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the two actual original contact-input GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod ambient_order_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-14.rs" skip=24
 ```
 
-</details>
-
-</details>
+**Result after `96zzzzzzt-keep-contact-ambient-inputs-on-originals`:** Actual contact pixels retain their original radius and receive ambient shading. Uniform and storage paths share the existing contact geometry function, including device fallback and original ownership.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzzzzzt-keep-contact-ambient-inputs-on-originals
-npm --prefix ../session_tests run course -- check 96zzzzzzt-keep-contact-ambient-inputs-on-originals
-npm --prefix ../session_tests run course -- save 96zzzzzzt-keep-contact-ambient-inputs-on-originals
+npm --prefix ../session_tests run course -- dependencies 22.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 22.4
+npm --prefix ../session_tests run course -- save 22.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Actual contact pixels retain their original radius and receive ambient shading. Uniform and storage paths share the existing contact geometry function, including device fallback and original ownership.
-
-- **Final Lesson Experiment:** Inspect actual source-radius readbacks and matching whole frames, both projections and densities, real 64 KiB device fallback, locked original owners, mirrored nonuniform definition placements and complete source values.
-
-Continue with [Coherent multisampling and frame-resource ownership](../../consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md).
+Continue with [22.5 · Coherent multisampling and frame-resource ownership](../../consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md).

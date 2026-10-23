@@ -1,214 +1,99 @@
 # 17.2 · Finite ink visibility and original colour/pick ownership
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.2** (Redraft `9.2`) · **25 checkpoints (`86s-test-visibility-at-the-original-center-line` → `86aq-exercise-finite-color-and-original-picking`)** · **Study time: 12.5–25 h**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Checkpoints:** `86s-test-visibility-at-the-original-center-line` → `86aq-exercise-finite-color-and-original-picking` (25 steps) · **Production source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs)
 
-> **What You Will Learn & Build:** Test visibility at the original center line. By the final checkpoint (`86aq-exercise-finite-color-and-original-picking`), you will exercise finite color and original picking.
+> **Goal:** Exercise finite color and original picking.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
-    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
-    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
-    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
-    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="706" cy="175" r="4" fill="#111111"/>
-    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 17.2 Pipeline Schematic: Finite ink visibility and original colour/pick ownership</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (25 Checkpoints: 86s-test-visibility-at-the-original-center-line → 86aq-exercise-finite-color-and-original-picking)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">fragment pixel</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest axis point</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite original</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">triangles</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original solids and</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">ink</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">finite coverage</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 17.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/finite_visibility.wgsl  ·  src/stroke_coverage.wgsl  ·  src/stroke.wgsl  ·  src/stroke.rs  ·  src/finite_project_source.rs  ·  src/stroke_gpu.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">25 Checkpoints: 86s-test-visibility-at-the-original-center-line → 86aq-exercise-finite-color-and-original-picking — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`86s-test-visibility-at-the-original-center-line`](#checkpoint-86s-test-visibility-at-the-original-center-line) | Test visibility at the original center line. | `src/finite_visibility.wgsl` | `fragment pixel → nearest axis point → finite original triangles` |
-| **2** | [`86t-reuse-original-stroke-coverage`](#checkpoint-86t-reuse-original-stroke-coverage) | Reuse original stroke coverage. | `src/stroke_coverage.wgsl`, `src/stroke.wgsl`, `src/stroke.rs`, `src/finite_project_source.rs` | `original geometry recipe → unchanged coverage` |
-| **3** | [`86u-carry-stroke-axis-and-depth`](#checkpoint-86u-carry-stroke-axis-and-depth) | Carry stroke axis and depth. | `src/finite_stroke.wgsl` | `original projected axis → full-canvas pixel → finite visibility` |
-| **4** | [`86v-reuse-original-stroke-integer-coverage`](#checkpoint-86v-reuse-original-stroke-integer-coverage) | Reuse original stroke integer coverage. | `src/finite_stroke_pick.wgsl` | `original coverage → original owner ID` |
-| **5** | [`86w-keep-stroke-crop-ownership-aligned`](#checkpoint-86w-keep-stroke-crop-ownership-aligned) | Keep stroke crop ownership aligned. | `src/finite_stroke_pick.wgsl` | `same finite axis → cropped integer draw → original ID` |
-| **6** | [`86x-reuse-original-chain-coverage`](#checkpoint-86x-reuse-original-chain-coverage) | Reuse original chain coverage. | `src/chain_coverage.wgsl`, `src/chain.wgsl`, `src/chain.rs`, `src/finite_project_source.rs` | `original geometry recipe → unchanged coverage` |
-| **7** | [`86y-carry-chain-axis-and-depth`](#checkpoint-86y-carry-chain-axis-and-depth) | Carry chain axis and depth. | `src/finite_chain.wgsl` | `original projected axis → full-canvas pixel → finite visibility` |
-| **8** | [`86z-reuse-original-chain-integer-coverage`](#checkpoint-86z-reuse-original-chain-integer-coverage) | Reuse original chain integer coverage. | `src/finite_chain_pick.wgsl` | `original coverage → original owner ID` |
-| **9** | [`86aa-keep-chain-crop-ownership-aligned`](#checkpoint-86aa-keep-chain-crop-ownership-aligned) | Keep chain crop ownership aligned. | `src/finite_chain_pick.wgsl` | `same finite axis → cropped integer draw → original ID` |
-| **10** | [`86ab-reuse-original-marker-coverage`](#checkpoint-86ab-reuse-original-marker-coverage) | Reuse original marker coverage. | `src/marker_coverage.wgsl`, `src/marker.wgsl`, `src/marker.rs`, `src/finite_project_source.rs` | `original geometry recipe → unchanged coverage` |
-| **11** | [`86ac-carry-marker-axis-and-depth`](#checkpoint-86ac-carry-marker-axis-and-depth) | Carry marker axis and depth. | `src/finite_marker.wgsl` | `original projected axis → full-canvas pixel → finite visibility` |
-| **12** | [`86ad-reuse-original-marker-integer-coverage`](#checkpoint-86ad-reuse-original-marker-integer-coverage) | Reuse original marker integer coverage. | `src/finite_marker_pick.wgsl` | `original coverage → original owner ID` |
-| **13** | [`86ae-keep-marker-crop-ownership-aligned`](#checkpoint-86ae-keep-marker-crop-ownership-aligned) | Keep marker crop ownership aligned. | `src/finite_marker_pick.wgsl` | `same finite axis → cropped integer draw → original ID` |
-| **14** | [`86af-assemble-one-shared-finite-shader-predicate`](#checkpoint-86af-assemble-one-shared-finite-shader-predicate) | Assemble one shared finite shader predicate. | `src/finite_sources.rs`, `src/lib.rs` | `original family → expanded helper → color or pick source` |
-| **15** | [`86ag-own-finite-color-and-integer-pipelines`](#checkpoint-86ag-own-finite-color-and-integer-pipelines) | Compile the finite pipeline and cached-binding types before construction. | `src/finite_ink.rs`, `src/lib.rs` | `explicit GPU owner → color and pick targets` |
-| **16** | [`86ah-build-finite-shader-pipelines-with-original-layouts`](#checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts) | Build finite shader pipelines with original layouts. | `src/finite_ink.rs` | `original attributes → explicit groups → target pipeline` |
-| **17** | [`86ai-bind-finite-coverage-for-original-families`](#checkpoint-86ai-bind-finite-coverage-for-original-families) | Bind finite coverage for original families. | `src/finite_ink.rs` | `projected records and lists → sampled depth → family pipeline` |
-| **18** | [`86aj-reuse-bindings-and-draw-original-owners`](#checkpoint-86aj-reuse-bindings-and-draw-original-owners) | Reuse bindings and draw original owners. | `src/finite_ink.rs` | `unchanged resources → cached binding → color or integer draw` |
-| **19** | [`86ak-expose-original-gpu-models-to-projection`](#checkpoint-86ak-expose-original-gpu-models-to-projection) | Expose original GPU models to projection. | `src/gpu_layout.rs` | `existing mesh and uniform → compute-readable original inputs` |
-| **20** | [`86al-connect-finite-visibility-to-all-original-ink-lanes`](#checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes) | Connect finite visibility to all original ink lanes. | `src/stroke_gpu.rs`, `src/highlight.rs` | `original stroke lane → optional finite pipeline → preserved legacy API` |
-| **21** | [`86am-separate-integer-depth-writers-and-sampled-ink`](#checkpoint-86am-separate-integer-depth-writers-and-sampled-ink) | Separate integer depth writers and sampled ink. | `src/pick_image.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `opaque original IDs → read-only ink → other original owners` |
-| **22** | [`86an-own-tile-state-before-color-and-first-picks`](#checkpoint-86an-own-tile-state-before-color-and-first-picks) | Own tile state before color and first picks. | `src/renderer.rs` | `current source and view → prepared projection → cached owner` |
-| **23** | [`86ao-split-opaque-finite-ink-and-cloud-composition`](#checkpoint-86ao-split-opaque-finite-ink-and-cloud-composition) | Split opaque finite ink and cloud composition. | `src/renderer.rs` | `opaque surfaces → cloud depth composite → read-only finite ink` |
-| **24** | [`86ap-observe-actual-derived-tile-resources`](#checkpoint-86ap-observe-actual-derived-tile-resources) | Observe actual derived tile resources. | `src/browser.rs` | `completed report → one browser wake → truthful counters` |
-| **25** | [`86aq-exercise-finite-color-and-original-picking`](#checkpoint-86aq-exercise-finite-color-and-original-picking) | Exercise finite color and original picking. | `src/tile_shader_tests.rs`, `src/lib.rs`, `src/tile_gpu_tests.rs`, `src/finite_visibility_tests.rs` | `original solids and ink → finite coverage → stable view` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-86s-test-visibility-at-the-original-center-line"></a>
 
 ### Step 1 of 25 · Test visibility at the original center line (`86s-test-visibility-at-the-original-center-line`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/25 Visual Trace (86s-test-visibility-at-the-original-center-line): Test visibility at the original center line</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_visibility.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fragment pixel</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">nearest axis point</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite original triangles</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_visibility.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">nearest axis point</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite original triangl…</text>
 </svg>
-</div>
-
-- **Goal:** Test visibility at the original center line.
-- **Data Flow Trace:** `fragment pixel → nearest axis point → finite original triangles`
-- **Files You Touch:** `src/finite_visibility.wgsl` (*Test visibility at the original center line.*)
 
 Test visibility at the original center line.
 
-> **Self-Check Question:** *Why compare at the center line?*  
-> **Answer:** A wide ribbon on a sloping face must remain visible on both sides. Fragment depth alone can erase half its width.
-
-- **Hands-On Lab Experiment:** Trace finite coverage, coplanar grid comparison, overflow fallback and forward-to-reversed float rounding.
-
-<details>
-<summary>Implementation 86s-test-visibility-at-the-original-center-line: Test visibility at the original center line</summary>
-
-Test visibility at the original center line.
-
-Data flow: fragment pixel → nearest axis point → finite original triangles.
+> **Check:** *Why compare at the center line?* — A wide ribbon on a sloping face must remain visible on both sides. Fragment depth alone can erase half its width.
 
 ### 1. `src/finite_visibility.wgsl`
 
@@ -218,52 +103,40 @@ Create the file and type:
 --8<-- "journey/code/86s-test-visibility-at-the-original-center-line-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-86t-reuse-original-stroke-coverage"></a>
 
 ### Step 2 of 25 · Reuse original stroke coverage (`86t-reuse-original-stroke-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/25 Visual Trace (86t-reuse-original-stroke-coverage): Reuse original stroke coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_coverage.wgsl, src/stroke.wgsl, src/stroke.rs, src/finite_project_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original geometry recipe</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_coverage.wgsl,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original stroke coverage.
-- **Data Flow Trace:** `original geometry recipe → unchanged coverage`
-- **Files You Touch:** `src/stroke_coverage.wgsl` (*Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.*) · `src/stroke.wgsl` (*Use the same coverage predicate in the ordinary and finite shader.*) · `src/stroke.rs` (*Assemble the ordinary shader with the shared source expander already written.*) · `src/finite_project_source.rs` (*Expand one shared coverage source for ordinary, finite and integer variants.*) · `src/stroke_gpu.rs` (*Route the existing GPU lane through shared coverage assembly.*) · `src/finite_stroke.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
 
 Reuse original stroke coverage.
 
 The ordinary stroke already has its signed-distance coverage function. Move that function into one shared source and assemble it with the expander written at86c. Both ordinary and finite strokes use the same width and antialiasing predicate; the following stage adds centreline depth data.
 
-> **Self-Check Question:** *Does finite visibility replace line or arrow coverage?*  
-> **Answer:** No. Preserve the original shape and add a separate visibility predicate.
-
-- **Hands-On Lab Experiment:** Inspect width, near clipping and coverage before the adapter.
-
-<details>
-<summary>Implementation 86t-reuse-original-stroke-coverage: Reuse original stroke coverage</summary>
-
-Reuse original stroke coverage.
-
-Data flow: original geometry recipe → unchanged coverage.
+> **Check:** *Does finite visibility replace line or arrow coverage?* — No. Preserve the original shape and add a separate visibility predicate.
 
 ### 1. `src/stroke_coverage.wgsl`
 
@@ -271,8 +144,7 @@ Move this already-written coverage function into one shared shader file; no new 
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
 
@@ -282,23 +154,9 @@ Create the destination by moving the existing code:
 --8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-02.rs"
 ```
 
-</details>
-
 ### 2. `src/stroke.wgsl`
 
 Use the same coverage predicate in the ordinary and finite shader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn colour(input: Output) -> vec4<f32> {
-    let coverage = clamp(input.half_width + 0.5 - abs(input.side), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -306,29 +164,9 @@ Edit the existing block to match this code; keep unchanged lines:
 #include "stroke_coverage.wgsl"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-03.rs"
-```
-
-</details>
-
 ### 3. `src/stroke.rs`
 
 Assemble the ordinary shader with the shared source expander already written.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const SHADER: &str = include_str!("stroke.wgsl");
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -336,29 +174,9 @@ Edit the existing block to match this code; keep unchanged lines:
 pub fn shader() -> String { crate::finite_project_source::expand(include_str!("stroke.wgsl")) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-04.rs"
-```
-
-</details>
-
 ### 4. `src/finite_project_source.rs`
 
 Expand one shared coverage source for ordinary, finite and integer variants.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .replace("#include \"projected_triangle.wgsl:viewport-span\"", viewport)
-```
-
-</details>
 
 After that block, type:
 
@@ -366,25 +184,13 @@ After that block, type:
         .replace("#include \"stroke_coverage.wgsl\"", include_str!("stroke_coverage.wgsl"))
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-05.rs"
-```
-
-</details>
-
 ### 5. `src/stroke_gpu.rs`
 
 Route the existing GPU lane through shared coverage assembly. Borrow assembled shader source only while creating its owned GPU module.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn guides(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);Self::layout_depth(device,format,include_str!("guide.wgsl"),48,6,&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Uint32],depth)}
@@ -402,8 +208,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     ) -> Self {
         let view_layout = crate::gpu_layout::uniform(device, 80);
 ```
-
-</details>
 
 Replace it with:
 
@@ -424,8 +228,7 @@ Replace it with:
         let view_layout = crate::gpu_layout::uniform(device, 80);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32, 2 => Float32x4])
@@ -436,8 +239,6 @@ Replace it with:
         Self::layout_depth(device, format, source, stride, vertices_per_instance, attributes, crate::depth::ink())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -451,8 +252,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -462,8 +262,6 @@ Replace it with:
             &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32])
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -476,8 +274,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -662,35 +459,6 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-06.rs"
-```
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-07.rs"
-```
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-08.rs"
-```
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-09.rs"
-```
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-10.rs"
-```
-
-</details>
-
 ### 6. `src/finite_stroke.wgsl`
 
 Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
@@ -701,116 +469,46 @@ Reuse the shader you have already written:
 cp src/stroke.wgsl src/finite_stroke.wgsl
 ```
 
-<details>
-<summary>Reused source reference</summary>
+**Reused source reference:**
 
 ```wgsl
 --8<-- "journey/code/86t-reuse-original-stroke-coverage-01-shared-intro.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86u-carry-stroke-axis-and-depth"></a>
 
 ### Step 3 of 25 · Carry stroke axis and depth (`86u-carry-stroke-axis-and-depth`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/25 Visual Trace (86u-carry-stroke-axis-and-depth): Carry stroke axis and depth</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_stroke.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original projected axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">full-canvas pixel</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite visibility</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_stroke.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">full-canvas pixel</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite visibility</text>
 </svg>
-</div>
-
-- **Goal:** Carry stroke axis and depth.
-- **Data Flow Trace:** `original projected axis → full-canvas pixel → finite visibility`
-- **Files You Touch:** `src/finite_stroke.wgsl` (*Carry stroke axis and depth.*)
 
 Carry stroke axis and depth.
 
-> **Self-Check Question:** *Does crop-local position describe the original canvas?*  
-> **Answer:** No. Retain the original full-canvas pixel as a linear varying; picking later applies its physical origin.
-
-- **Hands-On Lab Experiment:** Compare axis endpoints, reversed depth and the shared fragment predicate.
-
-<details>
-<summary>Implementation 86u-carry-stroke-axis-and-depth: Carry stroke axis and depth</summary>
-
-Carry stroke axis and depth.
-
-Data flow: original projected axis → full-canvas pixel → finite visibility.
+> **Check:** *Does crop-local position describe the original canvas?* — No. Retain the original full-canvas pixel as a linear varying; picking later applies its physical origin.
 
 ### 1. `src/finite_stroke.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-}
-
-fn hidden(colour: vec4<f32>) -> Output {
-    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0);
-}
-
-fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32) -> Output {
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    if (a.z < 0.0 && b.z < 0.0) { return hidden(colour); }
-    if (a.z < 0.0) { a = mix(a, b, -a.z / (b.z - a.z)); }
-    if (b.z < 0.0) { b = mix(b, a, -b.z / (a.z - b.z)); }
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour); }
-    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
-    let length2 = dot(delta, delta);
-    if (length2 < 0.000001) { return hidden(colour); }
-    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index];
-    let half_width = width * view.density * 0.5;
-    let extent = half_width + 0.70711;
-    var position = select(a, b, corner.x > 0.5);
-    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
-    return Output(position, colour, corner.y * extent, half_width);
-}
-
-#include "stroke_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32) -> Output { return geometry(start, end, colour, width, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -862,76 +560,43 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86u-carry-stroke-axis-and-depth-01.rs"
-```
-
-```text
---8<-- "journey/code/86u-carry-stroke-axis-and-depth-02.rs"
-```
-
-```text
---8<-- "journey/code/86u-carry-stroke-axis-and-depth-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86v-reuse-original-stroke-integer-coverage"></a>
 
 ### Step 4 of 25 · Reuse original stroke integer coverage (`86v-reuse-original-stroke-integer-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/25 Visual Trace (86v-reuse-original-stroke-integer-coverage): Reuse original stroke integer coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_stroke_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original coverage</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner ID</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_stroke_pick.wg…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original stroke integer coverage.
-- **Data Flow Trace:** `original coverage → original owner ID`
-- **Files You Touch:** `src/finite_stroke_pick.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
 
 Reuse original stroke integer coverage.
 
-> **Self-Check Question:** *Can color and pick use different visible shapes?*  
-> **Answer:** They must preserve the same coverage and finite visibility rules.
-
-- **What You Should See:** The finite stroke has a reference to the already-taught integer coverage source. Its new fragment consumer is connected in the following lessons.
-- **Hands-On Lab Experiment:** Compare the reused stroke integer entry point with its original owner. Identify the two integer output words and the existing coverage call. In the browser, selecting the existing line should behave exactly as before this preparatory file reuse.
-
-<details>
-<summary>Implementation 86v-reuse-original-stroke-integer-coverage: Reuse original stroke integer coverage</summary>
-
-Reuse original stroke integer coverage.
-
-Data flow: original coverage → original owner ID.
+> **Check:** *Can color and pick use different visible shapes?* — They must preserve the same coverage and finite visibility rules.
 
 ### 1. `src/finite_stroke_pick.wgsl`
 
@@ -943,100 +608,48 @@ Reuse the shader you have already written:
 cp src/stroke_pick.wgsl src/finite_stroke_pick.wgsl
 ```
 
-<details>
-<summary>Reused source reference</summary>
+**Reused source reference:**
 
 ```wgsl
 --8<-- "journey/code/86v-reuse-original-stroke-integer-coverage-01.rs"
 ```
 
-</details>
+**Result after `86v-reuse-original-stroke-integer-coverage`:** The finite stroke has a reference to the already-taught integer coverage source. Its new fragment consumer is connected in the following lessons.
 
-</details>
+---
 
 <a id="checkpoint-86w-keep-stroke-crop-ownership-aligned"></a>
 
 ### Step 5 of 25 · Keep stroke crop ownership aligned (`86w-keep-stroke-crop-ownership-aligned`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/25 Visual Trace (86w-keep-stroke-crop-ownership-aligned): Keep stroke crop ownership aligned</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_stroke_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same finite axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped integer draw</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original ID</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_stroke_pick.wg…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped integer draw</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
 </svg>
-</div>
-
-- **Goal:** Keep stroke crop ownership aligned.
-- **Data Flow Trace:** `same finite axis → cropped integer draw → original ID`
-- **Files You Touch:** `src/finite_stroke_pick.wgsl` (*Keep stroke crop ownership aligned.*)
 
 Keep stroke crop ownership aligned.
 
-> **Self-Check Question:** *Do temporary screen records acquire scene IDs?*  
-> **Answer:** No. The integer result remains the original row and part address.
-
-- **Hands-On Lab Experiment:** Compare original coverage and the unchanged ID attribute7.
-
-<details>
-<summary>Implementation 86w-keep-stroke-crop-ownership-aligned: Keep stroke crop ownership aligned</summary>
-
-Keep stroke crop ownership aligned.
-
-Data flow: same finite axis → cropped integer draw → original ID.
+> **Check:** *Do temporary screen records acquire scene IDs?* — No. The integer result remains the original row and part address.
 
 ### 1. `src/finite_stroke_pick.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1075,67 +688,40 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86w-keep-stroke-crop-ownership-aligned-01.rs"
-```
-
-```text
---8<-- "journey/code/86w-keep-stroke-crop-ownership-aligned-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86x-reuse-original-chain-coverage"></a>
 
 ### Step 6 of 25 · Reuse original chain coverage (`86x-reuse-original-chain-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/25 Visual Trace (86x-reuse-original-chain-coverage): Reuse original chain coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/chain_coverage.wgsl, src/chain.wgsl, src/chain.rs, src/finite_project_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original geometry recipe</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/chain_coverage.wgsl,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original chain coverage.
-- **Data Flow Trace:** `original geometry recipe → unchanged coverage`
-- **Files You Touch:** `src/chain_coverage.wgsl` (*Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.*) · `src/chain.wgsl` (*Use the same coverage predicate in the ordinary and finite shader.*) · `src/chain.rs` (*Assemble the ordinary shader with the shared source expander already written.*) · `src/finite_project_source.rs` (*Expand one shared coverage source for ordinary, finite and integer variants.*) · `src/stroke_gpu.rs` (*Route the existing GPU lane through shared coverage assembly.*) · `src/finite_chain.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
 
 Reuse original chain coverage.
 
 Reuse the source assembly from86t. Keep chain and arrowhead coverage in a single function: the body uses perpendicular distance, while the head combines side, tip and base distances. Both chain variants call it, so finite occlusion does not introduce different visible or pickable arrow shapes.
 
-> **Self-Check Question:** *Which chain coverage must survive the visibility adapter?*  
-> **Answer:** The existing joined ribbon and arrowhead coverage. Reuse the [shared coverage approach](../../86t-reuse-original-stroke-coverage.md); finite visibility only decides whether that covered source is hidden.
-
-- **Hands-On Lab Experiment:** Trace an arrowhead tip and a joined path corner through the existing coverage function. Neither should change shape when the visibility adapter is added.
-
-<details>
-<summary>Implementation 86x-reuse-original-chain-coverage: Reuse original chain coverage</summary>
-
-Reuse original chain coverage.
-
-Data flow: original geometry recipe → unchanged coverage.
+> **Check:** *Which chain coverage must survive the visibility adapter?* — The existing joined ribbon and arrowhead coverage. Reuse the [shared coverage approach](../../86t-reuse-original-stroke-coverage.md); finite visibility only decides whether that covered source is hidden.
 
 ### 1. `src/chain_coverage.wgsl`
 
@@ -1143,8 +729,7 @@ Move this already-written coverage function into one shared shader file; no new 
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
 
@@ -1154,32 +739,9 @@ Create the destination by moving the existing code:
 --8<-- "journey/code/86x-reuse-original-chain-coverage-share-coverage-02.rs"
 ```
 
-</details>
-
 ### 2. `src/chain.wgsl`
 
 Use the same coverage predicate in the ordinary and finite shader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn colour(input: Output) -> vec4<f32> {
-    let local = input.pixel - input.origin;
-    let distance = dot(local, perpendicular(input.direction));
-    var coverage = clamp(input.half_width + 0.5 - abs(distance), 0.0, 1.0);
-    if (input.part == 1u) {
-        let back = -dot(local, input.direction);
-        if (back >= input.head_length) { discard; }
-        let side = (0.4 * back - abs(distance)) / sqrt(1.16);
-        let base = select(input.head_length - back, 1e6, abs(distance) <= input.half_width);
-        coverage = clamp(min(min(side, back), base) + 0.5, 0.0, 1.0);
-    }
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1187,29 +749,9 @@ Edit the existing block to match this code; keep unchanged lines:
 #include "chain_coverage.wgsl"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86x-reuse-original-chain-coverage-share-coverage-03.rs"
-```
-
-</details>
-
 ### 3. `src/chain.rs`
 
 Assemble the ordinary shader with the shared source expander already written.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const SHADER: &str = include_str!("chain.wgsl");
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1217,29 +759,9 @@ Edit the existing block to match this code; keep unchanged lines:
 pub fn shader() -> String { crate::finite_project_source::expand(include_str!("chain.wgsl")) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86x-reuse-original-chain-coverage-share-coverage-04.rs"
-```
-
-</details>
-
 ### 4. `src/finite_project_source.rs`
 
 Expand one shared coverage source for ordinary, finite and integer variants.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .replace("#include \"stroke_coverage.wgsl\"", include_str!("stroke_coverage.wgsl"))
-```
-
-</details>
 
 After that block, type:
 
@@ -1247,46 +769,15 @@ After that block, type:
         .replace("#include \"chain_coverage.wgsl\"", include_str!("chain_coverage.wgsl"))
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86x-reuse-original-chain-coverage-share-coverage-05.rs"
-```
-
-</details>
-
 ### 5. `src/stroke_gpu.rs`
 
 Route the existing GPU lane through shared coverage assembly.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Self::layout(device, format, crate::chain::SHADER, 72, 18,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
         Self::layout(device, format, &crate::chain::shader(), 72, 18,
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86x-reuse-original-chain-coverage-share-coverage-06.rs"
-```
-
-</details>
 
 ### 6. `src/finite_chain.wgsl`
 
@@ -1298,70 +789,50 @@ Reuse the shader you have already written:
 cp src/chain.wgsl src/finite_chain.wgsl
 ```
 
-<details>
-<summary>Reused source reference</summary>
+**Reused source reference:**
 
 ```wgsl
 --8<-- "journey/code/86x-reuse-original-chain-coverage-01-shared-intro.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86y-carry-chain-axis-and-depth"></a>
 
 ### Step 7 of 25 · Carry chain axis and depth (`86y-carry-chain-axis-and-depth`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/25 Visual Trace (86y-carry-chain-axis-and-depth): Carry chain axis and depth</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_chain.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original projected axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">full-canvas pixel</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite visibility</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_chain.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">full-canvas pixel</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite visibility</text>
 </svg>
-</div>
-
-- **Goal:** Carry chain axis and depth.
-- **Data Flow Trace:** `original projected axis → full-canvas pixel → finite visibility`
-- **Files You Touch:** `src/finite_chain.wgsl` (*Carry chain axis and depth.*)
 
 Carry chain axis and depth.
 
-> **Self-Check Question:** *Which pixels identify the source of an expanded arrowhead?*  
-> **Answer:** The full-canvas source axis and endpoint depths, carried separately from the expanded triangle. Reuse the [stroke frame contract](../../86u-carry-stroke-axis-and-depth.md).
-
-- **Hands-On Lab Experiment:** Compare a wide arrowhead pixel with its original center line. The expanded triangle moves the pixel without inventing a different original source depth.
-
-<details>
-<summary>Implementation 86y-carry-chain-axis-and-depth: Carry chain axis and depth</summary>
-
-Carry chain axis and depth.
-
-Data flow: original projected axis → full-canvas pixel → finite visibility.
+> **Check:** *Which pixels identify the source of an expanded arrowhead?* — The full-canvas source axis and endpoint depths, carried separately from the expanded triangle. Reuse the [stroke frame contract](../../86u-carry-stroke-axis-and-depth.md).
 
 ### 1. `src/finite_chain.wgsl`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
@@ -1369,8 +840,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1380,14 +849,12 @@ Replace it with:
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
         * 2.0 / view.size * position.w, position.zw);
@@ -1397,8 +864,6 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 }
 #include "chain_coverage.wgsl"
 ```
-
-</details>
 
 Replace it with:
 
@@ -1411,8 +876,7 @@ Replace it with:
 #include "chain_coverage.wgsl"
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
         let offset = -aim * mix(-0.70711, head_length + 0.70711, corner.x)
@@ -1423,8 +887,6 @@ Replace it with:
     let start_offset = direction * select(0.0, head_length, at_start);
     let end_offset = -direction * select(0.0, head_length, at_end);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1438,8 +900,7 @@ Replace it with:
     let end_offset = -direction * select(0.0, head_length, at_end);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     @location(4) @interpolate(flat) half_width: f32,
@@ -1449,8 +910,6 @@ Replace it with:
 fn screen(p: vec4<f32>) -> vec2<f32> { return p.xy / p.w * view.size * 0.5; }
 fn perpendicular(d: vec2<f32>) -> vec2<f32> { return vec2<f32>(-d.y, d.x); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1466,8 +925,7 @@ fn screen(p: vec4<f32>) -> vec2<f32> { return p.xy / p.w * view.size * 0.5; }
 fn perpendicular(d: vec2<f32>) -> vec2<f32> { return vec2<f32>(-d.y, d.x); }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
@@ -1549,82 +1007,43 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86y-carry-chain-axis-and-depth-01.rs"
-```
-
-```text
---8<-- "journey/code/86y-carry-chain-axis-and-depth-02.rs"
-```
-
-```text
---8<-- "journey/code/86y-carry-chain-axis-and-depth-03-shared-coverage.rs"
-```
-
-```text
---8<-- "journey/code/86y-carry-chain-axis-and-depth-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86z-reuse-original-chain-integer-coverage"></a>
 
 ### Step 8 of 25 · Reuse original chain integer coverage (`86z-reuse-original-chain-integer-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/25 Visual Trace (86z-reuse-original-chain-integer-coverage): Reuse original chain integer coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_chain_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original coverage</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner ID</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_chain_pick.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original chain integer coverage.
-- **Data Flow Trace:** `original coverage → original owner ID`
-- **Files You Touch:** `src/finite_chain_pick.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
 
 Reuse original chain integer coverage.
 
-> **Self-Check Question:** *May picking include a chain corner rejected by color coverage?*  
-> **Answer:** The integer pass reuses the same joined-body and arrowhead coverage. See the [shared color/ID rule](../../86v-reuse-original-stroke-integer-coverage.md).
-
-- **What You Should See:** The connected-chain integer entry point is reused without a second coverage algorithm. Finite chain visibility still needs its following connection.
-- **Hands-On Lab Experiment:** Trace the chain pick entry point into the shared chain coverage function. Check how its body and arrowhead receive one original owner. This file reuse adds no browser behavior; the existing connected curve remains selectable.
-
-<details>
-<summary>Implementation 86z-reuse-original-chain-integer-coverage: Reuse original chain integer coverage</summary>
-
-Reuse original chain integer coverage.
-
-Data flow: original coverage → original owner ID.
+> **Check:** *May picking include a chain corner rejected by color coverage?* — The integer pass reuses the same joined-body and arrowhead coverage. See the [shared color/ID rule](../../86v-reuse-original-stroke-integer-coverage.md).
 
 ### 1. `src/finite_chain_pick.wgsl`
 
@@ -1636,109 +1055,48 @@ Reuse the shader you have already written:
 cp src/chain_pick.wgsl src/finite_chain_pick.wgsl
 ```
 
-<details>
-<summary>Reused source reference</summary>
+**Reused source reference:**
 
 ```wgsl
 --8<-- "journey/code/86z-reuse-original-chain-integer-coverage-01.rs"
 ```
 
-</details>
+**Result after `86z-reuse-original-chain-integer-coverage`:** The connected-chain integer entry point is reused without a second coverage algorithm. Finite chain visibility still needs its following connection.
 
-</details>
+---
 
 <a id="checkpoint-86aa-keep-chain-crop-ownership-aligned"></a>
 
 ### Step 9 of 25 · Keep chain crop ownership aligned (`86aa-keep-chain-crop-ownership-aligned`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/25 Visual Trace (86aa-keep-chain-crop-ownership-aligned): Keep chain crop ownership aligned</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_chain_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same finite axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped integer draw</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original ID</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_chain_pick.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped integer draw</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
 </svg>
-</div>
-
-- **Goal:** Keep chain crop ownership aligned.
-- **Data Flow Trace:** `same finite axis → cropped integer draw → original ID`
-- **Files You Touch:** `src/finite_chain_pick.wgsl` (*Keep chain crop ownership aligned.*)
 
 Keep chain crop ownership aligned.
 
-> **Self-Check Question:** *Does cropping change a chain span address?*  
-> **Answer:** It changes the readback window, while the chain retains its original row and part address. Reuse the [stroke crop ownership rule](../../86w-keep-stroke-crop-ownership-aligned.md).
-
-- **Hands-On Lab Experiment:** Compare original coverage and the unchanged ID attribute7.
-
-<details>
-<summary>Implementation 86aa-keep-chain-crop-ownership-aligned: Keep chain crop ownership aligned</summary>
-
-Keep chain crop ownership aligned.
-
-Data flow: same finite axis → cropped integer draw → original ID.
+> **Check:** *Does cropping change a chain span address?* — It changes the readback window, while the chain retains its original row and part address. Reuse the [stroke crop ownership rule](../../86w-keep-stroke-crop-ownership-aligned.md).
 
 ### 1. `src/finite_chain_pick.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) pixel: vec2<f32>,
-    @location(2) @interpolate(flat) origin: vec2<f32>,
-    @location(3) @interpolate(flat) direction: vec2<f32>,
-    @location(4) @interpolate(flat) half_width: f32,
-    @location(5) @interpolate(flat) part: u32,
-    @location(6) @interpolate(flat) head_length: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
-    @location(6) heads: u32, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, previous, next, heads, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.pixel = source.pixel;
-    output.origin = source.origin;
-    output.direction = source.direction;
-    output.half_width = source.half_width;
-    output.part = source.part;
-    output.head_length = source.head_length;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.pixel, input.origin, input.direction, input.half_width, input.part, input.head_length);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1786,67 +1144,40 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86aa-keep-chain-crop-ownership-aligned-01.rs"
-```
-
-```text
---8<-- "journey/code/86aa-keep-chain-crop-ownership-aligned-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86ab-reuse-original-marker-coverage"></a>
 
 ### Step 10 of 25 · Reuse original marker coverage (`86ab-reuse-original-marker-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/25 Visual Trace (86ab-reuse-original-marker-coverage): Reuse original marker coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/marker_coverage.wgsl, src/marker.wgsl, src/marker.rs, src/finite_project_source.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original geometry recipe</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/marker_coverage.wgsl,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original marker coverage.
-- **Data Flow Trace:** `original geometry recipe → unchanged coverage`
-- **Files You Touch:** `src/marker_coverage.wgsl` (*Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.*) · `src/marker.wgsl` (*Use the same coverage predicate in the ordinary and finite shader.*) · `src/marker.rs` (*Assemble the ordinary shader with the shared source expander already written.*) · `src/finite_project_source.rs` (*Expand one shared coverage source for ordinary, finite and integer variants.*) · `src/stroke_gpu.rs` (*Route the existing GPU lane through shared coverage assembly.*) · `src/finite_marker.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
 
 Reuse original marker coverage.
 
 A marker uses distance from its centre and a screen-space radius. Move that circular predicate into one shared file used by both marker variants. The next stage carries finite centreline information; it keeps the existing disc coverage and CSS-pixel diameter.
 
-> **Self-Check Question:** *Does an original marker become a square after adding visibility?*  
-> **Answer:** Its existing disc coverage still rejects the quad corners. Reuse the [separate coverage and visibility contract](../../86t-reuse-original-stroke-coverage.md).
-
-- **Hands-On Lab Experiment:** Trace the center, rim and corner of a marker quad. The disc rejects the corner independently of any surface-visibility result.
-
-<details>
-<summary>Implementation 86ab-reuse-original-marker-coverage: Reuse original marker coverage</summary>
-
-Reuse original marker coverage.
-
-Data flow: original geometry recipe → unchanged coverage.
+> **Check:** *Does an original marker become a square after adding visibility?* — Its existing disc coverage still rejects the quad corners. Reuse the [separate coverage and visibility contract](../../86t-reuse-original-stroke-coverage.md).
 
 ### 1. `src/marker_coverage.wgsl`
 
@@ -1854,8 +1185,7 @@ Move this already-written coverage function into one shared shader file; no new 
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
 
@@ -1865,23 +1195,9 @@ Create the destination by moving the existing code:
 --8<-- "journey/code/86ab-reuse-original-marker-coverage-share-coverage-02.rs"
 ```
 
-</details>
-
 ### 2. `src/marker.wgsl`
 
 Use the same coverage predicate in the ordinary and finite shader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn colour(input: Output) -> vec4<f32> {
-    let coverage = clamp(input.radius + 0.5 - length(input.offset), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1889,29 +1205,9 @@ Edit the existing block to match this code; keep unchanged lines:
 #include "marker_coverage.wgsl"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ab-reuse-original-marker-coverage-share-coverage-03.rs"
-```
-
-</details>
-
 ### 3. `src/marker.rs`
 
 Assemble the ordinary shader with the shared source expander already written.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const SHADER: &str = include_str!("marker.wgsl");
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1919,29 +1215,9 @@ Edit the existing block to match this code; keep unchanged lines:
 pub fn shader() -> String { crate::finite_project_source::expand(include_str!("marker.wgsl")) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ab-reuse-original-marker-coverage-share-coverage-04.rs"
-```
-
-</details>
-
 ### 4. `src/finite_project_source.rs`
 
 Expand one shared coverage source for ordinary, finite and integer variants.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .replace("#include \"chain_coverage.wgsl\"", include_str!("chain_coverage.wgsl"))
-```
-
-</details>
 
 After that block, type:
 
@@ -1949,46 +1225,15 @@ After that block, type:
         .replace("#include \"marker_coverage.wgsl\"", include_str!("marker_coverage.wgsl"))
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ab-reuse-original-marker-coverage-share-coverage-05.rs"
-```
-
-</details>
-
 ### 5. `src/stroke_gpu.rs`
 
 Route the existing GPU lane through shared coverage assembly.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Self::layout(device, format, crate::marker::SHADER, 32, 6,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
         Self::layout(device, format, &crate::marker::shader(), 32, 6,
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ab-reuse-original-marker-coverage-share-coverage-06.rs"
-```
-
-</details>
 
 ### 6. `src/finite_marker.wgsl`
 
@@ -2000,100 +1245,46 @@ Reuse the shader you have already written:
 cp src/marker.wgsl src/finite_marker.wgsl
 ```
 
-<details>
-<summary>Reused source reference</summary>
+**Reused source reference:**
 
 ```wgsl
 --8<-- "journey/code/86ab-reuse-original-marker-coverage-01-shared-intro.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86ac-carry-marker-axis-and-depth"></a>
 
 ### Step 11 of 25 · Carry marker axis and depth (`86ac-carry-marker-axis-and-depth`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/25 Visual Trace (86ac-carry-marker-axis-and-depth): Carry marker axis and depth</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_marker.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original projected axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">full-canvas pixel</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite visibility</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_marker.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">full-canvas pixel</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite visibility</text>
 </svg>
-</div>
-
-- **Goal:** Carry marker axis and depth.
-- **Data Flow Trace:** `original projected axis → full-canvas pixel → finite visibility`
-- **Files You Touch:** `src/finite_marker.wgsl` (*Carry marker axis and depth.*)
 
 Carry marker axis and depth.
 
-> **Self-Check Question:** *How does a point marker describe its finite source axis?*  
-> **Answer:** Both axis endpoints identify its projected center, and its depth is constant. The [full-canvas coordinate contract](../../86u-carry-stroke-axis-and-depth.md) still applies.
-
-- **Hands-On Lab Experiment:** Trace two pixels on opposite sides of a marker disc. Both refer to the same original center and depth.
-
-<details>
-<summary>Implementation 86ac-carry-marker-axis-and-depth: Carry marker axis and depth</summary>
-
-Carry marker axis and depth.
-
-Data flow: original projected axis → full-canvas pixel → finite visibility.
+> **Check:** *How does a point marker describe its finite source axis?* — Both axis endpoints identify its projected center, and its depth is constant. The [full-canvas coordinate contract](../../86u-carry-stroke-axis-and-depth.md) still applies.
 
 ### 1. `src/finite_marker.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-}
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0);
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = diameter * view.density * 0.5;
-    let offset = corners[index] * (radius + 0.70711);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius);
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output { return geometry(center, diameter, colour, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2130,76 +1321,43 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ac-carry-marker-axis-and-depth-01.rs"
-```
-
-```text
---8<-- "journey/code/86ac-carry-marker-axis-and-depth-02-shared-coverage.rs"
-```
-
-```text
---8<-- "journey/code/86ac-carry-marker-axis-and-depth-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86ad-reuse-original-marker-integer-coverage"></a>
 
 ### Step 12 of 25 · Reuse original marker integer coverage (`86ad-reuse-original-marker-integer-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/25 Visual Trace (86ad-reuse-original-marker-integer-coverage): Reuse original marker integer coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_marker_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original coverage</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner ID</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_marker_pick.wg…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
 </svg>
-</div>
-
-- **Goal:** Reuse original marker integer coverage.
-- **Data Flow Trace:** `original coverage → original owner ID`
-- **Files You Touch:** `src/finite_marker_pick.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
 
 Reuse original marker integer coverage.
 
-> **Self-Check Question:** *Can the transparent corner of a marker quad win a pick?*  
-> **Answer:** The marker ID fragment uses the same disc rejection as color, following the [shared coverage rule](../../86v-reuse-original-stroke-integer-coverage.md).
-
-- **What You Should See:** The point's integer entry point now has its reused source reference. The following edits add its finite visibility consumer.
-- **Hands-On Lab Experiment:** Locate the shared disc-coverage call in the reused point pick source and identify its original-owner output. Compare the existing point's selection in the browser; finite point visibility has not been connected by this reuse alone.
-
-<details>
-<summary>Implementation 86ad-reuse-original-marker-integer-coverage: Reuse original marker integer coverage</summary>
-
-Reuse original marker integer coverage.
-
-Data flow: original coverage → original owner ID.
+> **Check:** *Can the transparent corner of a marker quad win a pick?* — The marker ID fragment uses the same disc rejection as color, following the [shared coverage rule](../../86v-reuse-original-stroke-integer-coverage.md).
 
 ### 1. `src/finite_marker_pick.wgsl`
 
@@ -2211,99 +1369,48 @@ Reuse the shader you have already written:
 cp src/marker_pick.wgsl src/finite_marker_pick.wgsl
 ```
 
-<details>
-<summary>Reused source reference</summary>
+**Reused source reference:**
 
 ```wgsl
 --8<-- "journey/code/86ad-reuse-original-marker-integer-coverage-01.rs"
 ```
 
-</details>
+**Result after `86ad-reuse-original-marker-integer-coverage`:** The point's integer entry point now has its reused source reference. The following edits add its finite visibility consumer.
 
-</details>
+---
 
 <a id="checkpoint-86ae-keep-marker-crop-ownership-aligned"></a>
 
 ### Step 13 of 25 · Keep marker crop ownership aligned (`86ae-keep-marker-crop-ownership-aligned`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/25 Visual Trace (86ae-keep-marker-crop-ownership-aligned): Keep marker crop ownership aligned</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_marker_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same finite axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped integer draw</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original ID</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_marker_pick.wg…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cropped integer draw</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
 </svg>
-</div>
-
-- **Goal:** Keep marker crop ownership aligned.
-- **Data Flow Trace:** `same finite axis → cropped integer draw → original ID`
-- **Files You Touch:** `src/finite_marker_pick.wgsl` (*Keep marker crop ownership aligned.*)
 
 Keep marker crop ownership aligned.
 
-> **Self-Check Question:** *What owner does a cropped marker result retain?*  
-> **Answer:** The original point or control address, independent of the crop origin. The [existing crop mapping](../../86w-keep-stroke-crop-ownership-aligned.md) only locates its pixels.
-
-- **Hands-On Lab Experiment:** Compare original coverage and the unchanged ID attribute7.
-
-<details>
-<summary>Implementation 86ae-keep-marker-crop-ownership-aligned: Keep marker crop ownership aligned</summary>
-
-Keep marker crop ownership aligned.
-
-Data flow: same finite axis → cropped integer draw → original ID.
+> **Check:** *What owner does a cropped marker result retain?* — The original point or control address, independent of the crop origin. The [existing crop mapping](../../86w-keep-stroke-crop-ownership-aligned.md) only locates its pixels.
 
 ### 1. `src/finite_marker_pick.wgsl`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(center, diameter, colour, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.offset = source.offset;
-    output.radius = source.radius;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.offset, input.radius);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2341,69 +1448,38 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ae-keep-marker-crop-ownership-aligned-01.rs"
-```
-
-```text
---8<-- "journey/code/86ae-keep-marker-crop-ownership-aligned-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86af-assemble-one-shared-finite-shader-predicate"></a>
 
 ### Step 14 of 25 · Assemble one shared finite shader predicate (`86af-assemble-one-shared-finite-shader-predicate`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/25 Visual Trace (86af-assemble-one-shared-finite-shader-predicate): Assemble one shared finite shader predicate</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_sources.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">expanded helper</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">color or pick source</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_sources.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">expanded helper</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color or pick source</text>
 </svg>
-</div>
-
-- **Goal:** Assemble one shared finite shader predicate.
-- **Data Flow Trace:** `original family → expanded helper → color or pick source`
-- **Files You Touch:** `src/finite_sources.rs` (*Assemble one shared finite shader predicate.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 Assemble one shared finite shader predicate.
 
-> **Self-Check Question:** *Why share this source builder?*  
-> **Answer:** It prevents six color/pick adapters from drifting apart while preserving their existing vertex layouts.
-
-- **Hands-On Lab Experiment:** Inspect stride44/72/32, pick binding remapping and the physical crop origin.
-
-<details>
-<summary>Implementation 86af-assemble-one-shared-finite-shader-predicate: Assemble one shared finite shader predicate</summary>
-
-Assemble one shared finite shader predicate.
-
-Data flow: original family → expanded helper → color or pick source.
+> **Check:** *Why share this source builder?* — It prevents six color/pick adapters from drifting apart while preserving their existing vertex layouts.
 
 ### 1. `src/finite_sources.rs`
 
@@ -2417,67 +1493,44 @@ Create the file and type:
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod tile_gpu;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/86af-assemble-one-shared-finite-shader-predicate-02.rs" skip=19
 ```
 
-</details>
+---
 
 <a id="checkpoint-86ag-own-finite-color-and-integer-pipelines"></a>
 
 ### Step 15 of 25 · Own finite color and integer pipelines (`86ag-own-finite-color-and-integer-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/25 Visual Trace (86ag-own-finite-color-and-integer-pipelines): Own finite color and integer pipelines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_ink.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit GPU owner</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">color and pick targets</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_ink.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color and pick targets</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color and pick targets</text>
 </svg>
-</div>
-
-- **Goal:** Compile the finite pipeline and cached-binding types before construction.
-- **Data Flow Trace:** `explicit GPU owner → color and pick targets`
-- **Files You Touch:** `src/finite_ink.rs` (*Own finite color and integer pipelines.*) · `src/lib.rs` (*Register the resource types immediately so every following method is checked by the browser compiler.*)
 
 Declare the finite color/integer pipeline owner and its cached table bindings. Register it alongside the existing finite-source assembler. The next helpers create pipelines and bind these resources; the existing ribbon pass remains active until renderer adoption.
 
-> **Self-Check Question:** *Does finite ink write scene depth?*  
-> **Answer:** No. It samples existing depth and accepts fragments through the shared predicate.
-
-- **What You Should See:** Ink and Tables are compiled resource types. This declaration does not create or draw the finite pipelines yet.
-- **Hands-On Lab Experiment:** Build the browser, then locate the new module and compare its color, integer and cached-binding fields. Identify which resources will be supplied per frame and which belong to the lane lifetime.
-
-<details>
-<summary>Implementation 86ag-own-finite-color-and-integer-pipelines: Own finite color and integer pipelines</summary>
-
-Compile the finite pipeline and cached-binding types before construction.
-
-Data flow: explicit GPU owner → color and pick targets.
+> **Check:** *Does finite ink write scene depth?* — No. It samples existing depth and accepts fragments through the shared predicate.
 
 ### 1. `src/finite_ink.rs`
 
@@ -2493,83 +1546,48 @@ Create the file and type:
 
 Register the resource types immediately so every following method is checked by the browser compiler.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod finite_sources;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/86aj-reuse-bindings-and-draw-original-owners-02.rs" skip=25
 ```
 
-</details>
+**Result after `86ag-own-finite-color-and-integer-pipelines`:** Ink and Tables are compiled resource types. This declaration does not create or draw the finite pipelines yet.
+
+---
 
 <a id="checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts"></a>
 
 ### Step 16 of 25 · Build finite shader pipelines with original layouts (`86ah-build-finite-shader-pipelines-with-original-layouts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/25 Visual Trace (86ah-build-finite-shader-pipelines-with-original-layouts): Build finite shader pipelines with original layouts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_ink.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original attributes</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit groups</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">target pipeline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_ink.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit groups</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">target pipeline</text>
 </svg>
-</div>
-
-- **Goal:** Build finite shader pipelines with original layouts.
-- **Data Flow Trace:** `original attributes → explicit groups → target pipeline`
-- **Files You Touch:** `src/finite_ink.rs` (*Build finite shader pipelines with original layouts.*)
 
 Build finite shader pipelines with original layouts.
 
-> **Self-Check Question:** *Why keep original instance strides?*  
-> **Answer:** They preserve existing geometry buffers and integer owner addresses. Only the shaders and coverage bindings change.
-
-- **Hands-On Lab Experiment:** Compare color blending with unblended Rg32Uint picking.
-
-<details>
-<summary>Implementation 86ah-build-finite-shader-pipelines-with-original-layouts: Build finite shader pipelines with original layouts</summary>
-
-Build finite shader pipelines with original layouts.
-
-Data flow: original attributes → explicit groups → target pipeline.
+> **Check:** *Why keep original instance strides?* — They preserve existing geometry buffers and integer owner addresses. Only the shaders and coverage bindings change.
 
 ### 1. `src/finite_ink.rs`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::BindGroup)>>}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2577,66 +1595,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/86ah-build-finite-shader-pipelines-with-original-layouts-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-86ai-bind-finite-coverage-for-original-families"></a>
 
 ### Step 17 of 25 · Bind finite coverage for original families (`86ai-bind-finite-coverage-for-original-families`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/25 Visual Trace (86ai-bind-finite-coverage-for-original-families): Bind finite coverage for original families</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_ink.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected records and lists</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sampled depth</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">family pipeline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_ink.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled depth</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">family pipeline</text>
 </svg>
-</div>
-
-- **Goal:** Bind finite coverage for original families.
-- **Data Flow Trace:** `projected records and lists → sampled depth → family pipeline`
-- **Files You Touch:** `src/finite_ink.rs` (*Bind finite coverage for original families.*)
 
 Bind finite coverage for original families.
 
-> **Self-Check Question:** *Can grid depth use the ordinary coplanar rule?*  
-> **Answer:** No. Construction grid keeps strict depth so coplanar faces cover it.
-
-- **Hands-On Lab Experiment:** Inspect uniform80, storage visibility and sampled depth bindings.
-
-<details>
-<summary>Implementation 86ai-bind-finite-coverage-for-original-families: Bind finite coverage for original families</summary>
-
-Bind finite coverage for original families.
-
-Data flow: projected records and lists → sampled depth → family pipeline.
+> **Check:** *Can grid depth use the ordinary coplanar rule?* — No. Construction grid keeps strict depth so coplanar faces cover it.
 
 ### 1. `src/finite_ink.rs`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer}
-impl Ink{
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2644,70 +1636,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/86ai-bind-finite-coverage-for-original-families-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-86aj-reuse-bindings-and-draw-original-owners"></a>
 
 ### Step 18 of 25 · Reuse bindings and draw original owners (`86aj-reuse-bindings-and-draw-original-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/25 Visual Trace (86aj-reuse-bindings-and-draw-original-owners): Reuse bindings and draw original owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_ink.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unchanged resources</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached binding</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">color or integer draw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_ink.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached binding</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color or integer draw</text>
 </svg>
-</div>
-
-- **Goal:** Reuse bindings and draw original owners.
-- **Data Flow Trace:** `unchanged resources → cached binding → color or integer draw`
-- **Files You Touch:** `src/finite_ink.rs` (*Reuse bindings and draw original owners.*)
 
 Reuse bindings and draw original owners.
 
-> **Self-Check Question:** *Does a cropped pick use the full color depth texture?*  
-> **Answer:** No. Its physical depth texture and draw origin belong to its own bounded image.
-
-- **Hands-On Lab Experiment:** Compare cached color bindings and per-request cropped pick bindings.
-
-<details>
-<summary>Implementation 86aj-reuse-bindings-and-draw-original-owners: Reuse bindings and draw original owners</summary>
-
-Reuse bindings and draw original owners.
-
-Data flow: unchanged resources → cached binding → color or integer draw.
+> **Check:** *Does a cropped pick use the full color depth texture?* — No. Its physical depth texture and draw origin belong to its own bounded image.
 
 ### 1. `src/finite_ink.rs`
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)}]})}
-
-
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2715,67 +1677,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/86aj-reuse-bindings-and-draw-original-owners-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-86ak-expose-original-gpu-models-to-projection"></a>
 
 ### Step 19 of 25 · Expose original GPU models to projection (`86ak-expose-original-gpu-models-to-projection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/25 Visual Trace (86ak-expose-original-gpu-models-to-projection): Expose original GPU models to projection</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_layout.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing mesh and uniform</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compute-readable original inputs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_layout.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">compute-readable origin…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">compute-readable origin…</text>
 </svg>
-</div>
-
-- **Goal:** Expose original GPU models to projection.
-- **Data Flow Trace:** `existing mesh and uniform → compute-readable original inputs`
-- **Files You Touch:** `src/gpu_layout.rs` (*Expose existing buffers without changing original data.*)
 
 Expose original GPU models to projection.
 
-> **Self-Check Question:** *Do originals need another upload?*  
-> **Answer:** No. Reuse their actual GPU vertex/index/model handles.
-
-- **Hands-On Lab Experiment:** Inspect uniform stage visibility and the original model buffer accessor.
-
-<details>
-<summary>Implementation 86ak-expose-original-gpu-models-to-projection: Expose original GPU models to projection</summary>
-
-Expose original GPU models to projection.
-
-Data flow: existing mesh and uniform → compute-readable original inputs.
+> **Check:** *Do originals need another upload?* — No. Reuse their actual GPU vertex/index/model handles.
 
 ### 1. `src/gpu_layout.rs`
 
 Expose existing buffers without changing original data.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("shared uniform"), entries: &[wgpu::BindGroupLayoutEntry {
-            binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
-            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
-                has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(bytes) }, count: None,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2783,54 +1720,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/86ak-expose-original-gpu-models-to-projection-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes"></a>
 
 ### Step 20 of 25 · Connect finite visibility to all original ink lanes (`86al-connect-finite-visibility-to-all-original-ink-lanes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/25 Visual Trace (86al-connect-finite-visibility-to-all-original-ink-lanes): Connect finite visibility to all original ink lanes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/highlight.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original stroke lane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">optional finite pipeline</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">preserved legacy API</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/hi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">optional finite pipeline</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserved legacy API</text>
 </svg>
-</div>
-
-- **Goal:** Connect finite visibility to all original ink lanes.
-- **Data Flow Trace:** `original stroke lane → optional finite pipeline → preserved legacy API`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Connect optional finite state and cached coverage.*) · `src/highlight.rs` (*Connect optional finite state and cached coverage.*)
 
 Connect finite visibility to all original ink lanes.
 
-> **Self-Check Question:** *Can direct inherited lane tests still run?*  
-> **Answer:** Yes. A lane without finite bindings retains its existing color and pick routes.
-
-- **Hands-On Lab Experiment:** Inspect original lines, headed chains, points, grid and selected original boundaries.
-
-<details>
-<summary>Implementation 86al-connect-finite-visibility-to-all-original-ink-lanes: Connect finite visibility to all original ink lanes</summary>
-
-Connect finite visibility to all original ink lanes.
-
-Data flow: original stroke lane → optional finite pipeline → preserved legacy API.
+> **Check:** *Can direct inherited lane tests still run?* — Yes. A lane without finite bindings retains its existing color and pick routes.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -2838,8 +1759,7 @@ Connect optional finite state and cached coverage.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
@@ -2849,8 +1769,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2863,8 +1781,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -2874,8 +1791,6 @@ Replace it with:
             label: Some("stroke"), layout: Some(&layout),
             vertex: wgpu::VertexState { module: &shader, entry_point: Some("vertex"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2889,8 +1804,7 @@ Replace it with:
             vertex: wgpu::VertexState { module: &shader, entry_point: Some("vertex"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
@@ -2900,8 +1814,6 @@ Replace it with:
 
     pub fn usage(&self) -> [u64; 2] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2917,8 +1829,7 @@ Replace it with:
     pub fn usage(&self) -> [u64; 2] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         queue.write_buffer(&self.uniform, 0, &bytes);
@@ -2930,8 +1841,6 @@ Replace it with:
         pass.set_vertex_buffer(0, vertices.slice(..));
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2949,8 +1858,7 @@ Replace it with:
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -2958,8 +1866,6 @@ pub struct Lane {
     pick_pipeline: wgpu::RenderPipeline,
     ids: Option<wgpu::Buffer>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2972,8 +1878,7 @@ pub struct Lane {
     ids: Option<wgpu::Buffer>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -3167,50 +2072,9 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-01.rs"
-```
-
-```text
---8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-02.rs"
-```
-
-```text
---8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-03.rs"
-```
-
-```text
---8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-04.rs"
-```
-
-```text
---8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-05.rs"
-```
-
-</details>
-
 ### 2. `src/highlight.rs`
 
 Connect optional finite state and cached coverage.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    pub fn set(&mut self, device: &wgpu::Device, layout: &wgpu::BindGroupLayout, scene: &Scene, target: Option<Target>) -> Result<(), &'static str> {
-        self.mesh = None; let mut strokes = Vec::new(); let mut paths = Vec::new(); let mut markers = Vec::new();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3218,71 +2082,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-06.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-86am-separate-integer-depth-writers-and-sampled-ink"></a>
 
 ### Step 21 of 25 · Separate integer depth writers and sampled ink (`86am-separate-integer-depth-writers-and-sampled-ink`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/25 Visual Trace (86am-separate-integer-depth-writers-and-sampled-ink): Separate integer depth writers and sampled ink</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_image.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">opaque original IDs</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">read-only ink</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">other original owners</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_image.rs, src/pi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">read-only ink</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">other original owners</text>
 </svg>
-</div>
-
-- **Goal:** Separate integer depth writers and sampled ink.
-- **Data Flow Trace:** `opaque original IDs → read-only ink → other original owners`
-- **Files You Touch:** `src/pick_image.rs` (*Preserve original integer coverage while splitting incompatible depth access.*) · `src/pick_gpu.rs` (*Preserve original integer coverage while splitting incompatible depth access.*) · `src/pick_encode.rs` (*Preserve original integer coverage while splitting incompatible depth access.*)
 
 Separate integer depth writers and sampled ink.
 
-> **Self-Check Question:** *Can a sampled depth texture also be writable in that pass?*  
-> **Answer:** No. Finish opaque depth first, sample it read-only for finite ink, then composite the other depth-writing owners.
-
-- **Hands-On Lab Experiment:** Compare crops, original face IDs, cloud/sheet/text ownership and physical depth.
-
-<details>
-<summary>Implementation 86am-separate-integer-depth-writers-and-sampled-ink: Separate integer depth writers and sampled ink</summary>
-
-Separate integer depth writers and sampled ink.
-
-Data flow: opaque original IDs → read-only ink → other original owners.
+> **Check:** *Can a sampled depth texture also be writable in that pass?* — No. Finish opaque depth first, sample it read-only for finite ink, then composite the other depth-writing owners.
 
 ### 1. `src/pick_image.rs`
 
 Preserve original integer coverage while splitting incompatible depth access.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let depth = device.create_texture(&wgpu::TextureDescriptor { label: Some("pick depth"), size,
-            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT, usage: wgpu::TextureUsages::RENDER_ATTACHMENT, view_formats: &[] }).create_view(&Default::default());
-        // GPU image rows need 256-byte copy alignment; the decoder skips that padding and reads only the logical columns.
-        let readback = device.create_buffer(&wgpu::BufferDescriptor { label: Some("bounded pick readback"), size: window.bytes(),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3296,8 +2131,7 @@ Preserve original integer coverage while splitting incompatible depth access.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
@@ -3312,8 +2146,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3331,12 +2163,10 @@ Replace it with:
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -3344,13 +2174,10 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None)}
     pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>) {
@@ -3359,8 +2186,7 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -3372,7 +2198,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -3425,7 +2250,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None)}
     pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -3472,61 +2296,9 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86am-separate-integer-depth-writers-and-sampled-ink-02.rs"
-```
-
-```text
---8<-- "journey/code/86am-separate-integer-depth-writers-and-sampled-ink-03.rs"
-```
-
-</details>
-
 ### 3. `src/pick_encode.rs`
 
 Preserve original integer coverage while splitting incompatible depth access.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,ctx:&crate::text_gpu_support::GpuCtx) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-            if let Some(clouds)=clouds {clouds.pick(ctx,&mut pass,window,mode);}
-            if let Some(sheets)=sheets {sheets.pick(&mut pass,crop_group);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3566,69 +2338,38 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86am-separate-integer-depth-writers-and-sampled-ink-04.rs"
-```
-
-```text
---8<-- "journey/code/86am-separate-integer-depth-writers-and-sampled-ink-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86an-own-tile-state-before-color-and-first-picks"></a>
 
 ### Step 22 of 25 · Own tile state before color and first picks (`86an-own-tile-state-before-color-and-first-picks`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/25 Visual Trace (86an-own-tile-state-before-color-and-first-picks): Own tile state before color and first picks</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current source and view</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cached owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared projection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached owner</text>
 </svg>
-</div>
-
-- **Goal:** Own tile state before color and first picks.
-- **Data Flow Trace:** `current source and view → prepared projection → cached owner`
-- **Files You Touch:** `src/renderer.rs` (*Prepare current derived tile state and first-pick routing.*)
 
 Own tile state before color and first picks.
 
-> **Self-Check Question:** *Must picking wait for a color frame?*  
-> **Answer:** No. Prepare current triangle lists before the first integer request as well.
-
-- **Hands-On Lab Experiment:** Inspect scene witnesses, tile counters, sampled depth allocation and current pick matrices.
-
-<details>
-<summary>Implementation 86an-own-tile-state-before-color-and-first-picks: Own tile state before color and first picks</summary>
-
-Own tile state before color and first picks.
-
-Data flow: current source and view → prepared projection → cached owner.
+> **Check:** *Must picking wait for a color frame?* — No. Prepare current triangle lists before the first integer request as well.
 
 ### 1. `src/renderer.rs`
 
@@ -3636,8 +2377,7 @@ Prepare current derived tile state and first-pick routing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
@@ -3647,8 +2387,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3664,8 +2402,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -3677,8 +2414,6 @@ Replace it with:
 
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3696,8 +2431,7 @@ Replace it with:
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.meshes.push(row);
@@ -3707,8 +2441,6 @@ Replace it with:
         self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
         self.sheets.set(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases).expect("Prepared original sheet batches fit device limits");
 ```
-
-</details>
 
 Replace it with:
 
@@ -3722,8 +2454,7 @@ Replace it with:
         self.sheets.set(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases).expect("Prepared original sheet batches fit device limits");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             sample_count: 1,
@@ -3734,8 +2465,6 @@ Replace it with:
         });
         depth_texture.create_view(&Default::default())
 ```
-
-</details>
 
 Replace it with:
 
@@ -3749,8 +2478,7 @@ Replace it with:
         depth_texture.create_view(&Default::default())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -3764,8 +2492,6 @@ Replace it with:
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3782,8 +2508,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             cache: None,
@@ -3793,8 +2518,6 @@ Replace it with:
         let highlight_pipeline = mesh_pipeline(crate::depth::ink());
         let highlight = crate::highlight::Highlight::new(&device, format);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3808,8 +2531,7 @@ Replace it with:
         let highlight = crate::highlight::Highlight::new(&device, format);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3819,8 +2541,6 @@ pub struct Renderer {
     measurement:crate::measure_gpu::Measurement,
     sheets:crate::sheet_gpu::Lane,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3834,8 +2554,7 @@ pub struct Renderer {
     sheets:crate::sheet_gpu::Lane,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4313,91 +3032,38 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-01.rs"
-```
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-02.rs"
-```
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-03.rs"
-```
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-04.rs"
-```
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-05.rs"
-```
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-06.rs"
-```
-
-```text
---8<-- "journey/code/86an-own-tile-state-before-color-and-first-picks-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86ao-split-opaque-finite-ink-and-cloud-composition"></a>
 
 ### Step 23 of 25 · Split opaque finite ink and cloud composition (`86ao-split-opaque-finite-ink-and-cloud-composition`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/25 Visual Trace (86ao-split-opaque-finite-ink-and-cloud-composition): Split opaque finite ink and cloud composition</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">opaque surfaces</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cloud depth composite</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">read-only finite ink</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cloud depth composite</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">read-only finite ink</text>
 </svg>
-</div>
-
-- **Goal:** Split opaque finite ink and cloud composition.
-- **Data Flow Trace:** `opaque surfaces → cloud depth composite → read-only finite ink`
-- **Files You Touch:** `src/renderer.rs` (*Draw current original geometry through compatible depth passes.*)
 
 Compose cached cloud depth after opaque surfaces, then draw finite ink against that depth. A separate cloud pass can write depth without binding the same image as sampled ink.
 
-> **Self-Check Question:** *Why give clouds a separate pass?*  
-> **Answer:** Their cached composite writes depth; putting it in sampled ink causes a GPU validation error.
-
-- **Hands-On Lab Experiment:** Compare sloping face width, actual clouds, unchanged highlights and original overlay ownership.
-
-<details>
-<summary>Implementation 86ao-split-opaque-finite-ink-and-cloud-composition: Split opaque finite ink and cloud composition</summary>
-
-Split opaque finite ink and cloud composition.
-
-Data flow: opaque surfaces → cloud depth composite → read-only finite ink.
+> **Check:** *Why give clouds a separate pass?* — Their cached composite writes depth; putting it in sampled ink causes a GPU validation error.
 
 ### 1. `src/renderer.rs`
 
@@ -4405,8 +3071,7 @@ Draw current original geometry through compatible depth passes. Finish the cloud
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
@@ -4416,8 +3081,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4430,8 +3093,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             pass.set_bind_group(0, &self.view_group, &[]);
@@ -4444,8 +3106,6 @@ Replace it with:
             self.mesh_ink.draw(&mut pass);
             self.grid.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -4464,8 +3124,7 @@ Replace it with:
             self.grid.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.measurement.view(&self.queue,transform,self.size,self.density);self.guides.view(&self.queue,transform,self.size,self.density);
@@ -4475,8 +3134,6 @@ Replace it with:
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4491,8 +3148,7 @@ Replace it with:
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4975,79 +3631,38 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ao-split-opaque-finite-ink-and-cloud-composition-01.rs"
-```
-
-```text
---8<-- "journey/code/86ao-split-opaque-finite-ink-and-cloud-composition-02.rs"
-```
-
-```text
---8<-- "journey/code/86ao-split-opaque-finite-ink-and-cloud-composition-03.rs"
-```
-
-```text
---8<-- "journey/code/86ao-split-opaque-finite-ink-and-cloud-composition-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86ap-observe-actual-derived-tile-resources"></a>
 
 ### Step 24 of 25 · Observe actual derived tile resources (`86ap-observe-actual-derived-tile-resources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/25 Visual Trace (86ap-observe-actual-derived-tile-resources): Observe actual derived tile resources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">completed report</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one browser wake</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">truthful counters</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one browser wake</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">truthful counters</text>
 </svg>
-</div>
-
-- **Goal:** Observe actual derived tile resources.
-- **Data Flow Trace:** `completed report → one browser wake → truthful counters`
-- **Files You Touch:** `src/browser.rs` (*Expose actual tile usage and listen for completed reports.*)
 
 Observe actual derived tile resources.
 
-> **Self-Check Question:** *Do these counters measure Lenovo speed?*  
-> **Answer:** No. They expose allocated buffers, triangle count and rebuild counts; hardware timing is a separate measurement.
-
-- **Hands-On Lab Experiment:** Compare resting and rotated views and Close cleanup.
-
-<details>
-<summary>Implementation 86ap-observe-actual-derived-tile-resources: Observe actual derived tile resources</summary>
-
-Observe actual derived tile resources.
-
-Data flow: completed report → one browser wake → truthful counters.
+> **Check:** *Do these counters measure Lenovo speed?* — No. They expose allocated buffers, triangle count and rebuild counts; hardware timing is a separate measurement.
 
 ### 1. `src/browser.rs`
 
@@ -5055,8 +3670,7 @@ Expose actual tile usage and listen for completed reports.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
@@ -5066,8 +3680,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
     canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5081,8 +3693,7 @@ Replace it with:
     canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     listeners.listen(document.as_ref(), "change")?;
@@ -5092,8 +3703,6 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-sheet-entity")?;
     listeners.listen(window.as_ref(), "viewer-stream-page")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5107,8 +3716,7 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-stream-page")?;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5973,75 +4581,40 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/86ap-observe-actual-derived-tile-resources-01.rs"
-```
-
-```text
---8<-- "journey/code/86ap-observe-actual-derived-tile-resources-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-86aq-exercise-finite-color-and-original-picking"></a>
 
 ### Step 25 of 25 · Exercise finite color and original picking (`86aq-exercise-finite-color-and-original-picking`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/25 Visual Trace (86aq-exercise-finite-color-and-original-picking): Exercise finite color and original picking</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tile_shader_tests.rs, src/lib.rs, src/tile_gpu_tests.rs, src/finite_visibility_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original solids and ink</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite coverage</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stable view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tile_shader_tests.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable view</text>
 </svg>
-</div>
-
-- **Goal:** Exercise finite color and original picking.
-- **Data Flow Trace:** `original solids and ink → finite coverage → stable view`
-- **Files You Touch:** `src/tile_shader_tests.rs` (*Copy the shader validation and actual GPU fixtures.*) · `src/lib.rs` (*Register the completed source owner.*) · `src/tile_gpu_tests.rs` (*Copy the shader validation and actual GPU fixtures.*) · `src/finite_visibility_tests.rs` (*Copy the shader validation and actual GPU fixtures.*) · `src/pick_gpu_tests.rs` (*Copy the original CAD boundary fixture with a precise failure diagnostic.*)
 
 Exercise finite color and original picking.
 
-> **Self-Check Question:** *What proves hidden originals stay hidden?*  
-> **Answer:** The supplied native fixtures read actual color pixels and integer results, including picks before the first frame.
+> **Check:** *What proves hidden originals stay hidden?* — The supplied native fixtures read actual color pixels and integer results, including picks before the first frame.
 
-- **What You Should See:** A red original stroke and point appear in front of a blue solid; the original line behind it remains hidden.
-- **Hands-On Lab Experiment:** Create a Box at w0,0,0 with sides 1 1 1. Add Line w-1,0,1 w1,0,1, Line w-1,0,-1 w1,0,-1 and Point w0.5,0.5,1. Use View Top, View Orthographic, Select None and Fit. Compare the front and hidden ink, then select the visible line. Exact sloping-width, crop and device-fallback cases remain separate supplied GPU evidence.
-
-<details>
-<summary>Implementation 86aq-exercise-finite-color-and-original-picking: Exercise finite color and original picking</summary>
-
-Exercise finite color and original picking.
-
-Data flow: original solids and ink → finite coverage → stable view.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6055,10 +4628,7 @@ Copy this supplied file:
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-01-shared-source-shared-bins.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6066,26 +4636,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod finite_ink;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-02.rs" skip=21
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6099,10 +4656,7 @@ Copy this supplied file:
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6110,26 +4664,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod tile_shader_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-04.rs" skip=36
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6143,10 +4684,7 @@ Copy this supplied file:
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-05.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6154,26 +4692,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod tile_gpu_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-06.rs" skip=33
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6181,50 +4706,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the original CAD boundary fixture with a precise failure diagnostic.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    for border in &scene.objects()[0].cad.as_ref().unwrap().edges {
-        let points=&border.points;if !points.iter().all(|p|(p[2]-0.12).abs()<1e-10) {continue;}
-        let middle=points.windows(2).nth((points.len()-1)/2).unwrap();let p=std::array::from_fn::<_,3,_>(|i|(middle[0][i]+middle[1][i])*0.5);let p=camera.view_projection().transform_point(&session_rust::Point::new(p[0],p[1],p[2]));renderer.request_pick([p[0] as f32,p[1] as f32],transform).unwrap();assert_eq!(finish_at(&mut renderer).unwrap().part,Part::BRepEdge(border.edge));seen+=1;
-    }
-    assert_eq!(seen,5,"All four outer edges and the original hole rim resolve");assert_eq!(renderer.stats(),gpu);assert_eq!(source.to_proto(),before);
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-07.rs"
 ```
 
-</details>
-
-</details>
+**Result after `86aq-exercise-finite-color-and-original-picking`:** A red original stroke and point appear in front of a blue solid; the original line behind it remains hidden.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 86aq-exercise-finite-color-and-original-picking
-npm --prefix ../session_tests run course -- check 86aq-exercise-finite-color-and-original-picking
-npm --prefix ../session_tests run course -- save 86aq-exercise-finite-color-and-original-picking
+npm --prefix ../session_tests run course -- dependencies 17.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 17.2
+npm --prefix ../session_tests run course -- save 17.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-A red original stroke and point appear in front of a blue solid; the original line behind it remains hidden.
-
-- **Final Lesson Experiment:** Create a Box at w0,0,0 with sides 1 1 1. Add Line w-1,0,1 w1,0,1, Line w-1,0,-1 w1,0,-1 and Point w0.5,0.5,1. Use View Top, View Orthographic, Select None and Fit. Compare the front and hidden ink, then select the visible line. Exact sloping-width, crop and device-fallback cases remain separate supplied GPU evidence.
-
-Continue with [Original clipping half-spaces across drawing families](../../consolidation/87-copy-current-original-plane-modes.md).
+Continue with [17.3 · Original clipping half-spaces across drawing families](../../consolidation/87-copy-current-original-plane-modes.md).

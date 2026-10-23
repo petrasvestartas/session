@@ -1,206 +1,94 @@
 # 13.1 · Shared original definitions and independently placed instances
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.1** (Redraft `7.5`) · **9 checkpoints (`69-validate-original-definition-references` → `69i-check-sharing-precision-history-and-release`)** · **Study time: 4.5–9 h**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Checkpoints:** `69-validate-original-definition-references` → `69i-check-sharing-precision-history-and-release` (9 steps) · **Production source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs)
 
-> **What You Will Learn & Build:** Validate original definition references. By the final checkpoint (`69i-check-sharing-precision-history-and-release`), you will check sharing precision history and release.
+> **Goal:** Check sharing precision history and release.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 7 Visual Explanation: HTTP 206 Range Streaming, GPU Hardware Instancing & 2D Drawing Sheets</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Fetching frustum-prioritized byte ranges. Center: 1 mesh buffer × N instance transforms. Right: Paper-space sheets.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. HTTP 206 Byte-Range Stream</text>
-    <rect x="34" y="98" width="212" height="30" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <rect x="74" y="98" width="60" height="30" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <rect x="164" y="98" width="48" height="30" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="144" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Range: bytes=start-end (Visible First)</text>
-    <text x="140" y="164" text-anchor="middle" font-size="9.5" fill="#111111">• Bounded Permit Pool &amp; Page Cache</text>
-    <text x="140" y="182" text-anchor="middle" font-size="9.5" fill="#111111">• Evicts cold off-screen chunks safely</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. GPU Hardware Instancing (1 → N)</text>
-    <rect x="305" y="114" width="68" height="48" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="339" y="142" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">1 Source</text>
-    <line x1="373" y1="126" x2="425" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="373" y1="138" x2="425" y2="138" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="373" y1="150" x2="425" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="428" y="92" width="118" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="487" y="108" text-anchor="middle" font-size="9" fill="#111111">Instance #0 (M0, ID0)</text>
-    <rect x="428" y="126" width="118" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="487" y="142" text-anchor="middle" font-size="9" fill="#111111">Instance #1 (M1, ID1)</text>
-    <rect x="428" y="160" width="118" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="487" y="176" text-anchor="middle" font-size="9" fill="#111111">Instance #N (MN, IDN)</text>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">@builtin(instance_index) draw_indexed</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 2D Drawing Sheet &amp; Title Block</text>
-    <rect x="612" y="96" width="184" height="104" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <rect x="716" y="168" width="80" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="756" y="188" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Title Block</text>
-    <text x="704" y="220" text-anchor="middle" font-size="9.5" fill="#111111">Paper-space mm/inch pen widths</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 13.1 Pipeline Schematic: Shared original definitions and independently placed instances</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (9 Checkpoints: 69-validate-original-definition-references → 69i-check-sharing-precision-history-and-release)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">definitions</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked references</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">shared original</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">owners</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">shared originals</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">snapshots</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 13.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/instance_plan.rs  ·  src/lib.rs  ·  src/instance_definition.rs  ·  src/scene.rs  ·  src/document_source.rs  ·  src/document_geometry.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">9 Checkpoints: 69-validate-original-definition-references → 69i-check-sharing-precision-history-and-release — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Authoritative production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`69-validate-original-definition-references`](#checkpoint-69-validate-original-definition-references) | Validate original definition references. | `src/instance_plan.rs`, `src/lib.rs` | `original definitions → checked references → shared original owners` |
-| **2** | [`69b-prepare-each-used-definition-once`](#checkpoint-69b-prepare-each-used-definition-once) | Prepare each used definition once. | `src/instance_definition.rs`, `src/lib.rs` | `definition lookup → one prepared template → reused display source` |
-| **3** | [`69c-keep-instance-bindings-through-scene-history`](#checkpoint-69c-keep-instance-bindings-through-scene-history) | Keep instance bindings through scene history. | `src/scene.rs` | `viewer identity → original binding → cloned history → final release` |
-| **4** | [`69d-append-independently-placed-shared-rows`](#checkpoint-69d-append-independently-placed-shared-rows) | Append independently placed shared rows. | `src/scene.rs` | `shared template → checked placement → independent row → original binding` |
-| **5** | [`69e-import-canonical-original-instance-placements`](#checkpoint-69e-import-canonical-original-instance-placements) | Import canonical original instance placements. | `src/document_source.rs`, `src/document_geometry.rs`, `src/scene_document.rs` | `original reference → canonical Session placement → tree ancestry → document model` |
-| **6** | [`69f-protect-shared-originals-during-part-edits`](#checkpoint-69f-protect-shared-originals-during-part-edits) | Protect shared originals during part edits. | `src/part_preview.rs` | `shared original → requested part edit → explicit refusal → unchanged definition` |
-| **7** | [`69g-collect-shared-definitions-without-flattening`](#checkpoint-69g-collect-shared-definitions-without-flattening) | Collect shared definitions without flattening. | `src/instance_snapshot.rs`, `src/lib.rs` | `live instance IDs → original definition records → collision check → stable inventory` |
-| **8** | [`69h-save-original-instance-references-and-namespaces`](#checkpoint-69h-save-original-instance-references-and-namespaces) | Save original instance references and namespaces. | `src/geometry_snapshot.rs`, `src/archive_identity.rs`, `src/archive_document.rs` | `independent viewer rows → original references → definition inventory → shared reopened sources` |
-| **9** | [`69i-check-sharing-precision-history-and-release`](#checkpoint-69i-check-sharing-precision-history-and-release) | Check sharing precision history and release. | `src/memory.rs`, `src/instance_specimen.rs`, `src/lib.rs`, `src/instance_scene_tests.rs` | `shared originals → independent snapshots → source ledger → closed history` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-69-validate-original-definition-references"></a>
 
 ### Step 1 of 9 · Validate original definition references (`69-validate-original-definition-references`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/9 Visual Trace (69-validate-original-definition-references): Validate original definition references</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_plan.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original definitions</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked references</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared original owners</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/instance_plan.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked references</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared original owners</text>
 </svg>
-</div>
-
-- **Goal:** Validate original definition references.
-- **Data Flow Trace:** `original definitions → checked references → shared original owners`
-- **Files You Touch:** `src/instance_plan.rs` (*Validate original definition references and retain shared owners.*) · `src/lib.rs` (*Register the source component.*)
 
 Check definition identities and supported families before deriving any placed display rows.
 
-> **Self-Check Question:** *Does an instance contain its own geometry copy?*  
-> **Answer:** No. It references one original definition by GUID. Keep the reference and shared original separate from its viewer identity and placement.
-
-- **What You Should See:** The previous mixed original source scene remains visible while shared definitions connect. The final endpoint adds two independently selectable placements of one original definition.
-- **Hands-On Lab Experiment:** Refuse missing, duplicate and unsupported definitions; trace the shared original owner through release.
-
-<details>
-<summary>Implementation 69-validate-original-definition-references: Validate original definition references</summary>
-
-Validate original definition references.
-
-Data flow: original definitions → checked references → shared original owners.
+> **Check:** *Does an instance contain its own geometry copy?* — No. It references one original definition by GUID. Keep the reference and shared original separate from its viewer identity and placement.
 
 ### 1. `src/instance_plan.rs`
 
@@ -216,24 +104,13 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod range_shape;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/69-validate-original-definition-references-02.rs" skip=22
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -241,72 +118,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy source identity, invalid-reference and release fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/69-validate-original-definition-references-03.rs" skip=8
 ```
 
-</details>
+**Result after `69-validate-original-definition-references`:** The previous mixed original source scene remains visible while shared definitions connect. The final endpoint adds two independently selectable placements of one original definition.
 
-</details>
+---
 
 <a id="checkpoint-69b-prepare-each-used-definition-once"></a>
 
 ### Step 2 of 9 · Prepare each used definition once (`69b-prepare-each-used-definition-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/9 Visual Trace (69b-prepare-each-used-definition-once): Prepare each used definition once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_definition.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">definition lookup</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one prepared template</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reused display source</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/instance_definition.r…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one prepared template</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reused display source</text>
 </svg>
-</div>
-
-- **Goal:** Prepare each used definition once.
-- **Data Flow Trace:** `definition lookup → one prepared template → reused display source`
-- **Files You Touch:** `src/instance_definition.rs` (*Prepare each referenced original definition once.*) · `src/lib.rs` (*Register the source component.*)
 
 Prepare one display template for each used original definition. Repeated placements clone shared owners and derived geometry.
 
-> **Self-Check Question:** *Must every instance run the CAD tessellator?*  
-> **Answer:** No. Prepare each used definition once and share its resulting geometry. The placement remains independent.
-
-- **Hands-On Lab Experiment:** Compare original and derived Rc identities for two references to one mesh definition.
-
-<details>
-<summary>Implementation 69b-prepare-each-used-definition-once: Prepare each used definition once</summary>
-
-Prepare each used definition once.
-
-Data flow: definition lookup → one prepared template → reused display source.
+> **Check:** *Must every instance run the CAD tessellator?* — No. Prepare each used definition once and share its resulting geometry. The placement remains independent.
 
 ### 1. `src/instance_definition.rs`
 
@@ -322,74 +173,44 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod instance_plan;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/69b-prepare-each-used-definition-once-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-69c-keep-instance-bindings-through-scene-history"></a>
 
 ### Step 3 of 9 · Keep instance bindings through scene history (`69c-keep-instance-bindings-through-scene-history`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/9 Visual Trace (69c-keep-instance-bindings-through-scene-history): Keep instance bindings through scene history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">viewer identity</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original binding</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cloned history</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">final release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cloned history</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">final release</text>
 </svg>
-</div>
-
-- **Goal:** Keep instance bindings through scene history.
-- **Data Flow Trace:** `viewer identity → original binding → cloned history → final release`
-- **Files You Touch:** `src/scene.rs` (*Preserve instance bindings through row identity and scene lifetime operations.*)
 
 Carry original instance bindings through Copy, Delete, Undo, scene append and Close without changing source records.
 
-> **Self-Check Question:** *Does copying an instance duplicate its original definition?*  
-> **Answer:** No. The copied row has an independent viewer GUID and model while retaining the shared original definition and reference.
-
-- **Hands-On Lab Experiment:** Copy and remove a bound owner; inspect the binding after Undo and after clearing scene history.
-
-<details>
-<summary>Implementation 69c-keep-instance-bindings-through-scene-history: Keep instance bindings through scene history</summary>
-
-Keep instance bindings through scene history.
-
-Data flow: viewer identity → original binding → cloned history → final release.
+> **Check:** *Does copying an instance duplicate its original definition?* — No. The copied row has an independent viewer GUID and model while retaining the shared original definition and reference.
 
 ### 1. `src/scene.rs`
 
@@ -397,8 +218,7 @@ Preserve instance bindings through row identity and scene lifetime operations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         existed
@@ -408,8 +228,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -423,8 +241,7 @@ Replace it with:
     pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -434,8 +251,6 @@ Replace it with:
         self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
         self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);self.clouds.retain(|row|row.id!=id);self.streamed.retain(|row|row.id!=id);
 ```
-
-</details>
 
 Replace it with:
 
@@ -449,8 +264,7 @@ Replace it with:
         self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);self.clouds.retain(|row|row.id!=id);self.streamed.retain(|row|row.id!=id);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -460,8 +274,6 @@ Replace it with:
         self.ids=Default::default();
         self.view=Default::default();
 ```
-
-</details>
 
 Replace it with:
 
@@ -475,8 +287,7 @@ Replace it with:
         self.view=Default::default();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         macro_rules! rows {($field:ident)=>{for row in &source.$field {let mut row=row.clone();let old=row.id;row.id=remap[&old];row.guid=names[&old].clone();candidate.$field.push(row);}};}
@@ -487,8 +298,6 @@ Replace it with:
             if let Some(rgb)=source.view.faces.get(old) {view.faces.insert(id,*rgb);}if let Some(rgb)=source.view.edges.get(old) {view.edges.insert(id,*rgb);}
             if source.clouds.iter().any(|row|row.id==*old)&&point_px>0. {candidate.cloud_point_size(id,point_px)?;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -502,8 +311,7 @@ Replace it with:
             if source.clouds.iter().any(|row|row.id==*old)&&point_px>0. {candidate.cloud_point_size(id,point_px)?;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.streamed.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;row.controls_visible=false;self.streamed.push(row);}
@@ -513,8 +321,6 @@ Replace it with:
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
         for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -528,8 +334,7 @@ Replace it with:
         for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -540,8 +345,6 @@ Replace it with:
 
     pub fn demo() -> Self {
 ```
-
-</details>
 
 Replace it with:
 
@@ -555,8 +358,7 @@ Replace it with:
     pub fn demo() -> Self {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -566,8 +368,6 @@ pub struct Scene {
     ids:Rc<std::collections::HashSet<ObjectId>>,
     pub view:Rc<crate::view_flags::Flags>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -581,8 +381,7 @@ pub struct Scene {
     pub view:Rc<crate::view_flags::Flags>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -689,7 +488,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1289,111 +1087,42 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-01.rs"
-```
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-02.rs"
-```
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-03.rs"
-```
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-04.rs"
-```
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-05.rs"
-```
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-06.rs"
-```
-
-```text
---8<-- "journey/code/69c-keep-instance-bindings-through-scene-history-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-69d-append-independently-placed-shared-rows"></a>
 
 ### Step 4 of 9 · Append independently placed shared rows (`69d-append-independently-placed-shared-rows`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/9 Visual Trace (69d-append-independently-placed-shared-rows): Append independently placed shared rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared template</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent row</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original binding</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent row</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original binding</text>
 </svg>
-</div>
-
-- **Goal:** Append independently placed shared rows.
-- **Data Flow Trace:** `shared template → checked placement → independent row → original binding`
-- **Files You Touch:** `src/scene.rs` (*Append checked independent instance rows without cloning the growing scene.*)
 
 Validate one placed template before appending its row. Avoid cloning the growing destination scene for every instance.
 
-> **Self-Check Question:** *Why prepare the placed row in a tiny temporary scene?*  
-> **Answer:** Existing placement checks remain usable while the growing destination is cloned only once for atomic document import.
-
-- **Hands-On Lab Experiment:** Compare two precise models while their original and derived geometry allocations remain shared.
-
-<details>
-<summary>Implementation 69d-append-independently-placed-shared-rows: Append independently placed shared rows</summary>
-
-Append independently placed shared rows.
-
-Data flow: shared template → checked placement → independent row → original binding.
+> **Check:** *Why prepare the placed row in a tiny temporary scene?* — Existing placement checks remain usable while the growing destination is cloned only once for atomic document import.
 
 ### 1. `src/scene.rs`
 
 Append checked independent instance rows without cloning the growing scene.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    pub(crate) fn reserve_document_key(&mut self)->Result<u32,&'static str> {
-        let key=self.next_id;self.next_id=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;Ok(key)
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1401,99 +1130,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/69d-append-independently-placed-shared-rows-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-69e-import-canonical-original-instance-placements"></a>
 
 ### Step 5 of 9 · Import canonical original instance placements (`69e-import-canonical-original-instance-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/9 Visual Trace (69e-import-canonical-original-instance-placements): Import canonical original instance placements</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document_source.rs, src/document_geometry.rs, src/scene_document.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original reference</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canonical Session</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">tree ancestry</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">document model</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/document_source.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">tree ancestry</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">document model</text>
 </svg>
-</div>
-
-- **Goal:** Import canonical original instance placements.
-- **Data Flow Trace:** `original reference → canonical Session placement → tree ancestry → document model`
-- **Files You Touch:** `src/document_source.rs` (*Import original definitions and apply canonical instance placement once.*) · `src/document_geometry.rs` (*Import original definitions and apply canonical instance placement once.*) · `src/scene_document.rs` (*Copy the revised unsupported nested-definition fixture.*)
 
 Resolve each original reference, preserve its tree identity and combine document placement with canonical source ancestry once.
 
-> **Self-Check Question:** *Should the viewer multiply the legacy instance transform again?*  
-> **Answer:** No. The kernel already folds it into Session.xforms. Multiplying it again would apply the same placement twice.
-
-- **Hands-On Lab Experiment:** Import a source at 1000000000.125 with a legacy 1000 shift and an extra 0.25 document translation.
-
-<details>
-<summary>Implementation 69e-import-canonical-original-instance-placements: Import canonical original instance placements</summary>
-
-Import canonical original instance placements.
-
-Data flow: original reference → canonical Session placement → tree ancestry → document model.
+> **Check:** *Should the viewer multiply the legacy instance transform again?* — No. The kernel already folds it into Session.xforms. Multiplying it again would apply the same placement twice.
 
 ### 1. `src/document_source.rs`
 
 Import original definitions and apply canonical instance placement once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::HashSet,rc::Rc};
-
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    Ok(Source {document,origin,tree})
-}
-
-fn supported(source:&proto::Session)->Result<(),String> {
-    if source.definitions.is_some()||!source.interactions.is_empty() {return Err("Definitions and interactions arrive in later subjects".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.planes.is_empty()||!objects.bboxes.is_empty()||!objects.elements.is_empty()||!objects.components.is_empty()||!objects.sheets.is_empty()||!objects.instances.is_empty() {return Err("This subject cannot open planes, boxes, assemblies, sheets or instances yet".into());}
-    Ok(())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1529,36 +1201,9 @@ fn supported(source:&proto::Session)->Result<(),String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/69e-import-canonical-original-instance-placements-01.rs"
-```
-
-```text
---8<-- "journey/code/69e-import-canonical-original-instance-placements-02.rs"
-```
-
-</details>
-
 ### 2. `src/document_geometry.rs`
 
 Import original definitions and apply canonical instance placement once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for source in &loaded.document.objects.breps {add!(source,scene.insert_cad(source.clone()));}
-    for source in &loaded.document.objects.pointclouds {let id=add!(source,scene.insert_cloud(crate::cloud::Prepared::new(source.clone()).map_err(str::to_owned)?));scene.cloud_point_size(id,point_px).map_err(str::to_owned)?;}
-    Ok(owners)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1566,8 +1211,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/69e-import-canonical-original-instance-placements-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1575,95 +1219,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the revised unsupported nested-definition fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        let mut scene=Scene::demo();let ids=scene.objects().iter().map(|row|row.id).collect::<Vec<_>>();assert!(open(&mut scene,b"broken").is_err());assert_eq!(scene.objects().iter().map(|row|row.id).collect::<Vec<_>>(),ids);
-        let mut source=proto::Session::decode(crate::specimen::bytes().as_slice()).unwrap();source.tree=None;source.objects.as_mut().unwrap().points.push(session_rust::Point::new(1e100,0.,0.).to_proto());let bytes=source.encode_to_vec();assert!(import(&mut scene,&bytes,"too large",&Xform::identity(),0.).is_err());assert_eq!(scene.objects().iter().map(|row|row.id).collect::<Vec<_>>(),ids);assert!(scene.points().is_empty());assert!(scene.forest.documents.iter().all(|doc|doc.label!="too large"));
-        source.objects.as_mut().unwrap().points.clear();source.definitions=Some(proto::Objects::default());assert!(import(&mut scene,&source.encode_to_vec(),"unsupported",&Xform::identity(),0.).unwrap_err().contains("Definitions"));assert_eq!(scene.objects().iter().map(|row|row.id).collect::<Vec<_>>(),ids);
-    }
-    #[test]
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/69h-save-original-instance-references-and-namespaces-05.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-69f-protect-shared-originals-during-part-edits"></a>
 
 ### Step 6 of 9 · Protect shared originals during part edits (`69f-protect-shared-originals-during-part-edits`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/9 Visual Trace (69f-protect-shared-originals-during-part-edits): Protect shared originals during part edits</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/part_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">requested part edit</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit refusal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged definition</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/part_preview.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit refusal</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged definition</text>
 </svg>
-</div>
-
-- **Goal:** Protect shared originals during part edits.
-- **Data Flow Trace:** `shared original → requested part edit → explicit refusal → unchanged definition`
-- **Files You Touch:** `src/part_preview.rs` (*Protect original definitions from unsupported source-part edits.*)
 
 Refuse source-part previews until explicit shared-definition editing or detachment is implemented. Whole-row placement remains reversible.
 
-> **Self-Check Question:** *May a part edit change only the displayed mesh and Save the old definition?*  
-> **Answer:** No. That would save geometry different from the display. Keep this guard until subject 77 connects explicit source editing and detachment.
-
-- **Hands-On Lab Experiment:** Request a face preview on a definition instance and verify the original definition remains exact.
-
-<details>
-<summary>Implementation 69f-protect-shared-originals-during-part-edits: Protect shared originals during part edits</summary>
-
-Protect shared originals during part edits.
-
-Data flow: shared original → requested part edit → explicit refusal → unchanged definition.
+> **Check:** *May a part edit change only the displayed mesh and Save the old definition?* — No. That would save geometry different from the display. Keep this guard until subject 77 connects explicit source editing and detachment.
 
 ### 1. `src/part_preview.rs`
 
 Protect original definitions from unsupported source-part edits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub fn points(scene:&Scene,target:Target) -> Result<Vec<Point>, &'static str> {
-    if !target.valid(scene) {return Err("Selected part is no longer editable");}
-    if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1671,59 +1268,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/69f-protect-shared-originals-during-part-edits-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-69g-collect-shared-definitions-without-flattening"></a>
 
 ### Step 7 of 9 · Collect shared definitions without flattening (`69g-collect-shared-definitions-without-flattening`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/9 Visual Trace (69g-collect-shared-definitions-without-flattening): Collect shared definitions without flattening</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_snapshot.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">live instance IDs</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original definition</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">records</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">collision check</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stable inventory</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/instance_snapshot.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">collision check</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable inventory</text>
 </svg>
-</div>
-
-- **Goal:** Collect shared definitions without flattening.
-- **Data Flow Trace:** `live instance IDs → original definition records → collision check → stable inventory`
-- **Files You Touch:** `src/instance_snapshot.rs` (*Collect original definitions once and reject semantic identity conflicts.*) · `src/lib.rs` (*Register the source component.*)
 
 Save each live original definition once. Compare different owners by semantic protobuf records, independent of map encoding order.
 
-> **Self-Check Question:** *Do different protobuf byte orders imply different geometry?*  
-> **Answer:** No. Protobuf maps may encode in different orders. Compare semantic source records, using Rc identity to skip repeated serialization.
-
-- **Hands-On Lab Experiment:** Merge conflicting same-GUID definitions and refuse Save instead of silently choosing one source.
-
-<details>
-<summary>Implementation 69g-collect-shared-definitions-without-flattening: Collect shared definitions without flattening</summary>
-
-Collect shared definitions without flattening.
-
-Data flow: live instance IDs → original definition records → collision check → stable inventory.
+> **Check:** *Do different protobuf byte orders imply different geometry?* — No. Protobuf maps may encode in different orders. Compare semantic source records, using Rc identity to skip repeated serialization.
 
 ### 1. `src/instance_snapshot.rs`
 
@@ -1739,137 +1315,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod instance_definition;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/69g-collect-shared-definitions-without-flattening-02.rs" skip=30
 ```
 
-</details>
+---
 
 <a id="checkpoint-69h-save-original-instance-references-and-namespaces"></a>
 
 ### Step 8 of 9 · Save original instance references and namespaces (`69h-save-original-instance-references-and-namespaces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/9 Visual Trace (69h-save-original-instance-references-and-namespaces): Save original instance references and namespaces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/geometry_snapshot.rs, src/archive_identity.rs, src/archive_document.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent viewer rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original references</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">definition inventory</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared reopened sources</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/geometry_snapshot.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">definition inventory</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared reopened sources</text>
 </svg>
-</div>
-
-- **Goal:** Save original instance references and namespaces.
-- **Data Flow Trace:** `independent viewer rows → original references → definition inventory → shared reopened sources`
-- **Files You Touch:** `src/geometry_snapshot.rs` (*Save original references and definitions without flattening source geometry.*) · `src/archive_identity.rs` (*Save original references and definitions without flattening source geometry.*) · `src/archive_document.rs` (*Save original references and definitions without flattening source geometry.*)
 
 Save original references beside definitions and portable instance identities. Reopening prepares shared definitions again.
 
-> **Self-Check Question:** *Should Save replace instances with world-space triangles?*  
-> **Answer:** No. Keep original definition records, reference GUIDs and source placements so editable identities survive reopening.
-
-- **Hands-On Lab Experiment:** Compare all eight basic definition families and 16 references before and after Save/Open.
-
-<details>
-<summary>Implementation 69h-save-original-instance-references-and-namespaces: Save original instance references and namespaces</summary>
-
-Save original instance references and namespaces.
-
-Data flow: independent viewer rows → original references → definition inventory → shared reopened sources.
+> **Check:** *Should Save replace instances with world-space triangles?* — No. Keep original definition records, reference GUIDs and source placements so editable identities survive reopening.
 
 ### 1. `src/geometry_snapshot.rs`
 
 Save original references and definitions without flattening source geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::scene::{ObjectId,Scene};
-use session_rust::proto;
-use std::collections::HashSet;
-
-// Save original source records; f32 display triangles, sampled controls and LOD subsets are not editable source geometry.
-pub fn objects(scene:&Scene,ids:&HashSet<ObjectId>)->Result<proto::Objects,String> {
-    let mut out=proto::Objects::default();let mut guids=HashSet::new();
-    macro_rules! push {
-        ($field:ident,$id:expr,$source:expr)=>{{
-            let id=$id;let mut source=$source;let guid=scene.row_guid(id).ok_or("Saved source owner is missing")?;
-            if !guids.insert(guid.to_owned()) {return Err("Source GUID occurs twice within one saved document".into());}
-            source.guid=guid.to_owned();source.is_visible=(!scene.visible(id)).then_some(false);source.is_locked=scene.view.locked.contains(&id).then_some(true);out.$field.push(source);
-        }};
-    }
-    for row in scene.objects().iter().filter(|row|ids.contains(&row.id)) {
-        if let Some(cad)=row.cad.as_ref() {push!(breps,row.id,cad.source.to_proto());}
-        else if let Some(surface)=row.surface.as_ref() {push!(nurbssurfaces,row.id,surface.source.to_proto());}
-        else {push!(meshes,row.id,row.geometry().ok_or("Reload editable sources before saving")?.to_proto());}
-    }
-    for row in scene.lines().iter().filter(|row|ids.contains(&row.id)) {push!(lines,row.id,row.prepared.source.to_proto());}
-    for row in scene.paths().iter().filter(|row|ids.contains(&row.id)) {
-        match &row.prepared.source {
-            crate::chain::Source::Line(source)=>push!(lines,row.id,source.to_proto()),
-            crate::chain::Source::Polyline(source)=>push!(polylines,row.id,source.to_proto()),
-            crate::chain::Source::Curve(source,_)=>push!(nurbscurves,row.id,source.to_proto()),
-        }
-    }
-    for row in scene.points().iter().filter(|row|ids.contains(&row.id)) {push!(points,row.id,row.prepared.source.to_proto());}
-    for row in scene.clouds().iter().filter(|row|ids.contains(&row.id)) {push!(pointclouds,row.id,row.prepared.source.to_proto());}
-    Ok(out)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::rc::Rc;
-    #[test]
-    fn snapshot_retains_original_cad_curves_clouds_flags_and_independent_line_guids() {
-        let mut scene=Scene::demo();scene.clear();let cad=Rc::new(crate::cad_display::example());let _=cad.guid();let cad_before=cad.to_proto();let cad_id=scene.insert_cad(cad.clone()).unwrap();
-        let surface=Rc::new(crate::surface::example());let _=surface.guid();let surface_before=surface.to_proto();let surface_id=scene.insert_surface(surface.clone()).unwrap();
-        let mut original_curve=session_rust::NurbsCurve::create(true,2,&[session_rust::Point::new(-0.6,-0.4,0.),session_rust::Point::new(0.123456789012345,0.6,0.),session_rust::Point::new(0.6,-0.4,0.)]);assert!(original_curve.set_cv_4d(1,0.123456789012345*4.,2.4,0.,4.));let curve=Rc::new(original_curve);let _=curve.guid();let curve_before=curve.to_proto();let curve_id=scene.insert_path(crate::chain::PreparedChain::curve(curve.clone()).unwrap()).unwrap();
-        let mut proto=crate::cloud::example().to_proto();proto.point_ids[0]=u32::MAX;let cloud=Rc::new(session_rust::PointCloud::from_proto(proto));let _=cloud.guid();let cloud_before=cloud.to_proto();let cloud_id=scene.insert_cloud(crate::cloud::Prepared::new(cloud.clone()).unwrap()).unwrap();
-        let line=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(0.,0.,0.,1.,0.,0.))).unwrap()).unwrap();let copy=scene.copy_row(line,false).unwrap();
-        Rc::make_mut(&mut scene.view).hide(&[cad_id],true);Rc::make_mut(&mut scene.view).lock(&[cloud_id],true);
-        let ids=[cad_id,surface_id,curve_id,cloud_id,line,copy].into_iter().collect();let out=objects(&scene,&ids).unwrap();
-        assert!(out.meshes.is_empty());assert_eq!(out.breps.len(),1);assert_eq!(out.nurbssurfaces.len(),1);assert_eq!(out.nurbscurves.len(),1);assert_eq!(out.lines.len(),2);assert_ne!(out.lines[0].guid,out.lines[1].guid);
-        assert_eq!(out.breps[0].is_visible,Some(false));assert_eq!(out.pointclouds[0].is_locked,Some(true));assert_eq!(out.pointclouds[0].point_ids[0],u32::MAX);assert_eq!(out.pointclouds[0].coords,cloud_before.coords);assert_eq!(out.nurbscurves[0].cvs,curve_before.cvs);assert!(out.nurbscurves[0].is_rational);assert_eq!(out.nurbscurves[0].cvs[7],4.);
-        assert_eq!(cad.to_proto(),cad_before);assert_eq!(surface.to_proto(),surface_before);assert_eq!(curve.to_proto(),curve_before);assert_eq!(cloud.to_proto(),cloud_before);
-        crate::source_validate::session(&proto::Session {objects:Some(out),..Default::default()}).unwrap();
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1930,37 +1417,9 @@ mod tests {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/69h-save-original-instance-references-and-namespaces-01.rs"
-```
-
-```text
---8<-- "journey/code/69h-save-original-instance-references-and-namespaces-02.rs"
-```
-
-</details>
-
 ### 2. `src/archive_identity.rs`
 
 Save original references and definitions without flattening source geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) fn objects(objects:&mut proto::Objects,names:&HashMap<String,String>) {
-    macro_rules! remap {($field:ident)=>{for object in &mut objects.$field {if let Some(guid)=names.get(&object.guid) {object.guid=guid.clone();}}};}
-    remap!(meshes);remap!(lines);remap!(points);remap!(polylines);remap!(nurbscurves);remap!(nurbssurfaces);remap!(breps);remap!(pointclouds);
-}
-pub(crate) fn tree(node:&mut proto::TreeNode,names:&HashMap<String,String>) {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1972,91 +1431,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Save original references and definitions without flattening source geometry.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut source=namespace.doc.as_ref().and_then(|doc|doc.header.as_ref()).map_or_else(proto::Session::default,|header|header.header.clone());if source.name.is_empty() {source.name=namespace.name.clone();}
-    let root=if namespace.doc.is_some()&&roots.len()==1 {roots.pop().unwrap()} else {proto::TreeNode {name:source.name.clone(),children:roots,..Default::default()}};
-    source.objects=Some(objects);source.tree=Some(proto::Tree {root:Some(root),..Default::default()});source.xforms=xforms;source.bvh_boxes.clear();
-    let mut clouds=scene.clouds().iter().filter(|row|namespace.ids.contains(&row.id));let point_px=clouds.next().map_or(0.,|row|row.point_px);
-    if clouds.any(|row|row.point_px!=point_px) {return Err("Cloud placements in one saved document need the same point size override".into());}Ok((source,names,point_px))
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/69h-save-original-instance-references-and-namespaces-04.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-69i-check-sharing-precision-history-and-release"></a>
 
 ### Step 9 of 9 · Check sharing precision history and release (`69i-check-sharing-precision-history-and-release`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/9 Visual Trace (69i-check-sharing-precision-history-and-release): Check sharing precision history and release</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/instance_specimen.rs, src/lib.rs, src/instance_scene_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared originals</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent snapshots</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source ledger</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">closed history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/memory.rs, src/instan…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source ledger</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">closed history</text>
 </svg>
-</div>
-
-- **Goal:** Check sharing precision history and release.
-- **Data Flow Trace:** `shared originals → independent snapshots → source ledger → closed history`
-- **Files You Touch:** `src/memory.rs` (*Count original instance documents and definitions across shared scene snapshots.*) · `src/instance_specimen.rs` (*Copy precise original and visible shared-definition examples.*) · `src/lib.rs` (*Register the source component.*) · `src/instance_scene_tests.rs` (*Copy original reference, family, identity, placement, history and release regressions.*)
 
 Count original documents and definition owners once across scene snapshots. Supply regression sources with legacy and precise placements.
 
-> **Self-Check Question:** *Does Undo require another original geometry allocation?*  
-> **Answer:** No. Scene snapshots retain shared original owners and independent presentation state. Close releases history and current owners.
-
-- **Hands-On Lab Experiment:** Run reference sharing, all-family persistence, conflicting namespaces, precise placement, colour and Delete/Undo regressions.
-
-<details>
-<summary>Implementation 69i-check-sharing-precision-history-and-release: Check sharing precision history and release</summary>
-
-Check sharing precision history and release.
-
-Data flow: shared originals → independent snapshots → source ledger → closed history.
+> **Check:** *Does Undo require another original geometry allocation?* — No. Scene snapshots retain shared original owners and independent presentation state. Close releases history and current owners.
 
 ### 1. `src/memory.rs`
 
 Count original instance documents and definitions across shared scene snapshots.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }}usage[1]=sources.len();usage
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2064,8 +1480,7 @@ After that block, type:
 --8<-- "journey/code/69i-check-sharing-precision-history-and-release-01.rs" skip=37
 ```
 
-<details>
-<summary>Supplied example data</summary>
+**Supplied example data:**
 
 Copy this supplied data once; it is excluded from the typing estimate.
 
@@ -2079,21 +1494,9 @@ Copy this supplied file:
 --8<-- "journey/code/69i-check-sharing-precision-history-and-release-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod instance_snapshot;
-```
-
-</details>
 
 After that block, type:
 
@@ -2101,8 +1504,7 @@ After that block, type:
 --8<-- "journey/code/69i-check-sharing-precision-history-and-release-03.rs" skip=28
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2116,10 +1518,7 @@ Copy this supplied file:
 --8<-- "journey/code/69i-check-sharing-precision-history-and-release-04.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2127,45 +1526,26 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod instance_specimen;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/69i-check-sharing-precision-history-and-release-05.rs" skip=28
 ```
 
-</details>
-
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 69i-check-sharing-precision-history-and-release
-npm --prefix ../session_tests run course -- check 69i-check-sharing-precision-history-and-release
-npm --prefix ../session_tests run course -- save 69i-check-sharing-precision-history-and-release
+npm --prefix ../session_tests run course -- dependencies 13.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 13.1
+npm --prefix ../session_tests run course -- save 13.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-- **Final Lesson Experiment:** Run reference sharing, all-family persistence, conflicting namespaces, precise placement, colour and Delete/Undo regressions.
-
-Continue with [Independent presentation and reusable CAD preparation](../../consolidation/69j-preserve-per-instance-original-colours.md).
+Continue with [13.2 · Independent presentation and reusable CAD preparation](../../consolidation/69j-preserve-per-instance-original-colours.md).

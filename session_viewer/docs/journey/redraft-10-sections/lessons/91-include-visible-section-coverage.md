@@ -1,195 +1,99 @@
 # 18.3 · Section-aware outlines and one presentation composite
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.3** (Redraft `9.7`) · **10 checkpoints (`91-include-visible-section-coverage` → `91i-prove-actual-outlines-and-original-ownership`)** · **Study time: 5–10 h**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Checkpoints:** `91-include-visible-section-coverage` → `91i-prove-actual-outlines-and-original-ownership` (10 steps) · **Production source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs)
 
-> **What You Will Learn & Build:** Include visible section coverage. By the final checkpoint (`91i-prove-actual-outlines-and-original-ownership`), you will prove actual outlines and original ownership.
+> **Goal:** Prove actual outlines and original ownership.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
-    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
-    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
-    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
-    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="706" cy="175" r="4" fill="#111111"/>
-    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 18.3 Pipeline Schematic: Section-aware outlines and one presentation composite</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (10 Checkpoints: 91-include-visible-section-coverage → 91i-prove-actual-outlines-and-original-ownership)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="110" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="192" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">original visible surfaces</text>
-    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="224" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="234" y1="90" x2="398" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">equal CSS masks</text>
-    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="430" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="522" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="440" y1="90" x2="604" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">max alpha</text>
-    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="636" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="728" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="646" y1="90" x2="810" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">one black outline</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 18.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/outline_caps.wgsl  ·  src/outline_caps.rs  ·  src/lib.rs  ·  src/outline_composite.wgsl  ·  src/outline_composite.rs  ·  src/outline_gpu.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">10 Checkpoints: 91-include-visible-section-coverage → 91i-prove-actual-outlines-and-original-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`91-include-visible-section-coverage`](#checkpoint-91-include-visible-section-coverage) | Include visible section coverage. | `src/outline_caps.wgsl` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **2** | [`91a-cache-visible-section-bindings`](#checkpoint-91a-cache-visible-section-bindings) | Cache visible section bindings. | `src/outline_caps.rs`, `src/lib.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **3** | [`91b-combine-outline-alpha-once`](#checkpoint-91b-combine-outline-alpha-once) | Combine outline alpha once. | `src/outline_composite.wgsl` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **4** | [`91c-cache-one-black-outline-composite`](#checkpoint-91c-cache-one-black-outline-composite) | Cache one black outline composite. | `src/outline_composite.rs`, `src/lib.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **5** | [`91d-separate-source-scope-from-outline-selection`](#checkpoint-91d-separate-source-scope-from-outline-selection) | Separate source scope from outline selection. | `src/outline_gpu.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **6** | [`91e-prepare-masks-without-a-second-blend`](#checkpoint-91e-prepare-masks-without-a-second-blend) | Prepare masks without a second blend. | `src/outline_gpu.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **7** | [`91f-own-independent-global-outline-resources`](#checkpoint-91f-own-independent-global-outline-resources) | Own independent global outline resources. | `src/renderer.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **8** | [`91g-draw-all-solid-and-selected-coverage-consistently`](#checkpoint-91g-draw-all-solid-and-selected-coverage-consistently) | Draw all-solid and selected coverage consistently. | `src/renderer.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **9** | [`91h-connect-outline-and-arctic-presentation-commands`](#checkpoint-91h-connect-outline-and-arctic-presentation-commands) | Connect Outline and Arctic presentation commands. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-| **10** | [`91i-prove-actual-outlines-and-original-ownership`](#checkpoint-91i-prove-actual-outlines-and-original-ownership) | Prove actual outlines and original ownership. | `src/global_outline_tests.rs`, `src/renderer.rs`, `src/global_outline_command_tests.rs`, `src/lib.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-91-include-visible-section-coverage"></a>
 
 ### Step 1 of 10 · Include visible section coverage (`91-include-visible-section-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/10 Visual Trace (91-include-visible-section-coverage): Include visible section coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_caps.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_caps.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Include visible section coverage.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/outline_caps.wgsl` (*Add exact visible section coverage without source mutation.*)
 
 Include visible section coverage.
 
-> **Self-Check Question:** *Can a section outline invent a new original face?*  
-> **Answer:** No. Read the visible cap depth and original selection marker. Reject absent or nonselected caps before adding coverage.
-
-- **Hands-On Lab Experiment:** Compare all-solid and selected-only cap pixels, saved forward depth and the one-pixel inactive section image.
-
-<details>
-<summary>Implementation 91-include-visible-section-coverage: Include visible section coverage</summary>
-
-Include visible section coverage.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Can a section outline invent a new original face?* — No. Read the visible cap depth and original selection marker. Reject absent or nonselected caps before adding coverage.
 
 ### 1. `src/outline_caps.wgsl`
 
@@ -201,58 +105,38 @@ Create the file and type:
 --8<-- "journey/code/91-include-visible-section-coverage-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-91a-cache-visible-section-bindings"></a>
 
 ### Step 2 of 10 · Cache visible section bindings (`91a-cache-visible-section-bindings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/10 Visual Trace (91a-cache-visible-section-bindings): Cache visible section bindings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_caps.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_caps.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Cache visible section bindings.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/outline_caps.rs` (*Own the compatible visible section mask pipeline.*) · `src/lib.rs` (*Register the completed outline component.*)
 
 Cache visible section bindings.
 
-> **Self-Check Question:** *Should every orbit rebuild the cap bind group?*  
-> **Answer:** No. Keep the stable radius uniform and current section view. Rebind when that image is replaced.
-
-- **Hands-On Lab Experiment:** Inspect read-only depth testing and the cached input view.
-
-<details>
-<summary>Implementation 91a-cache-visible-section-bindings: Cache visible section bindings</summary>
-
-Cache visible section bindings.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Should every orbit rebuild the cap bind group?* — No. Keep the stable radius uniform and current section view. Rebind when that image is replaced.
 
 ### 1. `src/outline_caps.rs`
 
@@ -268,74 +152,44 @@ Create the file and type:
 
 Register the completed outline component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod arctic_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/91a-cache-visible-section-bindings-02.rs" skip=31
 ```
 
-</details>
+---
 
 <a id="checkpoint-91b-combine-outline-alpha-once"></a>
 
 ### Step 3 of 10 · Combine outline alpha once (`91b-combine-outline-alpha-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/10 Visual Trace (91b-combine-outline-alpha-once): Combine outline alpha once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_composite.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_composite.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Combine outline alpha once.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/outline_composite.wgsl` (*Combine current global and selected alpha in one shader.*)
 
 Combine outline alpha once.
 
-> **Self-Check Question:** *Should two overlapping outline masks darken twice?*  
-> **Answer:** No. Take their maximum alpha, then blend black once. This preserves the maintained width and antialiasing.
-
-- **Hands-On Lab Experiment:** Compare max(a,b) with blending a and b in sequence along a curved silhouette.
-
-<details>
-<summary>Implementation 91b-combine-outline-alpha-once: Combine outline alpha once</summary>
-
-Combine outline alpha once.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Should two overlapping outline masks darken twice?* — No. Take their maximum alpha, then blend black once. This preserves the maintained width and antialiasing.
 
 ### 1. `src/outline_composite.wgsl`
 
@@ -347,58 +201,38 @@ Create the file and type:
 --8<-- "journey/code/91b-combine-outline-alpha-once-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-91c-cache-one-black-outline-composite"></a>
 
 ### Step 4 of 10 · Cache one black outline composite (`91c-cache-one-black-outline-composite`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/10 Visual Trace (91c-cache-one-black-outline-composite): Cache one black outline composite</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_composite.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_composite.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Cache one black outline composite.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/outline_composite.rs` (*Own one compatible cached outline composition.*) · `src/lib.rs` (*Register the completed outline component.*)
 
 Cache one black outline composite.
 
-> **Self-Check Question:** *Must the compositor keep obsolete resized images?*  
-> **Answer:** No. Replace its bindings when either alpha view changes; release it with global outline ownership.
-
-- **Hands-On Lab Experiment:** Trace two exact input views, one alpha blend and physical resource lifetime.
-
-<details>
-<summary>Implementation 91c-cache-one-black-outline-composite: Cache one black outline composite</summary>
-
-Cache one black outline composite.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Must the compositor keep obsolete resized images?* — No. Replace its bindings when either alpha view changes; release it with global outline ownership.
 
 ### 1. `src/outline_composite.rs`
 
@@ -414,74 +248,44 @@ Create the file and type:
 
 Register the completed outline component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod outline_caps;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/91c-cache-one-black-outline-composite-02.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-91d-separate-source-scope-from-outline-selection"></a>
 
 ### Step 5 of 10 · Separate source scope from outline selection (`91d-separate-source-scope-from-outline-selection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/10 Visual Trace (91d-separate-source-scope-from-outline-selection): Separate source scope from outline selection</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Separate source scope from outline selection.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/outline_gpu.rs` (*Own cap coverage and an explicit independent all-solid scope.*)
 
 Separate source scope from outline selection.
 
-> **Self-Check Question:** *Can global outlining simply select every object?*  
-> **Answer:** No. Selection affects original face color and picking. Give mask preparation its own all-solid scope and the same CSS radius.
-
-- **Hands-On Lab Experiment:** Inspect the independent scope key, radius marker and original mesh draw filter.
-
-<details>
-<summary>Implementation 91d-separate-source-scope-from-outline-selection: Separate source scope from outline selection</summary>
-
-Separate source scope from outline selection.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Can global outlining simply select every object?* — No. Selection affects original face color and picking. Give mask preparation its own all-solid scope and the same CSS radius.
 
 ### 1. `src/outline_gpu.rs`
 
@@ -489,8 +293,7 @@ Own cap coverage and an explicit independent all-solid scope.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       self.release();
@@ -503,8 +306,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
       {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -518,8 +319,7 @@ Replace it with:
       {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ctx.queue.write_buffer(
@@ -531,8 +331,6 @@ Replace it with:
       let table = crate::outline_math::taps(radius);
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -545,8 +343,7 @@ Replace it with:
       let table = crate::outline_math::taps(radius);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       ]
@@ -558,8 +355,6 @@ Replace it with:
     if self.masks.as_ref().is_none_or(|m| m.coverage.size != size || m.block != block) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -572,8 +367,7 @@ Replace it with:
     if self.masks.as_ref().is_none_or(|m| m.coverage.size != size || m.block != block) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     });
@@ -583,8 +377,6 @@ Replace it with:
       dilate_pipeline: fullscreen(
         &ctx.device,
 ```
-
-</details>
 
 Replace it with:
 
@@ -598,8 +390,7 @@ Replace it with:
         &ctx.device,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   density: u32,
@@ -613,8 +404,6 @@ pub struct Outline {
   dilate_pipeline: wgpu::RenderPipeline,
   alpha_pipeline: wgpu::RenderPipeline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -633,8 +422,7 @@ pub struct Outline {
   alpha_pipeline: wgpu::RenderPipeline,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -1052,87 +840,38 @@ impl Outline {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/91d-separate-source-scope-from-outline-selection-01.rs"
-```
-
-```text
---8<-- "journey/code/91d-separate-source-scope-from-outline-selection-02.rs"
-```
-
-```text
---8<-- "journey/code/91d-separate-source-scope-from-outline-selection-03.rs"
-```
-
-```text
---8<-- "journey/code/91d-separate-source-scope-from-outline-selection-04.rs"
-```
-
-```text
---8<-- "journey/code/91d-separate-source-scope-from-outline-selection-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-91e-prepare-masks-without-a-second-blend"></a>
 
 ### Step 6 of 10 · Prepare masks without a second blend (`91e-prepare-masks-without-a-second-blend`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/10 Visual Trace (91e-prepare-masks-without-a-second-blend): Prepare masks without a second blend</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Prepare masks without a second blend.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/outline_gpu.rs` (*Separate cached mask preparation from black composition.*)
 
 Prepare masks without a second blend.
 
-> **Self-Check Question:** *Can selected and global masks share a final pass?*  
-> **Answer:** Yes. Prepare each complete alpha image separately, then expose it to the one-blend compositor. The earlier selected-only entry point remains available.
-
-- **Hands-On Lab Experiment:** Trace original depth, shared clipping, visible cap coverage, pooled search and resting cache reuse.
-
-<details>
-<summary>Implementation 91e-prepare-masks-without-a-second-blend: Prepare masks without a second blend</summary>
-
-Prepare masks without a second blend.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Can selected and global masks share a final pass?* — Yes. Prepare each complete alpha image separately, then expose it to the one-blend compositor. The earlier selected-only entry point remains available.
 
 ### 1. `src/outline_gpu.rs`
 
@@ -1140,8 +879,7 @@ Separate cached mask preparation from black composition.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     } else {
@@ -1168,8 +906,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 fn raster(
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1191,8 +927,7 @@ Replace it with:
 fn raster(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         });
@@ -1205,8 +940,6 @@ fn raster(
       raster(encoder, &m.coarse.view, &self.pool_pipeline, &[&m.pool]);
       raster(encoder, &m.dilated.view, &self.dilate_pipeline, &[&m.dilate]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1223,8 +956,7 @@ Replace it with:
       raster(encoder, &m.dilated.view, &self.dilate_pipeline, &[&m.dilate]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     density: f32,
@@ -1240,8 +972,6 @@ Replace it with:
     if self.key.as_ref() != Some(&key) {
       {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1279,8 +1009,7 @@ Replace it with:
       {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -1712,79 +1441,38 @@ impl Outline {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/91e-prepare-masks-without-a-second-blend-01.rs"
-```
-
-```text
---8<-- "journey/code/91e-prepare-masks-without-a-second-blend-02.rs"
-```
-
-```text
---8<-- "journey/code/91e-prepare-masks-without-a-second-blend-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-91f-own-independent-global-outline-resources"></a>
 
 ### Step 7 of 10 · Own independent global outline resources (`91f-own-independent-global-outline-resources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/10 Visual Trace (91f-own-independent-global-outline-resources): Own independent global outline resources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Own independent global outline resources.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/renderer.rs` (*Own independent global masks and derived cache invalidation.*)
 
 Own independent global outline resources.
 
-> **Self-Check Question:** *Does hiding one original require reuploading its geometry?*  
-> **Answer:** No. Invalidate derived coverage and rebuild only visible inputs. Off and an empty scene release global masks and retained alpha bindings.
-
-- **Hands-On Lab Experiment:** Compare global ownership, source/selection invalidation and truthful allocation/work counters.
-
-<details>
-<summary>Implementation 91f-own-independent-global-outline-resources: Own independent global outline resources</summary>
-
-Own independent global outline resources.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Does hiding one original require reuploading its geometry?* — No. Invalidate derived coverage and rebuild only visible inputs. Off and an empty scene release global masks and retained alpha bindings.
 
 ### 1. `src/renderer.rs`
 
@@ -1792,8 +1480,7 @@ Own independent global masks and derived cache invalidation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1805,8 +1492,6 @@ impl Renderer {
  }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1823,8 +1508,7 @@ impl Renderer {
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn prepare_clouds(&self,transform:[f32;16]) {
@@ -1834,8 +1518,6 @@ impl Renderer {
 
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1850,8 +1532,7 @@ Replace it with:
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1866,8 +1547,6 @@ Replace it with:
             let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
             self.settings_writes += calls; self.settings_bytes += bytes;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1887,8 +1566,7 @@ Replace it with:
             self.settings_writes += calls; self.settings_bytes += bytes;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
@@ -1898,8 +1576,6 @@ Replace it with:
         self.preview.set(&self.device, None).expect("Empty tool preview");
         self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
 ```
-
-</details>
 
 Replace it with:
 
@@ -1913,8 +1589,7 @@ Replace it with:
         self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -1925,8 +1600,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1940,8 +1613,7 @@ Replace it with:
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
@@ -1951,8 +1623,6 @@ Replace it with:
     text_error:std::cell::RefCell<Option<String>>,
     full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1968,8 +1638,7 @@ Replace it with:
     full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2503,113 +2172,42 @@ mod pyramid_gpu_tests;
 mod ambient_gpu_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-01.rs"
-```
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-02.rs"
-```
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-03.rs"
-```
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-04.rs"
-```
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-05.rs"
-```
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-06.rs"
-```
-
-```text
---8<-- "journey/code/91f-own-independent-global-outline-resources-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-91g-draw-all-solid-and-selected-coverage-consistently"></a>
 
 ### Step 8 of 10 · Draw all-solid and selected coverage consistently (`91g-draw-all-solid-and-selected-coverage-consistently`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/10 Visual Trace (91g-draw-all-solid-and-selected-coverage-consistently): Draw all-solid and selected coverage consistently</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Draw all-solid and selected coverage consistently.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/renderer.rs` (*Route visible original and cap masks into one black outline pass.*)
 
 Draw all-solid and selected coverage consistently.
 
-> **Self-Check Question:** *Can highlighting narrow a curved silhouette?*  
-> **Answer:** No. Source ink and selection stay separate. Both scopes use the maintained CSS radius, and their completed alpha images feed one black blend.
-
-- **Hands-On Lab Experiment:** Enable global outlines on a cylinder, select it and compare the same outer boundary at two densities.
-
-<details>
-<summary>Implementation 91g-draw-all-solid-and-selected-coverage-consistently: Draw all-solid and selected coverage consistently</summary>
-
-Draw all-solid and selected coverage consistently.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Can highlighting narrow a curved silhouette?* — No. Source ink and selection stay separate. Both scopes use the maintained CSS radius, and their completed alpha images feed one black blend.
 
 ### 1. `src/renderer.rs`
 
 Route visible original and cap masks into one black outline pass.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass);self.guides.draw(&mut pass);}
-        if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision);
-        } else {self.outline.borrow_mut().take();}
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2617,58 +2215,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/91g-draw-all-solid-and-selected-coverage-consistently-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-91h-connect-outline-and-arctic-presentation-commands"></a>
 
 ### Step 9 of 10 · Connect Outline and Arctic presentation commands (`91h-connect-outline-and-arctic-presentation-commands`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/10 Visual Trace (91h-connect-outline-and-arctic-presentation-commands): Connect Outline and Arctic presentation commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Connect Outline and Arctic presentation commands.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/editor.rs` (*Connect current presentation commands and explicit browser outline diagnostics.*) · `src/commands.rs` (*Connect current presentation commands and explicit browser outline diagnostics.*) · `src/browser.rs` (*Connect current presentation commands and explicit browser outline diagnostics.*)
 
 Connect Outline and Arctic presentation commands.
 
-> **Self-Check Question:** *Does Arctic Off reset the Outline preference?*  
-> **Answer:** No. Arctic On enables global outlines. View Outline has its own strict On/Off and toggle; presentation changes preserve document history and pending tools.
-
-- **Hands-On Lab Experiment:** Try View Outline On/Off while a Line awaits its second point, then Arctic On/Off and Redo.
-
-<details>
-<summary>Implementation 91h-connect-outline-and-arctic-presentation-commands: Connect Outline and Arctic presentation commands</summary>
-
-Connect Outline and Arctic presentation commands.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
+> **Check:** *Does Arctic Off reset the Outline preference?* — No. Arctic On enables global outlines. View Outline has its own strict On/Off and toggle; presentation changes preserve document history and pending tools.
 
 ### 1. `src/editor.rs`
 
@@ -2676,8 +2254,7 @@ Connect current presentation commands and explicit browser outline diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
@@ -2687,8 +2264,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Clipping(request)=>{return self.clipping_request(request)},
             Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -2702,8 +2277,7 @@ Replace it with:
             Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2714,8 +2288,6 @@ Replace it with:
         if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else{self.apply(Action::Picked(None))}}
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel){self.mark=None;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2730,8 +2302,7 @@ Replace it with:
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel){self.mark=None;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -2742,8 +2313,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2757,8 +2326,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2768,8 +2336,6 @@ pub struct Editor {
     pub interaction_epoch:u64,
     pub lasso:Option<crate::lasso::Lasso>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2783,8 +2349,7 @@ pub struct Editor {
     pub lasso:Option<crate::lasso::Lasso>,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2794,8 +2359,6 @@ pub enum Action {
     SelectLasso,LassoPress{at:[f64;2],size:[f64;2],density:f64,pointer:i32},LassoMove{at:[f64;2],pointer:i32},LassoRelease{at:[f64;2],pointer:i32,add:bool,remove:bool},LassoCancel,
     AddGroup(String),AddEdge,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2809,8 +2372,7 @@ pub enum Action {
     AddGroup(String),AddEdge,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3978,43 +3540,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-01.rs"
-```
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-02.rs"
-```
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-03.rs"
-```
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-04.rs"
-```
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-05.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Connect current presentation commands and explicit browser outline diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
@@ -4024,8 +3556,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
     if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4039,8 +3569,7 @@ Replace it with:
     if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4050,8 +3579,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
     ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4065,8 +3592,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -4282,31 +3808,13 @@ fn command_alias(line:&str)->String{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-06.rs"
-```
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-07.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Connect current presentation commands and explicit browser outline diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
@@ -4317,8 +3825,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4332,8 +3838,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
@@ -4344,8 +3849,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4359,8 +3862,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5228,79 +4730,40 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-08.rs"
-```
-
-```text
---8<-- "journey/code/91h-connect-outline-and-arctic-presentation-commands-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-91i-prove-actual-outlines-and-original-ownership"></a>
 
 ### Step 10 of 10 · Prove actual outlines and original ownership (`91i-prove-actual-outlines-and-original-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/10 Visual Trace (91i-prove-actual-outlines-and-original-ownership): Prove actual outlines and original ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/global_outline_tests.rs, src/renderer.rs, src/global_outline_command_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original visible surfaces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">equal CSS masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">max alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one black outline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/global_outline_tests.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">max alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one black outline</text>
 </svg>
-</div>
-
-- **Goal:** Prove actual outlines and original ownership.
-- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
-- **Files You Touch:** `src/global_outline_tests.rs` (*Copy supplied actual outline width, cap, cache and original-owner fixtures.*) · `src/renderer.rs` (*Register actual renderer-local outline fixtures.*) · `src/global_outline_command_tests.rs` (*Copy supplied strict presentation/history/original fixtures.*) · `src/lib.rs` (*Register the completed outline component.*)
 
 Prove actual outlines and original ownership.
 
-> **Self-Check Question:** *What verifies consistent curved-surface outlines?*  
-> **Answer:** Actual alpha and color pixels, original integer picks and source equality. Verify two densities, visible caps, one-blend overlap, cache reuse and resource release.
+> **Check:** *What verifies consistent curved-surface outlines?* — Actual alpha and color pixels, original integer picks and source equality. Verify two densities, visible caps, one-blend overlap, cache reuse and resource release.
 
-- **What You Should See:** The original curved pedestal has a continuous black silhouette with one consistent CSS width.
-- **Hands-On Lab Experiment:** Fit Example CAD and compare View Outline On and Off while orbiting its curved silhouette. Select an original and clear selection to compare its boundary with the global outline. The supplied two-density masks and cap cases document numerical coverage beyond this browser inspection.
-
-<details>
-<summary>Implementation 91i-prove-actual-outlines-and-original-ownership: Prove actual outlines and original ownership</summary>
-
-Prove actual outlines and original ownership.
-
-Data flow: original visible surfaces → equal CSS masks → max alpha → one black outline.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5314,10 +4777,7 @@ Copy this supplied file:
 --8<-- "journey/code/91i-prove-actual-outlines-and-original-ownership-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5325,26 +4785,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register actual renderer-local outline fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[path="ambient_gpu_tests.rs"]
-mod ambient_gpu_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/91i-prove-actual-outlines-and-original-ownership-02.rs" skip=54
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5358,10 +4805,7 @@ Copy this supplied file:
 --8<-- "journey/code/91i-prove-actual-outlines-and-original-ownership-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5369,47 +4813,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed outline component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod outline_composite;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/91i-prove-actual-outlines-and-original-ownership-04.rs" skip=28
 ```
 
-</details>
-
-</details>
+**Result after `91i-prove-actual-outlines-and-original-ownership`:** The original curved pedestal has a continuous black silhouette with one consistent CSS width.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 91i-prove-actual-outlines-and-original-ownership
-npm --prefix ../session_tests run course -- check 91i-prove-actual-outlines-and-original-ownership
-npm --prefix ../session_tests run course -- save 91i-prove-actual-outlines-and-original-ownership
+npm --prefix ../session_tests run course -- dependencies 18.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 18.3
+npm --prefix ../session_tests run course -- save 18.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The original curved pedestal has a continuous black silhouette with one consistent CSS width.
-
-- **Final Lesson Experiment:** Fit Example CAD and compare View Outline On and Off while orbiting its curved silhouette. Select an original and clear selection to compare its boundary with the global outline. The supplied two-density masks and cap cases document numerical coverage beyond this browser inspection.
-
-Continue with [Original Wood Elements and portable source records](../../consolidation/92-link-current-wood-element-builders.md).
+Continue with [18.4 · Original Wood Elements and portable source records](../../consolidation/92-link-current-wood-element-builders.md).

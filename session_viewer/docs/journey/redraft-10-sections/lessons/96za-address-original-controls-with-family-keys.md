@@ -1,217 +1,100 @@
 # 19.4 · Family-aware original controls and source previews
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.4** (Redraft `10.4`) · **7 checkpoints (`96za-address-original-controls-with-family-keys` → `96zg-rebuild-an-edited-element-without-replacing-its-owner`)** · **Study time: 3.5–7 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96za-address-original-controls-with-family-keys` → `96zg-rebuild-an-edited-element-without-replacing-its-owner` (7 steps) · **Production source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [app/deform.rs](../../../../src/app/deform.rs) · [app/walk/mod.rs](../../../../src/app/walk/mod.rs)
 
-> **What You Will Learn & Build:** Address original controls with family keys. By the final checkpoint (`96zg-rebuild-an-edited-element-without-replacing-its-owner`), you will replace Element display geometry while retaining its original CAD identity.
+> **Goal:** Replace Element display geometry while retaining its original CAD identity.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 19.4 Pipeline Schematic: Family-aware original controls and source previews</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (7 Checkpoints: 96za-address-original-controls-with-family-keys → 96zg-rebuild-an-edited-element-without-replacing-its-owner)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="110" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="192" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">source feature visibility</text>
-    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="224" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="234" y1="90" x2="398" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">coincident-point</text>
-    <text x="316" y="124" text-anchor="middle" font-size="11" fill="#111111">classification</text>
-    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="430" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="522" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="440" y1="90" x2="604" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">existing marker/path</text>
-    <text x="522" y="124" text-anchor="middle" font-size="11" fill="#111111">display</text>
-    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="636" y="66" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="728" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="646" y1="90" x2="810" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">original owner</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 19.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/pick_sources.rs  ·  src/scene.rs  ·  src/selection.rs  ·  src/highlight.rs  ·  src/control_parent_tests.rs  ·  src/original_control_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">7 Checkpoints: 96za-address-original-controls-with-family-keys → 96zg-rebuild-an-edited-element-without-replacing-its-owner — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96za-address-original-controls-with-family-keys`](#checkpoint-96za-address-original-controls-with-family-keys) | Address original controls with family keys. | `src/pick_sources.rs`, `src/scene.rs`, `src/selection.rs`, `src/highlight.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-| **2** | [`96zb-draw-and-pick-original-cad-control-points`](#checkpoint-96zb-draw-and-pick-original-cad-control-points) | Draw and pick original CAD control points. | `src/scene.rs`, `src/original_control_tests.rs`, `src/lib.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-| **3** | [`96zc-share-the-current-control-point-style`](#checkpoint-96zc-share-the-current-control-point-style) | Use seven CSS pixel blue controls and same-size yellow selection. | `src/scene.rs`, `src/highlight.rs`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-| **4** | [`96zd-reuse-world-controls-for-their-display-nets`](#checkpoint-96zd-reuse-world-controls-for-their-display-nets) | Draw placed control nets through the existing stroke lane. | `src/scene.rs`, `src/pick_sources.rs`, `src/pick_gpu_tests.rs`, `src/pick_sources_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-| **5** | [`96ze-scope-controls-to-the-selected-original`](#checkpoint-96ze-scope-controls-to-the-selected-original) | Enter original control selection without competing object handles. | `src/scene.rs`, `src/editor.rs`, `src/commands.rs`, `src/original_control_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-| **6** | [`96zf-edit-original-controls-through-the-source-preview`](#checkpoint-96zf-edit-original-controls-through-the-source-preview) | Deform original control geometry without editing GPU records. | `src/source_part.rs`, `src/part_preview.rs`, `src/scene.rs`, `src/original_control_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-| **7** | [`96zg-rebuild-an-edited-element-without-replacing-its-owner`](#checkpoint-96zg-rebuild-an-edited-element-without-replacing-its-owner) | Replace Element display geometry while retaining its original CAD identity. | `src/scene.rs`, `src/original_control_tests.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96za-address-original-controls-with-family-keys"></a>
 
 ### Step 1 of 7 · Address original controls with family keys (`96za-address-original-controls-with-family-keys`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/7 Visual Trace (96za-address-original-controls-with-family-keys): Address original controls with family keys</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs, src/scene.rs, src/selection.rs, src/highlight.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_sources.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Address original controls with family keys.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/pick_sources.rs` (*Reuse the original-family control key.*) · `src/scene.rs` (*Keep the original parent and its addressed part.*) · `src/selection.rs` (*Reject a family control absent from the current visible snapshot.*) · `src/highlight.rs` (*Reuse the existing selected-control highlight for every original family.*) · `src/control_parent_tests.rs` (*Preserve the shared-source and distinct-parent fixture after markers carry addressed parts.*)
 
 A curve control index is insufficient for original CAD: a BRep owns vertices, multiple curves and multiple surfaces.
 
 Reuse the ControlId written in 77 to name a mesh vertex, a curve point or a surface (u,v) point. Give the common display marker a Part address instead of embedding one curve source. The existing curve collector still emits its established Control index; the following lesson can add other source families through the same marker buffer and integer-address table. Validate a family control against the current visible marker snapshot, so a stale or hidden address cannot select a source.
 
-> **Self-Check Question:** *Does a control marker become another document object?*  
-> **Answer:** No. Its parent remains the original CAD row; its Part identifies a control in that source. The GPU table is a snapshot address, not a new persistent identity.
-
-- **What You Should See:** The existing original CAD and feature drawing remains visible. The shared marker and integer-pick owners are reused; no new independent source rows are inserted.
-- **Hands-On Lab Experiment:** Trace an existing curve control through marker, integer tag and original parent. Then explain why surface (u,v) needs a family key.
-
-<details>
-<summary>Implementation 96za-address-original-controls-with-family-keys: Address original controls with family keys</summary>
-
-Address original controls with family keys.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Does a control marker become another document object?* — No. Its parent remains the original CAD row; its Part identifies a control in that source. The GPU table is a snapshot address, not a new persistent identity.
 
 ### 1. `src/pick_sources.rs`
 
 Reuse the original-family control key.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub enum Part { Object, Face(usize), SurfaceEdge(usize), BRepEdge(usize), MeshEdge(usize, usize), PathEdge(usize), Curve, Control(usize), CloudPoint(u32), SheetEntity(u32) }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -219,25 +102,13 @@ Edit the existing block to match this code; keep unchanged lines:
 pub enum Part { Object, Face(usize), SurfaceEdge(usize), BRepEdge(usize), MeshEdge(usize, usize), PathEdge(usize), Curve, Control(usize), SourceControl(crate::source_controls::ControlId), CloudPoint(u32), SheetEntity(u32) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-1.rs"
-```
-
-</details>
-
 ### 2. `src/scene.rs`
 
 Keep the original parent and its addressed part. Retain the existing curve control address.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let p = control.position().expect("Validated original control");
@@ -248,8 +119,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }
         markers
 ```
-
-</details>
 
 Replace it with:
 
@@ -263,8 +132,7 @@ Replace it with:
         markers
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -275,8 +143,6 @@ pub struct ControlMarker { pub parent: ObjectId, pub control: crate::controls::C
 #[derive(Clone)]
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
 ```
-
-</details>
 
 Replace it with:
 
@@ -290,8 +156,7 @@ pub struct ControlMarker { pub parent: ObjectId, pub part: crate::pick_sources::
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -399,7 +264,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1113,35 +977,9 @@ impl Scene {
 mod cap_pick_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-2.rs"
-```
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-3.rs"
-```
-
-</details>
-
 ### 3. `src/pick_sources.rs`
 
 Use one GPU address table for every marker family.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            let ids = append(&mut sources.controls, Kind::Control, Target { owner: row.parent, part: Part::Control(row.control.index) })?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1149,64 +987,9 @@ Edit the existing block to match this code; keep unchanged lines:
             let ids = append(&mut sources.controls, Kind::Control, Target { owner: row.parent, part: row.part })?;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-4.rs"
-```
-
-</details>
-
 ### 4. `src/selection.rs`
 
 Reject a family control absent from the current visible snapshot. Describe the original source key without invented objects.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{pick_sources::{Part, Target}, scene::Scene};
-
-impl Target {
-    pub fn valid(self, scene: &Scene) -> bool {
-        if scene.pick_id(self.owner.value()).is_none() { return false; }
-        match self.part {
-            Part::SheetEntity(id)=>scene.sheets().iter().any(|row|row.id==self.owner&&row.has_entity(id)),
-            Part::CloudPoint(id)=>crate::cloud_pick::position(scene,self.owner,id).is_some(),
-            Part::Object => true,
-            Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
-            Part::BRepEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.cad.as_ref().is_some_and(|cad|cad.edges.iter().any(|border|border.edge==edge))),
-            Part::SurfaceEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.surface.as_ref().is_some_and(|s|s.grid.boundaries.iter().any(|b|b.edge==edge))),
-            Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
-            Part::PathEdge(index) => scene.paths().iter().any(|r| r.id == self.owner && matches!(&r.prepared.source,
-                crate::chain::Source::Polyline(line) if line.get_points().windows(2).nth(index).is_some_and(|pair| pair[0].to_f32() != pair[1].to_f32()))),
-            Part::Curve => scene.lines().iter().any(|r| r.id == self.owner) || scene.paths().iter().any(|r| r.id == self.owner && !matches!(r.prepared.source, crate::chain::Source::Polyline(_))),
-            Part::Control(index) => scene.paths().iter().any(|r| r.id == self.owner && r.controls_visible && matches!(&r.prepared.source,
-                crate::chain::Source::Curve(curve, _) if crate::controls::Control::new(std::rc::Rc::clone(curve), index).is_ok())),
-        }
-    }
-
-    pub fn describe(self) -> String {
-        match self.part {
-            Part::SheetEntity(id)=>format!("Object {} · original sheet entity {id}",self.owner.value()),
-            Part::CloudPoint(id)=>format!("Object {} · original point {id}",self.owner.value()),
-            Part::Object => format!("Object {}", self.owner.value()),
-            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
-            Part::BRepEdge(edge)=>format!("Object {} · original BRep edge {edge}",self.owner.value()),
-            Part::SurfaceEdge(edge)=>format!("Object {} · surface domain edge {edge}",self.owner.value()),
-            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),
-            Part::PathEdge(index) => format!("Object {} · source segment {index}", self.owner.value()),
-            Part::Curve => format!("Object {} · original curve", self.owner.value()),
-            Part::Control(index) => format!("Object {} · original control {index}", self.owner.value()),
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1251,34 +1034,9 @@ impl Target {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-5.rs"
-```
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-6.rs"
-```
-
-</details>
-
 ### 5. `src/highlight.rs`
 
 Reuse the existing selected-control highlight for every original family.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Part::Control(index) => {
-                let marker = scene.control_markers().into_iter().find(|m| m.parent == target.owner && m.control.index == index).unwrap();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1287,19 +1045,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 let marker = scene.control_markers().into_iter().find(|m| m.parent == target.owner && m.part == target.part).unwrap();
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96za-address-original-controls-with-family-keys-7.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1307,80 +1053,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Preserve the shared-source and distinct-parent fixture after markers carry addressed parts.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert_eq!(markers[1].control.index, 1); assert_eq!(markers[4].control.index, 1);
-    assert!(Rc::ptr_eq(&markers[1].control.source, &markers[4].control.source));
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96za-address-original-controls-with-family-keys-8.rs"
 ```
 
-</details>
+**Result after `96za-address-original-controls-with-family-keys`:** The existing original CAD and feature drawing remains visible. The shared marker and integer-pick owners are reused; no new independent source rows are inserted.
 
-</details>
+---
 
 <a id="checkpoint-96zb-draw-and-pick-original-cad-control-points"></a>
 
 ### Step 2 of 7 · Draw and pick original CAD control points (`96zb-draw-and-pick-original-cad-control-points`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/7 Visual Trace (96zb-draw-and-pick-original-cad-control-points): Draw and pick original CAD control points</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/original_control_tests.rs, src/lib.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/origina…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Draw and pick original CAD control points.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/scene.rs` (*Store control display ownership without modifying original geometry.*) · `src/original_control_tests.rs` (*Supply original source-sharing, family addressing, hide/off, Element ownership and release checks.*) · `src/lib.rs` (*Register supplied original-control fixtures.*) · `src/pick_gpu_tests.rs` (*Supply actual placed integer-pick checks with sparse original vertex keys at both densities.*)
 
 Connect the original-family collector from 77 to the existing GPU marker buffer.
 
 Track which original mesh, BRep, surface or Element owners show controls separately from their source data. Controls On enables these owners alongside the earlier curve controls; Controls Off clears them. Collect original f64 coordinates, apply the current source placement, and convert to f32 only at the display boundary. Reject a position that cannot be represented by the GPU. The existing marker upload and integer address table now carry these controls, so color and picking use the same six-pixel discs. Hidden originals contribute no markers. Removal and Close release the display-owner set. This checkpoint adds control-point display and source-key picking; original control nets, selected-owner command semantics and part editing follow.
 
-> **Self-Check Question:** *Why convert after placement?*  
-> **Answer:** Source control coordinates and placement remain f64. Converting before placement loses precision and may hide an overflow caused by the world transform.
-
-- **Hands-On Lab Experiment:** Run Example Box, Controls On and Select Control. Compare a control hit with an object hit. Hide the owner, show it, then Controls Off; the source geometry and row identity must remain unchanged.
-
-<details>
-<summary>Implementation 96zb-draw-and-pick-original-cad-control-points: Draw and pick original CAD control points</summary>
-
-Draw and pick original CAD control points.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Why convert after placement?* — Source control coordinates and placement remain f64. Converting before placement loses precision and may hide an overflow caused by the world transform.
 
 ### 1. `src/scene.rs`
 
@@ -1388,8 +1102,7 @@ Store control display ownership without modifying original geometry. Initialize 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1399,8 +1112,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.instances.remove(&id);
         let existed = Rc::make_mut(&mut self.ids).remove(&id);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1414,8 +1125,7 @@ Replace it with:
         let existed = Rc::make_mut(&mut self.ids).remove(&id);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1425,8 +1135,6 @@ Replace it with:
         self.cad_walks=[0;2];self.instances.clear();
         self.created=None;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1440,8 +1148,7 @@ Replace it with:
         self.created=None;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 markers.push(ControlMarker { parent: row.id, part: crate::pick_sources::Part::Control(control.index), display });
@@ -1450,8 +1157,6 @@ Replace it with:
         markers
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1473,8 +1178,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1483,8 +1187,6 @@ Replace it with:
         for row in &mut self.paths { row.controls_visible = visible && matches!(row.prepared.source, crate::chain::Source::Curve(..)); }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1499,8 +1201,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1511,8 +1212,6 @@ Replace it with:
 
     pub fn demo() -> Self {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1526,8 +1225,7 @@ Replace it with:
     pub fn demo() -> Self {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1537,8 +1235,6 @@ pub struct Scene {
     pub graphs:Rc<std::collections::HashMap<u32,Rc<session_rust::Graph>>>,
     pub cad_walks:[usize;2],
 ```
-
-</details>
 
 Replace it with:
 
@@ -1552,8 +1248,7 @@ pub struct Scene {
     pub cad_walks:[usize;2],
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -1661,7 +1356,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2391,41 +2085,7 @@ impl Scene {
 mod cap_pick_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-1.rs"
-```
-
-```text
---8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-2.rs"
-```
-
-```text
---8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-3.rs"
-```
-
-```text
---8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-4.rs"
-```
-
-```text
---8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-5.rs"
-```
-
-```text
---8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-6.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2439,10 +2099,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-7.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2450,25 +2107,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register supplied original-control fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub mod source_controls;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-8.rs" skip=24
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2476,80 +2121,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply actual placed integer-pick checks with sparse original vertex keys at both densities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-camera=crate::camera::Camera::default();let pen_rows=|pixels:Vec<u8>|pixels.chunks_exact(320*4).filter(|row|row[160*4..][..3].iter().all(|v|*v<30)).count();renderer.sheet_camera(&camera);let first=pen_rows(colour_pixels_at(&mut renderer,camera.uniform()));assert!(first>20);camera.frame=[0.,0.,1.,0.2];renderer.sheet_camera(&camera);let shifted=pen_rows(colour_pixels_at(&mut renderer,camera.uniform()));assert_eq!(shifted,first,"A panel shifts the frame without changing the original world pen");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zb-draw-and-pick-original-cad-control-points-9.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zc-share-the-current-control-point-style"></a>
 
 ### Step 3 of 7 · Share the current control-point style (`96zc-share-the-current-control-point-style`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/7 Visual Trace (96zc-share-the-current-control-point-style): Share the current control-point style</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/highlight.rs, src/renderer.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/highlig…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Use seven CSS pixel blue controls and same-size yellow selection.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/scene.rs` (*Give both control families one CSS-sized style owner.*) · `src/highlight.rs` (*Change selected control color while retaining its CSS diameter.*) · `src/renderer.rs` (*Draw same-size yellow selection after the blue control disc.*) · `src/pick_gpu_tests.rs` (*Supply actual color, CSS coverage, selection and original integer-address checks at both densities.*)
 
 The current viewer shows blue control points with a diameter of seven CSS pixels.
 
 Selection changes them to yellow without enlarging them. Put this style in one ControlMarker constructor and reuse it for legacy curves and original CAD families. Keep world coordinates and original source keys separate from display style. The selected disc must draw after its blue base: alpha blending can otherwise overwrite yellow even though both pass the existing non-writing LessEqual depth test. Separate selected point drawing from the earlier line-highlight pass. The existing marker shader and density uniform convert CSS diameter to physical pixels; reuse that pipeline rather than adding another point shader.
 
-> **Self-Check Question:** *Should doubling device pixel ratio double the stored diameter?*  
-> **Answer:** No. Store seven CSS pixels. The shared marker pipeline applies the density when calculating physical framebuffer coverage.
-
-- **Hands-On Lab Experiment:** Enable controls on a box and select one. Compare blue and yellow disc sizes, then change browser pixel density. Camera zoom changes their world placement without changing their CSS diameter.
-
-<details>
-<summary>Implementation 96zc-share-the-current-control-point-style: Share the current control-point style</summary>
-
-Use seven CSS pixel blue controls and same-size yellow selection.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Should doubling device pixel ratio double the stored diameter?* — No. Store seven CSS pixels. The shared marker pipeline applies the density when calculating physical framebuffer coverage.
 
 ### 1. `src/scene.rs`
 
@@ -2557,8 +2168,7 @@ Give both control families one CSS-sized style owner. Use the shared style for t
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let local = session_rust::Point::new(control.position[0], control.position[1], control.position[2]);
@@ -2570,8 +2180,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }
         markers
 ```
-
-</details>
 
 Replace it with:
 
@@ -2585,8 +2193,7 @@ Replace it with:
         markers
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             for control in row.prepared.source.controls() {
@@ -2598,8 +2205,6 @@ Replace it with:
         }
         for row in self.objects.iter().filter(|row| self.control_owners.contains(&row.id) && self.visible(row.id)) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2613,8 +2218,7 @@ Replace it with:
         for row in self.objects.iter().filter(|row| self.control_owners.contains(&row.id) && self.visible(row.id)) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2624,8 +2228,6 @@ pub struct ControlMarker { pub parent: ObjectId, pub part: crate::pick_sources::
 #[derive(Clone)]
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2639,13 +2241,11 @@ impl ControlMarker {
     }
 }
 
-
 #[derive(Clone)]
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2754,7 +2354,6 @@ impl PathObject {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
 
-
 }
 
 pub struct ControlMarker { pub parent: ObjectId, pub part: crate::pick_sources::Part, pub display: crate::marker::Marker }
@@ -2763,7 +2362,6 @@ impl ControlMarker {
         Self { parent, part, display: crate::marker::Marker { center, diameter: 7., colour: [0.15, 0.35, 0.9, 1.] } }
     }
 }
-
 
 #[derive(Clone)]
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
@@ -3487,35 +3085,13 @@ impl Scene {
 mod cap_pick_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zc-share-the-current-control-point-style-1.rs"
-```
-
-```text
---8<-- "journey/code/96zc-share-the-current-control-point-style-2.rs"
-```
-
-```text
---8<-- "journey/code/96zc-share-the-current-control-point-style-3.rs"
-```
-
-</details>
-
 ### 2. `src/highlight.rs`
 
 Change selected control color while retaining its CSS diameter. Keep selected line outlines below ordinary ink; draw selected point color separately.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3526,8 +3102,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn bytes(&self) -> u64 { self.mesh.as_ref().map_or(0, |m| m.geometry.allocated_bytes() + m.settings_bytes())
         + self.strokes.usage()[1] + self.paths.usage()[1] + self.markers.usage()[1] }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3542,8 +3116,7 @@ Replace it with:
         + self.strokes.usage()[1] + self.paths.usage()[1] + self.markers.usage()[1] }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -3554,8 +3127,6 @@ Replace it with:
             Part::CloudPoint(id)=>{
                 let p=crate::cloud_pick::position(scene,target.owner,id).ok_or("Cloud point is missing")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -3569,8 +3140,7 @@ Replace it with:
                 let p=crate::cloud_pick::position(scene,target.owner,id).ok_or("Cloud point is missing")?;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_sources::{Part, Target}, scene::Scene, stroke_gpu::Lane};
@@ -3666,36 +3236,9 @@ impl Highlight {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zc-share-the-current-control-point-style-4.rs"
-```
-
-```text
---8<-- "journey/code/96zc-share-the-current-control-point-style-5.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Draw same-size yellow selection after the blue control disc.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            self.markers.draw(&mut pass);
-            self.preview.draw(&mut pass);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3705,19 +3248,7 @@ Edit the existing block to match this code; keep unchanged lines:
             self.preview.draw(&mut pass);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zc-share-the-current-control-point-style-6.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3725,116 +3256,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply actual color, CSS coverage, selection and original integer-address checks at both densities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-xel");
-        assert_eq!(renderer.resolve_pick(&scene,pixel),Some(crate::pick_sources::Target{owner,part:crate::pick_sources::Part::SourceControl(crate::source_controls::ControlId::Vertex(10))}));
-        scene.show_controls(false);renderer.set_scene(&scene,None);renderer.request_pick([-0.375,-0.25],identity()).unwrap();assert!(finish(&mut renderer).is_none());scene.show_controls(true);
-    }
-    assert!(crate::source_edit::same(&source,&crate::source_edit::original(&scene,owner).unwrap()));
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zc-share-the-current-control-point-style-7.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zd-reuse-world-controls-for-their-display-nets"></a>
 
 ### Step 4 of 7 · Reuse world controls for their display nets (`96zd-reuse-world-controls-for-their-display-nets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/7 Visual Trace (96zd-reuse-world-controls-for-their-display-nets): Reuse world controls for their display nets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/pick_sources.rs, src/pick_gpu_tests.rs, src/pick_sources_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/pick_so…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Draw placed control nets through the existing stroke lane.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/scene.rs` (*Project one control owner for both point discs and net links.*) · `src/pick_sources.rs` (*Reuse stroke drawing and address each net only to its original parent.*) · `src/pick_gpu_tests.rs` (*Supply real net integer-pick, endpoint, source identity and Off checks at both densities.*) · `src/pick_sources_tests.rs` (*Keep twelve original mesh edge addresses distinct from two parent-only control links.*)
 
 A curve or surface control net connects the collector’s point indices.
 
 Build one shared control-source projection: retain original family keys and legacy curve addressing, transform the copied control positions into world space in f64, and leave the original geometry untouched. Both marker and net conversion consume this projection. Reuse the existing stroke lane for thin control links with the maintained packed color 0xffcc8866. Each link belongs to its original parent and has subpart tag zero; it must not invent a CAD edge address. Original mesh controls have no extra net links. Visibility and Controls Off remove the derived presentation together.
 
-> **Self-Check Question:** *Why do control links carry an original parent but no edge tag?*  
-> **Answer:** They explain the source’s control structure. They are not original mesh edges or BRep boundaries, so object picking may find the parent while edge and control picking must not invent a new subpart.
-
-- **Hands-On Lab Experiment:** Enable controls on Example Curve and Example Surface. Compare each link endpoint with its control disc. Switch object, edge and control picking; the link can address the original object but only the discs address control keys.
-
-<details>
-<summary>Implementation 96zd-reuse-world-controls-for-their-display-nets: Reuse world controls for their display nets</summary>
-
-Draw placed control nets through the existing stroke lane.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Why do control links carry an original parent but no edge tag?* — They explain the source’s control structure. They are not original mesh edges or BRep boundaries, so object picking may find the parent while edge and control picking must not invent a new subpart.
 
 ### 1. `src/scene.rs`
 
 Project one control owner for both point discs and net links.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && self.visible(row.id)) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-                markers.push(ControlMarker::new(row.id, crate::pick_sources::Part::Control(control.index), p.to_f32()));
-            }
-        }
-        for row in self.objects.iter().filter(|row| self.control_owners.contains(&row.id) && self.visible(row.id)) {
-            let Some(source) = crate::source_edit::original(self, row.id) else { continue };
-            for control in crate::source_controls::Controls::from_geometry(&source).points {
-                let local = session_rust::Point::new(control.position[0], control.position[1], control.position[2]);
-                let center = row.model.transform_point(&local).to_f32();
-                if center.iter().any(|v| !v.is_finite()) { continue; }
-                markers.push(ControlMarker::new(row.id, crate::pick_sources::Part::SourceControl(control.id), center));
-            }
-        }
-        markers
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3846,15 +3311,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Reuse stroke drawing and address each net only to its original parent.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        for row in scene.control_markers() {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -3865,19 +3321,7 @@ Edit the existing block to match this code; keep unchanged lines:
         for row in scene.control_markers() {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zd-reuse-world-controls-for-their-display-nets-2.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3885,30 +3329,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply real net integer-pick, endpoint, source identity and Off checks at both densities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.set_highlight(&scene,Some(target)).unwrap();let selected=colour_pixels(&mut renderer);
-        assert_eq!(&selected[center..center+4],&[255,255,0,255]);
-        renderer.set_pick_mode(crate::pick_sources::Mode::Control);renderer.request_pick([-0.5,-0.5],identity()).unwrap();let pixel=finish(&mut renderer).unwrap();assert_eq!(renderer.resolve_pick(&scene,pixel),Some(target));
-    }
-    assert!(crate::source_edit::same(&source,&crate::source_edit::original(&scene,owner).unwrap()));
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zd-reuse-world-controls-for-their-display-nets-3.rs" skip=500
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3916,79 +3343,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep twelve original mesh edge addresses distinct from two parent-only control links.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert_eq!(sources.mesh_ink.len(), 12);
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zd-reuse-world-controls-for-their-display-nets-4.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96ze-scope-controls-to-the-selected-original"></a>
 
 ### Step 5 of 7 · Scope controls to the selected original (`96ze-scope-controls-to-the-selected-original`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/7 Visual Trace (96ze-scope-controls-to-the-selected-original): Scope controls to the selected original</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/editor.rs, src/commands.rs, src/original_control_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/editor.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Enter original control selection without competing object handles.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/scene.rs` (*Validate the original, then atomically replace its derived control presentation.*) · `src/editor.rs` (*Give the maintained selected-owner command its own transition.*) · `src/commands.rs` (*Route bare Controls to selected-owner behavior.*) · `src/original_control_tests.rs` (*Supply original ownership, repeated control selection, Escape and unchanged history checks.*)
 
 The maintained Controls command starts from one selected object.
 
 Validate its source before changing presentation; an empty selection or an object without controls must leave the scene intact. Clear the previous presentation, collect only this parent, and switch the existing integer picker to control mode. Keep the original parent selected while hiding its object gizmo. Repeating Controls for that parent preserves its current control selection. Escape removes the presentation and returns to object selection with the parent retained. Controls On remains the earlier demonstration adapter until the final command registry bridge.
 
-> **Self-Check Question:** *Why must source validation happen before clearing the previous controls?*  
-> **Answer:** A rejected command must preserve the previous presentation and selection. Deriving valid control data first makes the transition atomic.
-
-- **Hands-On Lab Experiment:** Select one curve, enter Controls, then repeat it after picking a control. Escape should keep the parent and remove its controls. Select a different original mesh and enter Controls: the first owner must have no control discs or links.
-
-<details>
-<summary>Implementation 96ze-scope-controls-to-the-selected-original: Scope controls to the selected original</summary>
-
-Enter original control selection without competing object handles.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Why must source validation happen before clearing the previous controls?* — A rejected command must preserve the previous presentation and selection. Deriving valid control data first makes the transition atomic.
 
 ### 1. `src/scene.rs`
 
@@ -3996,8 +3390,7 @@ Validate the original, then atomically replace its derived control presentation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4008,8 +3401,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             let source = crate::source_edit::original(self, id)?;
             let model = self.placement(id)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4023,8 +3414,7 @@ Replace it with:
             let model = self.placement(id)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         row.model = model; Ok(())
@@ -4034,8 +3424,6 @@ Replace it with:
         let owners = Rc::make_mut(&mut self.control_owners);
         owners.clear();
 ```
-
-</details>
 
 Replace it with:
 
@@ -4063,8 +3451,7 @@ Replace it with:
         owners.clear();
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -4173,7 +3560,6 @@ impl PathObject {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
 
-
 }
 
 pub struct ControlMarker { pub parent: ObjectId, pub part: crate::pick_sources::Part, pub display: crate::marker::Marker }
@@ -4182,7 +3568,6 @@ impl ControlMarker {
         Self { parent, part, display: crate::marker::Marker { center, diameter: 7., colour: [0.15, 0.35, 0.9, 1.] } }
     }
 }
-
 
 #[derive(Clone)]
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
@@ -4945,35 +4330,9 @@ impl Scene {
 mod cap_pick_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-1.rs"
-```
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-2.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Give the maintained selected-owner command its own transition.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Controls(bool),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4982,29 +4341,9 @@ Edit the existing block to match this code; keep unchanged lines:
     Controls(bool),
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-3.rs"
-```
-
-</details>
-
 ### 3. `src/commands.rs`
 
 Route bare Controls to selected-owner behavior.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Controls", || Action::Controls(true)),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5012,25 +4351,13 @@ Edit the existing block to match this code; keep unchanged lines:
     ("Controls", || Action::EnableControls),
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-4.rs"
-```
-
-</details>
-
 ### 4. `src/editor.rs`
 
 Enter control picking for one original without disturbing a repeated selection. Keep whole-object handles from intercepting control clicks. Escape leaves control presentation and retains its original parent.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 };
@@ -5040,8 +4367,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let parent=if visible {self.selected.filter(|id|self.scene.clouds().iter().any(|r|r.id==*id)||self.scene.streams().iter().any(|r|r.id==*id))} else {None};
                 if parent.is_some() && self.pick_mode==crate::pick_sources::Mode::Control && (self.scene.clouds().iter().any(|r|Some(r.id)==parent && r.controls_visible)||self.scene.streams().iter().any(|r|Some(r.id)==parent&&r.controls_visible)) {return Ok(Change::View);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -5062,8 +4387,7 @@ Replace it with:
                 if parent.is_some() && self.pick_mode==crate::pick_sources::Mode::Control && (self.scene.clouds().iter().any(|r|Some(r.id)==parent && r.controls_visible)||self.scene.streams().iter().any(|r|Some(r.id)==parent&&r.controls_visible)) {return Ok(Change::View);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Action::ViewOutline(on)=&action{self.outlines=on.unwrap_or(!self.outlines);self.tool_status=format!("View Outline {}",if self.outlines{"On"}else{"Off"});return Ok(Change::View)}
@@ -5074,8 +4398,6 @@ Replace it with:
         match action {
             Action::LassoPress{at,size,density,pointer}=>{if size.iter().any(|v|!v.is_finite()||*v<=0.)||!density.is_finite()||density<=0.||size.iter().any(|v|v*density>32768.)||at.iter().any(|v|!v.is_finite()){return Err("Invalid lasso viewport")}let lasso=self.lasso.as_mut().ok_or("Start Select Lasso first")?;lasso.abandoned();lasso.size=size;lasso.density=density;lasso.pointer=Some(pointer);lasso.spacing=2.;lasso.points.push((at[0]*density,at[1]*density));return Ok(Change::View)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -5089,8 +4411,7 @@ Replace it with:
             Action::LassoPress{at,size,density,pointer}=>{if size.iter().any(|v|!v.is_finite()||*v<=0.)||!density.is_finite()||density<=0.||size.iter().any(|v|v*density>32768.)||at.iter().any(|v|!v.is_finite()){return Err("Invalid lasso viewport")}let lasso=self.lasso.as_mut().ok_or("Start Select Lasso first")?;lasso.abandoned();lasso.size=size;lasso.density=density;lasso.pointer=Some(pointer);lasso.spacing=2.;lasso.points.push((at[0]*density,at[1]*density));return Ok(Change::View)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn gizmo_origin(&self)->Option<[f64;3]> {
@@ -5100,8 +4421,6 @@ Replace it with:
         if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
-
-</details>
 
 Replace it with:
 
@@ -5115,8 +4434,7 @@ Replace it with:
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6328,29 +5646,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-5.rs"
-```
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-6.rs"
-```
-
-```text
---8<-- "journey/code/96ze-scope-controls-to-the-selected-original-7.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6358,112 +5654,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply original ownership, repeated control selection, Escape and unchanged history checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-wrap();scene.show_controls(true);
-    let markers=scene.control_markers();assert!(!markers.is_empty());assert!(markers.iter().all(|m|m.parent==owner&&matches!(m.part,Part::SourceControl(ControlId::Vertex(_)))));
-    assert_eq!(scene.objects().len(),1);assert!(matches!(&scene.objects()[0].original,Some(session_rust::Geometry::Element(current)) if std::rc::Rc::ptr_eq(current,&source)));
-    scene.remove(owner);assert!(scene.control_owners.is_empty());assert!(scene.control_markers().is_empty());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96ze-scope-controls-to-the-selected-original-8.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zf-edit-original-controls-through-the-source-preview"></a>
 
 ### Step 6 of 7 · Edit original controls through the source preview (`96zf-edit-original-controls-through-the-source-preview`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/7 Visual Trace (96zf-edit-original-controls-through-the-source-preview): Edit original controls through the source preview</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_part.rs, src/part_preview.rs, src/scene.rs, src/original_control_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/source_part.rs, src/p…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Deform original control geometry without editing GPU records.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/source_part.rs` (*Resolve every supported original through the shared source owner.*) · `src/part_preview.rs` (*Find the original point before applying the owner placement.*) · `src/scene.rs` (*Allow original control keys through source deformation; keep unsupported legacy original part routes explicit.*) · `src/original_control_tests.rs` (*Supply sparse original-key, placement, preview identity, other owner, Undo, Redo and stale commit checks.*)
 
 A picked disc addresses an original family key.
 
 Resolve that key through the source deformation code already taught, then transform the affected source points through the owner placement. The preview conjugates a world transform into local coordinates and deforms a cloned source. Reuse original replacement to rebuild display data. Commit checks the original source identity and placement before adding one history entry. Undo restores the shared original; Redo restores the edit. This bridge handles ordinary mesh, BRep and surface controls. Element replacement and feature regeneration connect next; an unsupported replacement must fail without changing the original.
 
-> **Self-Check Question:** *Why compare original source identity before committing a preview?*  
-> **Answer:** The disc address belongs to a source snapshot. Replacing or editing that source during the preview makes the old edit stale; committing it would overwrite newer work.
-
-- **Hands-On Lab Experiment:** Select an ordinary original mesh, enter Controls and pick one control. Move that control with its handle. Undo and Redo should change the original vertex and derived display together while other source owners remain shared.
-
-<details>
-<summary>Implementation 96zf-edit-original-controls-through-the-source-preview: Edit original controls through the source preview</summary>
-
-Deform original control geometry without editing GPU records.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Why compare original source identity before committing a preview?* — The disc address belongs to a source snapshot. Replacing or editing that source during the preview makes the old edit stale; committing it would overwrite newer work.
 
 ### 1. `src/source_part.rs`
 
 Resolve every supported original through the shared source owner. Remove the replaced private source resolver import. Translate the family key without inventing a mesh control index.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{scene::{Scene,ObjectId},pick_sources::{Part,Target}};
-use session_rust::Geometry;
-use std::rc::Rc;
-pub fn geometry(scene:&Scene,id:ObjectId)->Result<Geometry,&'static str> {
-    let row=scene.objects().iter().find(|row|row.id==id).ok_or("Source object is missing")?;
-    if let Some(original)=&row.original{return Ok(original.clone())}
-    if let Some(cad)=&row.cad{return Ok(Geometry::BRep(Rc::clone(&cad.source)))}
-    if let Some(surface)=&row.surface{return Ok(Geometry::NurbsSurface(Rc::clone(&surface.source)))}
-    Err("Select an original CAD source")
-}
-pub fn target(part:Part)->Result<crate::source_deform::Target,&'static str> {match part {
-    Part::Face(face)=>Ok(crate::source_deform::Target::Face(face)),
-    Part::BRepEdge(edge)=>Ok(crate::source_deform::Target::Edge(edge as u32)),
-    Part::SurfaceEdge(edge)=>Ok(crate::source_deform::Target::Edge(u32::try_from(edge).map_err(|_|"Surface edge is out of range")?)),
-    _=>Err("Select a CAD face or boundary"),
-}}
-pub fn points(scene:&Scene,selection:Target)->Result<Vec<session_rust::Point>,String> {crate::source_deform::points(&geometry(scene,selection.owner).map_err(str::to_owned)?,target(selection.part).map_err(str::to_owned)?)}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6483,33 +5717,9 @@ pub fn target(part:Part)->Result<crate::source_deform::Target,&'static str> {mat
 pub fn points(scene:&Scene,selection:Target)->Result<Vec<session_rust::Point>,String> {crate::source_deform::points(&geometry(scene,selection.owner).map_err(str::to_owned)?,target(selection.part).map_err(str::to_owned)?)}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-1.rs"
-```
-
-```text
---8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-3.rs"
-```
-
-</details>
-
 ### 2. `src/part_preview.rs`
 
 Find the original point before applying the owner placement.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let points=if let Some(row)=scene.objects().iter().find(|r|r.id==target.owner) {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6519,25 +5729,13 @@ Edit the existing block to match this code; keep unchanged lines:
     } else if let Some(row)=scene.objects().iter().find(|r|r.id==target.owner) {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-4.rs"
-```
-
-</details>
-
 ### 3. `src/scene.rs`
 
 Allow original control keys through source deformation; keep unsupported legacy original part routes explicit. Reuse original replacement after conjugating the world transform to local source coordinates.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         use crate::pick_sources::Part;
@@ -6550,8 +5748,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             let original=crate::source_part::geometry(self,target.owner)?;let edited=crate::source_deform::transform(&original,crate::source_part::target(target.part)?,&local).map_err(|_|"CAD edit would invalidate the original source or adjacent trims")?;
             let (cad,surface,prepared)=match edited {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6572,8 +5768,7 @@ Replace it with:
             let (cad,surface,prepared)=match edited {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -6682,7 +5877,6 @@ impl PathObject {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
 
-
 }
 
 pub struct ControlMarker { pub parent: ObjectId, pub part: crate::pick_sources::Part, pub display: crate::marker::Marker }
@@ -6691,7 +5885,6 @@ impl ControlMarker {
         Self { parent, part, display: crate::marker::Marker { center, diameter: 7., colour: [0.15, 0.35, 0.9, 1.] } }
     }
 }
-
 
 #[derive(Clone)]
 pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
@@ -7459,31 +6652,13 @@ impl Scene {
 mod cap_pick_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-5.rs"
-```
-
-```text
---8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-6.rs"
-```
-
-</details>
-
 ### 4. `src/part_preview.rs`
 
 Check original identity with the existing family-aware source comparison. Remove the old private pointer comparison import.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -7496,8 +6671,6 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -7508,8 +6681,7 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{scene::{Scene,ObjectId},pick_sources::{Part,Target}};
@@ -7519,8 +6691,6 @@ use std::rc::Rc;
 pub fn points(scene:&Scene,target:Target) -> Result<Vec<Point>, &'static str> {
     if scene.instances.contains_key(&target.owner) {return Err("Detach the shared definition before editing its source geometry");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -7532,8 +6702,7 @@ pub fn points(scene:&Scene,target:Target) -> Result<Vec<Point>, &'static str> {
     if scene.instances.contains_key(&target.owner) {return Err("Detach the shared definition before editing its source geometry");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{Scene,ObjectId},pick_sources::{Part,Target}};
@@ -7608,21 +6777,7 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-7.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7630,94 +6785,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply sparse original-key, placement, preview identity, other owner, Undo, Redo and stale commit checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-.unwrap();e.apply(Action::EnableControls).unwrap();let rows=e.scene.control_markers();assert_eq!(rows.len(),count);assert!(rows.iter().all(|r|r.parent==owner));assert!(rows.iter().all(|r|matches!(r.part,Part::SourceControl(_))));}
-    assert!(crate::source_edit::same(&source,&crate::source_edit::original(&editor.scene,first).unwrap()));editor.apply(Action::Escape).unwrap();editor.apply(Action::Undo).unwrap();assert_eq!(editor.scene.paths().len(),1,"Controls and Escape add no source history");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zf-edit-original-controls-through-the-source-preview-9.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zg-rebuild-an-edited-element-without-replacing-its-owner"></a>
 
 ### Step 7 of 7 · Rebuild an edited Element without replacing its owner (`96zg-rebuild-an-edited-element-without-replacing-its-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/7 Visual Trace (96zg-rebuild-an-edited-element-without-replacing-its-owner): Rebuild an edited Element without replacing its owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/original_control_tests.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/origina…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Replace Element display geometry while retaining its original CAD identity.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/scene.rs` (*Prepare the edited Element first, then retain the original owner identity and presentation.*) · `src/original_control_tests.rs` (*Supply actual original Element, feature source, derived row, tree identity, placement, Undo, Redo and stale-preview checks.*) · `src/pick_gpu_tests.rs` (*Supply actual moved original-control integer pixels, removed old pixels, commit and Undo at both densities.*)
 
 Source deformation already clones the Element and edits its mesh or BRep geometry.
 
 Its geometry setter invalidates kernel caches while retaining feature source data. Reuse the Element preparation path in an isolated empty scene, validate the prepared vertices through the existing owner placement, then replace only that owner row. Keep its ID, portable row GUID, metadata and placement. The hierarchy, original feature data and existing feature presentation stay attached to that original parent. This control transition changes source geometry; it does not invent a feature-generation algorithm. The original Scene and source remain shared until commit, and one Undo restores them.
 
-> **Self-Check Question:** *Why prepare the replacement before changing the live row?*  
-> **Answer:** Invalid geometry or display coordinates must fail before publishing a new source or consuming history. Reusing the preparation path also keeps Element mesh and BRep display construction consistent.
-
-- **Hands-On Lab Experiment:** Create an Element, select a source control and move it. Its original parent and feature rows must retain their identities while the body display changes. Undo and Redo restore the geometry together with its source.
-
-<details>
-<summary>Implementation 96zg-rebuild-an-edited-element-without-replacing-its-owner: Rebuild an edited Element without replacing its owner</summary>
-
-Replace Element display geometry while retaining its original CAD identity.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Why prepare the replacement before changing the live row?* — Invalid geometry or display coordinates must fail before publishing a new source or consuming history. Reusing the preparation path also keeps Element mesh and BRep display construction consistent.
 
 ### 1. `src/scene.rs`
 
 Prepare the edited Element first, then retain the original owner identity and presentation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Geometry::Plane(source)=>{let prepared=crate::plane_original::prepared(&source)?;let row=self.objects.iter_mut().find(|r|r.id==id).ok_or("Expected a plane source")?;row.mesh=Rc::new(prepared.display);row.original=Some(Geometry::Plane(source));row.editable=crate::edit_source::EditSource::Loaded{geometry:prepared.geometry,source:None};},
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7738,19 +6849,7 @@ Edit the existing block to match this code; keep unchanged lines:
             Geometry::Plane(source)=>{let prepared=crate::plane_original::prepared(&source)?;let row=self.objects.iter_mut().find(|r|r.id==id).ok_or("Expected a plane source")?;row.mesh=Rc::new(prepared.display);row.original=Some(Geometry::Plane(source));row.editable=crate::edit_source::EditSource::Loaded{geometry:prepared.geometry,source:None};},
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zg-rebuild-an-edited-element-without-replacing-its-owner-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7758,26 +6857,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply actual original Element, feature source, derived row, tree identity, placement, Undo, Redo and stale-preview checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
- scene,&mut history).unwrap());assert!(crate::source_edit::same(&shared,&crate::source_edit::original(&scene,other).unwrap()));assert!(history.undo(&mut scene));assert!(crate::source_edit::same(&source,&crate::source_edit::original(&scene,first).unwrap()));assert!(history.redo(&mut scene));assert!(!crate::source_edit::same(&source,&crate::source_edit::original(&scene,first).unwrap()));assert!(preview.commit(&mut scene,&mut history).is_err(),"A stale source preview cannot overwrite the edit");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zg-rebuild-an-edited-element-without-replacing-its-owner-2.rs" skip=500
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7785,46 +6871,26 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply actual moved original-control integer pixels, removed old pixels, commit and Undo at both densities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-3,0.1],identity()).unwrap();assert_eq!(finish(&mut renderer),Some([owner.value(),0]));
-        for mode in [crate::pick_sources::Mode::Edge,crate::pick_sources::Mode::Control]{renderer.set_pick_mode(mode);renderer.request_pick([-0.3,0.1],identity()).unwrap();assert!(finish(&mut renderer).is_none());}
-    }
-    assert!(crate::source_edit::same(&source,&crate::source_edit::original(&editor.scene,owner).unwrap()));editor.scene.show_controls(false);assert!(editor.scene.control_nets().is_empty());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zg-rebuild-an-edited-element-without-replacing-its-owner-3.rs" skip=500
 ```
 
-</details>
-
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zg-rebuild-an-edited-element-without-replacing-its-owner
-npm --prefix ../session_tests run course -- check 96zg-rebuild-an-edited-element-without-replacing-its-owner
-npm --prefix ../session_tests run course -- save 96zg-rebuild-an-edited-element-without-replacing-its-owner
+npm --prefix ../session_tests run course -- dependencies 19.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 19.4
+npm --prefix ../session_tests run course -- save 19.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-- **Final Lesson Experiment:** Create an Element, select a source control and move it. Its original parent and feature rows must retain their identities while the body display changes. Undo and Redo restore the geometry together with its source.
+Continue with [20.1 · Shared surface geometry and finite visibility addresses](../../consolidation/96zh-bind-the-shared-geometry-as-storage.md).

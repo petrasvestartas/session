@@ -1,244 +1,103 @@
 # 3.5 · Save, replace and asynchronous transaction results
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.5** (Redraft `3.5`) · **11 checkpoints (`29-identity` → `30e-recovery`)** · **Study time: 11–22 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `29-identity` → `30e-recovery` (11 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Distinguish a scene object from the original geometry it shares. By the final checkpoint (`30e-recovery`), you will test partial replacement failure, preserved selection/Redo and placement upload limits.
+> **Goal:** Test partial replacement failure, preserved selection/Redo and placement upload limits.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 3 Visual Explanation: Local Kernel Mesh → 4x4 World Placement, AABB Fit & Incremental GPU Sync</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Local f64 mesh placed in world space by 4x4 matrix M. Center: Transactional .pb decode gate. Right: Dirty-flag GPU sync.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Local Space -> World Placement & AABB -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Local Source → World Placement</text>
-    <!-- Local mesh box at (0,0) -->
-    <rect x="38" y="128" width="54" height="44" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="38" y1="172" x2="98" y2="172" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <line x1="38" y1="172" x2="38" y2="115" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <text x="65" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Local</text>
-    <text x="65" y="186" text-anchor="middle" font-size="9" fill="#111111">(0,0,0) f64</text>
-    <!-- Transform arrow -->
-    <line x1="102" y1="145" x2="152" y2="132" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="127" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">M (4x4)</text>
-    <!-- Placed rotated box inside dashed World AABB -->
-    <rect x="164" y="96" width="108" height="86" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="4,3"/>
-    <polygon points="196,104 260,126 240,174 176,152" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="218" y="194" text-anchor="middle" font-size="9" font-weight="600" fill="#111111">Dashed: World AABB (Fit)</text>
-    <rect x="30" y="204" width="250" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="155" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Cold CPU source dropped after GPU upload;</text>
-    <text x="155" y="229" text-anchor="middle" font-size="9" fill="#111111">re-fetched by SHA/revision only when edited</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Transactional .pb Decode Gate -->
-    <rect x="317" y="64" width="235" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Transactional .pb Gate</text>
-    <rect x="333" y="96" width="203" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="434" y="113" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Async Fetch Ticket #N</text>
-    <text x="434" y="128" text-anchor="middle" font-size="9.5" fill="#111111">Cancels stale #N-1; checks byte cap</text>
-    <line x1="434" y1="138" x2="434" y2="154" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="333" y="156" width="203" height="78" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Atomic Validation Commit</text>
-    <text x="345" y="192" font-size="9.5" fill="#111111">• Valid topology -&gt; Replace Scene</text>
-    <text x="345" y="208" font-size="9.5" fill="#111111">• Corrupt bytes -&gt; Reject cleanly</text>
-    <text x="345" y="223" font-size="9.5" font-weight="600" fill="#111111">  (Zero partial scene corruption!)</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Incremental GPU Sync -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Incremental GPU Sync</text>
-    <rect x="590" y="96" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 1: Camera Orbit / Pan / Fit</text>
-    <text x="602" y="131" font-size="9.5" fill="#111111">• sync_scene = false, redraw = true</text>
-    <text x="602" y="147" font-size="9.5" font-weight="600" fill="#111111">• Writes 64-byte camera uniform ONLY</text>
-    <rect x="590" y="170" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="188" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 2: Mesh / Placement Edit</text>
-    <text x="602" y="205" font-size="9.5" fill="#111111">• sync_scene = true, redraw = true</text>
-    <text x="602" y="221" font-size="9.5" font-weight="600" fill="#111111">• Re-uploads dirty object buffers only</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 3.5 Pipeline Schematic: Save, replace and asynchronous transaction results</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (11 Checkpoints: 29-identity → 30e-recovery)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Source GUID</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">inserted object</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">GUID</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">cloned history</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">stable file</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">identity</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Malformed source or</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">failed insertion</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 3.5:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">Cargo.toml  ·  src/scene.rs  ·  src/file_identity_tests.rs  ·  src/lib.rs  ·  src/document.rs  ·  src/snapshot_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">11 Checkpoints: 29-identity → 30e-recovery — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Protobuf (.pb)</text>
+  <rect x="46" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <rect x="108" y="64" width="54" height="36" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="170" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="73" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Hdr</text>
+  <text x="135" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Mesh</text>
+  <text x="197" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Xform</text>
+  <rect x="46" y="116" width="178" height="34" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="137" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Guardrail Check ✓</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Binary Decode</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Placed Mesh</text>
+  <polygon points="355,145 415,68 480,145" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="355" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="480" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="415" y1="68" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">session_rust + Mat4</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Incremental Sync</text>
+  <rect x="612" y="62" width="184" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="81" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = false</text>
+  <text x="704" y="96" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Camera Orbit Only (64 B)</text>
+  <rect x="612" y="116" width="184" height="42" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = true</text>
+  <text x="704" y="150" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Upload Dirty Geometry</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Change { sync, redraw }</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
-| **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
-| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
+| **Protobuf** | `session_proto` (`.pb`) | Validated binary `Session` stream with byte/count guardrails. |
+| **Rust (`session_rust`)** | Kernel `Mesh` + `Mat4` Placement | Exact `f64` kernel mesh paired with a `4×4` world placement matrix. |
+| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Camera orbit updates 64B uniform (`sync=false`); edits upload dirty buffers (`sync=true`). |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`29-identity`](#checkpoint-29-identity) | Distinguish a scene object from the original geometry it shares. | `Cargo.toml`, `src/scene.rs`, `src/file_identity_tests.rs`, `src/lib.rs` | `Source GUID → inserted object GUID → cloned history → stable file identity` |
-| **2** | [`29a-snapshot`](#checkpoint-29a-snapshot) | Serialize live source meshes and their placements without changing the editor. | `src/document.rs`, `src/snapshot_tests.rs`, `src/lib.rs` | `Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes` |
-| **3** | [`29b-placements`](#checkpoint-29b-placements) | Validate stored placements before reconstructing source-backed objects. | `src/placement.rs`, `src/lib.rs`, `src/scene.rs`, `src/prepared.rs` | `Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects` |
-| **4** | [`29c-roundtrip`](#checkpoint-29c-roundtrip) | Check exact local source data, attributes, identities and placement through saving and loading. | `src/save_roundtrip_tests.rs`, `src/lib.rs` | `Live source and placement → snapshot bytes → load → identical source values and object matrices` |
-| **5** | [`29d-save`](#checkpoint-29d-save) | Connect Save to a browser download and reopen the actual downloaded document. | `Cargo.toml`, `src/file_output.rs`, `src/lib.rs`, `src/browser.rs` | `Typed Save → source snapshot → Blob URL → download → Open → restored source and placement` |
-| **6** | [`30-feedback`](#checkpoint-30-feedback) | Keep failed reads and imports visible in command history without claiming success. | `src/browser.rs`, `src/file_input.rs` | `File read result → browser event → validated editor action → success or error in the command dock` |
-| **7** | [`30a-tickets`](#checkpoint-30a-tickets) | Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust. | `src/read_gate.rs`, `src/lib.rs` | `Begin read → pending ticket → supersede, cancel or finish once` |
-| **8** | [`30b-cancel`](#checkpoint-30b-cancel) | Adopt one-shot tickets in the browser and give asynchronous results their own history entry. | `src/file_input.rs`, `src/browser.rs` | `Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership` |
-| **9** | [`30c-replace`](#checkpoint-30c-replace) | Prepare a whole replacement before changing live rows, then commit it through existing history. | `src/scene.rs`, `src/editor.rs`, `src/replace_tests.rs`, `src/lib.rs` | `Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs` |
-| **10** | [`30d-bridge`](#checkpoint-30d-bridge) | Carry the selected Open operation through asynchronous file reading and cancel older work immediately. | `src/file_input.rs`, `src/browser.rs` | `Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action` |
-| **11** | [`30e-recovery`](#checkpoint-30e-recovery) | Test partial replacement failure, preserved selection/Redo and placement upload limits. | `src/placement.rs`, `src/scene.rs`, `src/replace_tests.rs` | `Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check` |
+![Recorded visual output for Lesson 3.5 (30e-recovery)](../../screenshots/journey/30e-recovery-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-29-identity"></a>
 
 ### Step 1 of 11 · Give each saved object a stable identity (`29-identity`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/11 Visual Trace (29-identity): Give each saved object a stable identity</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/scene.rs, src/file_identity_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Source GUID</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inserted object GUID</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cloned history</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stable file identity</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cloned history</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable file identity</text>
 </svg>
-</div>
-
-- **Goal:** Distinguish a scene object from the original geometry it shares.
-- **Data Flow Trace:** `Source GUID → inserted object GUID → cloned history → stable file identity`
-- **Files You Touch:** `Cargo.toml` (*Declare the UUID generator explicitly; browser randomness uses its js feature.*) · `src/scene.rs` (*Store the inserted object identity separately from kernel source identity and the local counter.*) · `src/file_identity_tests.rs` (*Optional authoring fixture. Exercise duplicate imports, row removal and history without mutating original source GUIDs.*) · `src/lib.rs` (*Compile the file-identity regression check.*)
 
 Give each inserted object a stored GUID for saving. Local `ObjectId` still identifies the editor object; imported source GUID still identifies its original geometry.
 
 Prefer the geometry GUID when unused. Duplicate imports receive a new UUID without changing their original source mesh or provenance. Check even generated candidates against live objects.
 
-Assign identity once at insertion. History clones the stored `String`; Move and Save must not regenerate it.
-
-The duplicate-import test checks distinct object GUIDs and unchanged source GUIDs, then removes an earlier row and travels through Undo/Redo. Download is connected later.
-
-> **Self-Check Question:** *Why can two imports share a source GUID but need different saved GUIDs?*  
-> **Answer:** The source GUID identifies geometry in an original file. Two imports create two scene objects with separate placements and histories. Each needs a unique stored identity. We preserve the source GUID when available, assign a fresh UUID on collision, and store that decision in the object so saving or row changes cannot rename it.
-
-- **What You Should See:** Import `sample.pb` twice. Run the identity checks: copies may share a source GUID, but each scene object must have its own saved identity.
-- **Hands-On Lab Experiment:** Inspect both imported copies’ source GUIDs and object GUIDs in the check. Predict which pair matches. Add another Undo/Redo cycle, then restore the check.
-
-<details>
-<summary>Implementation 29-identity: Give each saved object a stable identity</summary>
-
-Distinguish a scene object from the original geometry it shares.
-
-Data flow: Source GUID → inserted object GUID → cloned history → stable file identity.
+> **Check:** *Why can two imports share a source GUID but need different saved GUIDs?* — The source GUID identifies geometry in an original file. Two imports create two scene objects with separate placements and histories. Each needs a unique stored identity. We preserve the source GUID when available, assign a fresh UUID on collision, and store that decision in the object so saving or row changes cannot rename it.
 
 ### 1. `Cargo.toml`
 
 Declare the UUID generator explicitly; browser randomness uses its js feature.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-prost = "=0.14.4"
-```
-
-</details>
 
 After that block, type:
 
@@ -252,8 +111,7 @@ Store the inserted object identity separately from kernel source identity and th
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
@@ -264,8 +122,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -283,8 +139,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 #[derive(Clone)]
@@ -294,8 +149,6 @@ pub struct Object {
     pub geometry: Rc<session_rust::Mesh>,
     pub model: session_rust::Xform,
 ```
-
-</details>
 
 Replace it with:
 
@@ -309,8 +162,7 @@ pub struct Object {
     pub model: session_rust::Xform,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -496,25 +348,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/29-identity-02.rs"
-```
-
-```text
---8<-- "journey/code/29-identity-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -528,21 +362,9 @@ Copy this supplied file:
 --8<-- "journey/code/29-identity-04.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Compile the file-identity regression check.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod source_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -550,79 +372,46 @@ After that block, type:
 --8<-- "journey/code/29-identity-05.rs" skip=31
 ```
 
-</details>
+**Result after `29-identity`:** Import `sample.pb` twice. Run the identity checks: copies may share a source GUID, but each scene object must have its own saved identity.
+
+---
 
 <a id="checkpoint-29a-snapshot"></a>
 
 ### Step 2 of 11 · Write a snapshot from the editable sources (`29a-snapshot`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/11 Visual Trace (29a-snapshot): Write a snapshot from the editable sources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/snapshot_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Live objects</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source protobuf copies +</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">flat tree and placements</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bytes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/document.rs, src/snap…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">flat tree and placements</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bytes</text>
 </svg>
-</div>
-
-- **Goal:** Serialize live source meshes and their placements without changing the editor.
-- **Data Flow Trace:** `Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes`
-- **Files You Touch:** `src/document.rs` (*Copy live sources into one bounded flat document, write placements separately and return bytes without editor mutation.*) · `src/snapshot_tests.rs` (*Optional authoring fixture. Check live row membership, source topology/attributes, separate placement and untouched history.*) · `src/lib.rs` (*Compile the read-only snapshot checks.*)
 
 Build Save bytes from live scene objects, including generated and edited objects and excluding deleted rows.
 
 Copy each source mesh's protobuf message, preserving doubles, topology, colours, names and flags. Replace only the copy's GUID with the stored object identity. Keep geometry local and write placement separately, keyed by that same GUID; baking both would move it twice.
 
-This snapshot writes a flat tree. Camera, selection, display arrays and history are application state and stay outside the file.
-
-Match the current loader's bounds: 1–64 meshes and at most 4 MiB encoded. Reject unsupported source data. Today Rust checks inspect the snapshot; placement loading and browser downloading follow.
-
-> **Self-Check Question:** *Why must saving copy source messages instead of modifying the retained session?*  
-> **Answer:** The retained file can contain objects that have since been deleted, and imported source allocations are shared through history. Saving traverses current objects and copies their source messages. It applies the inserted object GUID to each copy and writes placement separately, leaving the original geometry, history and file provenance unchanged.
-
-- **What You Should See:** Run the snapshot checks below. Serialization must read original source coordinates and separate placements without changing the live editor. Browser Save is connected in lesson 29d.
-- **Hands-On Lab Experiment:** Change the box placement in the check, then predict whether mesh vertices or the XformEntry changes. Confirm the retained source GUID stays unchanged and restore the check.
-
-<details>
-<summary>Implementation 29a-snapshot: Write a snapshot from the editable sources</summary>
-
-Serialize live source meshes and their placements without changing the editor.
-
-Data flow: Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes.
+> **Check:** *Why must saving copy source messages instead of modifying the retained session?* — The retained file can contain objects that have since been deleted, and imported source allocations are shared through history. Saving traverses current objects and copies their source messages. It applies the inserted object GUID to each copy and writes placement separately, leaving the original geometry, history and file provenance unchanged.
 
 ### 1. `src/document.rs`
 
 Copy live sources into one bounded flat document, write placements separately and return bytes without editor mutation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn validate(message: &proto::Session) -> Result<(), &'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -630,8 +419,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/29a-snapshot-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -645,21 +433,9 @@ Copy this supplied file:
 --8<-- "journey/code/29a-snapshot-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Compile the read-only snapshot checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod file_identity_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -667,67 +443,42 @@ After that block, type:
 --8<-- "journey/code/29a-snapshot-03.rs" skip=38
 ```
 
-</details>
+**Result after `29a-snapshot`:** Run the snapshot checks below. Serialization must read original source coordinates and separate placements without changing the live editor. Browser Save is connected in lesson 29d.
+
+---
 
 <a id="checkpoint-29b-placements"></a>
 
 ### Step 3 of 11 · Reopen source geometry with its placement (`29b-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/11 Visual Trace (29b-placements): Reopen source geometry with its placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/placement.rs, src/lib.rs, src/scene.rs, src/prepared.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Bytes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated mesh IDs and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">affine…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared local sources</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plus…</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inserted objects</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/placement.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared local sources…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">inserted objects</text>
 </svg>
-</div>
-
-- **Goal:** Validate stored placements before reconstructing source-backed objects.
-- **Data Flow Trace:** `Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects`
-- **Files You Touch:** `src/placement.rs` (*Use one affine validation rule for decoded matrices and direct edits.*) · `src/lib.rs` (*Expose the shared matrix validator.*) · `src/scene.rs` (*Make direct placement edits use the same rule as imported files.*) · `src/prepared.rs` (*Carry the validated object placement beside local source geometry.*) · `src/document.rs` (*Retain the validated stored placement without baking it into source vertices.*) · `src/placement_load_tests.rs` (*Optional authoring fixture. Reject all malformed placement families using actual encoded messages.*)
 
 Accept the saved file's separate placement records. Each must identify an existing mesh, occur once, and contain sixteen finite values with an affine final row.
 
 Share this rule through `placement::valid` for loading and scene placement. Validate before constructing `Xform`: its defaults must not silently fill a short file matrix.
 
-`PreparedMesh` now carries a model matrix. Generated geometry starts at identity; loading copies the validated source placement; insertion retains it.
-
-Snapshot and load now use the same complete validator. Tests reject short, non-finite or projective matrices and orphan or duplicate placement entries before scene mutation. Exact round-trip checks come next; the browser download follows those.
-
-> **Self-Check Question:** *Where must a saved transform be applied when reopening?*  
-> **Answer:** A saved transform belongs to the object placement. Load prepares the original local kernel mesh and attaches its validated matrix. Scene insertion uses that matrix once. It must not transform source vertices and also retain the placement, or the object moves twice.
-
-- **What You Should See:** Run the reopen checks below. Valid stored placements restore the objects; an invalid matrix must reject the document before changing live rows.
-- **Hands-On Lab Experiment:** Change the malformed-placement check’s projective matrix into a finite translation. Predict why validation accepts it, then restore the rejection case. Explain why a fifteen-value matrix remains invalid even if every supplied value is finite.
-
-<details>
-<summary>Implementation 29b-placements: Reopen source geometry with its placement</summary>
-
-Validate stored placements before reconstructing source-backed objects.
-
-Data flow: Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects.
+> **Check:** *Where must a saved transform be applied when reopening?* — A saved transform belongs to the object placement. Load prepares the original local kernel mesh and attaches its validated matrix. Scene insertion uses that matrix once. It must not transform source vertices and also retain the placement, or the object moves twice.
 
 ### 1. `src/placement.rs`
 
@@ -743,15 +494,6 @@ Create the file and type:
 
 Expose the shared matrix validator.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod prepared;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -762,16 +504,6 @@ After that block, type:
 
 Make direct placement edits use the same rule as imported files.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if !model.m.iter().all(|v| v.is_finite())
-            || [model.m[3], model.m[7], model.m[11], model.m[15]] != [0.0, 0.0, 0.0, 1.0]
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -781,42 +513,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/prepared.rs`
 
 Carry the validated object placement beside local source geometry. Generated geometry begins with identity placement.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{document::Source, mesh::Mesh};
-use std::rc::Rc;
-
-pub struct PreparedMesh {
-    pub geometry: Rc<session_rust::Mesh>,
-    pub display: Mesh,
-    pub source: Option<Source>,
-}
-
-impl PreparedMesh {
-    pub fn triangle(points: [[f64; 3]; 3], colour: [f32; 3]) -> Result<Self, &'static str> {
-        let vertices = points.into_iter().map(|p| session_rust::Point::new(p[0], p[1], p[2])).collect();
-        let mut geometry = session_rust::Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2]]);
-        geometry.set_objectcolor(session_rust::Color::new(colour[0], colour[1], colour[2], 1.0));
-        Self::new(geometry)
-    }
-
-    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
-        Self::from_shared(Rc::new(geometry))
-    }
-
-    pub fn from_shared(geometry: Rc<session_rust::Mesh>) -> Result<Self, &'static str> {
-        // The kernel creates a GUID lazily; establish identity before sharing.
-        let _ = geometry.guid();
-        let display = Mesh::from_kernel(&geometry)?;
-        Ok(Self { geometry, display, source: None })
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -852,33 +548,9 @@ impl PreparedMesh {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/29b-placements-04.rs"
-```
-
-```text
---8<-- "journey/code/29b-placements-05.rs"
-```
-
-</details>
-
 ### 5. `src/document.rs`
 
 Retain the validated stored placement without baking it into source vertices.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-```
-
-</details>
 
 After that block, type:
 
@@ -889,15 +561,6 @@ After that block, type:
 ### 6. `src/scene.rs`
 
 Insert each prepared model exactly once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            model: session_rust::Xform::identity(), source: prepared.source });
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -911,8 +574,7 @@ Remove the temporary source-only validation comment. Validate the complete saved
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -922,8 +584,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
         if names != guids || root.children.len() != guids.len()
 ```
-
-</details>
 
 Replace it with:
 
@@ -945,8 +605,7 @@ Replace it with:
         if names != guids || root.children.len() != guids.len()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -958,8 +617,6 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
     let other = objects.points.len() + objects.lines.len() + objects.planes.len()
         + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
 ```
-
-</details>
 
 Replace it with:
 
@@ -974,8 +631,7 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
         + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             name: "Objects".into(), children, ..Default::default()
@@ -989,8 +645,6 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
     Ok(bytes)
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1003,8 +657,7 @@ Replace it with:
     Ok(bytes)
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::prepared::PreparedMesh;
@@ -1133,29 +786,7 @@ fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/29b-placements-09.rs"
-```
-
-```text
---8<-- "journey/code/29b-placements-10.rs"
-```
-
-```text
---8<-- "journey/code/29b-placements-11.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1169,21 +800,9 @@ Copy this supplied file:
 --8<-- "journey/code/29b-placements-12.rs"
 ```
 
-</details>
-
 ### 9. `src/lib.rs`
 
 Compile the malformed-input checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod snapshot_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -1191,69 +810,44 @@ After that block, type:
 --8<-- "journey/code/29b-placements-13.rs" skip=33
 ```
 
-</details>
+**Result after `29b-placements`:** Run the reopen checks below. Valid stored placements restore the objects; an invalid matrix must reject the document before changing live rows.
+
+---
 
 <a id="checkpoint-29c-roundtrip"></a>
 
 ### Step 4 of 11 · Prove the saved document reopens faithfully (`29c-roundtrip`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/11 Visual Trace (29c-roundtrip): Prove the saved document reopens faithfully</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/save_roundtrip_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Live source and placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">snapshot bytes</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">load</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">identical source values</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">and…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/save_roundtrip_tests.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">load</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">identical source values…</text>
 </svg>
-</div>
-
-- **Goal:** Check exact local source data, attributes, identities and placement through saving and loading.
-- **Data Flow Trace:** `Live source and placement → snapshot bytes → load → identical source values and object matrices`
-- **Files You Touch:** `src/save_roundtrip_tests.rs` (*Optional authoring fixture. Compare exact source values, stored identities and object matrices after encoding and decoding.*) · `src/lib.rs` (*Compile exact document round-trip checks.*)
 
 Prove snapshot and load preserve the editable document before adding browser downloading.
 
 Save and reopen a triangle with a double coordinate that rounds in its display, a name, hide/lock flags and translation. Compare original source values exactly; derive display again and keep placement separate.
 
-Then save duplicate imports. Reopened GUIDs must match their stored object GUIDs, including the duplicate's new identity; matrices must match too. Imported sources stay untouched.
+> **Check:** *What can a screenshot prove about saved precision and identity?* — A screenshot proves the drawing, not exact saved doubles or identifiers. Native round-trip checks compare original vertices, names, attributes, GUIDs and matrices. Duplicate-import checks also ensure separate objects survive one saved file even when they came from the same source GUID.
 
-Compare decoded structure rather than protobuf byte order. Pixels cannot establish source precision or identity. Flags are retained here; drawing and editing policies for hidden/locked objects come later.
-
-> **Self-Check Question:** *What can a screenshot prove about saved precision and identity?*  
-> **Answer:** A screenshot proves the drawing, not exact saved doubles or identifiers. Native round-trip checks compare original vertices, names, attributes, GUIDs and matrices. Duplicate-import checks also ensure separate objects survive one saved file even when they came from the same source GUID.
-
-- **What You Should See:** Run the round-trip checks below. Reopened geometry must retain exact doubles, attributes, saved identities and placements. Compare the source values, not the float display.
-- **Hands-On Lab Experiment:** Change the exact coordinate to 123456789.125. Predict why the reopened kernel coordinate matches exactly even though the display uses floats. Then inspect corresponding imported copies’ saved GUIDs. Restore the checks.
-
-<details>
-<summary>Implementation 29c-roundtrip: Prove the saved document reopens faithfully</summary>
-
-Check exact local source data, attributes, identities and placement through saving and loading.
-
-Data flow: Live source and placement → snapshot bytes → load → identical source values and object matrices.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1267,21 +861,9 @@ Copy this supplied file:
 --8<-- "journey/code/29c-roundtrip-01.rs"
 ```
 
-</details>
-
 ### 2. `src/lib.rs`
 
 Compile exact document round-trip checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod placement_load_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -1289,83 +871,46 @@ After that block, type:
 --8<-- "journey/code/29c-roundtrip-02.rs" skip=39
 ```
 
-</details>
+**Result after `29c-roundtrip`:** Run the round-trip checks below. Reopened geometry must retain exact doubles, attributes, saved identities and placements. Compare the source values, not the float display.
+
+---
 
 <a id="checkpoint-29d-save"></a>
 
 ### Step 5 of 11 · Download the editable document from the command line (`29d-save`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/11 Visual Trace (29d-save): Download the editable document from the command line</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/file_output.rs, src/lib.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Typed Save</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source snapshot</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">download</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Open</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">restored source and</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/file_outp…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">download</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">restored source and pla…</text>
 </svg>
-</div>
-
-- **Goal:** Connect Save to a browser download and reopen the actual downloaded document.
-- **Data Flow Trace:** `Typed Save → source snapshot → Blob URL → download → Open → restored source and placement`
-- **Files You Touch:** `Cargo.toml` (*Enable the browser object URL and download anchor APIs. These features do not change dependency versions.*) · `src/file_output.rs` (*Create a temporary file owner, request a download and schedule one-shot URL cleanup.*) · `src/lib.rs` (*Expose the browser file-output adapter.*) · `src/browser.rs` (*Offer Save through command completion in the actual dock.*) · `index.html` (*Let the native file picker offer both original specimens and downloaded session files.*)
 
 Connect typed `Save` to `snapshot` and a browser download. Snapshot errors go to command history and start no download.
 
 Copy bytes into `Uint8Array`, wrap them in `Blob`, and create an object URL. A temporary hidden anchor downloads `viewer.session` and is removed; it is not a viewer feature control.
 
-Keep the URL alive for ten seconds, then revoke it with a one-shot callback owning its `String`. If timer scheduling fails, clean up immediately and report the error.
-
-Save reads the document without creating a history edit. The Chrome check downloads and reopens that file, preserving the prior Move's Undo/Redo and the reconstructed scene picture.
-
-> **Self-Check Question:** *Why does Save belong outside document history?*  
-> **Answer:** Save reads the current scene and creates bytes; it does not edit geometry, placement or selection. It must not consume an Undo step. The browser owns file downloading, while the native snapshot and loader own the document contract.
-
-- **What You Should See:** Open `sample.pb`, select an object and move it. Type `Save`, then reopen the downloaded `viewer.session`. The placed scene should return; Save itself must not consume Undo.
-- **Hands-On Lab Experiment:** Save after moving the box, then move it again and save to a second file. Reopen each into a cleared scene and predict which placement it restores. Saving should leave the next Undo step unchanged.
-
-<details>
-<summary>Implementation 29d-save: Download the editable document from the command line</summary>
-
-Connect Save to a browser download and reopen the actual downloaded document.
-
-Data flow: Typed Save → source snapshot → Blob URL → download → Open → restored source and placement.
+> **Check:** *Why does Save belong outside document history?* — Save reads the current scene and creates bytes; it does not edit geometry, placement or selection. It must not consume an Undo step. The browser owns file downloading, while the native snapshot and loader own the document contract.
 
 ### 1. `Cargo.toml`
 
 Enable the browser object URL and download anchor APIs. These features do not change dependency versions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions"] }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1387,15 +932,6 @@ Create the file and type:
 
 Expose the browser file-output adapter.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod file_input;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -1408,8 +944,7 @@ Offer Save through command completion in the actual dock. Read the scene for Sav
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     input.click();
@@ -1419,8 +954,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 match crate::offset::parse(&line) {
                     Ok(offset) => Some(Action::Translate(offset)),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1442,8 +975,7 @@ Replace it with:
                     Ok(offset) => Some(Action::Translate(offset)),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &[
@@ -1453,8 +985,6 @@ Replace it with:
             "Example Triangle",
             "Select Next",
 ```
-
-</details>
 
 Replace it with:
 
@@ -1468,8 +998,7 @@ Replace it with:
             "Select Next",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -1885,35 +1414,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/29d-save-04.rs"
-```
-
-```text
---8<-- "journey/code/29d-save-05.rs"
-```
-
-</details>
-
 ### 5. `index.html`
 
 Let the native file picker offer both original specimens and downloaded session files.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```html
-  <input id="open" type="file" accept=".pb" hidden>
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1921,79 +1424,46 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/29d-save-06.html"
 ```
 
-</details>
+**Result after `29d-save`:** Open `sample.pb`, select an object and move it. Type `Save`, then reopen the downloaded `viewer.session`. The placed scene should return; Save itself must not consume Undo.
+
+---
 
 <a id="checkpoint-30-feedback"></a>
 
 ### Step 6 of 11 · Report the result that actually committed (`30-feedback`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/11 Visual Trace (30-feedback): Report the result that actually committed</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/file_input.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">File read result</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">browser event</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated editor action</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">success or error in the</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">command…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/file_…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated editor action</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">success or error in the…</text>
 </svg>
-</div>
-
-- **Goal:** Keep failed reads and imports visible in command history without claiming success.
-- **Data Flow Trace:** `File read result → browser event → validated editor action → success or error in the command dock`
-- **Files You Touch:** `src/browser.rs` (*Keep a startup failure visible when the GPU dock could not be created; file errors stay in command history.*) · `src/file_input.rs` (*Route the size refusal through the panel’s main event closure.*)
 
 Report import success only after `Editor::apply` commits successfully. A failed decode retains the scene and records an error instead of saying “File imported.”
 
 An asynchronous file adapter cannot borrow the callback's Panel. Dispatch `viewer-file-error` with text, then let the owning callback update history.
 
-Queue oversized-file errors before reading. Immediate nested dispatch would re-enter the borrowed `FnMut` callback. After an awaited read, retain the latest-request check so stale work cannot publish an error.
-
-Command history carries file feedback; the hidden status stays out of the drawing. Startup failure can still expose status when the GPU dock never became available.
-
-> **Self-Check Question:** *Why must import success be reported inside the successful action branch?*  
-> **Answer:** Receiving bytes does not mean they decoded or entered the scene. Editor::apply can reject a file while preserving scene, selection and history. Only a successful Scene change proves the import committed; an unconditional message after the match would erase the error.
-
-- **What You Should See:** Try opening a text file renamed `.pb`. The command history must show the read/import failure and leave the current document unchanged.
-- **Hands-On Lab Experiment:** Temporarily move the success report back outside the action match. Predict the final status after malformed bytes, reproduce the contradiction, then restore the successful-branch report.
-
-<details>
-<summary>Implementation 30-feedback: Report the result that actually committed</summary>
-
-Keep failed reads and imports visible in command history without claiming success.
-
-Data flow: File read result → browser event → validated editor action → success or error in the command dock.
+> **Check:** *Why must import success be reported inside the successful action branch?* — Receiving bytes does not mean they decoded or entered the scene. Editor::apply can reject a file while preserving scene, selection and history. Only a successful Scene change proves the import committed; an unconditional message after the match would erase the error.
 
 ### 1. `src/browser.rs`
 
 Keep a startup failure visible when the GPU dock could not be created; file errors stay in command history.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2004,53 +1474,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/file_input.rs`
 
 Route the size refusal through the panel’s main event closure. Deliver a read error only after the existing latest-read check. Pass asynchronous errors through a small custom event rather than borrowing the panel.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::{cell::Cell, rc::Rc};
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {
-    let Some(input) = event.target().and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return; };
-    if input.id() != "open" { return; }
-    let Some(file) = input.files().and_then(|files| files.get(0)) else { return; };
-    input.set_value("");
-    let id = request.get() + 1;
-    request.set(id);
-    if file.size() > crate::document::MAX_BYTES as f64 {
-        super::browser::report("This checkpoint accepts files up to 4 MiB");
-        return;
-    }
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
-        if request.get() != id { return; }
-        let result = result.and_then(deliver);
-        if let Err(error) = result {
-            super::browser::report(&format!("Cannot read file: {error:?}"));
-        }
-    });
-}
-
-fn deliver(buffer: JsValue) -> Result<(), JsValue> {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&js_sys::Uint8Array::new(&buffer));
-    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
-    web_sys::window().ok_or("No browser window")?.dispatch_event(&event)?;
-    Ok(())
-}
-
-pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
-    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
-    let array = event.detail().dyn_into::<js_sys::Uint8Array>().ok()?;
-    if array.length() as usize > crate::document::MAX_BYTES { return None; }
-    Some(array.to_vec())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2104,33 +1527,13 @@ pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30-feedback-02.rs"
-```
-
-```text
---8<-- "journey/code/30-feedback-03.rs"
-```
-
-```text
---8<-- "journey/code/30-feedback-04.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Receive read failures in the same closure that owns command history. A successful transaction is the only branch that may announce an imported file. Remove the unconditional success that overwrote decoding errors. Keep the error event connected for the viewer lifetime.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
@@ -2140,8 +1543,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     update.forget();
     report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
 ```
-
-</details>
 
 Replace it with:
 
@@ -2155,8 +1556,7 @@ Replace it with:
     report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             report(&format!("Cannot report projection: {error:?}"));
@@ -2170,8 +1570,6 @@ Replace it with:
             &pointer_canvas,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2183,8 +1581,7 @@ Replace it with:
             &pointer_canvas,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         };
@@ -2195,8 +1592,6 @@ Replace it with:
                 Err(error) => {
                     report(error);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2215,8 +1610,7 @@ Replace it with:
                     report(error);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let action = if event.type_() == "change" {
@@ -2226,8 +1620,6 @@ Replace it with:
             crate::file_input::bytes(&event).map(Action::Import)
         } else if let Some(line) = line {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2246,8 +1638,7 @@ Replace it with:
         } else if let Some(line) = line {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2672,85 +2063,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30-feedback-05.rs"
-```
-
-```text
---8<-- "journey/code/30-feedback-06.rs"
-```
-
-```text
---8<-- "journey/code/30-feedback-08.rs"
-```
-
-</details>
-
 ### 4. `src/file_input.rs`
 
 Move the size refusal out of the currently borrowed input callback. Check size in the queued task before reading; error delivery can now enter the main callback safely.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::{cell::Cell, rc::Rc};
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {
-    let Some(input) = event.target().and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return; };
-    if input.id() != "open" { return; }
-    let Some(file) = input.files().and_then(|files| files.get(0)) else { return; };
-    input.set_value("");
-    let id = request.get() + 1;
-    request.set(id);
-    if file.size() > crate::document::MAX_BYTES as f64 {
-        failure("This checkpoint accepts files up to 4 MiB");
-        return;
-    }
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
-        if request.get() != id { return; }
-        let result = result.and_then(deliver);
-        if let Err(error) = result {
-            failure(&format!("Cannot read file: {error:?}"));
-        }
-    });
-}
-
-fn failure(message: &str) {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&JsValue::from_str(message));
-    let result = web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
-        .and_then(|event| web_sys::window().ok_or_else(|| JsValue::from_str("No window"))?.dispatch_event(&event));
-    if result.is_err() { super::browser::report(message); }
-}
-
-fn deliver(buffer: JsValue) -> Result<(), JsValue> {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&js_sys::Uint8Array::new(&buffer));
-    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
-    web_sys::window().ok_or("No browser window")?.dispatch_event(&event)?;
-    Ok(())
-}
-
-pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
-    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
-    let array = event.detail().dyn_into::<js_sys::Uint8Array>().ok()?;
-    if array.length() as usize > crate::document::MAX_BYTES { return None; }
-    Some(array.to_vec())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2805,74 +2120,42 @@ pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `30-feedback`:** Try opening a text file renamed `.pb`. The command history must show the read/import failure and leave the current document unchanged.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30-feedback-10.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-30a-tickets"></a>
 
 ### Step 7 of 11 · Give a pending read an explicit ticket (`30a-tickets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/11 Visual Trace (30a-tickets): Give a pending read an explicit ticket</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/read_gate.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Begin read</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending ticket</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">supersede, cancel or finish once</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/read_gate.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending ticket</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">supersede, cancel or fi…</text>
 </svg>
-</div>
-
-- **Goal:** Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust.
-- **Data Flow Trace:** `Begin read → pending ticket → supersede, cancel or finish once`
-- **Files You Touch:** `src/read_gate.rs` (*Own one pending ticket and test stale, duplicate, cancelled and exhausted requests independently of browser APIs.*) · `src/lib.rs` (*Expose the native request model without changing the browser adapter yet.*)
 
 The browser currently compares a loose counter before delivering a read. We need to express more than newest number: a cancelled or already completed read must no longer be allowed to publish a result.
 
 Create ReadGate as ordinary Rust. begin issues a checked increasing ticket and makes it the sole pending read. finish returns true only for that pending ticket and consumes it. cancel removes pending ownership without reusing the issued number.
 
-Option distinguishes no pending read from a particular ticket. The counter names requests, while pending determines which request may still commit. Those are separate responsibilities.
-
-begin clears pending before checking the next number. If the counter is exhausted, it returns an error and does not leave an older read able to commit after a refused new request. It never wraps back to an ID a previous operation might still hold.
-
-The checks simulate completions in the wrong order, cancellation, duplicate completion and counter exhaustion. They need no window or GPU. This checkpoint tests the ticket model; the next lesson adopts it in the running file adapter.
-
-> **Self-Check Question:** *Why must a stale completion leave the newer pending ticket intact?*  
-> **Answer:** The old operation owns only its own ticket. If rejecting it also cleared pending state, it would cancel the newer operation. finish compares IDs first, consumes only the matching current ticket, and rejects duplicate completions after it has been consumed.
-
-- **What You Should See:** Run the ReadGate checks below. Start two tickets and complete the older one first: only the current ticket may be accepted. Browser integration follows next.
-- **Hands-On Lab Experiment:** Start three tickets and finish them in reverse order. Predict why only the newest succeeds and why the rejected older completions cannot clear it. Restore the original checks.
-
-<details>
-<summary>Implementation 30a-tickets: Give a pending read an explicit ticket</summary>
-
-Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust.
-
-Data flow: Begin read → pending ticket → supersede, cancel or finish once.
+> **Check:** *Why must a stale completion leave the newer pending ticket intact?* — The old operation owns only its own ticket. If rejecting it also cleared pending state, it would cancel the newer operation. finish compares IDs first, consumes only the matching current ticket, and rejects duplicate completions after it has been consumed.
 
 ### 1. `src/read_gate.rs`
 
@@ -2888,141 +2171,52 @@ Create the file and type:
 
 Expose the native request model without changing the browser adapter yet.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod document;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/30a-tickets-02.rs" skip=18
 ```
 
-</details>
+**Result after `30a-tickets`:** Run the ReadGate checks below. Start two tickets and complete the older one first: only the current ticket may be accepted. Browser integration follows next.
+
+---
 
 <a id="checkpoint-30b-cancel"></a>
 
 ### Step 8 of 11 · Cancel reads without accepting their late result (`30b-cancel`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/11 Visual Trace (30b-cancel): Cancel reads without accepting their late result</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/file_input.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Selected file</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ticket-owned task</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">consume current ticket</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">deliver outcome; Cancel</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Open…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/file_input.rs, src/br…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">consume current ticket</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">deliver outcome; Cancel…</text>
 </svg>
-</div>
-
-- **Goal:** Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
-- **Data Flow Trace:** `Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership`
-- **Files You Touch:** `src/file_input.rs` (*Share the native gate through short interior mutable borrows.*) · `src/browser.rs` (*Expose the initial row count through hidden diagnostics.*)
 
 Use `Rc<RefCell<ReadGate>>` to share a ticket gate between the command callback and read tasks. Keep mutable borrows short and release them before dispatching events.
 
 A chosen file begins a ticket. Check it before reading; consume it once with `finish` after completion. Stale or cancelled tasks deliver neither bytes nor errors.
 
-Typed `Cancel Open` revokes ownership without editing the document. It does not physically abort `File.arrayBuffer`; its eventual result is ignored.
-
-Append asynchronous feedback as an Open history entry so it cannot overwrite a newer command's result. A hidden object-count attribute lets Chrome detect duplicate insertion even when its pixels overlap perfectly.
-
-> **Self-Check Question:** *Does cancelling a read mean its promise stops running?*  
-> **Answer:** No. File.arrayBuffer has no abort operation here. Cancellation revokes permission to deliver its result. The task may finish later, but finish rejects its ticket and neither scene nor command feedback changes. A separate result entry also prevents a read outcome from rewriting a later typed command.
-
-- **What You Should See:** Start `Open`, then type `Cancel Open` before its read completes. A late result must not enter the document or replace a newer command’s history entry.
-- **Hands-On Lab Experiment:** Hold a read in a debugger, type View Isometric and Cancel Open, then let the read finish. Predict why neither the object count nor command history should change when that cancelled task returns.
-
-<details>
-<summary>Implementation 30b-cancel: Cancel reads without accepting their late result</summary>
-
-Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
-
-Data flow: Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership.
+> **Check:** *Does cancelling a read mean its promise stops running?* — No. File.arrayBuffer has no abort operation here. Cancellation revokes permission to deliver its result. The task may finish later, but finish rejects its ticket and neither scene nor command feedback changes. A separate result entry also prevents a read outcome from rewriting a later typed command.
 
 ### 1. `src/file_input.rs`
 
 Share the native gate through short interior mutable borrows. Receive the same pending-read owner as the command callback. Issue a bounded ticket; even an exhaustion error must be delivered after the input callback returns. Avoid work for a ticket already superseded or cancelled before its queued task starts. Consume the current ticket before reporting a size refusal, releasing the RefCell borrow before dispatch. Only a current one-shot completion may deliver bytes or a read error.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::{cell::Cell, rc::Rc};
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {
-    let Some(input) = event.target().and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return; };
-    if input.id() != "open" { return; }
-    let Some(file) = input.files().and_then(|files| files.get(0)) else { return; };
-    input.set_value("");
-    let id = request.get() + 1;
-    request.set(id);
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        if request.get() != id { return; }
-        if file.size() > crate::document::MAX_BYTES as f64 {
-            failure("This checkpoint accepts files up to 4 MiB");
-            return;
-        }
-        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
-        if request.get() != id { return; }
-        let result = result.and_then(deliver);
-        if let Err(error) = result {
-            failure(&format!("Cannot read file: {error:?}"));
-        }
-    });
-}
-
-fn failure(message: &str) {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&JsValue::from_str(message));
-    let result = web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
-        .and_then(|event| web_sys::window().ok_or_else(|| JsValue::from_str("No window"))?.dispatch_event(&event));
-    if result.is_err() { super::browser::report(message); }
-}
-
-fn deliver(buffer: JsValue) -> Result<(), JsValue> {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&js_sys::Uint8Array::new(&buffer));
-    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
-    web_sys::window().ok_or("No browser window")?.dispatch_event(&event)?;
-    Ok(())
-}
-
-pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
-    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
-    let array = event.detail().dyn_into::<js_sys::Uint8Array>().ok()?;
-    if array.length() as usize > crate::document::MAX_BYTES { return None; }
-    Some(array.to_vec())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3084,45 +2278,13 @@ pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30b-cancel-01.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-02.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-03.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-04.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-05.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-06.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Expose the initial row count through hidden diagnostics. Offer read cancellation as a command rather than a keyboard feature shortcut. Let the input callback and queued tasks share one native gate. An asynchronous read error gets its own history entry instead of rewriting a later command. Revoke pending delivery without touching the scene or edit history. Record asynchronous success separately from subsequent typed commands. Distinguish a file result from a synchronous error on the current command. Update hidden diagnostics after every handled event. Keep scene count and projection in one diagnostic boundary. Report rows independently of overlapping drawing pixels.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Ok(())
@@ -3140,8 +2302,6 @@ fn show_projection(camera: &crate::camera::Camera) -> Result<(), JsValue> {
 
 fn navigation_action(
 ```
-
-</details>
 
 Replace it with:
 
@@ -3163,8 +2323,7 @@ fn inspect(editor: &Editor) -> Result<(), JsValue> {
 fn navigation_action(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     renderer.set_scene(&editor.scene, editor.selected);
@@ -3184,8 +2343,6 @@ fn navigation_action(
             return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3210,8 +2367,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } else if event.type_() == "viewer-file-error" {
@@ -3228,8 +2384,6 @@ Replace it with:
                     .and_then(|window| window.document())
                     .and_then(|document| document.get_element_by_id("open"))
 ```
-
-</details>
 
 Replace it with:
 
@@ -3254,8 +2408,7 @@ Replace it with:
                     .and_then(|document| document.get_element_by_id("open"))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let browser_window = window.clone();
@@ -3266,8 +2419,6 @@ Replace it with:
         let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
         let line = if let Some(shortcut) = shortcut {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3281,8 +2432,7 @@ Replace it with:
         let line = if let Some(shortcut) = shortcut {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &[
@@ -3292,8 +2442,6 @@ Replace it with:
             "Example Box",
             "Example Triangle",
 ```
-
-</details>
 
 Replace it with:
 
@@ -3307,8 +2455,7 @@ Replace it with:
             "Example Triangle",
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -3318,8 +2465,6 @@ Replace it with:
         device,
         queue,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3333,8 +2478,7 @@ Replace it with:
         queue,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -3769,128 +2913,46 @@ fn present(
 }
 ```
 
-</details>
+**Result after `30b-cancel`:** Start `Open`, then type `Cancel Open` before its read completes. A late result must not enter the document or replace a newer command’s history entry.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30b-cancel-07.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-08.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-09.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-10.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-11.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-12.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-13.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-14.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-15.rs"
-```
-
-```text
---8<-- "journey/code/30b-cancel-16.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-30c-replace"></a>
 
 ### Step 9 of 11 · Replace a document as one reversible change (`30c-replace`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/11 Visual Trace (30c-replace): Replace a document as one reversible change</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/editor.rs, src/replace_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Replacement bytes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated prepared sources</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">history transaction</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">new rows with fresh local</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">IDs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/editor.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">history transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">new rows with fresh loc…</text>
 </svg>
-</div>
-
-- **Goal:** Prepare a whole replacement before changing live rows, then commit it through existing history.
-- **Data Flow Trace:** `Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs`
-- **Files You Touch:** `src/scene.rs` (*Replace rows while preserving the issued local-ID counter; the caller supplies the transaction.*) · `src/editor.rs` (*Name replacement explicitly instead of giving Import a hidden destructive mode.*) · `src/replace_tests.rs` (*Optional authoring fixture. Prove replacement/Undo/Redo preserve owners, camera state and non-reused local IDs.*) · `src/lib.rs` (*Compile the replacement contract.*)
 
 Add `Action::Replace` for one reversible document replacement. First prepare the entire file with `document::load`; only then enter `History::try_edit` and replace the rows.
 
 `Scene::replace` clears objects and the demo marker, then inserts prepared objects. Keep the ID counter advancing. The transaction restores the old scene if insertion fails partway through.
 
-Repair selection after success. Camera, projection and background remain outside document history. Undo restores the old shared owners; Redo restores the replacement objects.
-
-This step tests the editor operation; browser Open is still append-only until the next lesson. Old objects retained by Undo remain alive and are accounted for later.
-
-> **Self-Check Question:** *Why must the scene counter survive replacing all its rows?*  
-> **Answer:** A replacement must not reuse local IDs held by old selection or delayed work. Clearing rows leaves the increasing counter intact. History restoration also retains the highest issued value, while Undo restores the old objects and shared source allocations.
-
-- **What You Should See:** Run the replacement checks below. A valid replacement is one Undo step; an invalid candidate must leave the existing scene unchanged. The browser command is connected next.
-- **Hands-On Lab Experiment:** In the replacement check, change camera distance and aspect before replacing. Predict why Undo and Redo preserve both values. Explain why setting next_id back to one would make an old selection unsafe.
-
-<details>
-<summary>Implementation 30c-replace: Replace a document as one reversible change</summary>
-
-Prepare a whole replacement before changing live rows, then commit it through existing history.
-
-Data flow: Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs.
+> **Check:** *Why must the scene counter survive replacing all its rows?* — A replacement must not reuse local IDs held by old selection or delayed work. Clearing rows leaves the increasing counter intact. History restoration also retains the highest issued value, while Undo restores the old objects and shared source allocations.
 
 ### 1. `src/scene.rs`
 
 Replace rows while preserving the issued local-ID counter; the caller supplies the transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3904,8 +2966,7 @@ Name replacement explicitly instead of giving Import a hidden destructive mode. 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.selected = self.camera.ray(screen)
@@ -3915,8 +2976,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let loaded = crate::document::load(&bytes)?;
                 self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -3933,8 +2992,7 @@ Replace it with:
                 self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub enum Action {
@@ -3944,8 +3002,6 @@ pub enum Action {
     Translate([f64; 3]),
     ToggleExtra,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3959,8 +3015,7 @@ pub enum Action {
     ToggleExtra,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4137,25 +3192,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30c-replace-02.rs"
-```
-
-```text
---8<-- "journey/code/30c-replace-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4169,21 +3206,9 @@ Copy this supplied file:
 --8<-- "journey/code/30c-replace-04.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Compile the replacement contract.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod save_roundtrip_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -4191,133 +3216,46 @@ After that block, type:
 --8<-- "journey/code/30c-replace-05.rs" skip=39
 ```
 
-</details>
+**Result after `30c-replace`:** Run the replacement checks below. A valid replacement is one Undo step; an invalid candidate must leave the existing scene unchanged. The browser command is connected next.
+
+---
 
 <a id="checkpoint-30d-bridge"></a>
 
 ### Step 10 of 11 · Choose append or replace before opening the picker (`30d-bridge`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/11 Visual Trace (30d-bridge): Choose append or replace before opening the picker</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/file_input.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Open or Open Replace</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">new ticket plus captured</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mode</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">file bytes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit editor action</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/file_input.rs, src/br…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">file bytes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit editor action</text>
 </svg>
-</div>
-
-- **Goal:** Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
-- **Data Flow Trace:** `Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action`
-- **Files You Touch:** `src/file_input.rs` (*Capture a typed operation value with the selected file instead of consulting mutable state after reading.*) · `src/browser.rs` (*Offer replacement as a typed command.*)
 
 Add typed `Open Replace`, retaining `Open` for append. Opening either picker begins a ticket and stores its operation as a `Mode` enum.
 
 The selected-file task captures that ticket and mode. `choose` reuses the pending ticket; a newer picker revokes earlier delivery before a file is chosen.
 
-The completion event carries a replace flag and `Uint8Array`. Validate shape and size, then translate to `Action::Import` or `Action::Replace`. Editor never receives browser values.
-
-Picker cancellation revokes its ticket and appends an Open notice. Report append or replacement only after successful commit. A failed replacement retains the document; successful replacement is one Undo change.
-
-> **Self-Check Question:** *Why must a newer Open revoke old work before the new file is chosen?*  
-> **Answer:** Opening a new picker expresses a new request even if the user cancels it. If the ticket were issued only after choosing a file, an older pending read could still commit behind the newer picker. Begin at the command, capture its mode at selection, and consume that ticket before delivering an outcome.
-
-- **What You Should See:** Type `Open Replace` and choose `sample.pb`, then type `Undo`. The preceding document returns as one transaction. `Open Append` instead keeps existing objects.
-- **Hands-On Lab Experiment:** Hold a previous read, open Open Replace, cancel the new picker and then let the old read finish. Predict why the old file must stay rejected despite the new picker having no chosen file.
-
-<details>
-<summary>Implementation 30d-bridge: Choose append or replace before opening the picker</summary>
-
-Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
-
-Data flow: Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action.
+> **Check:** *Why must a newer Open revoke old work before the new file is chosen?* — Opening a new picker expresses a new request even if the user cancels it. If the ticket were issued only after choosing a file, an older pending read could still commit behind the newer picker. Begin at the command, capture its mode at selection, and consume that ticket before delivering an outcome.
 
 ### 1. `src/file_input.rs`
 
 Capture a typed operation value with the selected file instead of consulting mutable state after reading. A choice with no file revokes pending ownership without editing the scene. Use the ticket already issued by the Open command. Keep the captured mode beside the accepted bytes. Include the selected operation in the private byte event. Use an explicit replace flag and byte array at the browser bridge. Translate checked browser payloads into ordinary editor actions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>) {
-    let Some(input) = event.target().and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return; };
-    if input.id() != "open" { return; }
-    let Some(file) = input.files().and_then(|files| files.get(0)) else { return; };
-    input.set_value("");
-    let id = match request.borrow_mut().begin() {
-        Ok(id) => id,
-        Err(error) => {
-            wasm_bindgen_futures::spawn_local(async move { failure(error); });
-            return;
-        }
-    };
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        if request.borrow().pending() != Some(id) { return; }
-        if file.size() > crate::document::MAX_BYTES as f64 {
-            let accepted = request.borrow_mut().finish(id);
-            if accepted { failure("This checkpoint accepts files up to 4 MiB"); }
-            return;
-        }
-        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
-        let accepted = request.borrow_mut().finish(id);
-        if !accepted { return; }
-        let result = result.and_then(deliver);
-        if let Err(error) = result {
-            failure(&format!("Cannot read file: {error:?}"));
-        }
-    });
-}
-
-fn failure(message: &str) {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&JsValue::from_str(message));
-    let result = web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
-        .and_then(|event| web_sys::window().ok_or_else(|| JsValue::from_str("No window"))?.dispatch_event(&event));
-    if result.is_err() { super::browser::report(message); }
-}
-
-fn deliver(buffer: JsValue) -> Result<(), JsValue> {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&js_sys::Uint8Array::new(&buffer));
-    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
-    web_sys::window().ok_or("No browser window")?.dispatch_event(&event)?;
-    Ok(())
-}
-
-pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
-    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
-    let array = event.detail().dyn_into::<js_sys::Uint8Array>().ok()?;
-    if array.length() as usize > crate::document::MAX_BYTES { return None; }
-    Some(array.to_vec())
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4383,49 +3321,13 @@ pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30d-bridge-01.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-02.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-03.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-04.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-05.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-06.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-07.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Offer replacement as a typed command. Hold the picker operation in the event closure; each task copies it at selection. Revoke native picker cancellation and capture the operation when a file is selected. Keep browser values outside the editor transaction. A newer request revokes older work at picker opening, not only after file selection. Remember which successful file action was committed before consuming it. Report the committed operation without overwriting another command. Receive the native file-input cancellation event for the viewer lifetime.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
@@ -4435,8 +3337,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
     // Both event sources retain this one callback for the lifetime of the page.
 ```
-
-</details>
 
 Replace it with:
 
@@ -4450,8 +3350,7 @@ Replace it with:
     // Both event sources retain this one callback for the lifetime of the page.
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             None
@@ -4467,8 +3366,6 @@ Replace it with:
                 }
                 Ok(Change::View) => {}
 ```
-
-</details>
 
 Replace it with:
 
@@ -4490,8 +3387,7 @@ Replace it with:
                 Ok(Change::View) => {}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -4509,8 +3405,6 @@ Replace it with:
                     .and_then(|window| window.document())
                     .and_then(|document| document.get_element_by_id("open"))
 ```
-
-</details>
 
 Replace it with:
 
@@ -4535,8 +3429,7 @@ Replace it with:
                     .and_then(|document| document.get_element_by_id("open"))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -4548,8 +3441,6 @@ Replace it with:
         } else if event.type_() == "viewer-file-error" {
             if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4572,8 +3463,7 @@ Replace it with:
             if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let pointer_canvas = canvas.clone();
@@ -4583,8 +3473,6 @@ Replace it with:
         let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
         let line = if let Some(shortcut) = shortcut {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4598,8 +3486,7 @@ Replace it with:
         let line = if let Some(shortcut) = shortcut {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &[
@@ -4609,8 +3496,6 @@ Replace it with:
             "Save",
             "Example Box",
 ```
-
-</details>
 
 Replace it with:
 
@@ -4624,8 +3509,7 @@ Replace it with:
             "Example Box",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5078,114 +3962,46 @@ fn present(
 }
 ```
 
-</details>
+**Result after `30d-bridge`:** Type `Open Replace` and choose `sample.pb`, then type `Undo`. The preceding document returns as one transaction. `Open Append` instead keeps existing objects.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30d-bridge-08.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-09.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-10.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-11.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-12.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-13.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-14.rs"
-```
-
-```text
---8<-- "journey/code/30d-bridge-15.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-30e-recovery"></a>
 
 ### Step 11 of 11 · Prove recovery at the transaction and display boundaries (`30e-recovery`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/11 Visual Trace (30e-recovery): Prove recovery at the transaction and display boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/placement.rs, src/scene.rs, src/replace_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Malformed source or failed insertion</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained old owners and history;</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">double…</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite float upload check</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/placement.rs, src/sce…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained old owners and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite float upload che…</text>
 </svg>
-</div>
-
-- **Goal:** Test partial replacement failure, preserved selection/Redo and placement upload limits.
-- **Data Flow Trace:** `Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check`
-- **Files You Touch:** `src/placement.rs` (*Reject a finite double coefficient that cannot enter the current float uniform.*) · `src/scene.rs` (*State the full placement boundary in its error.*) · `src/replace_tests.rs` (*Optional authoring fixture. Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary.*)
 
 Test a replacement failure after insertion starts, not only malformed bytes before mutation. Put the object-ID counter one below its limit: one insertion succeeds and the next fails.
 
 History must restore every old row and allocation while retaining the highest issued counter. IDs from failed work must not be reused. A separate malformed-replacement test preserves selection and Redo.
 
-Also reject placement coefficients that are finite as doubles but become infinity in the current float upload. `f64::MAX` demonstrates this boundary for direct placement and encoded files. Keep the previous placement untouched. This limits the display adapter without reducing retained source precision.
-
-> **Self-Check Question:** *Why do we need a failure after the first new row was inserted?*  
-> **Answer:** Malformed decoding fails before a transaction starts. It does not test rollback after mutation. Exhausting the ID counter during the second insertion proves History::try_edit restores old rows and shared owners after a partial replacement, while retaining the highest issued counter so failed work cannot cause ID reuse.
-
-- **What You Should See:** Run the recovery checks below. A replacement that fails on its second mesh must preserve the whole previous scene and its Redo branch.
-- **Hands-On Lab Experiment:** Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.
-
-<details>
-<summary>Implementation 30e-recovery: Prove recovery at the transaction and display boundaries</summary>
-
-Test partial replacement failure, preserved selection/Redo and placement upload limits.
-
-Data flow: Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check.
+> **Check:** *Why do we need a failure after the first new row was inserted?* — Malformed decoding fails before a transaction starts. It does not test rollback after mutation. Exhausting the ID counter during the second insertion proves History::try_edit restores old rows and shared owners after a partial replacement, while retaining the highest issued counter so failed work cannot cause ID reuse.
 
 ### 1. `src/placement.rs`
 
 Reject a finite double coefficient that cannot enter the current float uniform.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    matrix.len() == 16 && matrix.iter().all(|value| value.is_finite())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5193,25 +4009,13 @@ Edit the existing block to match this code; keep unchanged lines:
     matrix.len() == 16 && matrix.iter().all(|value| value.is_finite() && (*value as f32).is_finite())
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30e-recovery-01.rs"
-```
-
-</details>
-
 ### 2. `src/scene.rs`
 
 State the full placement boundary in its error. Fail during the second insertion, then prove rollback restores the old allocations without recycling issued IDs.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     use super::*;
@@ -5221,8 +4025,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let mut scene = Scene::demo();
         let first = scene.objects()[0].id;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5253,8 +4055,7 @@ Replace it with:
         let first = scene.objects()[0].id;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
@@ -5265,8 +4066,6 @@ Replace it with:
         let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
         object.model = model;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5280,8 +4079,7 @@ Replace it with:
         object.model = model;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -5490,25 +4288,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/30e-recovery-02.rs"
-```
-
-```text
---8<-- "journey/code/30e-recovery-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5516,49 +4296,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert_eq!((editor.camera.distance, editor.camera.aspect), (7.0, 2.0));
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/30e-recovery-04.rs" skip=78
 ```
 
-</details>
-
-</details>
+**Result after `30e-recovery`:** Run the recovery checks below. A replacement that fails on its second mesh must preserve the whole previous scene and its Redo branch.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 30e-recovery
-npm --prefix ../session_tests run course -- check 30e-recovery
-npm --prefix ../session_tests run course -- save 30e-recovery
+npm --prefix ../session_tests run course -- dependencies 3.5
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 3.5
+npm --prefix ../session_tests run course -- save 3.5
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 3.5 (30e-recovery)](../../screenshots/journey/30e-recovery-browser.png)
-
-Run the recovery checks below. A replacement that fails on its second mesh must preserve the whole previous scene and its Redo branch.
-
-- **Final Lesson Experiment:** Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.
-
-Continue with [Shared GPU geometry and releasable source ownership](31-settings.md).
+Continue with [3.6 · Shared GPU geometry and releasable source ownership](31-settings.md).

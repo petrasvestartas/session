@@ -1,260 +1,106 @@
 # 2.3 · Depth, validated geometry and stable objects
 
-**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.3** (Redraft `2.3`) · **4 checkpoints (`10-depth` → `11a-identity`)** · **Study time: 4.25–8 h**
+**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Checkpoints:** `10-depth` → `11a-identity` (4 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first. By the final checkpoint (`11a-identity`), you will keep object identity stable when removal changes vector order.
+> **Goal:** Keep object identity stable when removal changes vector order.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 2 Visual Explanation: Shared Index Mesh, 3D Camera Frustum, Depth32Float Z-Test & Ray Picking</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 4 shared vertices + 6 indices = 2 triangles. Center: Depth32Float Z-buffer occlusion. Right: Unprojecting a 2D click into a 3D ray.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Shared Vertex & Index Mesh -->
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared Vertex + Index Mesh</text>
-    <!-- Diamond quad with shared diagonal v0-v2 -->
-    <polygon points="145,96 205,140 145,184 85,140" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <line x1="85" y1="140" x2="205" y2="140" stroke="#111111" stroke-width="1.5" stroke-dasharray="4,3"/>
-    <circle cx="145" cy="96" r="3.5" fill="#111111"/>
-    <circle cx="205" cy="140" r="3.5" fill="#111111"/>
-    <circle cx="145" cy="184" r="3.5" fill="#111111"/>
-    <circle cx="85" cy="140" r="3.5" fill="#111111"/>
-    <text x="145" y="91" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">v1</text>
-    <text x="216" y="143" font-size="9.5" font-weight="700" fill="#111111">v2</text>
-    <text x="145" y="196" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">v3</text>
-    <text x="68" y="143" font-size="9.5" font-weight="700" fill="#111111">v0</text>
-    <text x="145" y="126" text-anchor="middle" font-size="9.5" fill="#111111">Tri A: [0, 1, 2]</text>
-    <text x="145" y="160" text-anchor="middle" font-size="9.5" fill="#111111">Tri B: [0, 2, 3]</text>
-    <rect x="30" y="204" width="230" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="145" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">4 Vertices (48 B) + 6 u32 Indices (24 B)</text>
-    <text x="145" y="229" text-anchor="middle" font-size="9" fill="#111111">Shared edge (v0, v2) stored once in RAM/GPU</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Camera Frustum & Depth32Float Z-Occlusion -->
-    <rect x="297" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Depth32Float Z-Buffer Test</text>
-    <!-- Back triangle (dashed / partially occluded) -->
-    <polygon points="445,102 405,176 495,176" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="4,3"/>
-    <text x="478" y="116" font-size="9.5" fill="#111111">Back (z = 0.7)</text>
-    <!-- Front triangle (hatched, occluding back triangle) -->
-    <polygon points="395,112 350,186 445,186" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <rect x="358" y="156" width="76" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="396" y="168" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Front (z = 0.3)</text>
-    <rect x="310" y="204" width="228" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="424" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">clip = view_proj * vec4(pos, 1.0)</text>
-    <text x="424" y="229" text-anchor="middle" font-size="9" fill="#111111">z = 0.3 &lt; 0.7 wins DepthCompare::LessEqual</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: 3D Ray Picking (Unproject Click) -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 3D Ray Picking (Unproject)</text>
-    <!-- Camera Eye on left, Near Plane, Ray hitting Front Triangle -->
-    <circle cx="598" cy="148" r="4" fill="#111111"/>
-    <text x="598" y="164" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Eye O</text>
-    <!-- Near plane vertical bar -->
-    <line x1="636" y1="100" x2="636" y2="192" stroke="#111111" stroke-width="1.5"/>
-    <circle cx="636" cy="142" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="636" y="96" text-anchor="middle" font-size="8.5" fill="#111111">Click (px,py)</text>
-    <!-- Ray line -->
-    <line x1="598" y1="148" x2="795" y2="118" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <!-- Hit triangle 1 (t1) and triangle 2 (t2) -->
-    <line x1="696" y1="108" x2="710" y2="162" stroke="#111111" stroke-width="2.5"/>
-    <circle cx="702" cy="132" r="4.5" fill="#111111"/>
-    <text x="702" y="102" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hit t1 (wins!)</text>
-    <line x1="758" y1="102" x2="772" y2="156" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3"/>
-    <circle cx="764" cy="123" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="764" y="170" text-anchor="middle" font-size="8.5" fill="#111111">t2 &gt; t1</text>
-    <rect x="588" y="204" width="222" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="699" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Ray(t) = O + t·D via inv(view_proj)</text>
-    <text x="699" y="229" text-anchor="middle" font-size="9" fill="#111111">Smallest positive hit t selects front object</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 2.3 Pipeline Schematic: Depth, validated geometry and stable objects</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (4 Checkpoints: 10-depth → 11a-identity)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Vertex z</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">transformed depth</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">depth comparison</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">colour written only</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">for the nearer</text>
-    <text x="584" y="140" text-anchor="middle" font-size="11" fill="#111111">fragment</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Scene allocates</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">ObjectId</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 2.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/triangle.wgsl  ·  src/renderer.rs  ·  src/browser.rs  ·  src/mesh.rs  ·  src/scene.rs  ·  src/lib.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">4 Checkpoints: 10-depth → 11a-identity — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (`bytemuck`)** | `#[repr(C)]` + `Pod` / `Zeroable` | Guarantees Rust structs (`Vertex`, `CameraUniform`) have exact C/GPU byte layout so `bytemuck::cast_slice` uploads raw bytes to `wgpu::Buffer` with zero copying. |
-| **WGSL Shader** | `@group(0) @binding(0) var<uniform> view_proj: mat4x4<f32>` | Transforms 3D world vertices into 4D homogeneous clip coordinates (`view_proj * vec4<f32>(pos, 1.0)`). |
-| **WebGPU / Math** | `Depth32Float` + Inverse Ray `inv(view_proj)` | Forward pass uses a 32-bit float Z-buffer (`LessEqual`) so nearer triangles occlude farther ones; clicking unprojects `(px, py)` back into a 3D ray to pick the closest hit `t`. |
+| **Rust (`bytemuck`)** | `#[repr(C)]` + `cast_slice` | Zero-copy upload of `Vertex` & `CameraUniform` bytes to GPU buffers. |
+| **WGSL** | `view_proj * vec4(pos, 1.0)` | Projects 3D world vertices into 4D clip space. |
+| **WebGPU** | `Depth32Float` + Ray Unproject | Z-buffer occludes back faces; `inv(view_proj)` casts 3D pick rays. |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`10-depth`](#checkpoint-10-depth) | Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first. | `src/triangle.wgsl`, `src/renderer.rs`, `src/browser.rs` | `Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment` |
-| **2** | [`10a-mesh`](#checkpoint-10a-mesh) | Own validated mesh values and a scene collection before uploading them. | `src/mesh.rs`, `src/scene.rs`, `src/lib.rs` | `Mesh::new validates owned vectors → Scene retains Mesh values` |
-| **3** | [`11-scene`](#checkpoint-11-scene) | Add and remove a mesh through scene data while reusing the renderer and camera. | `src/gpu_mesh.rs`, `src/lib.rs`, `src/renderer.rs`, `src/browser.rs` | `Example Triangle → Scene changes → set_scene uploads → GpuMesh draws` |
-| **4** | [`11a-identity`](#checkpoint-11a-identity) | Keep object identity stable when removal changes vector order. | `src/scene.rs`, `src/renderer.rs` | `Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh` |
+![Recorded visual output for Lesson 2.3 (11a-identity)](../../../screenshots/journey/11a-identity-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-10-depth"></a>
 
 ### Step 1 of 4 · Keep the nearest surface (`10-depth`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/4 Visual Trace (10-depth): Keep the nearest surface</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Vertex z</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">transformed depth</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth comparison</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour written only for</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">the…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle.wgsl, src/re…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">depth comparison</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour written only for…</text>
 </svg>
-</div>
-
-- **Goal:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
-- **Data Flow Trace:** `Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment`
-- **Files You Touch:** `src/triangle.wgsl` (*Pass transformed 3D positions and vertex colours to the rasterizer. The fragment function uses the interpolated colour.*) · `src/renderer.rs` (*Define two coloured triangles with different Z coordinates.*) · `src/browser.rs` (*Allocate depth storage at the canvas size.*)
 
 Keep the nearer triangle even when the farther triangle is drawn last. Give pink depth 0.25 and turquoise depth 0.75; draw pink first.
 
 Attach a depth texture alongside colour. Clear depth to 1 and use `Less` with depth writes: a fragment passes only when it is nearer than the stored depth. Its dimensions and sample count must match the colour image.
 
-A vertex now contains position and colour: six `f32` values, 24 bytes. Shader locations 0 and 1 read those two groups. The vertex shader passes colour to the fragment shader.
-
-The browser supplies the startup dimensions to `renderer.resize`. Later resize handling updates both attachments. This depth rule handles opaque visibility; transparency comes later.
-
-> **Self-Check Question:** *Why is it not enough to draw the far triangle first?*  
-> **Answer:** A particular draw order might work for these two flat triangles, but a real scene can overlap differently from each viewpoint. A depth attachment remembers the nearest depth at each pixel. The comparison chooses visibility there, so drawing an opaque farther surface later does not cover a nearer one.
-
-- **What You Should See:** Look at the overlapping triangles. The nearer triangle must cover the farther one even though it is drawn first. Reverse their draw order: the overlap should stay the same. Restore the order.
-- **Hands-On Lab Experiment:** Temporarily change the near triangle’s three z values from 0.25 to 0.9. Predict which colour will appear at the shared centre. Turquoise should now win. Restore the values, then reverse the two groups of indices: the picture should stay the same. Restore the original order before comparing.
-
-<details>
-<summary>Implementation 10-depth: Keep the nearest surface</summary>
-
-Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
-
-Data flow: Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment.
+> **Check:** *Why is it not enough to draw the far triangle first?* — A particular draw order might work for these two flat triangles, but a real scene can overlap differently from each viewpoint. A depth attachment remembers the nearest depth at each pixel. The comparison chooses visibility there, so drawing an opaque farther surface later does not cover a nearer one.
 
 ### 1. `src/triangle.wgsl`
 
 Pass transformed 3D positions and vertex colours to the rasterizer. The fragment function uses the interpolated colour.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
-
-@vertex
-fn vertex(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
-    return transform * vec4<f32>(position, 0.0, 1.0);
-}
-
-@fragment
-fn fragment() -> @location(0) vec4<f32> {
-    return vec4<f32>(0.9, 0.25, 0.45, 1.0);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -268,8 +114,7 @@ Define two coloured triangles with different Z coordinates. Retain a depth view 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
@@ -279,8 +124,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     view,
                     depth_slice: None,
 ```
-
-</details>
 
 Replace it with:
 
@@ -301,8 +144,7 @@ Replace it with:
                     depth_slice: None,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 resource: uniform.as_entire_binding(),
@@ -313,8 +155,6 @@ Replace it with:
 
     pub fn draw(
 ```
-
-</details>
 
 Replace it with:
 
@@ -347,8 +187,7 @@ Replace it with:
     pub fn draw(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 targets: &[Some(format.into())],
@@ -359,8 +198,6 @@ Replace it with:
             multiview_mask: None,
             cache: None,
 ```
-
-</details>
 
 Replace it with:
 
@@ -380,8 +217,7 @@ Replace it with:
             cache: None,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 entry_point: Some("vertex"),
@@ -394,8 +230,6 @@ Replace it with:
             },
             fragment: Some(wgpu::FragmentState {
 ```
-
-</details>
 
 Replace it with:
 
@@ -411,8 +245,7 @@ Replace it with:
             fragment: Some(wgpu::FragmentState {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     indices: wgpu::Buffer,
@@ -427,8 +260,6 @@ impl Renderer {
         let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("rectangle positions"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -447,8 +278,7 @@ impl Renderer {
             label: Some("rectangle positions"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -461,8 +291,6 @@ const INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
 pub struct Renderer {
     pub device: wgpu::Device,
 ```
-
-</details>
 
 Replace it with:
 
@@ -484,8 +312,7 @@ pub struct Renderer {
     pub device: wgpu::Device,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -644,47 +471,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/10-depth-fullscreen-3.rs"
-```
-
-```text
---8<-- "journey/code/10-depth-fullscreen-4.rs"
-```
-
-```text
---8<-- "journey/code/10-depth-fullscreen-5.rs"
-```
-
-```text
---8<-- "journey/code/10-depth-fullscreen-6.rs"
-```
-
-```text
---8<-- "journey/code/10-depth-fullscreen-7.rs"
-```
-
-```text
---8<-- "journey/code/10-depth-fullscreen-8.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Allocate depth storage at the canvas size. Report which triangle wins the overlap.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     )?;
@@ -694,8 +487,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -708,8 +499,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .ok_or("No compatible surface format")?;
@@ -720,8 +510,6 @@ Replace it with:
         &renderer,
         config.format.add_srgb_suffix(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -736,8 +524,7 @@ Replace it with:
         config.format.add_srgb_suffix(),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -908,70 +695,42 @@ fn present(
 }
 ```
 
-</details>
+**Result after `10-depth`:** Look at the overlapping triangles. The nearer triangle must cover the farther one even though it is drawn first. Reverse their draw order: the overlap should stay the same. Restore the order.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/10-depth-window-1.rs"
-```
-
-```text
---8<-- "journey/code/10-depth-window-2.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-10a-mesh"></a>
 
 ### Step 2 of 4 · Give geometry a validated CPU owner (`10a-mesh`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/4 Visual Trace (10a-mesh): Give geometry a validated CPU owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh.rs, src/scene.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Mesh::new validates owned vectors</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Scene retains Mesh values</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/mesh.rs, src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Scene retains Mesh valu…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Scene retains Mesh valu…</text>
 </svg>
-</div>
-
-- **Goal:** Own validated mesh values and a scene collection before uploading them.
-- **Data Flow Trace:** `Mesh::new validates owned vectors → Scene retains Mesh values`
-- **Files You Touch:** `src/mesh.rs` (*Create validated CPU mesh data. The vertex record layout is the same six floats used in the depth lesson.*) · `src/scene.rs` (*Move the demonstration geometry into a scene and add its third-mesh toggle.*) · `src/lib.rs` (*Register the CPU mesh and scene modules.*)
 
 Mesh owns vertex and index vectors. Its constructor rejects missing vertices, incomplete triangles and nonfinite values. Scene owns a collection of those validated meshes.
 
 Vec owns its allocation; a slice borrows existing elements. Result returns either the constructed Mesh or the reason it was refused. GPU upload consumes these slices in the next step.
 
-> **Self-Check Question:** *Why return slices rather than mutable vectors?*  
-> **Answer:** A borrowed slice lets upload read the values without transferring ownership or allowing invalid indices to be inserted.
-
-- **What You Should See:** Inspect the supplied state fixtures. Valid triangles are accepted; missing vertices, incomplete triangles and NaN values are rejected.
-- **Hands-On Lab Experiment:** In the constructor test, replace the invalid index 3 with 2. That case becomes valid, so its is_err assertion should fail. Restore 3.
-
-<details>
-<summary>Implementation 10a-mesh: Give geometry a validated CPU owner</summary>
-
-Own validated mesh values and a scene collection before uploading them.
-
-Data flow: Mesh::new validates owned vectors → Scene retains Mesh values.
+> **Check:** *Why return slices rather than mutable vectors?* — A borrowed slice lets upload read the values without transferring ownership or allowing invalid indices to be inserted.
 
 ### 1. `src/mesh.rs`
 
@@ -997,82 +756,48 @@ Create the file and type:
 
 Register the CPU mesh and scene modules.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod background;
-pub mod camera;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-mod browser;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/10a-mesh-register.rs"
 ```
 
-</details>
+**Result after `10a-mesh`:** Inspect the supplied state fixtures. Valid triangles are accepted; missing vertices, incomplete triangles and NaN values are rejected.
+
+---
 
 <a id="checkpoint-11-scene"></a>
 
 ### Step 3 of 4 · Draw the scene through GPU mesh owners (`11-scene`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/4 Visual Trace (11-scene): Draw the scene through GPU mesh owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/lib.rs, src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Example Triangle</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Scene changes</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">set_scene uploads</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">GpuMesh draws</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_mesh.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">set_scene uploads</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">GpuMesh draws</text>
 </svg>
-</div>
-
-- **Goal:** Add and remove a mesh through scene data while reusing the renderer and camera.
-- **Data Flow Trace:** `Example Triangle → Scene changes → set_scene uploads → GpuMesh draws`
-- **Files You Touch:** `src/gpu_mesh.rs` (*Move mesh upload and indexed drawing into the owner of those GPU buffers.*) · `src/lib.rs` (*Register the GPU mesh owner.*) · `src/renderer.rs` (*Own uploaded GpuMesh values and build them from Scene.*) · `src/browser.rs` (*Import the scene owner.*)
 
 GpuMesh owns the vertex and index buffers uploaded from a borrowed Mesh. Renderer owns the uploaded list; the browser retains Scene.
 
 Example Triangle changes the CPU collection, uploads it, then redraws. Camera commands update only the view uniform.
 
-The upload borrows validated slices and copies their bytes into buffers. Replacing those buffers leaves the CPU scene and camera owned by the caller.
-
-> **Self-Check Question:** *Does uploading transfer the CPU Mesh to the renderer?*  
-> **Answer:** No. upload borrows &Mesh; Scene keeps the original vectors while GpuMesh owns the copied GPU buffers.
-
-- **What You Should See:** Type Example Triangle. A third, green triangle appears.
-- **Hands-On Lab Experiment:** Pan Right, then submit Example Triangle twice. The scene should return to the same image without resetting the camera.
-
-<details>
-<summary>Implementation 11-scene: Draw the scene through GPU mesh owners</summary>
-
-Add and remove a mesh through scene data while reusing the renderer and camera.
-
-Data flow: Example Triangle → Scene changes → set_scene uploads → GpuMesh draws.
+> **Check:** *Does uploading transfer the CPU Mesh to the renderer?* — No. upload borrows &Mesh; Scene keeps the original vectors while GpuMesh owns the copied GPU buffers.
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -1088,21 +813,6 @@ Create the file and type:
 
 Register the GPU mesh owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod background;
-pub mod camera;
-pub mod mesh;
-pub mod scene;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-mod browser;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -1115,8 +825,7 @@ Own uploaded GpuMesh values and build them from Scene. Rebuild uploaded meshes w
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             });
@@ -1129,8 +838,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1146,8 +853,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }],
@@ -1158,8 +864,6 @@ Replace it with:
 
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1177,8 +881,7 @@ Replace it with:
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -1225,8 +928,6 @@ impl Renderer {
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -1255,8 +956,7 @@ impl Renderer {
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::Scene};
@@ -1400,35 +1100,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/11-scene-fullscreen-6.rs"
-```
-
-```text
---8<-- "journey/code/11-scene-fullscreen-7.rs"
-```
-
-```text
---8<-- "journey/code/11-scene-fullscreen-8.rs"
-```
-
-</details>
-
 ### 4. `src/browser.rs`
 
 Import the scene owner. Create the demo scene and add Example Triangle to the vocabulary. Toggle the example object and synchronize the renderer. Report the separation between scene data and drawing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     )?;
@@ -1438,8 +1116,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1452,8 +1128,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1463,8 +1138,6 @@ Replace it with:
                 "zoom in" => camera.zoom(2.0),
                 "zoom out" => camera.zoom(0.5),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1481,8 +1154,7 @@ Replace it with:
                 "zoom out" => camera.zoom(0.5),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .ok_or("No compatible surface format")?;
@@ -1499,8 +1171,6 @@ Replace it with:
             "Zoom In",
             "Zoom Out",
 ```
-
-</details>
 
 Replace it with:
 
@@ -1522,8 +1192,7 @@ Replace it with:
             "Zoom Out",
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::background::Background;
@@ -1533,8 +1202,6 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 pub fn report(message: &str) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1548,8 +1215,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 pub fn report(message: &str) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -1727,128 +1393,46 @@ fn present(
 }
 ```
 
-</details>
+**Result after `11-scene`:** Type Example Triangle. A third, green triangle appears.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/11-scene-window-1.rs"
-```
-
-```text
---8<-- "journey/code/11-scene-window-2.rs"
-```
-
-```text
---8<-- "journey/code/11-scene-window-3.rs"
-```
-
-```text
---8<-- "journey/code/11-scene-window-4.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-11a-identity"></a>
 
 ### Step 4 of 4 · Name objects independently of their rows (`11a-identity`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/4 Visual Trace (11a-identity): Name objects independently of their rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Scene allocates ObjectId</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Object retains Mesh</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">GPU upload borrows that mesh</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/rendere…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Object retains Mesh</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">GPU upload borrows that…</text>
 </svg>
-</div>
-
-- **Goal:** Keep object identity stable when removal changes vector order.
-- **Data Flow Trace:** `Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh`
-- **Files You Touch:** `src/scene.rs` (*Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged.*) · `src/renderer.rs` (*Upload the mesh borrowed from each named object.*)
 
 ObjectId names an object independently of its vector row. Scene allocates IDs, looks up objects by those names, and remembers the extra triangle by ID.
 
 The wrapper type prevents confusing an ID with an index. checked_add returns an error before the counter can wrap and reuse a name.
 
-> **Self-Check Question:** *Does moving to row zero create a new object?*  
-> **Answer:** No. The vector position changes; the ObjectId assigned at insertion stays the same.
-
-- **What You Should See:** Inspect the supplied state fixtures. Removing the first object moves the next row without changing its ID; toggling the extra object still removes that object.
-- **Hands-On Lab Experiment:** In the removal test, compare the second object’s ID before and after deleting the first. The ID should match even though its row changes.
-
-<details>
-<summary>Implementation 11a-identity: Name objects independently of their rows</summary>
-
-Keep object identity stable when removal changes vector order.
-
-Data flow: Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh.
+> **Check:** *Does moving to row zero create a new object?* — No. The vector position changes; the ObjectId assigned at insertion stays the same.
 
 ### 1. `src/scene.rs`
 
 Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-
-pub struct Scene {
-    pub meshes: Vec<Mesh>,
-}
-
-impl Scene {
-    pub fn demo() -> Self {
-        let near = Mesh::new(vec![
-            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
-            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
-            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],
-        ], vec![0, 1, 2]).expect("Valid near triangle");
-        let far = Mesh::new(vec![
-            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
-            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
-            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],
-        ], vec![0, 1, 2]).expect("Valid far triangle");
-        Self { meshes: vec![near, far] }
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if self.meshes.len() == 3 {
-            self.meshes.pop();
-        } else {
-            let extra = Mesh::new(vec![
-                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],
-                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],
-                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],
-            ], vec![0, 1, 2]).expect("Valid extra triangle");
-            self.meshes.push(extra);
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1862,8 +1446,7 @@ Upload the mesh borrowed from each named object.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1874,8 +1457,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1889,8 +1470,7 @@ Replace it with:
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         format: wgpu::TextureFormat,
@@ -1901,8 +1481,6 @@ Replace it with:
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1916,8 +1494,7 @@ Replace it with:
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::Scene};
@@ -2061,48 +1638,21 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/11a-identity-upload-1.rs"
-```
-
-```text
---8<-- "journey/code/11a-identity-upload-2.rs"
-```
-
-</details>
-
-</details>
+**Result after `11a-identity`:** Inspect the supplied state fixtures. Removing the first object moves the next row without changing its ID; toggling the extra object still removes that object.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 11a-identity
-npm --prefix ../session_tests run course -- check 11a-identity
-npm --prefix ../session_tests run course -- save 11a-identity
 cd workspace/journey
 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 2.3
+npm --prefix ../session_tests run course -- save 2.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 2.3 (11a-identity)](../../../screenshots/journey/11a-identity-browser.png)
-
-Inspect the supplied state fixtures. Removing the first object moves the next row without changing its ID; toggling the extra object still removes that object.
-
-- **Final Lesson Experiment:** In the removal test, compare the second object’s ID before and after deleting the first. The ID should match even though its row changes.
-
-Continue with [Selection that agrees with the displayed view](../../consolidation/12-identity.md).
+Continue with [2.4 · Selection that agrees with the displayed view](../../consolidation/12-identity.md).

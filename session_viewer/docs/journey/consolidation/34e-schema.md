@@ -1,231 +1,98 @@
 # 4.3 · Admit useful evidence and bound stored runs
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.3** (Redraft `3.10`) · **8 checkpoints (`34e-schema` → `34fc-retention`)** · **Study time: 8–16 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `34e-schema` → `34fc-retention` (8 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. By the final checkpoint (`34fc-retention`), you will separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
+> **Goal:** Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 4 Visual Explanation: Browser Lifetime State Machine, Circular Fault Ring-Buffer & GPU Recovery</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Active ↔ Hidden (bfcache) ↔ Device Lost state transitions. Center: Bounded circular fault ring. Right: Rc/Drop listener guard.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: State Machine Diagram -->
-    <rect x="18" y="64" width="280" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="158" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Browser &amp; GPU State Machine</text>
-    <rect x="34" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Active Frame</text>
-    <text x="89" y="132" text-anchor="middle" font-size="9" fill="#111111">Heartbeat ON</text>
-    <rect x="174" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="229" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Tab Hidden</text>
-    <text x="229" y="132" text-anchor="middle" font-size="9" fill="#111111">Timers Paused</text>
-    <line x1="144" y1="114" x2="172" y2="114" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="174" y1="128" x2="146" y2="128" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <!-- Bottom recovery state -->
-    <rect x="54" y="172" width="210" height="56" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="159" y="191" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Device Lost → Conservative Rebuild</text>
-    <text x="159" y="206" text-anchor="middle" font-size="9.5" fill="#111111">Re-create Adapter/Device at safe 1x MSAA</text>
-    <text x="159" y="220" text-anchor="middle" font-size="9" fill="#111111">&amp; restore retained Editor scene</text>
-    <line x1="89" y1="142" x2="115" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="195" y1="172" x2="125" y2="144" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
-
-    <line x1="298" y1="154" x2="320" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Circular Fault Ring-Buffer -->
-    <rect x="322" y="64" width="240" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="442" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Bounded Fault Ring-Buffer</text>
-    <circle cx="442" cy="144" r="46" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="442" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <line x1="442" y1="98" x2="442" y2="122" stroke="#111111" stroke-width="1.2"/>
-    <line x1="442" y1="166" x2="442" y2="190" stroke="#111111" stroke-width="1.2"/>
-    <line x1="396" y1="144" x2="420" y2="144" stroke="#111111" stroke-width="1.2"/>
-    <line x1="464" y1="144" x2="488" y2="144" stroke="#111111" stroke-width="1.2"/>
-    <line x1="410" y1="112" x2="426" y2="128" stroke="#111111" stroke-width="1.2"/>
-    <line x1="458" y1="160" x2="474" y2="176" stroke="#111111" stroke-width="1.2"/>
-    <line x1="474" y1="112" x2="458" y2="128" stroke="#111111" stroke-width="1.2"/>
-    <line x1="426" y1="160" x2="410" y2="176" stroke="#111111" stroke-width="1.2"/>
-    <text x="442" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">v1 JSON</text>
-    <text x="442" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Fixed capacity: overwrites oldest</text>
-    <text x="442" y="225" text-anchor="middle" font-size="9" fill="#111111">Uncaptured GPU errors never OOM</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Rc/Drop Event Listener Guard -->
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rc / Drop Listener Table</text>
-    <rect x="602" y="98" width="204" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="704" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Runtime::new() Registration</text>
-    <text x="614" y="133" font-size="9.5" fill="#111111">Stores (EventTarget, type, Closure)</text>
-    <text x="614" y="146" font-size="9.5" fill="#111111">Uses Weak::upgrade() in callbacks</text>
-    <line x1="704" y1="152" x2="704" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="602" y="172" width="204" height="56" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="190" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">impl Drop for Runtime</text>
-    <text x="614" y="207" font-size="9.5" fill="#111111">Calls remove_event_listener()</text>
-    <text x="614" y="220" font-size="9.5" font-weight="600" fill="#111111">Zero leaked WASM closures!</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 4.3 Pipeline Schematic: Admit useful evidence and bound stored runs</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 34e-schema → 34fc-retention)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">typed report</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded metadata</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and observations</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">consistent</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">failure/outcome</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">valid shape</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded raw JSON</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">header</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 4.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/diagnostic.rs  ·  src/diagnostic_shape_tests.rs  ·  src/lib.rs  ·  src/report_store.rs  ·  src/report_store_tests.rs  ·  src/report_recency.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 34e-schema → 34fc-retention — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Owned Listeners</text>
+  <rect x="44" y="62" width="182" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="80" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">pointerdown / move</text>
+  <rect x="44" y="98" width="182" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="116" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">keydown / wheel</text>
+  <rect x="44" y="136" width="182" height="28" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="154" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Drop -&gt; Unregister All</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Zero Closure Leaks</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Tab Lifecycle</text>
+  <rect x="324" y="90" width="76" height="44" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="362" y="116" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Active</text>
+  <rect x="438" y="90" width="76" height="44" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="476" y="116" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Paused</text>
+  <path d="M 400 100 L 434 100" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 438 124 L 404 124" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="419" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">pagehide</text>
+  <text x="419" y="148" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">pageshow</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">bfcache Safe</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Fault Recovery</text>
+  <circle cx="704" cy="108" r="42" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="704" cy="108" r="24" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Ring</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">1x Safe Fallback</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
-| **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
-| **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
+| **Rust / WASM** | `Drop` Listener Table | Unregisters DOM closures on teardown with zero memory leaks. |
+| **Browser DOM** | `pagehide` / `pageshow` | Pauses GPU timers when hidden or in `bfcache`. |
+| **WebGPU** | Fault Ring-Buffer + `1x` Fallback | Records GPU validation/OOM faults and rebuilds pipelines safely. |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`34e-schema`](#checkpoint-34e-schema) | Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. | `src/diagnostic.rs`, `src/diagnostic_shape_tests.rs`, `src/lib.rs` | `typed report → bounded metadata and observations → consistent failure/outcome → valid shape` |
-| **2** | [`34ea-decode`](#checkpoint-34ea-decode) | Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate. | `src/report_store.rs`, `src/report_store_tests.rs`, `src/lib.rs` | `raw text byte limit → JSON fields/version → typed shape validator → candidate for recency` |
-| **3** | [`34eb-recency`](#checkpoint-34eb-recency) | Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity. | `src/report_recency.rs`, `src/report_recency_tests.rs`, `src/lib.rs` | `validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp` |
-| **4** | [`34ec-proof`](#checkpoint-34ec-proof) | Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download. | `src/report_recency_tests.rs` | `candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation` |
-| **5** | [`34f-storage`](#checkpoint-34f-storage) | Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning. | `src/report_storage.rs`, `src/lib.rs`, `Cargo.toml` | `sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence` |
-| **6** | [`34fa-retain`](#checkpoint-34fa-retain) | Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state. | `src/report_storage.rs` | `valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys` |
-| **7** | [`34fb-store`](#checkpoint-34fb-store) | Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command. | `src/browser_report.rs`, `src/browser.rs`, `src/panel.rs` | `startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous` |
-| **8** | [`34fc-retention`](#checkpoint-34fc-retention) | Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry. | `src/report_store.rs`, `src/report_storage.rs`, `src/report_store_tests.rs` | `bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download` |
+![Recorded visual output for Lesson 4.3 (34fc-retention)](../../screenshots/journey/34fc-retention-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-34e-schema"></a>
 
 ### Step 1 of 8 · Check the bounded shape of a report (`34e-schema`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (34e-schema): Check the bounded shape of a report</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/diagnostic.rs, src/diagnostic_shape_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed report</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded metadata and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">observations</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">consistent failure/outcome</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">valid shape</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/diagnostic.rs, src/di…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">consistent failure/outc…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">valid shape</text>
 </svg>
-</div>
-
-- **Goal:** Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
-- **Data Flow Trace:** `typed report → bounded metadata and observations → consistent failure/outcome → valid shape`
-- **Files You Touch:** `src/diagnostic.rs` (*Validate shape, limits and failure/outcome consistency before trusting a decoded stored value.*) · `src/diagnostic_shape_tests.rs` (*Optional authoring fixture. Verify typed metadata, bounded queues and consistent first-failure state.*) · `src/lib.rs` (*Include the native shape-invariant checks.*)
 
 Validate a report before trusting it. `valid` bounds identifiers, timestamp text and events; it requires sensible finite dimensions/timing and agreement between Failed and the retained first fatal event.
 
 The first fatal event may be older than the recent-event window. A recent fatal event still requires a retained failure. Validation must accept that distinction.
 
-Use `while` when trimming a deserialized queue: removing one event is insufficient if its input already exceeded the limit. Repairing that queue does not validate the rest of the report. Byte limits, raw JSON fields and timestamp interpretation follow.
-
-> **Self-Check Question:** *Why must a deserialized report satisfy our shape invariants before it can be used?*  
-> **Answer:** Deserialization alone does not enforce our version, metadata limits, bounded event window or consistent first-failure/outcome state. Those checks are separate from JSON syntax and later timestamp recency.
-
-- **What You Should See:** Run the report-policy checks below. Invalid dimensions, excess events or inconsistent fatal evidence must be rejected. A valid first failure may survive outside the rotated event window.
-- **Hands-On Lab Experiment:** Directly deserialize 25 recent events, inspect valid(), then record one new observation and inspect it again. Explain why queue repair cannot validate the rest of the stored format.
-
-<details>
-<summary>Implementation 34e-schema: Check the bounded shape of a report</summary>
-
-Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
-
-Data flow: typed report → bounded metadata and observations → consistent failure/outcome → valid shape.
+> **Check:** *Why must a deserialized report satisfy our shape invariants before it can be used?* — Deserialization alone does not enforce our version, metadata limits, bounded event window or consistent first-failure/outcome state. Those checks are separate from JSON syntax and later timestamp recency.
 
 ### 1. `src/diagnostic.rs`
 
@@ -233,8 +100,7 @@ Validate shape, limits and failure/outcome consistency before trusting a decoded
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
@@ -245,8 +111,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -260,8 +124,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             context, events: Default::default(), failure: None }
@@ -271,8 +134,6 @@ Replace it with:
 
     pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -301,8 +162,7 @@ Replace it with:
     pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -387,25 +247,7 @@ impl Report {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34e-schema-01.rs"
-```
-
-```text
---8<-- "journey/code/34e-schema-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -419,20 +261,9 @@ Copy this supplied file:
 --8<-- "journey/code/34e-schema-03.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Include the native shape-invariant checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod diagnostic;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -442,74 +273,42 @@ mod diagnostic_shape_tests;
 pub mod diagnostic;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34e-schema`:** Run the report-policy checks below. Invalid dimensions, excess events or inconsistent fatal evidence must be rejected. A valid first failure may survive outside the rotated event window.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34e-schema-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34ea-decode"></a>
 
 ### Step 2 of 8 · Admit only supported bounded saved JSON (`34ea-decode`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (34ea-decode): Admit only supported bounded saved JSON</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_store.rs, src/report_store_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">raw text byte limit</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">JSON fields/version</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed shape validator</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">candidate for recency</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_store.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed shape validator</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">candidate for recency</text>
 </svg>
-</div>
-
-- **Goal:** Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate.
-- **Data Flow Trace:** `raw text byte limit → JSON fields/version → typed shape validator → candidate for recency`
-- **Files You Touch:** `src/report_store.rs` (*Bound raw input and reject unsupported JSON fields before adopting a valid typed report.*) · `src/report_store_tests.rs` (*Optional authoring fixture. Prove actual stored JSON admission and byte/text/schema boundaries.*) · `src/lib.rs` (*Expose the decoder and its native acceptance checks.*)
 
 Admit saved JSON through one boundary. First reject input above one MiB. Then inspect its raw keys and version, decode it as `Report`, and run the typed shape validator.
 
 Reject unsupported fields before typed conversion. Otherwise an older reader could accept a newer report and silently strip its telemetry when exporting it.
 
-Each layer answers one question: is the input bounded, is its format supported, and is its value consistent? Timestamp parsing and age policy remain separate.
-
-> **Self-Check Question:** *Why inspect raw JSON fields before deserializing the report?*  
-> **Answer:** The typed deserializer can ignore unknown fields. Rejecting unsupported fields first prevents a later export from silently stripping newer telemetry.
-
-- **What You Should See:** Run the decoder checks below. Supported JSON at the byte limit is accepted; oversized, unknown-schema or inconsistent JSON is rejected before storage adoption.
-- **Hands-On Lab Experiment:** Remove the raw-field whitelist, add an unknown telemetry field and explain why a later typed export could lose it. Compare the exact one-MiB whitespace-padded JSON with the one-byte-larger value.
-
-<details>
-<summary>Implementation 34ea-decode: Admit only supported bounded saved JSON</summary>
-
-Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate.
-
-Data flow: raw text byte limit → JSON fields/version → typed shape validator → candidate for recency.
+> **Check:** *Why inspect raw JSON fields before deserializing the report?* — The typed deserializer can ignore unknown fields. Rejecting unsupported fields first prevents a later export from silently stripping newer telemetry.
 
 ### 1. `src/report_store.rs`
 
@@ -521,8 +320,7 @@ Create the file and type:
 --8<-- "journey/code/34ea-decode-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -536,20 +334,9 @@ Copy this supplied file:
 --8<-- "journey/code/34ea-decode-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Expose the decoder and its native acceptance checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod diagnostic;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -560,79 +347,42 @@ mod report_store_tests;
 pub mod diagnostic;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34ea-decode`:** Run the decoder checks below. Supported JSON at the byte limit is accepted; oversized, unknown-schema or inconsistent JSON is rejected before storage adoption.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34ea-decode-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34eb-recency"></a>
 
 ### Step 3 of 8 · Choose a recent failure without blaming active tabs (`34eb-recency`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (34eb-recency): Choose a recent failure without blaming active tabs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_recency.rs, src/report_recency_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated report</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">timestamp parser</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered finite times</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">failure/heartbeat</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">freshness</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ranking timestamp</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_recency.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered finite times</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ranking timestamp</text>
 </svg>
-</div>
-
-- **Goal:** Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity.
-- **Data Flow Trace:** `validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp`
-- **Files You Touch:** `src/report_recency.rs` (*Interpret a validated report’s chronology and return an eligible timestamp for ranking, using an injected clock parser.*) · `src/report_recency_tests.rs` (*Optional authoring fixture. Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking.*) · `src/lib.rs` (*Expose native selection policy before binding it to browser storage.*)
 
 Choose previous failure evidence by fatal time. An old failed tab may keep updating lastSeen; its heartbeat must not make the original failure recent again.
 
 Supply timestamp parsing as a function so native tests can use a fixed clock. Reject non-finite or out-of-order times. A fatal event qualifies for two hours and ranks by its own timestamp.
 
-A Running report qualifies when its heartbeat is under two hours old and belongs to this tab, or another tab inactive for more than two minutes. An active other tab, Ready run or Closed run stays quiet. Interrupted means unfinished, not proven crashed.
-
-> **Self-Check Question:** *Why does a failed report’s fresh heartbeat not prove the failure itself was recent?*  
-> **Answer:** A still-open failed tab can keep updating lastSeen for days. Failure freshness must use the first fatal timestamp; heartbeat age is used separately for interrupted running tabs.
-
-- **What You Should See:** Run the recency checks below. A fresh heartbeat must not make an old fatal event eligible. An actively running other tab must not produce an interruption notice.
-- **Hands-On Lab Experiment:** Rank failures by lastSeen instead of the first fatal timestamp. Explain why an old tab with a running heartbeat could displace a newer real failure. Then treat all running tabs as interrupted and identify the false notice.
-
-<details>
-<summary>Implementation 34eb-recency: Choose a recent failure without blaming active tabs</summary>
-
-Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity.
-
-Data flow: validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp.
+> **Check:** *Why does a failed report’s fresh heartbeat not prove the failure itself was recent?* — A still-open failed tab can keep updating lastSeen for days. Failure freshness must use the first fatal timestamp; heartbeat age is used separately for interrupted running tabs.
 
 ### 1. `src/report_recency.rs`
 
@@ -644,8 +394,7 @@ Create the file and type:
 --8<-- "journey/code/34eb-recency-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -659,20 +408,9 @@ Copy this supplied file:
 --8<-- "journey/code/34eb-recency-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Expose native selection policy before binding it to browser storage.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod report_store;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -683,74 +421,44 @@ mod report_recency_tests;
 pub mod report_store;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34eb-recency`:** Run the recency checks below. A fresh heartbeat must not make an old fatal event eligible. An actively running other tab must not produce an interruption notice.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34eb-recency-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34ec-proof"></a>
 
 ### Step 4 of 8 · Prove saved-run exclusions before adopting storage (`34ec-proof`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (34ec-proof): Prove saved-run exclusions before adopting storage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_recency_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">candidate</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">invalid clock/healthy</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">state/incorrect…</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">excluded without mutation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_recency_tests.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">invalid clock/healthy s…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">excluded without mutati…</text>
 </svg>
-</div>
-
-- **Goal:** Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
-- **Data Flow Trace:** `candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation`
-- **Files You Touch:** `src/report_recency_tests.rs` (*Optional authoring fixture. Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.*)
 
 Complete the previous-run policy with rejected examples. Use a fixed clock to test invalid timestamps, reversed start/heartbeat order, and a failure dated before its run.
 
 Ready and Closed must never produce interruption evidence. Compare the report before and after selection: eligibility reads its metadata without changing it.
 
-This step adds the boundary checks. The browser storage reader is connected next.
+> **Check:** *Why test healthy and invalid-clock cases before wiring the policy to localStorage?* — The browser will see values from other tabs and old or edited storage. A false interruption notice is visible user behavior, so exclusions need explicit acceptance before adoption.
 
-> **Self-Check Question:** *Why test healthy and invalid-clock cases before wiring the policy to localStorage?*  
-> **Answer:** The browser will see values from other tabs and old or edited storage. A false interruption notice is visible user behavior, so exclusions need explicit acceptance before adoption.
-
-- **What You Should See:** Optional boundary cases cover invalid clocks and Ready/Closed exclusions. The browser storage reader is still prepared for the next lesson.
-- **Hands-On Lab Experiment:** Trace one Ready report, one reversed heartbeat and one earlier failure through the eligibility function. Explain the returned value for each without changing the policy. Reading these fixtures requires no native runner.
-
-<details>
-<summary>Implementation 34ec-proof: Prove saved-run exclusions before adopting storage</summary>
-
-Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
-
-Data flow: candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -758,113 +466,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{diagnostic::Outcome, diagnostic_shape_tests::report, report_recency::eligible};
-
-#[test]
-fn previous_run_selection_respects_actual_failure_time() {
-    let now = 1_000_000_000.0;
-    for (name, failed, same, seen_age, failure_age, expected) in [
-        ("old failure, fresh heartbeat", true, false, 5000.0, 259_200_000.0, false),
-        ("recent failure", true, false, 5000.0, 10000.0, true),
-        ("failure at cutoff", true, false, 5000.0, 7_200_000.0, false),
-        ("failure after heartbeat", true, false, 5000.0, 1000.0, false),
-        ("future heartbeat", true, false, -1.0, 1000.0, false),
-        ("future failure", true, false, 0.0, -1.0, false),
-        ("active other tab", false, false, 120_000.0, 0.0, false),
-        ("interrupted other tab", false, false, 120_001.0, 0.0, true),
-        ("stale other tab", false, false, 7_200_000.0, 0.0, false),
-        ("interrupted same tab", false, true, 0.0, 0.0, true),
-    ] {
-        let mut value = report(); value.started = "start".into();
-        if failed { value.record("failed".into(), 1.0, "fatal", "original").unwrap(); }
-        value.last_seen = "seen".into(); value.tab = if same { "current" } else { "other" }.into();
-        let parser = |time: &str| match time { "start" => now - 259_200_000.0, "seen" => now - seen_age,
-            "failed" => now - failure_age, _ => f64::NAN };
-        let selected = eligible(&value, now, "current", parser);
-        assert_eq!(selected.is_some(), expected, "{name}");
-        if expected { assert_eq!(selected, Some(now - if failed { failure_age } else { seen_age })); }
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/34ec-proof-01.rs" skip=1607
 ```
 
-</details>
+**Result after `34ec-proof`:** Optional boundary cases cover invalid clocks and Ready/Closed exclusions. The browser storage reader is still prepared for the next lesson.
 
-</details>
+---
 
 <a id="checkpoint-34f-storage"></a>
 
 ### Step 5 of 8 · Read previous reports from real browser storage (`34f-storage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (34f-storage): Read previous reports from real browser storage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_storage.rs, src/lib.rs, Cargo.toml</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sessionStorage tab</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">localStorage</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">candidates</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">byte/schema/shape</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">admission</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Date.parse recency</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">latest eligible</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">evidence</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_storage.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">byte/schema/shape admis…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">latest eligible evidence</text>
 </svg>
-</div>
-
-- **Goal:** Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.
-- **Data Flow Trace:** `sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence`
-- **Files You Touch:** `src/report_storage.rs` (*Read bounded validated candidates from actual browser storage and rank with the real Date parser; retain only metadata and storage handles.*) · `src/lib.rs` (*Build the storage owner only for the browser target and expose its debug acceptance probe.*) · `Cargo.toml` (*Enable the pinned browser Storage bindings without changing package versions.*)
 
 Read previous reports from browser storage. `Store` keeps a storage handle, this tab’s stable ID and the new run key. Session storage preserves the tab ID across reloads; unavailable storage uses a fresh ID without stopping startup.
 
 Scan at most 256 storage keys and 32 keys in the course namespace. Pass each candidate through bounded decoding and the recency policy. Browser `Date.parse` supplies actual timestamp interpretation.
 
-Rank failures by first fatal time and unfinished runs by heartbeat. Reading removes nothing. This lesson introduces the reader; bounded writes and the previous-report command follow.
-
-> **Self-Check Question:** *Why keep tab identity separate from the new run’s storage key?*  
-> **Answer:** The tab identity survives a reload so interruption policy can recognize its old run. A fresh storage key identifies each run independently; reusing the tab as the run key would overwrite the previous evidence.
-
-- **What You Should See:** In the debug console, run `JSON.parse(window.wasmBindings.previous_storage_probe()).tab`. Reload and run it again: the tab ID stays the same.
-- **Hands-On Lab Experiment:** Change selection to rank lastSeen, then compare the two saved failures whose heartbeat order disagrees with failure order. Explain which evidence should win and why. Deny browser storage and explain why current diagnostics must remain usable.
-
-<details>
-<summary>Implementation 34f-storage: Read previous reports from real browser storage</summary>
-
-Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.
-
-Data flow: sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence.
+> **Check:** *Why keep tab identity separate from the new run’s storage key?* — The tab identity survives a reload so interruption policy can recognize its old run. A fresh storage key identifies each run independently; reusing the tab as the run key would overwrite the previous evidence.
 
 ### 1. `src/report_storage.rs`
 
@@ -880,15 +523,6 @@ Create the file and type:
 
 Build the storage owner only for the browser target and expose its debug acceptance probe.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod browser_report;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -896,29 +530,9 @@ After that block, type:
 pub mod report_storage;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34f-storage-02.rs"
-```
-
-</details>
-
 ### 3. `Cargo.toml`
 
 Enable the pinned browser Storage bindings without changing package versions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -926,148 +540,46 @@ Edit the existing block to match this code; keep unchanged lines:
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Storage", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34f-storage`:** In the debug console, run `JSON.parse(window.wasmBindings.previous_storage_probe()).tab`. Reload and run it again: the tab ID stays the same.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34f-storage-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34fa-retain"></a>
 
 ### Step 6 of 8 · Retain only three diagnostic runs (`34fa-retain`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (34fa-retain): Retain only three diagnostic runs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_storage.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">valid matching-tab</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">report</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded existing</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">namespace</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current run write</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">two older reports</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">release other owned</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">keys</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_storage.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current run write</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">release other owned keys</text>
 </svg>
-</div>
-
-- **Goal:** Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state.
-- **Data Flow Trace:** `valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys`
-- **Files You Touch:** `src/report_storage.rs` (*Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage.*)
 
 Keep the current run and two older reports. Validate the report and its matching tab ID before writing. Repeated writes reuse the current run key.
 
 Prepare the retention list, write the current value, then remove excess course-owned keys. Leave unrelated storage alone. Retention ranks heartbeat age; failure selection still ranks fatal time.
 
-A failed write preserves earlier values. A later deletion failure may leave the new report already stored, so return false without claiming rollback. Refuse oversized reports or namespaces before mutation. Storage denial must never stop the viewer.
-
-> **Self-Check Question:** *Why write the current run before pruning the older keys?*  
-> **Answer:** A failed write must leave existing evidence intact. Only after current metadata is saved can the owner remove older values while keeping two prior reports. Deletion failures are reported rather than claimed as successful retention.
-
-- **What You Should See:** In the debug console, run:
-
-```js
-const report = JSON.parse(window.wasmBindings.diagnostic_snapshot());
-report.tab = JSON.parse(window.wasmBindings.previous_storage_probe()).tab;
-window.wasmBindings.stored_report_probe(JSON.stringify(report));
-```
-
-Both writes return `true` and use the same storage key.
-- **Hands-On Lab Experiment:** Make setItem throw and compare all existing values before and after. Then make removal throw after a successful write; explain why returning false cannot mean the current value was rolled back.
-
-<details>
-<summary>Implementation 34fa-retain: Retain only three diagnostic runs</summary>
-
-Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state.
-
-Data flow: valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys.
+> **Check:** *Why write the current run before pruning the older keys?* — A failed write must leave existing evidence intact. Only after current metadata is saved can the owner remove older values while keeping two prior reports. Deletion failures are reported rather than claimed as successful retention.
 
 ### 1. `src/report_storage.rs`
 
 Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage. Verify repeated writes use the same key and reach actual Web Storage; this debug export is not a runtime feature control.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::diagnostic::Report;
-use web_sys::Storage;
-
-pub const PREFIX: &str = "viewer-journey-report:";
-
-pub struct Store {
-    pub tab: String,
-    key: String,
-    storage: Option<Storage>,
-}
-
-impl Store {
-    pub fn open() -> Self {
-        let window = web_sys::window();
-        let session = window.as_ref().and_then(|w| w.session_storage().ok().flatten());
-        let tab = session.as_ref().and_then(|s| s.get_item(PREFIX).ok().flatten())
-            .filter(|tab| !tab.is_empty() && tab.chars().count() <= 128)
-            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        if let Some(session) = session { let _ = session.set_item(PREFIX, &tab); }
-        Self { tab, key: format!("{PREFIX}{}", uuid::Uuid::new_v4()),
-            storage: window.and_then(|w| w.local_storage().ok().flatten()) }
-    }
-
-    pub fn reports(&self) -> Vec<(String, Report)> {
-        let Some(storage) = &self.storage else { return Vec::new(); };
-        (0..storage.length().unwrap_or(0).min(256))
-            .filter_map(|i| storage.key(i).ok().flatten()).filter(|key| key.starts_with(PREFIX)).take(32)
-            .filter_map(|key| {
-                let text = storage.get_item(&key).ok().flatten()?;
-                Some((key, crate::report_store::decode(&text)?))
-            }).collect()
-    }
-
-    pub fn previous(&self) -> Option<Report> {
-        let now = js_sys::Date::now();
-        self.reports().into_iter().filter_map(|(_, report)| {
-            let score = crate::report_recency::eligible(&report, now, &self.tab, js_sys::Date::parse)?;
-            Some((score, report))
-        }).max_by(|a, b| a.0.total_cmp(&b.0)).map(|(_, report)| report)
-    }
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn previous_storage_probe() -> String {
-    let store = Store::open();
-    serde_json::json!({"tab": store.tab, "key": store.key, "previous": store.previous()}).to_string()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1150,152 +662,52 @@ pub fn stored_report_probe(text: &str) -> Result<String, wasm_bindgen::JsValue> 
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34fa-retain`:** In the debug console, run:
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34fa-retain-01.rs"
+```js
+const report = JSON.parse(window.wasmBindings.diagnostic_snapshot());
+report.tab = JSON.parse(window.wasmBindings.previous_storage_probe()).tab;
+window.wasmBindings.stored_report_probe(JSON.stringify(report));
 ```
 
-```text
---8<-- "journey/code/34fa-retain-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34fb-store"></a>
 
 ### Step 7 of 8 · Retrieve saved failure evidence through the command line (`34fb-store`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (34fb-store): Retrieve saved failure evidence through the command line</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_report.rs, src/browser.rs, src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">startup selects</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">previous</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">running/ready/fatal…</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">healthy reload</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">dock notice</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Report Previous</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_report.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">healthy reload</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Report Previous</text>
 </svg>
-</div>
-
-- **Goal:** Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.
-- **Data Flow Trace:** `startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous`
-- **Files You Touch:** `src/browser_report.rs` (*Keep current and previous diagnostic metadata independent of the GPU runtime and source documents.*) · `src/browser.rs` (*Expose previous-report retrieval as a named command in the actual dock.*) · `src/panel.rs` (*Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors.*)
 
 Persist live diagnostics and add `Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
 
 After an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.
 
-Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
-
-> **Self-Check Question:** *Why select previous evidence before saving the new running report?*  
-> **Answer:** Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.
-
-- **What You Should See:** Type `Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.
-- **Hands-On Lab Experiment:** Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.
-
-<details>
-<summary>Implementation 34fb-store: Retrieve saved failure evidence through the command line</summary>
-
-Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.
-
-Data flow: startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous.
+> **Check:** *Why select previous evidence before saving the new running report?* — Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.
 
 ### 1. `src/browser_report.rs`
 
 Keep current and previous diagnostic metadata independent of the GPU runtime and source documents. Select earlier evidence before writing this new run, retain stable tab identity and let denied storage leave startup usable. Save successful observations after releasing the current-report borrow; storage failure cannot replace a diagnostic error or interrupt drawing. Persist refreshed current context while retaining manual downloads when storage is unavailable. Serialize independent previous metadata before the download callback; report interruption separately from proof of a crash.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::diagnostic::{Context, Report};
-use std::cell::RefCell;
-use wasm_bindgen::{JsCast, JsValue};
-
-thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) }; }
-
-fn context() -> Result<Context, JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document.get_element_by_id("canvas").ok_or("No canvas")?.dyn_into()?;
-    let location = window.location(); let navigator = window.navigator();
-    Ok(Context {
-        page: format!("{}{}", location.origin()?, location.pathname()?),
-        browser: navigator.user_agent()?, secure_context: window.is_secure_context(),
-        webgpu: js_sys::Reflect::get(navigator.as_ref(), &"gpu".into())?.is_object(),
-        viewport: [window.inner_width()?.as_f64().ok_or("No width")? as u32,
-            window.inner_height()?.as_f64().ok_or("No height")? as u32],
-        canvas: [canvas.width(), canvas.height()], device_pixel_ratio: window.device_pixel_ratio(),
-    })
-}
-
-pub fn start() -> Result<(), JsValue> {
-    let report = Report::new(uuid::Uuid::new_v4().to_string(), js_sys::Date::new_0().to_iso_string().into(), context()?);
-    REPORT.with(|slot| slot.replace(Some(report)));
-    Ok(())
-}
-
-pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
-    let context = context()?;
-    let elapsed = web_sys::window().and_then(|window| window.performance()).ok_or("No clock")?.now();
-    REPORT.with(|slot| {
-        let mut slot = slot.borrow_mut(); let report = slot.as_mut().ok_or("No report")?;
-        report.context = context;
-        report.record(js_sys::Date::new_0().to_iso_string().into(), elapsed, kind, message).map_err(JsValue::from_str)
-    })
-}
-
-pub fn download() -> Result<(), JsValue> {
-    let json = diagnostic_snapshot()?;
-    crate::file_output::download_named(json.as_bytes(), "viewer-diagnostic.json")
-}
-
-pub fn fatal(message: &str) {
-    let first = REPORT.with(|slot| slot.borrow().as_ref().is_some_and(|report| report.failure().is_none()));
-    if observe("fatal", message).is_ok() && first { let _ = download(); }
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn diagnostic_snapshot() -> Result<String, JsValue> {
-    let context = context()?;
-    REPORT.with(|slot| {
-        let mut slot = slot.borrow_mut(); let report = slot.as_mut().ok_or("No report")?;
-        report.context = context;
-        serde_json::to_string_pretty(report).map_err(|error| JsValue::from_str(&error.to_string()))
-    })
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1390,41 +802,13 @@ pub fn diagnostic_snapshot() -> Result<String, JsValue> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34fb-store-01.rs"
-```
-
-```text
---8<-- "journey/code/34fb-store-02.rs"
-```
-
-```text
---8<-- "journey/code/34fb-store-03.rs"
-```
-
-```text
---8<-- "journey/code/34fb-store-04.rs"
-```
-
-```text
---8<-- "journey/code/34fb-store-05.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Expose previous-report retrieval as a named command in the actual dock. Show an eligible previous-run notice in the existing command dock, keeping HTML free of feature buttons. Dispatch current and previous JSON downloads without changing document history or the stopped-runtime failure guard.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     input.click();
@@ -1436,8 +820,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 panel.result(&result);
                 None
 ```
-
-</details>
 
 Replace it with:
 
@@ -1454,8 +836,7 @@ Replace it with:
                 None
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "View Reset",
@@ -1465,8 +846,6 @@ Replace it with:
     if resize(
         &window,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1480,8 +859,7 @@ Replace it with:
         &window,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Cancel Reload",
@@ -1491,8 +869,6 @@ Replace it with:
             "Example Triangle",
             "Select Next",
 ```
-
-</details>
 
 Replace it with:
 
@@ -1506,8 +882,7 @@ Replace it with:
             "Select Next",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2090,39 +1465,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34fb-store-06.rs"
-```
-
-```text
---8<-- "journey/code/34fb-store-07.rs"
-```
-
-```text
---8<-- "journey/code/34fb-store-08.rs"
-```
-
-</details>
-
 ### 3. `src/panel.rs`
 
 Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2130,94 +1475,46 @@ Edit the existing block to match this code; keep unchanged lines:
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history, "status": self.model.status,
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34fb-store`:** Type `Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34fb-store-direct-status.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34fc-retention"></a>
 
 ### Step 8 of 8 · Preserve unsupported telemetry while pruning (`34fc-retention`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (34fc-retention): Preserve unsupported telemetry while pruning</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_store.rs, src/report_storage.rs, src/report_store_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded raw JSON</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">header</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retention score</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">keep original stored</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bytes;…</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed admission</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">candidate</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">notice/download</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_store.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">keep original stored by…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">candidate notice/downlo…</text>
 </svg>
-</div>
-
-- **Goal:** Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
-- **Data Flow Trace:** `bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download`
-- **Files You Touch:** `src/report_store.rs` (*Read a bounded date/version header for retention without adopting, converting or rewriting unsupported telemetry.*) · `src/report_storage.rs` (*Retain raw supported or unsupported bounded JSON by header time; a failed read aborts before writing or pruning.*) · `src/report_store_tests.rs` (*Optional authoring fixture. Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.*)
 
 Separate retaining raw evidence from adopting it. The strict reader rejects newer schemas; using that accepted list to prune storage would also delete newer telemetry.
 
 `retention_time` reads only a bounded version/date header. It returns a ranking timestamp without constructing a Report. A newer-format value can therefore occupy an older-report slot while remaining ineligible for a notice or typed download.
 
-Read and rank older values before mutation. Keep the two newest raw strings byte for byte. If a read fails, abort rather than delete uninspected evidence. Invalid JSON or unusable headers can be pruned after a successful current write.
-
-> **Self-Check Question:** *Why does refusing to adopt an unsupported report not justify treating it as malformed during pruning?*  
-> **Answer:** Its extra fields or version may belong to a newer viewer. Adoption requires our complete supported schema, but bounded retention needs only a usable version/date header. Keep its original stored bytes if it is one of the two newest older values; do not convert it through our older typed model.
-
-- **What You Should See:** Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
-- **Hands-On Lab Experiment:** Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.
-
-<details>
-<summary>Implementation 34fc-retention: Preserve unsupported telemetry while pruning</summary>
-
-Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
-
-Data flow: bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download.
+> **Check:** *Why does refusing to adopt an unsupported report not justify treating it as malformed during pruning?* — Its extra fields or version may belong to a newer viewer. Adoption requires our complete supported schema, but bounded retention needs only a usable version/date header. Keep its original stored bytes if it is one of the two newest older values; do not convert it through our older typed model.
 
 ### 1. `src/report_store.rs`
 
 Read a bounded date/version header for retention without adopting, converting or rewriting unsupported telemetry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub const MAX_BYTES: usize = 1024 * 1024;
-```
-
-</details>
 
 After that block, type:
 
@@ -2234,32 +1531,9 @@ pub fn retention_time(text: &str, now: f64, parse: impl Fn(&str) -> f64) -> Opti
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34fc-retention-01.rs"
-```
-
-</details>
-
 ### 2. `src/report_storage.rs`
 
 Retain raw supported or unsupported bounded JSON by header time; a failed read aborts before writing or pruning.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let mut old = self.reports(); old.retain(|(key, _)| key != &self.key);
-        old.retain(|(_, report)| js_sys::Date::parse(&report.last_seen).is_finite());
-        old.sort_by(|a, b| js_sys::Date::parse(&b.1.last_seen).total_cmp(&js_sys::Date::parse(&a.1.last_seen)));
-        let keep: Vec<_> = old.iter().take(2).map(|(key, _)| key).collect();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2275,19 +1549,7 @@ Edit the existing block to match this code; keep unchanged lines:
         let keep: Vec<_> = old.iter().take(2).map(|(_, key)| key).collect();
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34fc-retention-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2295,78 +1557,27 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{diagnostic::Report, diagnostic_shape_tests::report, report_store::{decode, MAX_BYTES}};
-
-#[test]
-fn stored_json_rejects_invalid_shape() {
-    let good = serde_json::to_value(report()).unwrap();
-    for (key, bad) in [("version", serde_json::json!(2)), ("tab", serde_json::json!("")),
-        ("page", serde_json::json!("https://example.test/?private=1")), ("devicePixelRatio", serde_json::json!(0)),
-        ("events", serde_json::json!([{"time":"now","kind":"fatal","message":"bad","elapsedMs":null}])),
-        ("outcome", serde_json::json!("failed")), ("unknown", serde_json::json!(true))] {
-        let mut value = good.clone(); value[key] = bad;
-        assert!(decode(&value.to_string()).is_none(), "{key}");
-    }
-    assert!(decode("{").is_none());
-}
-
-#[test]
-fn stored_json_bounds_bytes_events_and_text() {
-    let json = serde_json::to_string(&report()).unwrap();
-    let padding = MAX_BYTES - json.len(); let padded = json + &" ".repeat(padding);
-    assert!(decode(&padded).is_some()); assert!(decode(&(padded + " ")).is_none());
-    let mut value = serde_json::to_value(report()).unwrap();
-    let event = serde_json::json!({"time":"now","kind":"phase","message":"test","elapsedMs":1.0});
-    value["events"] = serde_json::json!(vec![event; 25]); assert!(decode(&value.to_string()).is_none());
-    let mut bypass: Report = serde_json::from_value(value).unwrap();
-    bypass.record("later".into(), 2.0, "phase", "bounded").unwrap();
-    assert_eq!(serde_json::to_value(bypass).unwrap()["events"].as_array().unwrap().len(), 24);
-    let mut failure = report(); failure.record("later".into(), 1.0, "fatal", "first reason").unwrap();
-    let json = serde_json::to_string(&failure).unwrap(); assert_eq!(decode(&json), Some(failure));
-    let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
-    value["failure"]["message"] = serde_json::json!("😀".repeat(4097)); assert!(decode(&value.to_string()).is_none());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/34fc-retention-03.rs" skip=1952
 ```
 
-</details>
-
-</details>
+**Result after `34fc-retention`:** Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 34fc-retention
-npm --prefix ../session_tests run course -- check 34fc-retention
-npm --prefix ../session_tests run course -- save 34fc-retention
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 4.3
+npm --prefix ../session_tests run course -- save 4.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 4.3 (34fc-retention)](../../screenshots/journey/34fc-retention-browser.png)
-
-Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
-
-- **Final Lesson Experiment:** Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.
-
-Continue with [Heartbeat suspension and revocable startup](34g-heartbeat.md).
+Continue with [4.4 · Heartbeat suspension and revocable startup](34g-heartbeat.md).

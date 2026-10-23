@@ -1,225 +1,95 @@
 # 6.4 · Ordered multi-selection and atomic edits
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.4** (Redraft `4.11`) · **5 checkpoints (`45-order` → `45c-input`)** · **Study time: 2.5–5 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `45-order` → `45c-input` (5 steps) · **Production source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
-> **What You Will Learn & Build:** Preserve unique selections in pick order. By the final checkpoint (`45c-input`), you will collect multiple objects with Shift-click and commands.
+> **Goal:** Collect multiple objects with Shift-click and commands.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 6 Visual Explanation: Offscreen Rg32Uint Integer Pick Grid, Spiral Search & 256-Byte Staging Copy</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Cropped Rg32Uint pixel window around cursor with spiral search. Center: 256-byte row alignment. Right: Priority & view ticket.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 5x5 Pixel Grid with Spiral Halo Search -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Rg32Uint Crop &amp; Spiral Search</text>
-    <!-- 5x5 grid at x=75..225, y=94..194 (cell = 30x20) -->
-    <rect x="75" y="94" width="150" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="105" y1="94" x2="105" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="135" y1="94" x2="135" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="165" y1="94" x2="165" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="195" y1="94" x2="195" y2="194" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="114" x2="225" y2="114" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="134" x2="225" y2="134" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="154" x2="225" y2="154" stroke="#111111" stroke-width="0.75"/>
-    <line x1="75" y1="174" x2="225" y2="174" stroke="#111111" stroke-width="0.75"/>
-    <!-- Highlighted hit cell at (165, 114) -->
-    <rect x="165" y="114" width="30" height="20" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Spiral path from center (150, 144) outward -->
-    <polyline points="150,144 180,144 180,124" fill="none" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <circle cx="150" cy="144" r="3" fill="#111111"/>
-    <text x="155" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Each pixel = vec2&lt;u32&gt;(owner_id, sub_id)</text>
-    <text x="155" y="225" text-anchor="middle" font-size="9" fill="#111111">Priority: Point Glyph &gt; Wire Edge &gt; Face</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 256-Byte Aligned Staging Copy -->
-    <rect x="317" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="449" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 256-Byte Staging Row Alignment</text>
-    <!-- Row 0 -->
-    <rect x="335" y="102" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="102" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 0 (W×8 B)</text>
-    <text x="510" y="119" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Row 1 -->
-    <rect x="335" y="136" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="455" y="136" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
-    <text x="395" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 1 (W×8 B)</text>
-    <text x="510" y="153" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
-    <!-- Dimension line 0..256 -->
-    <line x1="335" y1="176" x2="565" y2="176" stroke="#111111" stroke-width="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-    <text x="450" y="191" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">bytes_per_row = align_to(W * 8, 256)</text>
-    <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#111111">copy_texture_to_buffer -&gt; map_async(Read)</text>
-    <text x="450" y="226" text-anchor="middle" font-size="9" fill="#111111">Single in-flight readback coalesces bursts</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: View-Revision Ticket & Sub-Selection -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Revision Ticket &amp; Sub-ID</text>
-    <rect x="620" y="98" width="188" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="714" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">PickTicket Verification</text>
-    <text x="630" y="131" font-size="9.5" fill="#111111">ticket.view_rev == current_rev?</text>
-    <text x="630" y="145" font-size="9" font-weight="600" fill="#111111">Mismatch -&gt; Discard stale hit!</text>
-    <rect x="620" y="162" width="188" height="66" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Decoded Sub-Element</text>
-    <text x="630" y="195" font-size="9.5" fill="#111111">• R = Object ID (1-based)</text>
-    <text x="630" y="209" font-size="9.5" fill="#111111">• G = Face / Edge / Control Pt</text>
-    <text x="630" y="222" font-size="9" fill="#111111">• Shift+Click preserves order</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 6.4 Pipeline Schematic: Ordered multi-selection and atomic edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (5 Checkpoints: 45-order → 45c-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">valid source owners</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">unique membership</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original pick order</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">stable primary row</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted pointer</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">modifiers</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 6.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/object_selection.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/object_selection_tests.rs  ·  src/editor.rs  ·  src/rehydrate_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">5 Checkpoints: 45-order → 45c-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
-| **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
-| **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
+| **WebGPU** | `Rg32Uint` (`[owner_id, sub_id]`) | Exact 2-channel 32-bit integer ID target (zero color quantization). |
+| **WebGPU** | 256-Byte Aligned Crop Readback | Copies cursor window to staging buffer for async `map_async(Read)`. |
+| **Rust (Picker)** | `Point > Wire > Face` + Ticket | Spiral search prioritizes points/wires and drops stale camera revisions. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`45-order`](#checkpoint-45-order) | Preserve unique selections in pick order. | `src/object_selection.rs`, `src/lib.rs`, `src/scene.rs`, `src/object_selection_tests.rs` | `valid source owners → unique membership → original pick order → stable primary row` |
-| **2** | [`45a-batch`](#checkpoint-45a-batch) | Commit mixed selection edits atomically. | `src/editor.rs`, `src/rehydrate_tests.rs` | `selected original rows → one transaction → checked placements → complete commit or rollback` |
-| **3** | [`45b-membership`](#checkpoint-45b-membership) | Connect multi-hit state and highlight every selected row. | `src/editor.rs`, `src/highlight.rs`, `src/renderer.rs`, `src/multi_selection_tests.rs` | `plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings` |
-| **4** | [`45bb-cycle`](#checkpoint-45bb-cycle) | Cycle visible unlocked mesh, line, path and point rows in stable owner order. | `src/scene.rs`, `src/selection_cycle_tests.rs`, `src/lib.rs` | `all original geometry lanes → visible unlocked owners → stable ID order → next or wrap` |
-| **5** | [`45c-input`](#checkpoint-45c-input) | Collect multiple objects with Shift-click and commands. | `src/browser.rs` | `accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command` |
+![Recorded visual output for Lesson 6.4 (45c-input)](../../../screenshots/journey/45c-input.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-45-order"></a>
 
 ### Step 1 of 5 · Preserve unique selections in pick order (`45-order`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/5 Visual Trace (45-order): Preserve unique selections in pick order</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/object_selection.rs, src/lib.rs, src/scene.rs, src/object_selection_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">valid source owners</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique membership</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original pick order</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stable primary row</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/object_selection.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original pick order</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable primary row</text>
 </svg>
-</div>
-
-- **Goal:** Preserve unique selections in pick order.
-- **Data Flow Trace:** `valid source owners → unique membership → original pick order → stable primary row`
-- **Files You Touch:** `src/object_selection.rs` (*Keep unique current owners in their original pick order.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/scene.rs` (*Collect selected bounds and move mixed original row placements.*) · `src/object_selection_tests.rs` (*Copy unique order and additive miss checks.*)
 
 Keep object membership unique and preserve the order of valid picks. The primary object is the lowest row ID; it is independent of pick order.
 
-> **Self-Check Question:** *Should repeated Shift-clicks reorder an existing object?*  
-> **Answer:** No. Additive selection keeps its first position and does not duplicate it.
-
-- **What You Should See:** Run the copied ordering checks. The original face-selection exercise is unchanged.
-- **Hands-On Lab Experiment:** Add the higher row first, then the lower row, and compare primary selection with pick order.
-
-<details>
-<summary>Implementation 45-order: Preserve unique selections in pick order</summary>
-
-Preserve unique selections in pick order.
-
-Data flow: valid source owners → unique membership → original pick order → stable primary row.
+> **Check:** *Should repeated Shift-clicks reorder an existing object?* — No. Additive selection keeps its first position and does not duplicate it.
 
 ### 1. `src/object_selection.rs`
 
@@ -235,17 +105,6 @@ Create the file and type:
 
 Register the component and copied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod selection_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -256,28 +115,13 @@ After that block, type:
 
 Collect selected bounds and move mixed original row placements.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        bounds
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/45-order-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -291,22 +135,9 @@ Copy this supplied file:
 --8<-- "journey/code/45-order-04.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the component and copied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod selection_tests;
-
-pub mod object_selection;
-```
-
-</details>
 
 After that block, type:
 
@@ -314,60 +145,40 @@ After that block, type:
 --8<-- "journey/code/45-order-05.rs" skip=48
 ```
 
-</details>
+**Result after `45-order`:** Run the copied ordering checks. The original face-selection exercise is unchanged.
+
+---
 
 <a id="checkpoint-45a-batch"></a>
 
 ### Step 2 of 5 · Commit mixed selection edits atomically (`45a-batch`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/5 Visual Trace (45a-batch): Commit mixed selection edits atomically</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/rehydrate_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one transaction</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked placements</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete commit or</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rollback</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/rehydr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked placements</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete commit or roll…</text>
 </svg>
-</div>
-
-- **Goal:** Commit mixed selection edits atomically.
-- **Data Flow Trace:** `selected original rows → one transaction → checked placements → complete commit or rollback`
-- **Files You Touch:** `src/editor.rs` (*Own ordered selections and commit Move or Delete as one original-row transaction.*) · `src/rehydrate_tests.rs` (*Copy the existing hydration precision proof using its explicit row fixture placement, without selecting a locked row through input.*)
 
 Validate and move every selected original row in one transaction. Refuse cold editable meshes until Reload Sources; any failure rolls back the whole batch.
 
-> **Self-Check Question:** *What happens if the second selected row cannot move?*  
-> **Answer:** The first move is rolled back and no history entry or redo branch is consumed.
-
-- **What You Should See:** Run the batch and original-source checks. The previous part modes remain available; multiple-click input follows at45c.
-- **Hands-On Lab Experiment:** Use mixed mesh, line, point and polyline rows; one Undo must restore every placement.
-
-<details>
-<summary>Implementation 45a-batch: Commit mixed selection edits atomically</summary>
-
-Commit mixed selection edits atomically.
-
-Data flow: selected original rows → one transaction → checked placements → complete commit or rollback.
+> **Check:** *What happens if the second selected row cannot move?* — The first move is rolled back and no history entry or redo branch is consumed.
 
 ### 1. `src/editor.rs`
 
@@ -375,8 +186,7 @@ Own ordered selections and commit Move or Delete as one original-row transaction
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -386,8 +196,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if let (Some(owner), Some(part)) = (self.selected, self.selected_part) {
             if !(crate::pick_sources::Target { owner, part }).valid(&self.scene) { self.selected = None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -401,8 +209,7 @@ Replace it with:
             if !(crate::pick_sources::Target { owner, part }).valid(&self.scene) { self.selected = None; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                         }
@@ -414,8 +221,6 @@ Replace it with:
                             self.camera.fit(&bounds);
                         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -429,8 +234,7 @@ Replace it with:
                         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::AddBox => {
@@ -454,8 +258,6 @@ Replace it with:
             view => {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -471,8 +273,7 @@ Replace it with:
             view => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::Close => {
@@ -483,8 +284,6 @@ Replace it with:
             Action::Replace(bytes) => {
                 let loaded = crate::document::load(&bytes)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -498,8 +297,7 @@ Replace it with:
                 let loaded = crate::document::load(&bytes)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return Err("Reload editable sources before Delete");
@@ -514,8 +312,6 @@ Replace it with:
     }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -568,8 +364,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn default() -> Self {
@@ -581,8 +376,6 @@ Replace it with:
             normal_view: false,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -595,8 +388,7 @@ Replace it with:
             normal_view: false,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub selected: Option<ObjectId>,
@@ -606,8 +398,6 @@ Replace it with:
     pub background: Background,
     pub normal_view: bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -621,8 +411,7 @@ Replace it with:
     pub normal_view: bool,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1091,45 +880,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/45a-batch-01.rs"
-```
-
-```text
---8<-- "journey/code/45a-batch-02.rs"
-```
-
-```text
---8<-- "journey/code/45a-batch-03.rs"
-```
-
-```text
---8<-- "journey/code/45a-batch-04.rs"
-```
-
-```text
---8<-- "journey/code/45a-batch-05.rs"
-```
-
-```text
---8<-- "journey/code/45a-batch-06.rs"
-```
-
-```text
---8<-- "journey/code/45a-batch-07.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1137,86 +888,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the existing hydration precision proof using its explicit row fixture placement, without selecting a locked row through input.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let bytes = message.encode_to_vec();
-    let mut editor = Editor::default();
-    let url = Rc::new(crate::reload_url::ReloadUrl::new("test:restore".into()));
-    editor.apply(Action::ReplaceAt(bytes.clone(), url)).unwrap(); editor.apply(Action::SelectNext).unwrap();
-    editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-    let row = &editor.scene.objects()[0]; let id = row.id; let guid = row.guid.clone(); let model = row.model.m;
-    let display = Rc::clone(&row.mesh); let metadata = Rc::clone(&row.metadata);
-    let old = Rc::downgrade(row.geometry().unwrap()); let roots = editor.scenes().count();
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/45a-batch-08.rs"
 ```
 
-</details>
+**Result after `45a-batch`:** Run the batch and original-source checks. The previous part modes remain available; multiple-click input follows at45c.
 
-</details>
+---
 
 <a id="checkpoint-45b-membership"></a>
 
 ### Step 3 of 5 · Connect multi-hit state and highlight every selected row (`45b-membership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/5 Visual Trace (45b-membership): Connect multi-hit state and highlight every selected row</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/highlight.rs, src/renderer.rs, src/multi_selection_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plain or additive target</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current ordered membership</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exclusive part mode</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared geometry with</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">selected…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/highli…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exclusive part mode</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared geometry with se…</text>
 </svg>
-</div>
-
-- **Goal:** Connect multi-hit state and highlight every selected row.
-- **Data Flow Trace:** `plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings`
-- **Files You Touch:** `src/editor.rs` (*Adopt unique multi-hit membership and repair it after source changes.*) · `src/highlight.rs` (*Present every selected original row while sharing primary geometry.*) · `src/renderer.rs` (*Present every selected original row while sharing primary geometry.*) · `src/multi_selection_tests.rs` (*Copy ordering, exclusive parts, mixed transactions, rollback, eligibility and release checks.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/pick_gpu_tests.rs` (*Copy actual multiple-mesh pixels, shared geometry and preserved pick ownership.*) · `src/browser.rs` (*Refresh cached selection settings after Select All, even when the editor returns a view-only change.*)
 
 Replace selection on a plain hit; add valid object hits without duplication. Part selections stay exclusive. Highlight all selected meshes and original ink without reuploading primary geometry.
 
 Select All changes selection membership without changing source geometry. Mark its GPU selection settings dirty before applying the action; the existing highlight update then shares the unchanged geometry buffers.
 
-> **Self-Check Question:** *Can a face and a whole-object set coexist?*  
-> **Answer:** No. Entering a part mode clears the object set and keeps one original part target.
-
-- **What You Should See:** Selection membership now handles unique order, locked and hidden exclusions and transactional edits. Browser selection commands connect in the following lessons; the supplied fixture records mixed Move/Delete and rollback.
-- **Hands-On Lab Experiment:** Select two meshes, then select only one; its neighbour must return to its unselected colour and retain the same source ID. Type Select All: the selected colour must appear immediately, and cancelling a Move must restore the same drawing.
-
-<details>
-<summary>Implementation 45b-membership: Connect multi-hit state and highlight every selected row</summary>
-
-Connect multi-hit state and highlight every selected row.
-
-Data flow: plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings.
+> **Check:** *Can a face and a whole-object set coexist?* — No. Entering a part mode clears the object set and keeps one original part target.
 
 ### 1. `src/editor.rs`
 
@@ -1224,8 +937,7 @@ Adopt unique multi-hit membership and repair it after source changes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -1236,8 +948,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Undo => { self.history.undo(&mut self.scene); }
             Action::Redo => { self.history.redo(&mut self.scene); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1251,8 +961,7 @@ Replace it with:
             Action::Redo => { self.history.redo(&mut self.scene); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1273,8 +982,6 @@ Replace it with:
             Action::UnloadSources => self.unload_sources()?,
             Action::Close => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1308,8 +1015,7 @@ Replace it with:
             Action::Close => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Pick([f32; 2]),
@@ -1319,8 +1025,6 @@ Replace it with:
     Import(Vec<u8>),
     Replace(Vec<u8>),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1335,8 +1039,7 @@ Replace it with:
     Replace(Vec<u8>),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1817,44 +1520,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/45b-membership-01.rs"
-```
-
-```text
---8<-- "journey/code/45b-membership-02.rs"
-```
-
-```text
---8<-- "journey/code/45b-membership-03.rs"
-```
-
-</details>
-
 ### 2. `src/highlight.rs`
 
 Present every selected original row while sharing primary geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.strokes.set(device, strokes)?; self.paths.set_chains(device, paths)?; self.markers.set_points(device, markers)?; Ok(())
-    }
-
-    pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
-        for lane in [&self.strokes, &self.paths, &self.markers] { lane.view(queue, transform, size, density); }
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1866,28 +1534,13 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Present every selected original row while sharing primary geometry.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/45b-membership-05.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1901,22 +1554,9 @@ Copy this supplied file:
 --8<-- "journey/code/45b-membership-06.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the component and copied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod object_selection_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -1924,8 +1564,7 @@ After that block, type:
 --8<-- "journey/code/45b-membership-07.rs" skip=42
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1933,37 +1572,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual multiple-mesh pixels, shared geometry and preserved pick ownership.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert_eq!(editor.scene.paths()[0].points(), original);
-    editor.apply(crate::editor::Action::Close).unwrap(); renderer.set_scene(&editor.scene, None); assert_eq!(renderer.highlight_bytes(), 0);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/45b-membership-08.rs" skip=203
 ```
 
-</details>
-
 ### 7. `src/browser.rs`
 
 Refresh cached selection settings after Select All, even when the editor returns a view-only change.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if let Some(action) = action {
-```
-
-</details>
 
 After that block, type:
 
@@ -1971,78 +1588,44 @@ After that block, type:
 --8<-- "journey/code/45b-membership-09.rs" skip=39
 ```
 
-</details>
+**Result after `45b-membership`:** Selection membership now handles unique order, locked and hidden exclusions and transactional edits. Browser selection commands connect in the following lessons; the supplied fixture records mixed Move/Delete and rollback.
+
+---
 
 <a id="checkpoint-45bb-cycle"></a>
 
 ### Step 4 of 5 · Cycle every eligible original geometry owner (`45bb-cycle`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/5 Visual Trace (45bb-cycle): Cycle every eligible original geometry owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/selection_cycle_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">all original geometry</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lanes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible unlocked owners</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable ID order</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">next or wrap</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/selecti…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable ID order</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">next or wrap</text>
 </svg>
-</div>
-
-- **Goal:** Cycle visible unlocked mesh, line, path and point rows in stable owner order.
-- **Data Flow Trace:** `all original geometry lanes → visible unlocked owners → stable ID order → next or wrap`
-- **Files You Touch:** `src/scene.rs` (*Cycle all original owners after applying visibility and locking.*) · `src/selection_cycle_tests.rs` (*Copy mixed-owner, visibility, lock and wraparound checks.*) · `src/lib.rs` (*Register the copied original-owner cycling check.*)
 
 Selection cycling uses current eligible original owners. Include every geometry lane, skip locked or hidden rows, and wrap in stable owner order so a locked first row cannot trap the command.
 
-> **Self-Check Question:** *Why filter eligibility before choosing the next owner?*  
-> **Answer:** If the first visible row is locked, choosing it and then rejecting it repeatedly leaves selection stuck at nothing.
-
-- **What You Should See:** Close; Example Line; Select Next; Selection. The original line can now be selected from the command field. Run the copied cycling checks for mixed rows, locks, hidden sources and wraparound.
-- **Hands-On Lab Experiment:** Add a point and a polyline, then cycle through all three owners. A locked or hidden owner must be skipped without losing the next valid row.
-
-<details>
-<summary>Implementation 45bb-cycle: Cycle every eligible original geometry owner</summary>
-
-Cycle visible unlocked mesh, line, path and point rows in stable owner order.
-
-Data flow: all original geometry lanes → visible unlocked owners → stable ID order → next or wrap.
+> **Check:** *Why filter eligibility before choosing the next owner?* — If the first visible row is locked, choosing it and then rejecting it repeatedly leaves selection stuck at nothing.
 
 ### 1. `src/scene.rs`
 
 Cycle all original owners after applying visibility and locking.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {
-        let start = self.objects.iter().position(|object| Some(object.id) == current)
-            .map_or(0, |index| index + 1);
-        (0..self.objects.len()).map(|offset| &self.objects[(start + offset) % self.objects.len()])
-            .find(|row| row.visible()).map(|row| row.id)
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2050,8 +1633,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/45bb-cycle-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2065,21 +1647,9 @@ Copy this supplied file:
 --8<-- "journey/code/45bb-cycle-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the copied original-owner cycling check.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod multi_selection_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -2087,65 +1657,40 @@ After that block, type:
 --8<-- "journey/code/45bb-cycle-03.rs" skip=40
 ```
 
-</details>
+**Result after `45bb-cycle`:** Close; Example Line; Select Next; Selection. The original line can now be selected from the command field. Run the copied cycling checks for mixed rows, locks, hidden sources and wraparound.
+
+---
 
 <a id="checkpoint-45c-input"></a>
 
 ### Step 5 of 5 · Collect multiple objects with Shift-click and commands (`45c-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/5 Visual Trace (45c-input): Collect multiple objects with Shift-click and commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted pointer</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">modifiers</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked GPU request</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original hit</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">replace or additive</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">membership</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one batch command</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current original hit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one batch command</text>
 </svg>
-</div>
-
-- **Goal:** Collect multiple objects with Shift-click and commands.
-- **Data Flow Trace:** `accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command`
-- **Files You Touch:** `src/browser.rs` (*Capture additive pointer ownership and route ordered selection, batch edits and inspection.*)
 
 Capture Shift on the accepted pointer gesture, then apply it when the current GPU result completes. Select All and Select None act on eligible whole objects.
 
-> **Self-Check Question:** *Does releasing Shift before GPU mapping finishes change the accepted gesture?*  
-> **Answer:** No. The modifier belongs to the queued gesture, not the keyboard state when its readback completes.
-
-- **What You Should See:** Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box and Shift-click the other. Type Selection, Move 0,0,1 and Undo. Select All, Delete and Undo must restore both.
-- **Hands-On Lab Experiment:** Shift-click the same object twice, then an empty area; order and count stay unchanged. A plain empty click clears the selection. For cold imported rows, run Reload Sources before a batch edit.
-
-<details>
-<summary>Implementation 45c-input: Collect multiple objects with Shift-click and commands</summary>
-
-Collect multiple objects with Shift-click and commands.
-
-Data flow: accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command.
+> **Check:** *Does releasing Shift before GPU mapping finishes change the accepted gesture?* — No. The modifier belongs to the queued gesture, not the keyboard state when its readback completes.
 
 ### 1. `src/browser.rs`
 
@@ -2153,8 +1698,7 @@ Capture additive pointer ownership and route ordered selection, batch edits and 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
@@ -2164,8 +1708,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
     canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2179,8 +1721,7 @@ Replace it with:
     canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -2191,8 +1732,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2209,8 +1748,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
@@ -2221,8 +1759,6 @@ Replace it with:
                     Some(intent) => crate::browser_reload::restore_for(intent, &editor,
                         std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2237,8 +1773,7 @@ Replace it with:
                         std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         };
@@ -2254,8 +1789,6 @@ Replace it with:
                 None
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2275,8 +1808,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "example arrow" => Action::AddArrow,
@@ -2286,8 +1818,6 @@ Replace it with:
                     "select face" => Action::PickMode(crate::pick_sources::Mode::Face),
                     "select edge" => Action::PickMode(crate::pick_sources::Mode::Edge),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2302,8 +1832,7 @@ Replace it with:
                     "select edge" => Action::PickMode(crate::pick_sources::Mode::Edge),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -2314,8 +1843,6 @@ Replace it with:
             } else if line == "reload sources" {
                 let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2331,8 +1858,7 @@ Replace it with:
                 let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let browser_window = window.clone();
@@ -2342,8 +1868,6 @@ Replace it with:
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
     let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2357,8 +1881,7 @@ Replace it with:
     let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Example Polyline",
@@ -2369,8 +1892,6 @@ Replace it with:
             "Select Face",
             "Select Edge",
 ```
-
-</details>
 
 Replace it with:
 
@@ -2384,8 +1905,7 @@ Replace it with:
             "Select Edge",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2522,7 +2042,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
 
             "Controls On",
             "Controls Off",
@@ -2747,7 +2266,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                     "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
                     "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
                     "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
-
 
                     "controls on" => Action::Controls(true),
                     "controls off" => Action::Controls(false),
@@ -3109,70 +2627,21 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/45c-input-01.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-02.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-03.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-04.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-05.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-06.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-07.rs"
-```
-
-```text
---8<-- "journey/code/45c-input-08.rs"
-```
-
-</details>
-
-</details>
+**Result after `45c-input`:** Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box and Shift-click the other. Type Selection, Move 0,0,1 and Undo. Select All, Delete and Undo must restore both.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 45c-input
-npm --prefix ../session_tests run course -- check 45c-input
-npm --prefix ../session_tests run course -- save 45c-input
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 6.4
+npm --prefix ../session_tests run course -- save 6.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 6.4 (45c-input)](../../../screenshots/journey/45c-input.png)
-
-Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box and Shift-click the other. Type Selection, Move 0,0,1 and Undo. Select All, Delete and Undo must restore both.
-
-- **Final Lesson Experiment:** Shift-click the same object twice, then an empty area; order and count stay unchanged. A plain empty click clears the selection. For cold imported rows, run Reload Sources before a batch edit.
+Continue with [7.1 · Active tools own their command input](../../consolidation/46-tool-panel.md).

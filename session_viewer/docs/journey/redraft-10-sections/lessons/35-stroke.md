@@ -1,234 +1,98 @@
 # 5.1 · Original lines and a screen-space stroke lane
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.1** (Redraft `4.1`) · **7 checkpoints (`35-stroke` → `35d-input`)** · **Study time: 5–8.5 h**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Checkpoints:** `35-stroke` → `35d-input` (7 steps) · **Production source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-> **What You Will Learn & Build:** Prepare finite line endpoints, colour and screen width while retaining the original kernel line. By the final checkpoint (`35d-input`), you will insert an editable line as one undoable command and prove its width in actual browser pixels.
+> **Goal:** Insert an editable line as one undoable command and prove its width in actual browser pixels.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 5 Visual Explanation: Homogeneous Near-Clip, Screen-Space Ribbon Quad Extrusion & Point Discs</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Clipping to w > near before perspective divide. Center: Extruding segment pA→pB along normal n. Right: SDF point disc.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Homogeneous Near-Plane Clip -->
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Homogeneous Clip (w &gt; near)</text>
-    <!-- Near plane vertical line at x=115 -->
-    <line x1="115" y1="96" x2="115" y2="196" stroke="#111111" stroke-width="1.75"/>
-    <text x="115" y="92" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">w = near plane</text>
-    <!-- Eye at (65, 148) -->
-    <circle cx="65" cy="148" r="4" fill="#111111"/>
-    <text x="65" y="164" text-anchor="middle" font-size="9" fill="#111111">Camera</text>
-    <!-- Segment from behind camera B(45, 180) through B'(115, 152) to A(225, 108) -->
-    <line x1="45" y1="180" x2="115" y2="152" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3"/>
-    <line x1="115" y1="152" x2="225" y2="108" stroke="#111111" stroke-width="2.5"/>
-    <circle cx="45" cy="180" r="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <circle cx="115" cy="152" r="4" fill="#111111"/>
-    <circle cx="225" cy="108" r="4" fill="#111111"/>
-    <text x="58" y="192" font-size="9" fill="#111111">B (w &lt; 0)</text>
-    <text x="142" y="164" font-size="9.5" font-weight="700" fill="#111111">Clipped B'</text>
-    <text x="225" y="102" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">A (w &gt; near)</text>
-    <text x="140" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Clip in 4D BEFORE xyz / w divide</text>
-    <text x="140" y="232" text-anchor="middle" font-size="9" fill="#111111">so behind-camera endpoints never flip!</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Screen-Space Ribbon Quad Extrusion -->
-    <rect x="287" y="64" width="295" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Screen-Space Ribbon Quad (6 Verts)</text>
-    <!-- Outer AA feather quad (dashed) -->
-    <polygon points="316,120 516,92 528,162 328,190" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <!-- Core stroke quad -->
-    <polygon points="319,130 519,102 525,152 325,180" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Center line pA -> pB -->
-    <line x1="322" y1="155" x2="522" y2="127" stroke="#111111" stroke-width="2"/>
-    <circle cx="322" cy="155" r="4" fill="#111111"/>
-    <circle cx="522" cy="127" r="4" fill="#111111"/>
-    <!-- Normal vector n = (-dir.y, dir.x) -->
-    <line x1="422" y1="141" x2="416" y2="104" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="458" y="114" font-size="9.5" font-weight="700" fill="#111111">n = (-dir.y, dir.x)</text>
-    <text x="315" y="172" font-size="9.5" font-weight="700" fill="#111111">pA</text>
-    <text x="532" y="130" font-size="9.5" font-weight="700" fill="#111111">pB</text>
-    <text x="434" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">offset = n * (half_width_px + 1px_AA)</text>
-    <text x="434" y="223" text-anchor="middle" font-size="9" fill="#111111">Constant CSS pixel width at any 3D zoom</text>
-
-    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Point Marker SDF Disc (glyph.wgsl) -->
-    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Point Marker Disc (SDF)</text>
-    <!-- Bounding 2D screen quad -->
-    <rect x="664" y="96" width="100" height="100" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
-    <!-- Outer AA circle and Inner solid circle -->
-    <circle cx="714" cy="146" r="42" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <circle cx="714" cy="146" r="34" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="714" cy="146" r="3" fill="#111111"/>
-    <line x1="714" y1="146" x2="748" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="731" y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">r</text>
-    <text x="714" y="213" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">d = length(uv); discard d &gt; r+1</text>
-    <text x="714" y="227" text-anchor="middle" font-size="9" fill="#111111">smoothstep feathers 1px rim</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 5.1 Pipeline Schematic: Original lines and a screen-space stroke lane</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (7 Checkpoints: 35-stroke → 35d-input)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel Line</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">source owner</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">display record</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">checked packed</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">bytes</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">later GPU lane</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 5.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/stroke.rs  ·  src/lib.rs  ·  src/stroke_tests.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/line_scene_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">7 Checkpoints: 35-stroke → 35d-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Near Clip (w &gt; 0)</text>
+  <line x1="115" y1="58" x2="115" y2="162" stroke="#111111" stroke-width="2"/>
+  <text x="115" y="176" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">w = near</text>
+  <line x1="55" y1="142" x2="115" y2="110" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 4"/>
+  <line x1="115" y1="110" x2="210" y2="68" stroke="#111111" stroke-width="3"/>
+  <circle cx="55" cy="142" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="115" cy="110" r="4.5" fill="#111111"/>
+  <circle cx="210" cy="68" r="4" fill="#111111"/>
+  <text x="68" y="156" font-family="monospace" font-size="9" fill="#111111">Clipped</text>
+  <text x="180" y="95" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Kept</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Ribbon Quad</text>
+  <polygon points="338,120 480,68 498,108 356,160" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="347" y1="140" x2="489" y2="88" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="347" cy="140" r="4" fill="#111111"/>
+  <circle cx="489" cy="88" r="4" fill="#111111"/>
+  <line x1="418" y1="114" x2="407" y2="88" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="385" y="84" font-family="monospace" font-size="10" font-weight="700" fill="#111111">+n</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">6-Vert Extrusion</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. SDF Anti-Alias</text>
+  <line x1="620" y1="148" x2="788" y2="148" stroke="#111111" stroke-width="1.5"/>
+  <path d="M 628 148 L 656 76 L 752 76 L 780 148" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="704" y="68" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">alpha = 1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">smoothstep() Edge</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
-| **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
-| **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
+| **WGSL (`ribbon.wgsl`)** | Near-Plane Clip (`w > near`) | Clips 3D segments in 4D before dividing by `w`. |
+| **WGSL (`ribbon.wgsl`)** | 6-Vertex Screen Quad (`±n`) | Extrudes each 3D line along screen normal `(-dir.y, dir.x)`. |
+| **WGSL (`glyph.wgsl`)** | `smoothstep()` SDF Coverage | Anti-aliases stroke edges and round point markers in `@fragment`. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`35-stroke`](#checkpoint-35-stroke) | Prepare finite line endpoints, colour and screen width while retaining the original kernel line. | `src/stroke.rs`, `src/lib.rs`, `src/stroke_tests.rs` | `kernel Line → source owner → display record → checked packed bytes → later GPU lane` |
-| **2** | [`35a-document`](#checkpoint-35a-document) | Give prepared lines stable document IDs, history ownership and world-space bounds. | `src/scene.rs`, `src/document.rs`, `src/lib.rs`, `src/line_scene_tests.rs` | `prepared line → scene row → shared source history → placed bounds → complete Close` |
-| **3** | [`35b-extrude`](#checkpoint-35b-extrude) | Expand a projected segment into two triangles with a width that survives camera zoom. | `src/stroke.wgsl`, `src/stroke.rs` | `world endpoints → near clipping → pixel direction → perpendicular extrusion → edge coverage` |
-| **4** | [`35c-lane`](#checkpoint-35c-lane) | Create one pipeline and view uniform for a batch of stroke instances. | `src/stroke_gpu.rs`, `src/lib.rs` | `checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane` |
-| **5** | [`35ca-sync`](#checkpoint-35ca-sync) | Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes. | `src/stroke_gpu.rs` | `checked packed strokes → changed bytes → one GPU buffer → view-only updates → six vertices per instance` |
-| **6** | [`35cb-render`](#checkpoint-35cb-render) | Draw document strokes with shared depth, correct device density and complete Close accounting. | `src/renderer.rs`, `src/browser.rs`, `src/memory.rs`, `src/scene.rs` | `scene line owners → unchanged-data reuse → shared drawing pass → density-aware view → buffer release` |
-| **7** | [`35d-input`](#checkpoint-35d-input) | Insert an editable line as one undoable command and prove its width in actual browser pixels. | `src/editor.rs`, `src/browser.rs`, `src/stroke_input_tests.rs`, `src/lib.rs` | `Example Line → prepared source → one history transaction → stroke batch → camera-only reuse` |
+![Recorded visual output for Lesson 5.1 (35d-input)](../../../screenshots/journey/35d-input-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-35-stroke"></a>
 
 ### Step 1 of 7 · Prepare a stroke without changing its source (`35-stroke`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/7 Visual Trace (35-stroke): Prepare a stroke without changing its source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke.rs, src/lib.rs, src/stroke_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kernel Line</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source owner</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display record</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked packed bytes</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later GPU lane</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">display record</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later GPU lane</text>
 </svg>
-</div>
-
-- **Goal:** Prepare finite line endpoints, colour and screen width while retaining the original kernel line.
-- **Data Flow Trace:** `kernel Line → source owner → display record → checked packed bytes → later GPU lane`
-- **Files You Touch:** `src/stroke.rs` (*Keep exact kernel ownership separate from a checked packed display record.*) · `src/lib.rs` (*Register stroke preparation and its checks.*) · `src/stroke_tests.rs` (*Copy source ownership, packed layout and invalid-display checks.*)
 
 Prepare one line for display while keeping its original kernel owner. Store two finite endpoints, colour and a width measured in screen pixels.
 
 Packing changes display precision only. Invalid coordinates or widths fail before GPU allocation. A zero-length line remains a valid source; the later shader suppresses its empty stroke. Width zero, negative or nonfinite uses the default pen, matching production.
 
-> **Self-Check Question:** *Why retain the original line after packing its endpoints into floats?*  
-> **Answer:** Display floats cannot preserve exact coordinates or source metadata. Editing and saving must continue to use the original kernel line.
-
-- **What You Should See:** The packed stroke record is 44 bytes; exact source coordinates, GUID and colour remain available. This prepares the source owner; the later stroke pipeline connects it to browser drawing.
-- **Hands-On Lab Experiment:** Prepare the same shared line twice and drop one prepared owner. Both used the same source; the other owner still retains it.
-
-<details>
-<summary>Implementation 35-stroke: Prepare a stroke without changing its source</summary>
-
-Prepare finite line endpoints, colour and screen width while retaining the original kernel line.
-
-Data flow: kernel Line → source owner → display record → checked packed bytes → later GPU lane.
+> **Check:** *Why retain the original line after packing its endpoints into floats?* — Display floats cannot preserve exact coordinates or source metadata. Editing and saving must continue to use the original kernel line.
 
 ### 1. `src/stroke.rs`
 
@@ -244,15 +108,6 @@ Create the file and type:
 
 Register stroke preparation and its checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -262,19 +117,7 @@ mod stroke_tests;
 pub mod mesh;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35-stroke-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -288,68 +131,42 @@ Copy this supplied file:
 --8<-- "journey/code/35-stroke-03.rs"
 ```
 
-</details>
+**Result after `35-stroke`:** The packed stroke record is 44 bytes; exact source coordinates, GUID and colour remain available. This prepares the source owner; the later stroke pipeline connects it to browser drawing.
 
-</details>
+---
 
 <a id="checkpoint-35a-document"></a>
 
 ### Step 2 of 7 · Retain line owners in document history (`35a-document`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/7 Visual Trace (35a-document): Retain line owners in document history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/document.rs, src/lib.rs, src/line_scene_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared line</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene row</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">history</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed bounds</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete Close</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/documen…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source history</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete Close</text>
 </svg>
-</div>
-
-- **Goal:** Give prepared lines stable document IDs, history ownership and world-space bounds.
-- **Data Flow Trace:** `prepared line → scene row → shared source history → placed bounds → complete Close`
-- **Files You Touch:** `src/scene.rs` (*Retain exact line owners and apply placement before display conversion.*) · `src/document.rs` (*Reject incomplete saves while the loader still supports only meshes.*) · `src/lib.rs` (*Register mixed row ownership checks.*) · `src/line_scene_tests.rs` (*Copy mixed IDs, placement, history and release checks.*)
 
 Keep line rows beside the existing mesh rows. Give both tables IDs from the same checked sequence and clone only shared kernel owners into history.
 
 Include original placed endpoints in scene bounds. Clear both tables on Close or replacement. The existing mesh-only snapshot rejects new line rows explicitly; complete mixed-geometry saving is taught with the later loader.
 
-> **Self-Check Question:** *Why share a line source across history snapshots?*  
-> **Answer:** A placement edit changes the row’s transform, not its exact source line. Undo can restore placement while retaining the same kernel owner.
-
-- **What You Should See:** Run the checks. Line IDs stay distinct from mesh IDs, bounds include placed endpoints, and Close releases active and historical line sources.
-- **Hands-On Lab Experiment:** Move a line row, Undo and Redo, then Close. The kernel owner remains shared until both the scene and history release it.
-
-<details>
-<summary>Implementation 35a-document: Retain line owners in document history</summary>
-
-Give prepared lines stable document IDs, history ownership and world-space bounds.
-
-Data flow: prepared line → scene row → shared source history → placed bounds → complete Close.
+> **Check:** *Why share a line source across history snapshots?* — A placement edit changes the row’s transform, not its exact source line. Undo can restore placement while retaining the same kernel owner.
 
 ### 1. `src/scene.rs`
 
@@ -357,8 +174,7 @@ Retain exact line owners and apply placement before display conversion. Start th
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -368,8 +184,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.extra = None;
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -383,8 +197,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Some(bounds)
@@ -394,8 +207,6 @@ Replace it with:
         &self.objects
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -423,8 +234,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -433,8 +243,6 @@ Replace it with:
         bounds
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -455,8 +263,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -467,8 +274,6 @@ Replace it with:
         scene.insert(turquoise).expect("ID available");
         scene
 ```
-
-</details>
 
 Replace it with:
 
@@ -482,8 +287,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -494,8 +298,6 @@ pub struct Scene {
     next_id: u32,
     extra: Option<ObjectId>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -530,8 +332,7 @@ pub struct Scene {
     extra: Option<ObjectId>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -856,47 +657,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35a-document-01.rs"
-```
-
-```text
---8<-- "journey/code/35a-document-02.rs"
-```
-
-```text
---8<-- "journey/code/35a-document-03.rs"
-```
-
-```text
---8<-- "journey/code/35a-document-04.rs"
-```
-
-```text
---8<-- "journey/code/35a-document-05.rs"
-```
-
-</details>
-
 ### 2. `src/document.rs`
 
 Reject incomplete saves while the loader still supports only meshes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-```
-
-</details>
 
 After that block, type:
 
@@ -904,29 +667,9 @@ After that block, type:
     if !scene.lines().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35a-document-06.rs"
-```
-
-</details>
-
 ### 3. `src/lib.rs`
 
 Register mixed row ownership checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod scene;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -936,19 +679,7 @@ mod line_scene_tests;
 pub mod scene;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35a-document-07.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -962,68 +693,42 @@ Copy this supplied file:
 --8<-- "journey/code/35a-document-08.rs"
 ```
 
-</details>
+**Result after `35a-document`:** Run the checks. Line IDs stay distinct from mesh IDs, bounds include placed endpoints, and Close releases active and historical line sources.
 
-</details>
+---
 
 <a id="checkpoint-35b-extrude"></a>
 
 ### Step 3 of 7 · Extrude a stroke in screen pixels (`35b-extrude`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/7 Visual Trace (35b-extrude): Extrude a stroke in screen pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke.wgsl, src/stroke.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world endpoints</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">near clipping</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixel direction</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">perpendicular</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">extrusion</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">edge coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke.wgsl, src/stro…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pixel direction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">edge coverage</text>
 </svg>
-</div>
-
-- **Goal:** Expand a projected segment into two triangles with a width that survives camera zoom.
-- **Data Flow Trace:** `world endpoints → near clipping → pixel direction → perpendicular extrusion → edge coverage`
-- **Files You Touch:** `src/stroke.wgsl` (*Extrude in physical pixels and interpolate coverage in screen space.*) · `src/stroke.rs` (*Expose the same shader text to the lane and its GPU check.*)
 
 Project both endpoints, clip a crossing segment to the near plane, then expand perpendicular to its direction in pixels. Multiplying the offset by clip w preserves width through perspective division.
 
 Suppress a segment with no projected length. Linear screen interpolation carries edge distance to the fragment stage, which fades only the last pixel. Device density converts the CSS pen width into physical pixels.
 
-> **Self-Check Question:** *Why multiply a screen offset by the endpoint’s clip w?*  
-> **Answer:** Perspective division would otherwise shrink that offset with distance. Multiplying by w keeps its final projected width constant.
-
-- **What You Should See:** Run the GPU check. The real drawing device validates the stroke shader; its visible lane is connected next.
-- **Hands-On Lab Experiment:** Trace the six corners: they form two triangles. The width divides by viewport pixels and multiplies by clip w before perspective division.
-
-<details>
-<summary>Implementation 35b-extrude: Extrude a stroke in screen pixels</summary>
-
-Expand a projected segment into two triangles with a width that survives camera zoom.
-
-Data flow: world endpoints → near clipping → pixel direction → perpendicular extrusion → edge coverage.
+> **Check:** *Why multiply a screen offset by the endpoint’s clip w?* — Perspective division would otherwise shrink that offset with distance. Multiplying by w keeps its final projected width constant.
 
 ### 1. `src/stroke.wgsl`
 
@@ -1039,15 +744,6 @@ Create the file and type:
 
 Expose the same shader text to the lane and its GPU check.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::rc::Rc;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -1055,78 +751,42 @@ pub const SHADER: &str = include_str!("stroke.wgsl");
 use std::rc::Rc;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `35b-extrude`:** Run the GPU check. The real drawing device validates the stroke shader; its visible lane is connected next.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35b-extrude-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-35c-lane"></a>
 
 ### Step 4 of 7 · Create the shared stroke pipeline (`35c-lane`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/7 Visual Trace (35c-lane): Create the shared stroke pipeline</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked shader</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">instance layout</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared view binding</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">alpha coverage</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">depth-tested lane</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared view binding</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">depth-tested lane</text>
 </svg>
-</div>
-
-- **Goal:** Create one pipeline and view uniform for a batch of stroke instances.
-- **Data Flow Trace:** `checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Create one depth-tested instanced lane with alpha coverage and its own view binding.*) · `src/lib.rs` (*Register the shared GPU lane.*)
 
 Create a shared stroke pipeline with an instance record for each segment. The shader generates six corners; the batch supplies endpoints, colour and width.
 
 Use alpha blending for the shader’s edge coverage and the existing depth format without writing stroke depth. A separate view binding holds the matrix, viewport and density. Allocate segment buffers only when the lane receives data.
 
-> **Self-Check Question:** *Why use six generated vertices and one instance record per segment?*  
-> **Answer:** Every segment uses the same two-triangle shape. Its endpoints and style change per instance, so no separate mesh or pipeline is needed for each line.
-
-- **What You Should See:** Build and open the viewer. The existing mesh picture still works; the shared stroke pipeline is ready for drawing in the following checkpoints.
-- **Hands-On Lab Experiment:** Compare the 44-byte instance attributes with the packed stroke record: positions occupy the first 24 bytes, followed by colour and width. The reference GPU fixture validates this layout and the 80-byte view uniform.
-
-From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 35c-lane` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 35c-lane` and run your project separately.
-
-<details>
-<summary>Implementation 35c-lane: Create the shared stroke pipeline</summary>
-
-Create one pipeline and view uniform for a batch of stroke instances.
-
-Data flow: checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane.
+> **Check:** *Why use six generated vertices and one instance record per segment?* — Every segment uses the same two-triangle shape. Its endpoints and style change per instance, so no separate mesh or pipeline is needed for each line.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -1142,15 +802,6 @@ Create the file and type:
 
 Register the shared GPU lane.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod stroke;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -1158,94 +809,46 @@ pub mod stroke_gpu;
 pub mod stroke;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `35c-lane`:** Build and open the viewer. The existing mesh picture still works; the shared stroke pipeline is ready for drawing in the following checkpoints.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35c-lane-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-35ca-sync"></a>
 
 ### Step 5 of 7 · Upload changed stroke instances only (`35ca-sync`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/7 Visual Trace (35ca-sync): Upload changed stroke instances only</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked packed</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">strokes</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">changed bytes</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one GPU buffer</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">view-only updates</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">six vertices per</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">instance</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one GPU buffer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">six vertices per instan…</text>
 </svg>
-</div>
-
-- **Goal:** Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes.
-- **Data Flow Trace:** `checked packed strokes → changed bytes → one GPU buffer → view-only updates → six vertices per instance`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Keep segment uploads separate from camera uniforms and release empty batches.*)
 
 Upload a stroke batch only when its checked packed bytes change. Keep camera, viewport and density in the shared uniform instead of rebuilding segment vertices.
 
 An empty batch drops its buffer. Invalid data leaves the existing batch unchanged. Native GPU renders measure anti-aliased width in linear colour space and verify buffer reuse, exact payload accounting and release.
 
-> **Self-Check Question:** *Why compare packed data before replacing the vertex buffer?*  
-> **Answer:** Camera and unrelated mesh edits do not change stroke endpoints or style. Reusing the buffer avoids uploading the same data on every interaction.
-
-- **What You Should See:** Inspect the supplied state fixtures and open the viewer. The stroke lane can now upload and retain checked display records; actual scene drawing follows next.
-- **Hands-On Lab Experiment:** The reference GPU fixture checks pen width in both projections at two zooms and DPR1/2, unchanged uploads for an identical batch and camera-only changes, and buffer release on clear.
-
-From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 35ca-sync` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 35ca-sync` and run your project separately.
-
-<details>
-<summary>Implementation 35ca-sync: Upload changed stroke instances only</summary>
-
-Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes.
-
-Data flow: checked packed strokes → changed bytes → one GPU buffer → view-only updates → six vertices per instance.
+> **Check:** *Why compare packed data before replacing the vertex buffer?* — Camera and unrelated mesh edits do not change stroke endpoints or style. Reusing the buffer avoids uploading the same data on every interaction.
 
 ### 1. `src/stroke_gpu.rs`
 
 Keep segment uploads separate from camera uniforms and release empty batches.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Lane {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1291,78 +894,42 @@ impl Lane {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `35ca-sync`:** Inspect the supplied state fixtures and open the viewer. The stroke lane can now upload and retain checked display records; actual scene drawing follows next.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35ca-sync-01.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-35cb-render"></a>
 
 ### Step 6 of 7 · Connect the stroke lane to the document renderer (`35cb-render`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/7 Visual Trace (35cb-render): Connect the stroke lane to the document renderer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/browser.rs, src/memory.rs, src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene line owners</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unchanged-data reuse</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared drawing pass</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-aware view</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">buffer release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/brow…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared drawing pass</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">buffer release</text>
 </svg>
-</div>
-
-- **Goal:** Draw document strokes with shared depth, correct device density and complete Close accounting.
-- **Data Flow Trace:** `scene line owners → unchanged-data reuse → shared drawing pass → density-aware view → buffer release`
-- **Files You Touch:** `src/renderer.rs` (*Retain one stroke lane and the physical view dimensions.*) · `src/browser.rs` (*Use recovery’s effective density for both canvas size and stroke width.*) · `src/memory.rs` (*Count line rows, distinct kernel owners and allocated row capacity.*) · `src/scene.rs` (*Expose actual line table capacity for CPU accounting.*)
 
 Synchronize placed line records when the scene changes, then draw their shared lane in the existing depth pass. Camera changes update uniforms while vertex data stays resident.
 
 Pass the effective browser density through recovery’s existing cap. Report line rows and buffer usage separately from the earlier mesh counters. Closing clears line owners, history and GPU instances; the renderer retains no kernel line handle.
 
-> **Self-Check Question:** *Why does the renderer receive packed strokes rather than kernel owners?*  
-> **Answer:** The document owns editable sources and history. GPU display data can survive source release without keeping those kernel owners alive.
-
-- **What You Should See:** Build and open the viewer. Existing meshes still draw; the renderer now also draws source lines when present. The next checkpoint adds the command that inserts a line.
-- **Hands-On Lab Experiment:** The reference GPU fixture closes a line-bearing document and checks kernel weak-owner expiry and zero stroke allocation.
-
-From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 35cb-render` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 35cb-render` and run your project separately.
-
-<details>
-<summary>Implementation 35cb-render: Connect the stroke lane to the document renderer</summary>
-
-Draw document strokes with shared depth, correct device density and complete Close accounting.
-
-Data flow: scene line owners → unchanged-data reuse → shared drawing pass → density-aware view → buffer release.
+> **Check:** *Why does the renderer receive packed strokes rather than kernel owners?* — The document owns editable sources and history. GPU display data can survive source release without keeping those kernel owners alive.
 
 ### 1. `src/renderer.rs`
 
@@ -1370,8 +937,7 @@ Retain one stroke lane and the physical view dimensions. Create the shared lane 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             for mesh in &self.meshes {
@@ -1381,8 +947,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1396,8 +960,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ) {
@@ -1407,8 +970,6 @@ Replace it with:
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1422,8 +983,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1433,8 +993,6 @@ Replace it with:
 
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1448,8 +1006,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1463,8 +1020,6 @@ Replace it with:
         let mut old = std::mem::take(&mut self.meshes);
         for object in scene.objects() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1493,8 +1048,7 @@ Replace it with:
         for object in scene.objects() {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }],
@@ -1507,8 +1061,6 @@ Replace it with:
         renderer
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1525,8 +1077,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     uniform: wgpu::Buffer,
@@ -1536,8 +1087,6 @@ Replace it with:
 
 impl Renderer {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1553,8 +1102,7 @@ Replace it with:
 impl Renderer {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1758,55 +1306,13 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35cb-render-01.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-02.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-03.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-04.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-05.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-06.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-07.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-08.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Use recovery’s effective density for both canvas size and stroke width. Size the canvas with the same effective density.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 ) -> bool {
@@ -1820,8 +1326,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     ) else {
         return false;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1840,8 +1344,7 @@ Replace it with:
         return false;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2460,35 +1963,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35cb-render-09.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-10.rs"
-```
-
-</details>
-
 ### 3. `src/memory.rs`
 
 Count line rows, distinct kernel owners and allocated row capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn gpu<'a>(rows: impl IntoIterator<Item = &'a crate::gpu_mesh::GpuMesh>) -> [u64; 4] {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2506,25 +1983,13 @@ pub fn lines<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 3] {
 pub fn gpu<'a>(rows: impl IntoIterator<Item = &'a crate::gpu_mesh::GpuMesh>) -> [u64; 4] {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35cb-render-11.rs"
-```
-
-</details>
-
 ### 4. `src/scene.rs`
 
 Expose actual line table capacity for CPU accounting. Reject unrenderable placed endpoints before changing document state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn place_line(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
@@ -2533,8 +1998,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         row.model = model; Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2550,8 +2013,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Some(bounds)
@@ -2561,8 +2023,6 @@ Replace it with:
 
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2577,8 +2037,7 @@ Replace it with:
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2909,35 +2368,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35cb-render-12.rs"
-```
-
-```text
---8<-- "journey/code/35cb-render-13.rs"
-```
-
-</details>
-
 ### 5. `src/browser.rs`
 
 Expose the actual new resource counters beside the existing inspector values.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2947,77 +2380,42 @@ Edit the existing block to match this code; keep unchanged lines:
     canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `35cb-render`:** Build and open the viewer. Existing meshes still draw; the renderer now also draws source lines when present. The next checkpoint adds the command that inserts a line.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35cb-render-14.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-35d-input"></a>
 
 ### Step 7 of 7 · Insert a line through the real command dock (`35d-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/7 Visual Trace (35d-input): Insert a line through the real command dock</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/stroke_input_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Example Line</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared source</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">transaction</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stroke batch</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera-only reuse</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera-only reuse</text>
 </svg>
-</div>
-
-- **Goal:** Insert an editable line as one undoable command and prove its width in actual browser pixels.
-- **Data Flow Trace:** `Example Line → prepared source → one history transaction → stroke batch → camera-only reuse`
-- **Files You Touch:** `src/editor.rs` (*Add a document action for the example line.*) · `src/browser.rs` (*Expose the new action through the actual command list.*) · `src/stroke_input_tests.rs` (*Copy the source lifetime and undoable command checks.*) · `src/lib.rs` (*Register the command checks.*)
 
 Register Example Line in the existing dock and dispatch an Editor action. Prepare the kernel line before committing one history transaction. The line retains its original endpoints and style.
 
 Chrome checks real width at densities one and two in both projections, unchanged vertex uploads during zoom, document Undo/Redo and complete Close. Saving lines remains an explicit error until mixed-geometry serialization is taught.
 
-> **Self-Check Question:** *Why does line insertion go through Editor instead of directly changing the GPU buffer?*  
-> **Answer:** The document must own identity, original coordinates and Undo. The renderer follows accepted document changes and never becomes the editable authority.
-
-- **What You Should See:** Close the document, type Example Line, then zoom. The horizontal stroke remains five CSS pixels wide.
-- **Hands-On Lab Experiment:** Undo the line, Redo it, then Close. Inspect actual live line and GPU counters before and after each command.
-
-<details>
-<summary>Implementation 35d-input: Insert a line through the real command dock</summary>
-
-Insert an editable line as one undoable command and prove its width in actual browser pixels.
-
-Data flow: Example Line → prepared source → one history transaction → stroke batch → camera-only reuse.
+> **Check:** *Why does line insertion go through Editor instead of directly changing the GPU buffer?* — The document must own identity, original coordinates and Undo. The renderer follows accepted document changes and never becomes the editable authority.
 
 ### 1. `src/editor.rs`
 
@@ -3025,8 +2423,7 @@ Add a document action for the example line. Prepare the original line, then comm
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let loaded = crate::document::load_at(&bytes, Some(location))?;
@@ -3036,8 +2433,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3056,8 +2451,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Close,
@@ -3067,8 +2461,6 @@ Replace it with:
     ToggleExtra,
     SelectNext,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3082,8 +2474,7 @@ Replace it with:
     SelectNext,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3445,31 +2836,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35d-input-01.rs"
-```
-
-```text
---8<-- "journey/code/35d-input-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Expose the new action through the actual command list. Dispatch accepted input to the editor instead of directly to GPU data.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             } else {
@@ -3479,8 +2852,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     "select next" => Action::SelectNext,
                     "delete" => Action::Delete,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3494,8 +2865,7 @@ Replace it with:
                     "delete" => Action::Delete,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Report",
@@ -3505,8 +2875,6 @@ Replace it with:
             "Select Next",
             "Delete",
 ```
-
-</details>
 
 Replace it with:
 
@@ -3520,8 +2888,7 @@ Replace it with:
             "Delete",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -4144,25 +3511,7 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35d-input-03.rs"
-```
-
-```text
---8<-- "journey/code/35d-input-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4176,20 +3525,9 @@ Copy this supplied file:
 --8<-- "journey/code/35d-input-05.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the command checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod stroke;
-```
-
-</details>
 
 After that block, type:
 
@@ -4198,42 +3536,21 @@ After that block, type:
 mod stroke_input_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/35d-input-06.rs"
-```
-
-</details>
-
-</details>
+**Result after `35d-input`:** Close the document, type Example Line, then zoom. The horizontal stroke remains five CSS pixels wide.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 35d-input
-npm --prefix ../session_tests run course -- check 35d-input
-npm --prefix ../session_tests run course -- save 35d-input
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 5.1
+npm --prefix ../session_tests run course -- save 5.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 5.1 (35d-input)](../../../screenshots/journey/35d-input-browser.png)
-
-Close the document, type Example Line, then zoom. The horizontal stroke remains five CSS pixels wide.
-
-- **Final Lesson Experiment:** Undo the line, Redo it, then Close. Inspect actual live line and GPU counters before and after each command.
-
-Continue with [Joined paths and headed ends](../../consolidation/36-chain.md).
+Continue with [5.2 · Joined paths and headed ends](../../consolidation/36-chain.md).

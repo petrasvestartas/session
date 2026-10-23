@@ -1,235 +1,101 @@
 # 17.3 · Original clipping half-spaces across drawing families
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.3** (Redraft `9.3`) · **38 checkpoints (`87-copy-current-original-plane-modes` → `87ab-exercise-original-clipping-color-and-picking`)** · **Study time: 19–38 h**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Checkpoints:** `87-copy-current-original-plane-modes` → `87ab-exercise-original-clipping-color-and-picking` (38 steps) · **Production source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs)
 
-> **What You Will Learn & Build:** Describe original clipping half-spaces. By the final checkpoint (`87ab-exercise-original-clipping-color-and-picking`), you will exercise original clipping color and picking.
+> **Goal:** Exercise original clipping color and picking.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
-    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
-    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
-    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
-    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="706" cy="175" r="4" fill="#111111"/>
-    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 17.3 Pipeline Schematic: Original clipping half-spaces across drawing families</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (38 Checkpoints: 87-copy-current-original-plane-modes → 87ab-exercise-original-clipping-color-and-picking)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original Plane</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">construction and</text>
-    <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">placement</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">world half-space</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">later GPU uniform</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original source</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 17.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/clipping_geometry.rs  ·  src/lib.rs  ·  src/clipping_rows.rs  ·  src/clipping_uniform.rs  ·  src/clip.wgsl  ·  src/clipping_input.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">38 Checkpoints: 87-copy-current-original-plane-modes → 87ab-exercise-original-clipping-color-and-picking — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`87-copy-current-original-plane-modes`](#checkpoint-87-copy-current-original-plane-modes) | Describe original clipping half-spaces. | `src/clipping_geometry.rs`, `src/lib.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
-| **2** | [`87sa-describe-clipping-construction-choices-once`](#checkpoint-87sa-describe-clipping-construction-choices-once) | Describe clipping construction choices once. | `src/clipping_geometry.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
-| **3** | [`87sb-construct-and-reverse-original-clipping-planes`](#checkpoint-87sb-construct-and-reverse-original-clipping-planes) | Construct and reverse original clipping planes. | `src/clipping_geometry.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
-| **4** | [`87sc-derive-placed-world-half-spaces-from-original-planes`](#checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes) | Derive placed world half-spaces from original planes. | `src/clipping_geometry.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
-| **5** | [`87a-gather-six-visible-original-world-planes`](#checkpoint-87a-gather-six-visible-original-world-planes) | Gather six visible original world planes. | `src/clipping_rows.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
-| **6** | [`87b-copy-the-maintained-clipping-uniform-layout`](#checkpoint-87b-copy-the-maintained-clipping-uniform-layout) | Match six-plane CPU storage to the later WGSL layout without losing original f64 data. | `src/clipping_uniform.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
-| **7** | [`87c-copy-conditioned-screen-and-hatch-projections`](#checkpoint-87c-copy-conditioned-screen-and-hatch-projections) | Scale matrix rows before inversion and undo that scaling on the inverse. | `src/clipping_uniform.rs` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **8** | [`87ca-project-a-stable-hatch-coordinate-onto-a-plane`](#checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane) | Build homogeneous hatch numerator and denominator from the projected plane. | `src/clipping_uniform.rs` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **9** | [`87cb-fill-one-bounded-clipping-uniform-from-original-planes`](#checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes) | Populate world and screen half-spaces and reuse the hatch projection helper. | `src/clipping_uniform.rs` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **10** | [`87cc-match-the-clipping-uniform-and-sample-conventions`](#checkpoint-87cc-match-the-clipping-uniform-and-sample-conventions) | Match the Rust layout and define shared specialization and sample constants. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **11** | [`87cd-apply-shared-original-half-space-tests`](#checkpoint-87cd-apply-shared-original-half-space-tests) | Reject points or segments on the cut side while preserving plane display rows. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **12** | [`87ce-compute-clipping-coverage-in-framebuffer-sample-space`](#checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space) | Convert framebuffer pixels to NDC and form per-sample half-space masks. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **13** | [`87cf-address-section-depth-and-original-cap-records`](#checkpoint-87cf-address-section-depth-and-original-cap-records) | Solve section depth and preserve the reserved cap and pick address conventions. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
-| **14** | [`87d-parse-strict-clipping-modes-and-presentation-switches`](#checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches) | Parse strict clipping modes and presentation switches. | `src/clipping_input.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
-| **15** | [`87e-preserve-mode-prefixes-in-generic-point-drafts`](#checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts) | Preserve mode prefixes in generic point drafts. | `src/tool.rs` | `original source → checked derived clipping → current view` |
-| **16** | [`87f-build-original-clipping-planes-through-the-shared-tool`](#checkpoint-87f-build-original-clipping-planes-through-the-shared-tool) | Build original clipping planes through the shared tool. | `src/clipping_tool.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
-| **17** | [`87g-own-clipping-presentation-and-one-history-transaction`](#checkpoint-87g-own-clipping-presentation-and-one-history-transaction) | Own clipping presentation and one history transaction. | `src/editor.rs` | `original source → checked derived clipping → current view` |
-| **18** | [`87h-route-clipping-plane-and-preserve-pending-points`](#checkpoint-87h-route-clipping-plane-and-preserve-pending-points) | Route Clipping Plane and preserve pending points. | `src/editor.rs`, `src/commands.rs`, `src/primitive_geometry.rs` | `original source → checked derived clipping → current view` |
-| **19** | [`87i-own-one-shared-clipping-gpu-uniform`](#checkpoint-87i-own-one-shared-clipping-gpu-uniform) | Own one shared clipping GPU uniform. | `src/clipping_gpu.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
-| **20** | [`87j-retain-clipping-state-beside-the-renderer`](#checkpoint-87j-retain-clipping-state-beside-the-renderer) | Retain clipping state beside the renderer. | `src/renderer.rs` | `original source → checked derived clipping → current view` |
-| **21** | [`87k-prepare-shared-clipping-shader-declarations`](#checkpoint-87k-prepare-shared-clipping-shader-declarations) | Prepare shared clipping shader declarations. | `src/pick_pipeline.rs`, `src/face_pick.rs` | `original source → checked derived clipping → current view` |
-| **22** | [`87l-connect-mesh-and-instance-color-half-spaces`](#checkpoint-87l-connect-mesh-and-instance-color-half-spaces) | Connect mesh and instance color half-spaces. | `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/instance_gpu.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
-| **23** | [`87m-prepare-explicit-original-mesh-pick-clipping`](#checkpoint-87m-prepare-explicit-original-mesh-pick-clipping) | Prepare explicit original mesh pick clipping. | `src/triangle_pick.wgsl` | `original source → checked derived clipping → current view` |
-| **24** | [`87n-bind-shared-clipping-before-the-first-integer-request`](#checkpoint-87n-bind-shared-clipping-before-the-first-integer-request) | Bind shared clipping before the first integer request. | `src/pick_gpu.rs`, `src/pick_encode.rs`, `src/renderer.rs`, `src/pick_pipeline.rs` | `original source → checked derived clipping → current view` |
-| **25** | [`87o-preserve-sparse-source-face-ids-across-the-cut`](#checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut) | Preserve sparse source face IDs across the cut. | `src/face_pick.rs`, `src/face_pick.wgsl`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
-| **26** | [`87p-invalidate-selected-masks-on-clipping-changes`](#checkpoint-87p-invalidate-selected-masks-on-clipping-changes) | Invalidate selected masks on clipping changes. | `src/outline_mask.wgsl`, `src/outline_gpu.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
-| **27** | [`87q-share-clipping-at-finite-original-center-lines`](#checkpoint-87q-share-clipping-at-finite-original-center-lines) | Share clipping at finite original center lines. | `src/finite_visibility.wgsl`, `src/finite_sources.rs`, `src/finite_stroke.wgsl`, `src/finite_stroke_pick.wgsl` | `original source → checked derived clipping → current view` |
-| **28** | [`87r-cache-explicit-original-plane-ink-flags`](#checkpoint-87r-cache-explicit-original-plane-ink-flags) | Cache explicit original-plane ink flags. | `src/stroke_gpu.rs` | `original source → checked derived clipping → current view` |
-| **29** | [`87s-bind-original-flags-without-changing-instance-strides`](#checkpoint-87s-bind-original-flags-without-changing-instance-strides) | Bind original flags without changing instance strides. | `src/finite_ink.rs`, `src/stroke_gpu.rs` | `original source → checked derived clipping → current view` |
-| **30** | [`87t-keep-stroke-color-and-pick-exemptions-aligned`](#checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned) | Keep stroke color and pick exemptions aligned. | `src/finite_stroke.wgsl`, `src/finite_stroke_pick.wgsl` | `original source → checked derived clipping → current view` |
-| **31** | [`87u-keep-chain-color-and-pick-exemptions-aligned`](#checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned) | Keep chain color and pick exemptions aligned. | `src/finite_chain.wgsl`, `src/finite_chain_pick.wgsl` | `original source → checked derived clipping → current view` |
-| **32** | [`87v-keep-marker-color-and-pick-exemptions-aligned`](#checkpoint-87v-keep-marker-color-and-pick-exemptions-aligned) | Keep marker color and pick exemptions aligned. | `src/finite_marker.wgsl`, `src/finite_marker_pick.wgsl` | `original source → checked derived clipping → current view` |
-| **33** | [`87w-resolve-locked-and-selected-original-plane-boundaries`](#checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries) | Resolve locked and selected original plane boundaries. | `src/highlight.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
-| **34** | [`87x-clip-cached-original-point-cloud-discs`](#checkpoint-87x-clip-cached-original-point-cloud-discs) | Clip cached original point cloud discs. | `src/cloud_gpu.rs`, `src/cloud_points.wgsl`, `src/renderer.rs`, `src/cloud_shader_contract.rs` | `original source → checked derived clipping → current view` |
-| **35** | [`87y-clip-original-sheet-pens-and-integer-entities`](#checkpoint-87y-clip-original-sheet-pens-and-integer-entities) | Clip original sheet pens and integer entities. | `src/sheet_pipeline.rs`, `src/sheet.wgsl`, `src/sheet_gpu.rs`, `src/pick_encode.rs` | `original source → checked derived clipping → current view` |
-| **36** | [`87z-clip-text-anchors-with-all-six-original-planes`](#checkpoint-87z-clip-text-anchors-with-all-six-original-planes) | Clip text anchors with all six original planes. | `src/scene_text_gpu.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
-| **37** | [`87aa-observe-actual-clipping-resources-and-errors`](#checkpoint-87aa-observe-actual-clipping-resources-and-errors) | Observe actual clipping resources and errors. | `src/browser.rs` | `original source → checked derived clipping → current view` |
-| **38** | [`87ab-exercise-original-clipping-color-and-picking`](#checkpoint-87ab-exercise-original-clipping-color-and-picking) | Exercise original clipping color and picking. | `src/clipping_source_tests.rs`, `src/lib.rs`, `src/clipping_gpu_tests.rs`, `src/clipping_uniform_tests.rs` | `original source → checked derived clipping → current view` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-87-copy-current-original-plane-modes"></a>
 
 ### Step 1 of 38 · Describe original clipping half-spaces (`87-copy-current-original-plane-modes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/38 Visual Trace (87-copy-current-original-plane-modes): Describe original clipping half-spaces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_geometry.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Plane</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked construction and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world half-space</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later GPU uniform</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_geometry.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world half-space</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later GPU uniform</text>
 </svg>
-</div>
-
-- **Goal:** Describe original clipping half-spaces.
-- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
-- **Files You Touch:** `src/clipping_geometry.rs` (*Describe original clipping half-spaces.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 A CAD clipping plane keeps one side of a world-space half-space.
 
 Keep its unit normal, signed offset, original origin and hatch direction in f64. The signed distance is normal · point + offset. Build the small shared array operations used by this clipping owner, and retain the earlier saved plane name as an input alias. These values describe a derived view; they do not rewrite the original Plane.
 
-> **Self-Check Question:** *What changes when a point moves one unit along the kept normal?*  
-> **Answer:** Its signed distance increases by one because the normal has unit length.
-
-- **What You Should See:** The preceding finite-ink drawing remains visible. This original-plane preparation compiles; cutting connects in the following uniform and pipeline lessons.
-- **Hands-On Lab Experiment:** For normal (0,0,-1) and offset 3, predict the signed distances at z = 2, 3 and 4. Locate the kept side.
-
-<details>
-<summary>Implementation 87-copy-current-original-plane-modes: Describe original clipping half-spaces</summary>
-
-Describe original clipping half-spaces.
-
-Data flow: original Plane → checked construction and placement → world half-space → later GPU uniform.
+> **Check:** *What changes when a point moves one unit along the kept normal?* — Its signed distance increases by one because the normal has unit length.
 
 ### 1. `src/clipping_geometry.rs`
 
@@ -245,105 +111,52 @@ Create the file and type:
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod finite_visibility_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/87-copy-current-original-plane-modes-02.rs" skip=42
 ```
 
-</details>
+**Result after `87-copy-current-original-plane-modes`:** The preceding finite-ink drawing remains visible. This original-plane preparation compiles; cutting connects in the following uniform and pipeline lessons.
+
+---
 
 <a id="checkpoint-87sa-describe-clipping-construction-choices-once"></a>
 
 ### Step 2 of 38 · Describe clipping construction choices once (`87sa-describe-clipping-construction-choices-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/38 Visual Trace (87sa-describe-clipping-construction-choices-once): Describe clipping construction choices once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Plane</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked construction and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world half-space</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later GPU uniform</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world half-space</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later GPU uniform</text>
 </svg>
-</div>
-
-- **Goal:** Describe clipping construction choices once.
-- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
-- **Files You Touch:** `src/clipping_geometry.rs` (*Describe clipping construction choices once.*)
 
 Each construction mode declares its name, required point count and prompts in one owner.
 
 Normal uses an origin and a point toward the cut side. Three-point construction uses a right-handed frame. XY, YZ and ZX each need only an origin. Reuse this same mode table for command choices and input prompts; the following constructor consumes it.
 
-> **Self-Check Question:** *Why keep required point counts with the modes?*  
-> **Answer:** Parsing, prompting and construction must agree about when input is complete. One table prevents separate command and geometry rules from drifting.
-
-- **Hands-On Lab Experiment:** Trace the case-insensitive word 3point to its mode, required count and third prompt.
-
-<details>
-<summary>Implementation 87sa-describe-clipping-construction-choices-once: Describe clipping construction choices once</summary>
-
-Describe clipping construction choices once.
-
-Data flow: original Plane → checked construction and placement → world half-space → later GPU uniform.
+> **Check:** *Why keep required point counts with the modes?* — Parsing, prompting and construction must agree about when input is complete. One table prevents separate command and geometry rules from drifting.
 
 ### 1. `src/clipping_geometry.rs`
 
 Describe clipping construction choices once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ClipPlane {
-    pub normal: [f64; 3], // unit normal toward the kept side
-    pub offset: f64,      // kept where normal · p + offset >= 0
-    pub origin: [f64; 3], // a point on the plane, where the hatch starts
-    pub hatch: [f64; 3],  // unit direction across the hatch lines, in the plane
-}
-
-impl ClipPlane {
-    /// Signed distance of world point `p`; below zero is cut away.
-    pub fn distance(&self, p: [f64; 3]) -> f64 {
-        dot(self.normal, p) + self.offset
-    }
-
-
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -409,97 +222,44 @@ impl Mode {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87sa-describe-clipping-construction-choices-once-typed-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87sb-construct-and-reverse-original-clipping-planes"></a>
 
 ### Step 3 of 38 · Construct and reverse original clipping planes (`87sb-construct-and-reverse-original-clipping-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/38 Visual Trace (87sb-construct-and-reverse-original-clipping-planes): Construct and reverse original clipping planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Plane</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked construction and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world half-space</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later GPU uniform</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world half-space</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later GPU uniform</text>
 </svg>
-</div>
-
-- **Goal:** Construct and reverse original clipping planes.
-- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
-- **Files You Touch:** `src/clipping_geometry.rs` (*Construct and reverse original clipping planes.*)
 
 Reject the wrong point count before reading the coordinates.
 
 For a normal construction, ask the Session kernel for a perpendicular frame. For three points, reject a zero direction or near-collinear cross product, then normalize the axes. The named world modes use fixed right-handed axes. Store the display rectangle size in the in-plane axes while keeping the normal direction separate. Flip by cloning and reversing the original Plane, preserving its source identity.
 
-> **Self-Check Question:** *Why does the rectangle size not change the cut side?*  
-> **Answer:** Its half size scales the in-plane axes. The normalized perpendicular direction determines which side is cut; the GPU half-space is derived later.
-
-- **Hands-On Lab Experiment:** Compare Normal from (0,0,0) towards (0,0,1) with XY at the origin. Predict their frames and the effect of Flip.
-
-<details>
-<summary>Implementation 87sb-construct-and-reverse-original-clipping-planes: Construct and reverse original clipping planes</summary>
-
-Construct and reverse original clipping planes.
-
-Data flow: original Plane → checked construction and placement → world half-space → later GPU uniform.
+> **Check:** *Why does the rectangle size not change the cut side?* — Its half size scales the in-plane axes. The normalized perpendicular direction determines which side is cut; the GPU half-space is derived later.
 
 ### 1. `src/clipping_geometry.rs`
 
 Construct and reverse original clipping planes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                "Second point: toward the side to remove; origin-to-point sets the perpendicular direction (e.g. @0,0,1 removes above)",
-            ],
-            Mode::Points => &[
-                "First point",
-                "Second point, along the plane",
-                "Third point: the cut side follows the right-hand rule",
-            ],
-            Mode::Xy => &["Origin point: the +Z side is cut away"],
-            Mode::Yz => &["Origin point: the +X side is cut away"],
-            Mode::Zx => &["Origin point: the +Y side is cut away"],
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -569,102 +329,44 @@ pub fn flipped(plane: &Plane) -> Plane {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87sb-construct-and-reverse-original-clipping-planes-typed-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes"></a>
 
 ### Step 4 of 38 · Derive placed world half-spaces from original planes (`87sc-derive-placed-world-half-spaces-from-original-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/38 Visual Trace (87sc-derive-placed-world-half-spaces-from-original-planes): Derive placed world half-spaces from original planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original Plane</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked construction and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world half-space</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later GPU uniform</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_geometry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world half-space</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later GPU uniform</text>
 </svg>
-</div>
-
-- **Goal:** Derive placed world half-spaces from original planes.
-- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
-- **Files You Touch:** `src/clipping_geometry.rs` (*Derive placed world half-spaces from original planes.*)
 
 Transform the original origin and the two in-plane axes through the current placement.
 
 Their cross product supplies the correctly placed perpendicular, including a mirrored placement. Reject a collapsed rectangle or non-finite origin, then point the unit normal toward the kept side and derive its offset. Compute the hatch direction in the plane from the transformed axes. The following row collector bounds the visible world planes before uniform projection.
 
-> **Self-Check Question:** *Why cross the transformed in-plane axes instead of transforming the source normal directly?*  
-> **Answer:** A non-uniform or mirrored placement changes the perpendicular and orientation. The transformed axes define the actual placed plane.
-
-- **Hands-On Lab Experiment:** Trace a mirrored scale and a collapsed in-plane axis. Predict the kept normal, offset and rejected plane.
-
-<details>
-<summary>Implementation 87sc-derive-placed-world-half-spaces-from-original-planes: Derive placed world half-spaces from original planes</summary>
-
-Derive placed world half-spaces from original planes.
-
-Data flow: original Plane → checked construction and placement → world half-space → later GPU uniform.
+> **Check:** *Why cross the transformed in-plane axes instead of transforming the source normal directly?* — A non-uniform or mirrored placement changes the perpendicular and orientation. The transformed axes define the actual placed plane.
 
 ### 1. `src/clipping_geometry.rs`
 
 Derive placed world half-spaces from original planes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Mode::Zx => ([0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]),
-    };
-    let mut plane = Plane::from_frame(
-        Point::new(origin[0], origin[1], origin[2]),
-        Vector::new(x[0] * half, x[1] * half, x[2] * half),
-        Vector::new(y[0] * half, y[1] * half, y[2] * half),
-        Vector::new(z[0], z[1], z[2]),
-    );
-    plane.name = NAME.into();
-    Ok(plane)
-}
-
-/// The plane turned around: the other side is cut away.
-pub fn flipped(plane: &Plane) -> Plane {
-    let mut plane = plane.clone();
-    plane.reverse();
-    plane
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -697,19 +399,7 @@ pub fn clip_plane(plane: &Plane, place: &Xform) -> Option<ClipPlane> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87sc-derive-placed-world-half-spaces-from-original-planes-typed-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -717,92 +407,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply independent construction, placement and degenerate-frame fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-vector(&plane.y_axis()));
-    let cut = cross(x, y);
-
-    if !(length(cut) > 1e-300) || !origin.iter().all(|v| v.is_finite()) {
-        return None;
-    }
-
-    let normal = unit(cut).map(|v| -v);
-    // across the 45 degree lines, in the plane
-    let across = sub(unit(x), unit(y));
-    let hatch = if length(across) > 1e-9 {
-        unit(across)
-    } else {
-        unit(x)
-    };
-    Some(ClipPlane {
-        normal,
-        offset: -dot(normal, origin),
-        origin,
-        hatch,
-    })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/87sc-derive-placed-world-half-spaces-from-original-planes-typed-2.rs" skip=500
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87a-gather-six-visible-original-world-planes"></a>
 
 ### Step 5 of 38 · Gather six visible original world planes (`87a-gather-six-visible-original-world-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/38 Visual Trace (87a-gather-six-visible-original-world-planes): Gather six visible original world planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_rows.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_rows.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Gather six visible original world planes.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/clipping_rows.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 Gather six visible original world planes.
 
-> **Self-Check Question:** *Does locking a plane disable cutting?*  
-> **Answer:** No. Visibility controls cutting; locking controls picking. Gather its world frame without changing original coordinates.
-
-- **Hands-On Lab Experiment:** Compare hidden, locked and placed planes, the six-plane ceiling and derived preview size.
-
-<details>
-<summary>Implementation 87a-gather-six-visible-original-world-planes: Gather six visible original world planes</summary>
-
-Gather six visible original world planes.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does locking a plane disable cutting?* — No. Visibility controls cutting; locking controls picking. Gather its world frame without changing original coordinates.
 
 ### 1. `src/clipping_rows.rs`
 
@@ -818,75 +460,46 @@ Create the file and type:
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod clipping_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/87a-gather-six-visible-original-world-planes-02.rs" skip=28
 ```
 
-</details>
+---
 
 <a id="checkpoint-87b-copy-the-maintained-clipping-uniform-layout"></a>
 
 ### Step 6 of 38 · Pack the clipping uniform with explicit byte offsets (`87b-copy-the-maintained-clipping-uniform-layout`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/38 Visual Trace (87b-copy-the-maintained-clipping-uniform-layout): Pack the clipping uniform with explicit byte offsets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_uniform.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_uniform.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Match six-plane CPU storage to the later WGSL layout without losing original f64 data.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/clipping_uniform.rs` (*Write the fixed arrays, scalar fields and explicit padding for the shared GPU layout.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 The GPU reads a byte layout, not a Rust object.
 
 Group six vec4 plane coefficients, screen coefficients and homogeneous hatch rows in fixed arrays. Keep eye-side values in two vec4 rows. Follow with eight scalar words so the complete uniform occupies 448 bytes. Use repr(C) and explicit padding; the field offsets beside the code let you compare Rust storage with the WGSL declaration written later.
 
-ClipView borrows the current camera matrix and provides the anchor, framebuffer height, CSS density and sample count. It does not own or replace the original clipping planes. The next lessons fill this layout in f64 and convert only the final GPU coefficients to f32.
-
-> **Self-Check Question:** *Why do six eye-side values occupy eight scalar slots?*  
-> **Answer:** Two vec4 rows occupy 32 bytes. Keeping that aligned representation gives the same offsets in Rust and WGSL; the last two scalar slots remain unused.
-
-- **What You Should See:** The browser still shows the preceding finite-ink drawing. The clipping uniform layout now compiles; its plane coefficients and visible cutting behavior connect in the following lessons.
-- **Hands-On Lab Experiment:** Calculate the offset of count from the preceding arrays, then calculate the total size through the padding. Compare those offsets with the later WGSL ClipUniform.
-
-<details>
-<summary>Implementation 87b-copy-the-maintained-clipping-uniform-layout: Pack the clipping uniform with explicit byte offsets</summary>
-
-Match six-plane CPU storage to the later WGSL layout without losing original f64 data.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Why do six eye-side values occupy eight scalar slots?* — Two vec4 rows occupy 32 bytes. Keeping that aligned representation gives the same offsets in Rust and WGSL; the last two scalar slots remain unused.
 
 ### 1. `src/clipping_uniform.rs`
 
@@ -919,34 +532,9 @@ pub struct ClipUniform {
 pub struct ClipView<'a>{pub view_proj:&'a Xform,pub anchor:[f64;3],pub height:u32,pub pixel_scale:f64,pub samples:u32,pub forward_depth:bool}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87b-copy-the-maintained-clipping-uniform-layout-01.rs"
-```
-
-```text
---8<-- "journey/code/87b-copy-the-maintained-clipping-uniform-layout-02.rs"
-```
-
-</details>
-
 ### 2. `src/lib.rs`
 
 Register the completed source owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod clipping_rows;
-```
-
-</details>
 
 After that block, type:
 
@@ -954,71 +542,46 @@ After that block, type:
 --8<-- "journey/code/87b-copy-the-maintained-clipping-uniform-layout-03.rs" skip=24
 ```
 
-</details>
+**Result after `87b-copy-the-maintained-clipping-uniform-layout`:** The browser still shows the preceding finite-ink drawing. The clipping uniform layout now compiles; its plane coefficients and visible cutting behavior connect in the following lessons.
+
+---
 
 <a id="checkpoint-87c-copy-conditioned-screen-and-hatch-projections"></a>
 
 ### Step 7 of 38 · Condition the camera inverse for clipping (`87c-copy-conditioned-screen-and-hatch-projections`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/38 Visual Trace (87c-copy-conditioned-screen-and-hatch-projections): Condition the camera inverse for clipping</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_uniform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_uniform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Scale matrix rows before inversion and undo that scaling on the inverse.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clipping_uniform.rs` (*Scale matrix rows before inversion and undo that scaling on the inverse.*)
 
 A clipping plane must be transformed into the current screen coordinates.
 
 A badly scaled camera matrix can make a direct inverse fail. Normalize each row by its largest coefficient, reject non-normal scales, then rescale the inverse columns. Keep the calculation in f64; the GPU receives f32 only after the projection is prepared.
 
-> **Self-Check Question:** *Why does undoing row scaling change inverse columns?*  
-> **Answer:** For A = D B, A⁻¹ = B⁻¹ D⁻¹. The diagonal factor is on the right of the inverse, so it scales its columns.
-
-- **What You Should See:** The cumulative browser application still shows the preceding drawing. This is shader and uniform preparation; the following pipeline lessons connect its visible behavior.
-- **Hands-On Lab Experiment:** Trace a diagonal matrix whose four row scales differ. Predict the inverse entries and the zero-row rejection.
-
-<details>
-<summary>Implementation 87c-copy-conditioned-screen-and-hatch-projections: Condition the camera inverse for clipping</summary>
-
-Scale matrix rows before inversion and undo that scaling on the inverse.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why does undoing row scaling change inverse columns?* — For A = D B, A⁻¹ = B⁻¹ D⁻¹. The diagonal factor is on the right of the inverse, so it scales its columns.
 
 ### 1. `src/clipping_uniform.rs`
 
 Scale matrix rows before inversion and undo that scaling on the inverse.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-pub struct ClipView<'a>{pub view_proj:&'a Xform,pub anchor:[f64;3],pub height:u32,pub pixel_scale:f64,pub samples:u32,pub forward_depth:bool}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1026,88 +589,46 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/87c-copy-conditioned-screen-and-hatch-projections-typed-1.rs"
 ```
 
-</details>
+**Result after `87c-copy-conditioned-screen-and-hatch-projections`:** The cumulative browser application still shows the preceding drawing. This is shader and uniform preparation; the following pipeline lessons connect its visible behavior.
+
+---
 
 <a id="checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane"></a>
 
 ### Step 8 of 38 · Project a stable hatch coordinate onto a plane (`87ca-project-a-stable-hatch-coordinate-onto-a-plane`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/38 Visual Trace (87ca-project-a-stable-hatch-coordinate-onto-a-plane): Project a stable hatch coordinate onto a plane</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_uniform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_uniform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Build homogeneous hatch numerator and denominator from the projected plane.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clipping_uniform.rs` (*Build homogeneous hatch numerator and denominator from the projected plane.*)
 
 Solve the screen plane for depth, then transform three screen columns back into anchor-relative world space.
 
 Dot their spatial components with the hatch direction. Keep the homogeneous w separately: perspective interpolation needs numerator divided by denominator. Wrap the distant anchor phase by a power-of-two period to preserve the local hatch position when converting to f32.
 
-> **Self-Check Question:** *Why keep hatch_w instead of storing one affine hatch coordinate?*  
-> **Answer:** Perspective division is not affine in screen space. The numerator and denominator must be evaluated at the fragment before division.
-
-- **Hands-On Lab Experiment:** Trace the three screen columns for an orthographic plane, then predict how a perspective denominator varies across the canvas.
-
-<details>
-<summary>Implementation 87ca-project-a-stable-hatch-coordinate-onto-a-plane: Project a stable hatch coordinate onto a plane</summary>
-
-Build homogeneous hatch numerator and denominator from the projected plane.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why keep hatch_w instead of storing one affine hatch coordinate?* — Perspective division is not affine in screen space. The numerator and denominator must be evaluated at the fragment before division.
 
 ### 1. `src/clipping_uniform.rs`
 
 Build homogeneous hatch numerator and denominator from the projected plane.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn inverse(m: &Xform) -> Option<Xform> {
-    let scales: [f64; 4] = std::array::from_fn(|row| {
-        (0..4)
-            .map(|col| m.m[col * 4 + row].abs())
-            .fold(0.0, f64::max)
-    });
-
-    if scales.iter().any(|scale| !scale.is_normal()) {
-        return None;
-    }
-
-    let mut inverse =
-        Xform::from_matrix(std::array::from_fn(|i| m.m[i] / scales[i % 4])).inverse()?;
-
-    for (i, value) in inverse.m.iter_mut().enumerate() {
-        *value /= scales[i / 4];
-    }
-
-    Some(inverse)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1141,93 +662,44 @@ fn hatch_projection(u: &mut ClipUniform, i: usize, plane: &ClipPlane, s: [f64; 4
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87ca-project-a-stable-hatch-coordinate-onto-a-plane-typed-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes"></a>
 
 ### Step 9 of 38 · Fill one bounded clipping uniform from original planes (`87cb-fill-one-bounded-clipping-uniform-from-original-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/38 Visual Trace (87cb-fill-one-bounded-clipping-uniform-from-original-planes): Fill one bounded clipping uniform from original planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_uniform.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_uniform.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Populate world and screen half-spaces and reuse the hatch projection helper.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clipping_uniform.rs` (*Populate world and screen half-spaces and reuse the hatch projection helper.*)
 
 Start with an empty uniform when there is no plane or no valid inverse.
 
 Bound the plane count by the existing six-plane layout. Translate original plane offsets relative to the camera anchor, transform the coefficients by the inverse, and record which side contains the eye. Convert CSS spacing and boundary widths into physical pixels once. Edge-on planes keep their half-space but receive no hatch projection.
 
-> **Self-Check Question:** *Why is an edge-on plane still retained?*  
-> **Answer:** It still clips geometry. Its screen depth cannot be solved when the depth coefficient is zero, so it cannot produce a section cap.
-
-- **Hands-On Lab Experiment:** Predict count, eye side and hatch rows for an empty list, an edge-on plane and a plane facing the camera.
-
-<details>
-<summary>Implementation 87cb-fill-one-bounded-clipping-uniform-from-original-planes: Fill one bounded clipping uniform from original planes</summary>
-
-Populate world and screen half-spaces and reuse the hatch projection helper.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why is an edge-on plane still retained?* — It still clips geometry. Its screen depth cannot be solved when the depth coefficient is zero, so it cannot produce a section cap.
 
 ### 1. `src/clipping_uniform.rs`
 
 Populate world and screen half-spaces and reuse the hatch projection helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let phase = dot(plane.hatch, from);
-        let phase = if period.is_normal() {
-            phase.rem_euclid(period)
-        } else {
-            phase
-        };
-
-        for (c, column) in columns.iter().enumerate() {
-            let h: [f64; 4] =
-                std::array::from_fn(|r| (0..4).map(|q| inverse.m[q * 4 + r] * column[q]).sum());
-            u.hatch[i][c] = (dot(plane.hatch, [h[0], h[1], h[2]]) + phase * h[3]) as f32;
-            u.hatch_w[i][c] = h[3] as f32;
-        }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1235,56 +707,40 @@ After that block, type:
 --8<-- "journey/code/87cb-fill-one-bounded-clipping-uniform-from-original-planes-typed-1.rs" skip=500
 ```
 
-</details>
+---
 
 <a id="checkpoint-87cc-match-the-clipping-uniform-and-sample-conventions"></a>
 
 ### Step 10 of 38 · Match the clipping uniform and sample conventions (`87cc-match-the-clipping-uniform-and-sample-conventions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/38 Visual Trace (87cc-match-the-clipping-uniform-and-sample-conventions): Match the clipping uniform and sample conventions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clip.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clip.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Match the Rust layout and define shared specialization and sample constants.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clip.wgsl` (*Match the Rust layout and define shared specialization and sample constants.*)
 
 Write the WGSL layout already defined in Rust, including explicit padding and fixed six-plane arrays.
 
 Use the clipping override to remove inactive tests at pipeline specialization. Preserve the existing flags and reserved cap marker range, and define the four WebGPU sample offsets once for every pass that shares clipping coverage.
 
-> **Self-Check Question:** *Why preserve field order and padding?*  
-> **Answer:** The bind group exposes bytes, not Rust field names. WGSL must read the same offsets and total size that Rust writes.
-
-- **Hands-On Lab Experiment:** Locate count at byte 416 and compare the remaining scalar fields with ClipUniform in Rust.
-
-<details>
-<summary>Implementation 87cc-match-the-clipping-uniform-and-sample-conventions: Match the clipping uniform and sample conventions</summary>
-
-Match the Rust layout and define shared specialization and sample constants.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why preserve field order and padding?* — The bind group exposes bytes, not Rust field names. WGSL must read the same offsets and total size that Rust writes.
 
 ### 1. `src/clip.wgsl`
 
@@ -1296,81 +752,42 @@ Create the file and type:
 --8<-- "journey/code/87cc-match-the-clipping-uniform-and-sample-conventions-typed-1.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87cd-apply-shared-original-half-space-tests"></a>
 
 ### Step 11 of 38 · Apply shared original half-space tests (`87cd-apply-shared-original-half-space-tests`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/38 Visual Trace (87cd-apply-shared-original-half-space-tests): Apply shared original half-space tests</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clip.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clip.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Reject points or segments on the cut side while preserving plane display rows.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clip.wgsl` (*Reject points or segments on the cut side while preserving plane display rows.*)
 
 A scale-relative slack keeps coincident faces classified consistently in f32. Plane display rows are exempt from their own clipping. A segment is fully rejected only when the same plane cuts both endpoints. These predicates use anchor-relative scene coordinates; screen sample coverage follows next.
 
-> **Self-Check Question:** *Why must both endpoints fail the same plane?*  
-> **Answer:** Endpoints can fail different planes while the segment between them crosses the kept region. Rejecting that segment would remove visible geometry.
-
-- **Hands-On Lab Experiment:** Evaluate two endpoints outside different half-spaces, then two endpoints outside the same half-space. Predict clip_cut_both.
-
-<details>
-<summary>Implementation 87cd-apply-shared-original-half-space-tests: Apply shared original half-space tests</summary>
-
-Reject points or segments on the cut side while preserving plane display rows.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why must both endpoints fail the same plane?* — Endpoints can fail different planes while the segment between them crosses the kept region. Rejecting that segment would remove visible geometry.
 
 ### 1. `src/clip.wgsl`
 
 Reject points or segments on the cut side while preserving plane display rows.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-// What a selected solid's crossing counts, so one count says inside and selected; fewer unselected solids nest.
-const SELECTED_CROSSING: f32 = 64.0;
-
-// Sample offsets from the pixel center at 4x, where WebGPU puts the samples.
-const CLIP_OFFSETS = array<vec2<f32>, 4>(
-    vec2<f32>(-0.125, -0.375),
-    vec2<f32>(0.375, -0.125),
-    vec2<f32>(-0.375, 0.125),
-    vec2<f32>(0.125, 0.375),
-);
-
-// True while a clipping plane cuts; a constant false where CLIPPING is.
-fn clip_active() -> bool {
-    return CLIPPING && clipping.count != 0u;
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1418,102 +835,44 @@ fn clip_cut_both(flags: u32, a: vec3<f32>, b: vec3<f32>) -> bool {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87cd-apply-shared-original-half-space-tests-typed-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space"></a>
 
 ### Step 12 of 38 · Compute clipping coverage in framebuffer sample space (`87ce-compute-clipping-coverage-in-framebuffer-sample-space`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/38 Visual Trace (87ce-compute-clipping-coverage-in-framebuffer-sample-space): Compute clipping coverage in framebuffer sample space</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clip.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clip.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Convert framebuffer pixels to NDC and form per-sample half-space masks.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clip.wgsl` (*Convert framebuffer pixels to NDC and form per-sample half-space masks.*)
 
 Reuse the projected plane coefficients for screen-space tests.
 
 Convert top-left framebuffer coordinates to WebGPU NDC with the y direction reversed. At four samples, evaluate the signed plane value at the fixed WebGPU sample offsets and combine planes with bitwise AND. Compute derivatives before control-flow branches so neighboring fragments provide a valid gradient.
 
-> **Self-Check Question:** *Why is clipping coverage a bit mask?*  
-> **Answer:** Each bit represents one sample. Intersecting half-spaces retains only samples kept by every plane; averaging first would lose their correspondence.
-
-- **Hands-On Lab Experiment:** For a plane crossing the pixel center with an x gradient, calculate the four kept bits. Compare with single-sample coverage.
-
-<details>
-<summary>Implementation 87ce-compute-clipping-coverage-in-framebuffer-sample-space: Compute clipping coverage in framebuffer sample space</summary>
-
-Convert framebuffer pixels to NDC and form per-sample half-space masks.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why is clipping coverage a bit mask?* — Each bit represents one sample. Intersecting half-spaces retains only samples kept by every plane; averaging first would lose their correspondence.
 
 ### 1. `src/clip.wgsl`
 
 Convert framebuffer pixels to NDC and form per-sample half-space masks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    for (var i = 0u; i < clipping.count; i++) {
-        if (clip_distance(i, p) < 0.0) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// True when one plane cuts both `a` and `b` away.
-fn clip_cut_both(flags: u32, a: vec3<f32>, b: vec3<f32>) -> bool {
-    if ((flags & FLAG_CLIPPING_PLANE) != 0u) {
-        return false;
-    }
-
-    for (var i = 0u; i < clipping.count; i++) {
-        if (clip_distance(i, a) < 0.0 && clip_distance(i, b) < 0.0) {
-            return true;
-        }
-    }
-
-    return false;
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1569,98 +928,44 @@ fn clip_mask(flags: u32, p: vec3<f32>) -> u32 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87ce-compute-clipping-coverage-in-framebuffer-sample-space-typed-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87cf-address-section-depth-and-original-cap-records"></a>
 
 ### Step 13 of 38 · Address section depth and original cap records (`87cf-address-section-depth-and-original-cap-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/38 Visual Trace (87cf-address-section-depth-and-original-cap-records): Address section depth and original cap records</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clip.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clipping plane</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchor-relative projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared pixel and sample coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clip.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchor-relative project…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel and sample…</text>
 </svg>
-</div>
-
-- **Goal:** Solve section depth and preserve the reserved cap and pick address conventions.
-- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
-- **Files You Touch:** `src/clip.wgsl` (*Solve section depth and preserve the reserved cap and pick address conventions.*)
 
 A section lies on an original clipping plane.
 
 Solve its depth from the screen plane, then derive its depth change per framebuffer pixel. Reserve the existing high primitive range for caps and recover the plane index from that marker. Flatten plane, row, column and the four-word pick record in the same order as the storage allocation. The next lessons assemble these shared predicates into real color and integer pipelines.
 
-> **Self-Check Question:** *Why does the pick address include the plane index?*  
-> **Answer:** Several clipping planes can cover the same pixel. Each plane needs separate crossing counts and original owner evidence.
-
-- **Hands-On Lab Experiment:** Calculate the first word for plane 2, pixel (3,4), and a 10×8 target. Check its four-word alignment.
-
-<details>
-<summary>Implementation 87cf-address-section-depth-and-original-cap-records: Address section depth and original cap records</summary>
-
-Solve section depth and preserve the reserved cap and pick address conventions.
-
-Data flow: original clipping plane → anchor-relative projection → shared pixel and sample coverage.
+> **Check:** *Why does the pick address include the plane index?* — Several clipping planes can cover the same pixel. Each plane needs separate crossing counts and original owner evidence.
 
 ### 1. `src/clip.wgsl`
 
 Solve section depth and preserve the reserved cap and pick address conventions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-        if (value + dot(slope, CLIP_OFFSETS[k]) >= 0.0) {
-            mask |= 1u << k;
-        }
-    }
-
-    return mask;
-}
-
-// Samples no plane cuts from a surface through `p`; it takes derivatives, so call it before any branch.
-fn clip_mask(flags: u32, p: vec3<f32>) -> u32 {
-    var mask = 0xffffffffu;
-
-    for (var i = 0u; i < clipping.count; i++) {
-        let s = clip_distance(i, p);
-        mask &= clip_samples(s, vec2<f32>(dpdx(s), dpdy(s)));
-    }
-
-    return select(mask, 0xffffffffu, (flags & FLAG_CLIPPING_PLANE) != 0u);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1700,65 +1005,38 @@ fn clip_pick_word(plane: u32, px: vec2<f32>, size: vec2<u32>) -> u32 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87cf-address-section-depth-and-original-cap-records-typed-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches"></a>
 
 ### Step 14 of 38 · Parse strict clipping modes and presentation switches (`87d-parse-strict-clipping-modes-and-presentation-switches`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/38 Visual Trace (87d-parse-strict-clipping-modes-and-presentation-switches): Parse strict clipping modes and presentation switches</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_input.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_input.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Parse strict clipping modes and presentation switches.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/clipping_input.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 Parse strict clipping modes and presentation switches.
 
-> **Self-Check Question:** *Should Fill change the original Plane?*  
-> **Answer:** No. On,Off,Hatch,Solid and Fill change presentation. Coordinates and mode arity are validated before source adoption.
-
-- **Hands-On Lab Experiment:** Try incomplete modes, nonfinite/out-of-range coordinates and extra words.
-
-<details>
-<summary>Implementation 87d-parse-strict-clipping-modes-and-presentation-switches: Parse strict clipping modes and presentation switches</summary>
-
-Parse strict clipping modes and presentation switches.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Should Fill change the original Plane?* — No. On,Off,Hatch,Solid and Fill change presentation. Coordinates and mode arity are validated before source adoption.
 
 ### 1. `src/clipping_input.rs`
 
@@ -1774,70 +1052,44 @@ Create the file and type:
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod clipping_uniform;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/87d-parse-strict-clipping-modes-and-presentation-switches-02.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts"></a>
 
 ### Step 15 of 38 · Preserve mode prefixes in generic point drafts (`87e-preserve-mode-prefixes-in-generic-point-drafts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/38 Visual Trace (87e-preserve-mode-prefixes-in-generic-point-drafts): Preserve mode prefixes in generic point drafts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Preserve mode prefixes in generic point drafts.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/tool.rs` (*Connect matching source ownership and derived clipping.*)
 
 Preserve mode prefixes in generic point drafts.
 
-> **Self-Check Question:** *Can a two-word mode prefix enter the coordinate parser?*  
-> **Answer:** No. Slice the complete command prefix before resolving the saved world points.
-
-- **Hands-On Lab Experiment:** Compare typed XY and Normal points with click input and their distinct prompts.
-
-<details>
-<summary>Implementation 87e-preserve-mode-prefixes-in-generic-point-drafts: Preserve mode prefixes in generic point drafts</summary>
-
-Preserve mode prefixes in generic point drafts.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can a two-word mode prefix enter the coordinate parser?* — No. Slice the complete command prefix before resolving the saved world points.
 
 ### 1. `src/tool.rs`
 
@@ -1845,8 +1097,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn finish(&self) -> Result<Built,&'static str> { self.build_world(&self.points) }
@@ -1861,8 +1112,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.tool.build_on_plane(&world,self.frame)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1880,8 +1129,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Draft {
@@ -1891,8 +1139,6 @@ impl Draft {
         if self.plane_points.is_none(){if let Some(p)=&self.project{return p.prompt()}if let Some(e)=&self.extend{return e.prompt()}}
         if self.plane_points.is_none(){if let Some(gather)=&self.gather{return gather.prompt()}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1906,8 +1152,7 @@ impl Draft {
         if self.plane_points.is_none(){if let Some(gather)=&self.gather{return gather.prompt()}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1917,8 +1162,6 @@ pub trait Tool: std::fmt::Debug {
     fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str>;
     fn build_on_plane(&self,points:&[[f64;3]],_plane:crate::cplane::CPlane)->Result<Built,&'static str> {self.build(points)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1933,8 +1176,7 @@ pub trait Tool: std::fmt::Debug {
     fn build_on_plane(&self,points:&[[f64;3]],_plane:crate::cplane::CPlane)->Result<Built,&'static str> {self.build(points)}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -2070,75 +1312,38 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87e-preserve-mode-prefixes-in-generic-point-drafts-01.rs"
-```
-
-```text
---8<-- "journey/code/87e-preserve-mode-prefixes-in-generic-point-drafts-02.rs"
-```
-
-```text
---8<-- "journey/code/87e-preserve-mode-prefixes-in-generic-point-drafts-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87f-build-original-clipping-planes-through-the-shared-tool"></a>
 
 ### Step 16 of 38 · Build original clipping planes through the shared tool (`87f-build-original-clipping-planes-through-the-shared-tool`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/38 Visual Trace (87f-build-original-clipping-planes-through-the-shared-tool): Build original clipping planes through the shared tool</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_tool.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_tool.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Build original clipping planes through the shared tool.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/clipping_tool.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 Build original clipping planes through the shared tool.
 
-> **Self-Check Question:** *Does a preview acquire a source row?*  
-> **Answer:** No. The generic draft draws temporary outline points; only an accepted original Plane is adopted.
-
-- **Hands-On Lab Experiment:** Compare mode point counts, equal/collinear refusal, mode chips and Escape.
-
-<details>
-<summary>Implementation 87f-build-original-clipping-planes-through-the-shared-tool: Build original clipping planes through the shared tool</summary>
-
-Build original clipping planes through the shared tool.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does a preview acquire a source row?* — No. The generic draft draws temporary outline points; only an accepted original Plane is adopted.
 
 ### 1. `src/clipping_tool.rs`
 
@@ -2154,70 +1359,44 @@ Create the file and type:
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod clipping_input;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/87f-build-original-clipping-planes-through-the-shared-tool-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-87g-own-clipping-presentation-and-one-history-transaction"></a>
 
 ### Step 17 of 38 · Own clipping presentation and one history transaction (`87g-own-clipping-presentation-and-one-history-transaction`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/38 Visual Trace (87g-own-clipping-presentation-and-one-history-transaction): Own clipping presentation and one history transaction</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Own clipping presentation and one history transaction.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/editor.rs` (*Own presentation state and checked original-plane edits before command routing.*)
 
 Own clipping presentation and one history transaction.
 
-> **Self-Check Question:** *Does Flip rewrite the display mesh?*  
-> **Answer:** No. Flip replaces selected original Plane frames in one checked scene transaction; Undo restores their exact sides.
-
-- **Hands-On Lab Experiment:** Inspect source freshness, selected original owners and validation before cancelling a pending draft.
-
-<details>
-<summary>Implementation 87g-own-clipping-presentation-and-one-history-transaction: Own clipping presentation and one history transaction</summary>
-
-Own clipping presentation and one history transaction.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does Flip rewrite the display mesh?* — No. Flip replaces selected original Plane frames in one checked scene transaction; Undo restores their exact sides.
 
 ### 1. `src/editor.rs`
 
@@ -2225,8 +1404,7 @@ Own presentation state and checked original-plane edits before command routing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2236,8 +1414,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if let Some(label)=self.draft.as_mut().filter(|d|d.plane_points.is_none()).and_then(|d|d.text.as_mut()){if label.asking||text.split_whitespace().next().is_some_and(|w|w.eq_ignore_ascii_case("Height")){label.height(text)?;self.tool_status=label.prompt();return Ok(Change::View)}}
         if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2265,8 +1441,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -2278,8 +1453,6 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2292,8 +1465,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2303,8 +1475,6 @@ pub struct Editor {
     pub lasso:Option<crate::lasso::Lasso>,
     pub trim:Option<crate::trim_draft::Draft>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2318,8 +1488,7 @@ pub struct Editor {
     pub trim:Option<crate::trim_draft::Draft>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3475,75 +2644,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87g-own-clipping-presentation-and-one-history-transaction-01.rs"
-```
-
-```text
---8<-- "journey/code/87g-own-clipping-presentation-and-one-history-transaction-02.rs"
-```
-
-```text
---8<-- "journey/code/87g-own-clipping-presentation-and-one-history-transaction-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87h-route-clipping-plane-and-preserve-pending-points"></a>
 
 ### Step 18 of 38 · Route Clipping Plane and preserve pending points (`87h-route-clipping-plane-and-preserve-pending-points`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/38 Visual Trace (87h-route-clipping-plane-and-preserve-pending-points): Route Clipping Plane and preserve pending points</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/primitive_geometry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Route Clipping Plane and preserve pending points.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/editor.rs` (*Connect matching source ownership and derived clipping.*) · `src/commands.rs` (*Connect matching source ownership and derived clipping.*) · `src/primitive_geometry.rs` (*Connect matching source ownership and derived clipping.*)
 
 Route Clipping Plane and preserve pending points.
 
-> **Self-Check Question:** *Should changing view or Fill erase pending points?*  
-> **Answer:** No. Keep the existing draft; a mode change starts its own required point count and Escape cancels it.
-
-- **Hands-On Lab Experiment:** Use Clipping Plane XY, enter a point, then Flip,Undo,Off and On. Fill controls are retained for88 section drawing.
-
-<details>
-<summary>Implementation 87h-route-clipping-plane-and-preserve-pending-points: Route Clipping Plane and preserve pending points</summary>
-
-Route Clipping Plane and preserve pending points.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Should changing view or Fill erase pending points?* — No. Keep the existing draft; a mode change starts its own required point count and Escape cancels it.
 
 ### 1. `src/editor.rs`
 
@@ -3551,8 +2683,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
@@ -3562,8 +2693,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
             Action::LassoPress{..}|Action::LassoMove{..}|Action::LassoRelease{..}=>unreachable!(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3577,8 +2706,7 @@ Replace it with:
             Action::LassoPress{..}|Action::LassoMove{..}|Action::LassoRelease{..}=>unreachable!(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             crate::tool::Built::Measured(_)=>unreachable!("Measurement changes no original geometry"),
@@ -3587,8 +2715,6 @@ Replace it with:
         self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3601,8 +2727,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3612,8 +2737,6 @@ Replace it with:
         if self.mark.is_some()&&text.trim().eq_ignore_ascii_case("Escape"){return Some(Ok(Action::CancelTool))}
         if self.split.is_some(){return match text.trim(){""=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Split")=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelSplit)),_=>None}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3627,8 +2750,7 @@ Replace it with:
         if self.split.is_some(){return match text.trim(){""=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Split")=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelSplit)),_=>None}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3638,8 +2760,6 @@ pub enum Action {
     AddGroup(String),AddEdge,
     StreamRefresh,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3653,8 +2773,7 @@ pub enum Action {
     StreamRefresh,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4814,39 +3933,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-01.rs"
-```
-
-```text
---8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-02.rs"
-```
-
-```text
---8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-03.rs"
-```
-
-```text
---8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-04.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
@@ -4856,8 +3949,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if matches!(name,"Arrow"|"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
         let shape=match name {"Arrow"=>crate::tool::Shape::Arrow,"Point"=>crate::tool::Shape::Point,"Curve"=>crate::tool::Shape::Curve,"Line"=>crate::tool::Shape::Line,"Polyline Rectangle"=>crate::tool::Shape::Rectangle,"Polyline Polygon"=>crate::tool::Shape::Polygon {sides:6},_=>crate::tool::Shape::Polyline};
 ```
-
-</details>
 
 Replace it with:
 
@@ -4871,8 +3962,7 @@ Replace it with:
         let shape=match name {"Arrow"=>crate::tool::Shape::Arrow,"Point"=>crate::tool::Shape::Point,"Curve"=>crate::tool::Shape::Curve,"Line"=>crate::tool::Shape::Line,"Polyline Rectangle"=>crate::tool::Shape::Rectangle,"Polyline Polygon"=>crate::tool::Shape::Polygon {sides:6},_=>crate::tool::Shape::Polyline};
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
@@ -4882,8 +3972,6 @@ Replace it with:
     ("Hide",||Action::Hide),
     ("Show",||Action::Show),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4897,8 +3985,7 @@ Replace it with:
     ("Show",||Action::Show),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -5110,38 +4197,9 @@ fn command_alias(line:&str)->String{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-05.rs"
-```
-
-```text
---8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-06.rs"
-```
-
-</details>
-
 ### 3. `src/primitive_geometry.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn insert(scene:&mut Scene,geometry:Geometry)->Result<ObjectId,&'static str> {
-    match geometry {
-        Geometry::NurbsSurface(source)=>scene.insert_surface(source),
-        Geometry::BRep(source)=>scene.insert_cad(source),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5149,54 +4207,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/87h-route-clipping-plane-and-preserve-pending-points-07.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87i-own-one-shared-clipping-gpu-uniform"></a>
 
 ### Step 19 of 38 · Own one shared clipping GPU uniform (`87i-own-one-shared-clipping-gpu-uniform`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/38 Visual Trace (87i-own-one-shared-clipping-gpu-uniform): Own one shared clipping GPU uniform</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_gpu.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Own one shared clipping GPU uniform.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/clipping_gpu.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
 
 Own one shared clipping GPU uniform.
 
-> **Self-Check Question:** *Do each of the drawing families need another448-byte buffer?*  
-> **Answer:** No. One owner caches the current encoded bytes and lends its uniform binding to color, picks and derived caches.
-
-- **Hands-On Lab Experiment:** Compare actual buffer allocation, identical-frame writes and truthful row-gathering errors.
-
-<details>
-<summary>Implementation 87i-own-one-shared-clipping-gpu-uniform: Own one shared clipping GPU uniform</summary>
-
-Own one shared clipping GPU uniform.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Do each of the drawing families need another448-byte buffer?* — No. One owner caches the current encoded bytes and lends its uniform binding to color, picks and derived caches.
 
 ### 1. `src/clipping_gpu.rs`
 
@@ -5212,70 +4254,44 @@ Create the file and type:
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod clipping_tool;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/87i-own-one-shared-clipping-gpu-uniform-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-87j-retain-clipping-state-beside-the-renderer"></a>
 
 ### Step 20 of 38 · Retain clipping state beside the renderer (`87j-retain-clipping-state-beside-the-renderer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/38 Visual Trace (87j-retain-clipping-state-beside-the-renderer): Retain clipping state beside the renderer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Retain clipping state beside the renderer.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/renderer.rs` (*Own current clipping independently of original uploads.*)
 
 Retain clipping state beside the renderer.
 
-> **Self-Check Question:** *Does changing clipping upload original mesh vertices?*  
-> **Answer:** No. Update the shared derived uniform and gather current original planes; original geometry ownership stays unchanged.
-
-- **Hands-On Lab Experiment:** Inspect the448-byte allocation and original row/model inputs before wiring drawing passes.
-
-<details>
-<summary>Implementation 87j-retain-clipping-state-beside-the-renderer: Retain clipping state beside the renderer</summary>
-
-Retain clipping state beside the renderer.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does changing clipping upload original mesh vertices?* — No. Update the shared derived uniform and gather current original planes; original geometry ownership stays unchanged.
 
 ### 1. `src/renderer.rs`
 
@@ -5283,8 +4299,7 @@ Own current clipping independently of original uploads.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn sheet_camera(&self,camera:&crate::camera::Camera) {self.sheets.camera(camera);}
@@ -5294,8 +4309,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
     pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
 ```
-
-</details>
 
 Replace it with:
 
@@ -5311,8 +4324,7 @@ Replace it with:
     pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -5322,8 +4334,6 @@ Replace it with:
         self.picker.cancel(); self.faces.clear();
         self.preview.set(&self.device, None).expect("Empty tool preview");
 ```
-
-</details>
 
 Replace it with:
 
@@ -5337,8 +4347,7 @@ Replace it with:
         self.preview.set(&self.device, None).expect("Empty tool preview");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -5349,8 +4358,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -5364,8 +4371,7 @@ Replace it with:
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5375,8 +4381,6 @@ pub struct Renderer {
     guides:crate::guide_gpu::Guide,
     measurement:crate::measure_gpu::Measurement,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5390,8 +4394,7 @@ pub struct Renderer {
     measurement:crate::measure_gpu::Measurement,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5879,98 +4882,42 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87j-retain-clipping-state-beside-the-renderer-01.rs"
-```
-
-```text
---8<-- "journey/code/87j-retain-clipping-state-beside-the-renderer-02.rs"
-```
-
-```text
---8<-- "journey/code/87j-retain-clipping-state-beside-the-renderer-03.rs"
-```
-
-```text
---8<-- "journey/code/87j-retain-clipping-state-beside-the-renderer-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87k-prepare-shared-clipping-shader-declarations"></a>
 
 ### Step 21 of 38 · Prepare shared clipping shader declarations (`87k-prepare-shared-clipping-shader-declarations`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/38 Visual Trace (87k-prepare-shared-clipping-shader-declarations): Prepare shared clipping shader declarations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_pipeline.rs, src/face_pick.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_pipeline.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Prepare shared clipping shader declarations.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/pick_pipeline.rs` (*Connect matching source ownership and derived clipping.*) · `src/face_pick.rs` (*Declare the shared predicate before connecting face clipping.*)
 
 Prepare shared clipping shader declarations. Keep the existing pick layout until the integer draw binds the new uniform in 87n.
 
-> **Self-Check Question:** *Can an unused color entry still name an undeclared clipping uniform?*  
-> **Answer:** No. Assemble the shared declarations in the mesh-pick and face modules before their common triangle recipe starts using clipping.
-
-- **Hands-On Lab Experiment:** Compare explicit pick group3 and face group2,binding4 without changing original face addresses.
-
-<details>
-<summary>Implementation 87k-prepare-shared-clipping-shader-declarations: Prepare shared clipping shader declarations</summary>
-
-Prepare shared clipping shader declarations.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can an unused color entry still name an undeclared clipping uniform?* — No. Assemble the shared declarations in the mesh-pick and face modules before their common triangle recipe starts using clipping.
 
 ### 1. `src/pick_pipeline.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    model_layout: &wgpu::BindGroupLayout, crop_layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor { label: Some("mesh IDs"),
-            bind_group_layouts: &[Some(view_layout), Some(model_layout), Some(crop_layout)], immediate_size: 0 });
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("mesh IDs"),
-            source: wgpu::ShaderSource::Wgsl(concat!(include_str!("triangle.wgsl"), "\n", include_str!("pick_crop.wgsl"), "\n", include_str!("triangle_pick.wgsl")).into()) });
-        // An integer attachment stores exact owner IDs; opaque depth rejects hidden faces before any pixel is read back.
-        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5982,89 +4929,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Declare the shared predicate before connecting face clipping.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            bind_group_layouts: &[Some(&view), Some(&model), Some(&storage), Some(&crop)], immediate_size: 0 });
-        let source = concat!(include_str!("triangle.wgsl"), "\n", include_str!("pick_crop.wgsl"), "\n", include_str!("face_pick.wgsl"));
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("source faces"), source: wgpu::ShaderSource::Wgsl(source.into()) });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor { label: Some("source face IDs"), layout: Some(&layout),
-            vertex: wgpu::VertexState { module: &shader, entry_point: Some("face_vertex"), buffers: &[], compilation_options: Default::default() },
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/87k-prepare-shared-clipping-shader-declarations-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87l-connect-mesh-and-instance-color-half-spaces"></a>
 
 ### Step 22 of 38 · Connect mesh and instance color half-spaces (`87l-connect-mesh-and-instance-color-half-spaces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/38 Visual Trace (87l-connect-mesh-and-instance-color-half-spaces): Connect mesh and instance color half-spaces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/triangle.wgsl, src/instance_gpu.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_mesh.rs, src/tria…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Connect mesh and instance color half-spaces.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/gpu_mesh.rs` (*Connect matching source ownership and derived clipping.*) · `src/triangle.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/instance_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
 
 Connect mesh and instance color half-spaces.
 
-> **Self-Check Question:** *Can a clipping plane clip its own original outline?*  
-> **Answer:** No. Preserve the original-plane exemption independently of the selectable owner ID, including locked planes.
-
-- **Hands-On Lab Experiment:** Compare identical world half-spaces for ordinary meshes and placed instances.
-
-<details>
-<summary>Implementation 87l-connect-mesh-and-instance-color-half-spaces: Connect mesh and instance color half-spaces</summary>
-
-Connect mesh and instance color half-spaces.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can a clipping plane clip its own original outline?* — No. Preserve the original-plane exemption independently of the selectable owner ID, including locked planes.
 
 ### 1. `src/gpu_mesh.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let id=if style.pickable {object.id.value()} else {0};
-    bytes[68..72].copy_from_slice(&id.to_ne_bytes());
-    let normals = crate::normals::matrix(&object.model).expect("Scene placements are checked before insertion or editing");
-    for (index, value) in normals.iter().enumerate() {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6075,61 +4981,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 2. `src/triangle.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<u32>,
-    normal_matrix: mat4x4<f32>,
-    face_colour:vec4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-}
-
-fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = view.transform * world;
-    let displayed=select(colour,object.face_colour.xyz,object.face_colour.w>0.5);
-    output.colour = select(displayed, vec3<f32>(1.0, 0.75, 0.05), object.selection.x != 0u);
-    output.world = world.xyz;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let derivative = cross(dpdx(input.world), dpdy(input.world));
-    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
-    let face = select(derivative, -derivative, front);
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), 1.0); }
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6185,42 +5036,9 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-02.rs"
-```
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-03.rs"
-```
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-04.rs"
-```
-
-</details>
-
 ### 3. `src/instance_gpu.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {label:Some("shared instance records"),entries:&[wgpu::BindGroupLayoutEntry {binding:0,visibility:wgpu::ShaderStages::VERTEX,ty:wgpu::BindingType::Buffer {ty:wgpu::BufferBindingType::Storage {read_only:true},has_dynamic_offset:false,min_binding_size:std::num::NonZeroU64::new(160)},count:None}]});
-        let source=include_str!("triangle.wgsl").replace("var<uniform> object: ObjectSettings;","var<storage, read> objects: array<ObjectSettings>;").replace("fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>)","fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>, object: ObjectSettings)").replace("@location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }","@location(2) normal: vec3<f32>, @builtin(instance_index) instance: u32) -> VertexOutput { return geometry(position, colour, normal, objects[instance]); }");
-        let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor {label:Some("shared definition placements"),source:wgpu::ShaderSource::Wgsl(source.into())});
-        let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {label:Some("shared instance settings"),bind_group_layouts:&[Some(view),Some(&layout)],immediate_size:0});
-        let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {label:Some("shared original definition drawing"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState {module:&shader,entry_point:Some("vertex"),compilation_options:Default::default(),buffers:&[wgpu::VertexBufferLayout {array_stride:24,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3]},wgpu::VertexBufferLayout {array_stride:12,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![2=>Float32x3]}]},fragment:Some(wgpu::FragmentState {module:&shader,entry_point:Some("fragment"),compilation_options:Default::default(),targets:&[Some(format.into())]}),primitive:Default::default(),depth_stencil:Some(crate::depth::surface()),multisample:Default::default(),multiview_mask:None,cache:None});
-        Self {pipeline,layout,batches:BTreeMap::new(),writes:0,written_bytes:0}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6234,8 +5052,7 @@ Connect the completed owner through this method.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
@@ -6245,8 +5062,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.mesh_ink.draw(&mut pass);
             self.grid.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -6260,8 +5075,7 @@ Replace it with:
             self.grid.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 })],
@@ -6271,8 +5085,6 @@ Replace it with:
             pass.set_bind_group(0, &self.view_group, &[]);
             for mesh in self.meshes.iter().filter(|row|!self.instance_rows.contains(&row.id)) {mesh.draw(&mut pass);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -6286,8 +5098,7 @@ Replace it with:
             for mesh in self.meshes.iter().filter(|row|!self.instance_rows.contains(&row.id)) {mesh.draw(&mut pass);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
@@ -6297,8 +5108,6 @@ Replace it with:
         let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
         let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
 ```
-
-</details>
 
 Replace it with:
 
@@ -6312,8 +5121,7 @@ Replace it with:
         let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         crate::shader_check::check(&device, crate::finite_project_source::scan(), "Finite scan");
@@ -6329,8 +5137,6 @@ Replace it with:
             label: Some("triangle"),
             layout: Some(&layout),
 ```
-
-</details>
 
 Replace it with:
 
@@ -6349,8 +5155,7 @@ Replace it with:
             layout: Some(&layout),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -6841,98 +5646,42 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-06.rs"
-```
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-07.rs"
-```
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-08.rs"
-```
-
-```text
---8<-- "journey/code/87l-connect-mesh-and-instance-color-half-spaces-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87m-prepare-explicit-original-mesh-pick-clipping"></a>
 
 ### Step 23 of 38 · Prepare explicit original mesh pick clipping (`87m-prepare-explicit-original-mesh-pick-clipping`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/38 Visual Trace (87m-prepare-explicit-original-mesh-pick-clipping): Prepare explicit original mesh pick clipping</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/triangle_pick.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Prepare explicit original mesh pick clipping.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/triangle_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
 
 Carry world position and clipping flags through the mesh-pick output. Activate the clipping predicate in 87n together with its pipeline layout and draw binding.
 
-> **Self-Check Question:** *Must integer picks use a different cut predicate?*  
-> **Answer:** No. Preserve original IDs and world positions while using the shared half-space predicate.
-
-- **Hands-On Lab Experiment:** Inspect un-cropped source positions before the small integer draw transform.
-
-<details>
-<summary>Implementation 87m-prepare-explicit-original-mesh-pick-clipping: Prepare explicit original mesh pick clipping</summary>
-
-Prepare explicit original mesh pick clipping.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Must integer picks use a different cut predicate?* — No. Preserve original IDs and world positions while using the shared half-space predicate.
 
 ### 1. `src/triangle_pick.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(2) @binding(0) var<uniform> crop: Crop;
-@vertex
-fn pick_vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> @builtin(position) vec4<f32> {
-    return crop.transform * geometry(position, colour, normal).position;
-}
-@fragment
-fn pick_fragment() -> @location(0) vec2<u32> { return vec2<u32>(select(0u, object.selection.y, crop.mode == 0u), 0u); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6940,54 +5689,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/87m-prepare-explicit-original-mesh-pick-clipping-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87n-bind-shared-clipping-before-the-first-integer-request"></a>
 
 ### Step 24 of 38 · Bind shared clipping before the first integer request (`87n-bind-shared-clipping-before-the-first-integer-request`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/38 Visual Trace (87n-bind-shared-clipping-before-the-first-integer-request): Bind shared clipping before the first integer request</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/pick_encode.rs, src/renderer.rs, src/pick_pipeline.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_gpu.rs, src/pick…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Bind shared clipping before the first integer request.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/pick_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/pick_encode.rs` (*Bind shared clipping to compatible integer passes.*) · `src/renderer.rs` (*Connect the completed owner through this method.*) · `src/pick_pipeline.rs` (*Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.*) · `src/triangle_pick.wgsl` (*Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.*)
 
 Bind shared clipping before the first integer request. Enable the mesh-pick predicate and its required layout in the same checkpoint; an explicit layout requires every declared bind group at draw time.
 
-> **Self-Check Question:** *Must a pick wait for a color frame?*  
-> **Answer:** No. Prepare the current view uniform and shared clipping before submitting the first cropped request.
-
-- **Hands-On Lab Experiment:** Compare exact original IDs, stale-request gates, lazy legacy ownership and charged allocation.
-
-<details>
-<summary>Implementation 87n-bind-shared-clipping-before-the-first-integer-request: Bind shared clipping before the first integer request</summary>
-
-Bind shared clipping before the first integer request.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Must a pick wait for a color frame?* — No. Prepare the current view uniform and shared clipping before submitting the first cropped request.
 
 ### 1. `src/pick_gpu.rs`
 
@@ -6995,8 +5728,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -7006,8 +5738,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7020,8 +5750,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
@@ -7032,8 +5761,6 @@ Replace it with:
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7047,12 +5774,10 @@ Replace it with:
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None)}
     pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>) {
@@ -7061,13 +5786,10 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {let group=self.legacy_clipping.get_or_insert_with(||crate::clipping_gpu::Clipping::new(device)).group.clone();self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None,&group)}
     pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>,clipping:&wgpu::BindGroup) {
@@ -7076,8 +5798,7 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let view = buffer(80); let crop = buffer(80);
@@ -7087,8 +5808,6 @@ Replace it with:
             alive: Arc::new(AtomicBool::new(true)), gate: Default::default(), submitted: 0, coalesced: 0 }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7101,11 +5820,9 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -7113,12 +5830,9 @@ pub struct Picker {
     view_group: wgpu::BindGroup,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
-
 
 pub struct Picker {
     legacy_clipping:Option<crate::clipping_gpu::Clipping>,
@@ -7127,8 +5841,7 @@ pub struct Picker {
     view_group: wgpu::BindGroup,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -7140,7 +5853,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     legacy_clipping:Option<crate::clipping_gpu::Clipping>,
@@ -7194,7 +5906,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {let group=self.legacy_clipping.get_or_insert_with(||crate::clipping_gpu::Clipping::new(device)).group.clone();self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None,&group)}
     pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>,clipping:&wgpu::BindGroup) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -7241,79 +5952,9 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-01.rs"
-```
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-02.rs"
-```
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-03.rs"
-```
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-04.rs"
-```
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-05.rs"
-```
-
-</details>
-
 ### 2. `src/pick_encode.rs`
 
 Bind shared clipping to compatible integer passes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,ctx:&crate::text_gpu_support::GpuCtx,tables:Option<&crate::finite_ink::Tables>) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-        }
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite integer ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:None,stencil_ops:None}),..Default::default()});
-            for lane in ink {lane.pick_finite(device,&mut pass,crop_group,tables,&image.depth);}
-        }
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("other original integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});
-            if let Some(clouds)=clouds {clouds.pick(ctx,&mut pass,window,mode);}
-            if let Some(sheets)=sheets {sheets.pick(&mut pass,crop_group);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7355,45 +5996,9 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-06.rs"
-```
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-07.rs"
-```
-
-```text
---8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-08.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Connect the completed owner through this method.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) {
-            let mut bytes=transform.iter().flat_map(|v|v.to_ne_bytes()).collect::<Vec<_>>();bytes.resize(80,0);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables)); }
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7405,15 +6010,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            bind_group_layouts: &[Some(view_layout), Some(model_layout), Some(crop_layout)], immediate_size: 0 });
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -7424,69 +6020,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@fragment fn pick_fragment(input:MeshPickOutput)->@location(0) vec2<u32>{return vec2<u32>(select(0u,object.selection.y,crop.mode==0u),0u);}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/87n-bind-shared-clipping-before-the-first-integer-request-11.wgsl"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut"></a>
 
 ### Step 25 of 38 · Preserve sparse source face IDs across the cut (`87o-preserve-sparse-source-face-ids-across-the-cut`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/38 Visual Trace (87o-preserve-sparse-source-face-ids-across-the-cut): Preserve sparse source face IDs across the cut</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/face_pick.rs, src/face_pick.wgsl, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/face_pick.rs, src/fac…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Preserve sparse source face IDs across the cut.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/face_pick.rs` (*Connect matching source ownership and derived clipping.*) · `src/face_pick.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
 
 Preserve sparse source face IDs across the cut.
 
-> **Self-Check Question:** *Can the fifth clipping group fit the browser binding limit?*  
-> **Answer:** No. Bind it alongside existing face metadata at group2,binding4, keeping the original four-group layout.
-
-- **Hands-On Lab Experiment:** Compare original face addresses, crop ownership and the exact current world clipping predicate.
-
-<details>
-<summary>Implementation 87o-preserve-sparse-source-face-ids-across-the-cut: Preserve sparse source face IDs across the cut</summary>
-
-Preserve sparse source face IDs across the cut.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can the fifth clipping group fit the browser binding limit?* — No. Bind it alongside existing face metadata at group2,binding4, keeping the original four-group layout.
 
 ### 1. `src/face_pick.rs`
 
@@ -7494,8 +6065,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let faces = device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: Some("source triangle faces"), contents: &bytes, usage: wgpu::BufferUsages::STORAGE });
@@ -7506,8 +6076,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("source face metadata"), layout: &self.pipeline.get_bind_group_layout(2), entries: &entries });
             self.rows.push(Some(Row { group, bytes: faces.size() + settings.size() }));
 ```
-
-</details>
 
 Replace it with:
 
@@ -7521,8 +6089,7 @@ Replace it with:
             self.rows.push(Some(Row { group, bytes: faces.size() + settings.size() }));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Self { pipeline, rows: Vec::new() }
@@ -7533,8 +6100,6 @@ Replace it with:
         for (mesh, &(owner, base)) in meshes.iter().zip(bases) {
             assert_eq!(mesh.id, owner); let geometry = &mesh.geometry;
 ```
-
-</details>
 
 Replace it with:
 
@@ -7548,8 +6113,7 @@ Replace it with:
             assert_eq!(mesh.id, owner); let geometry = &mesh.geometry;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     for binding in 0..4 { entries.push(wgpu::BindGroupLayoutEntry { binding, visibility: wgpu::ShaderStages::VERTEX,
@@ -7558,8 +6122,6 @@ Replace it with:
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor { label: Some("source face metadata"), entries: &entries })
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7572,8 +6134,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::gpu_mesh::GpuMesh;
@@ -7640,59 +6201,9 @@ impl Faces {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87o-preserve-sparse-source-face-ids-across-the-cut-01.rs"
-```
-
-```text
---8<-- "journey/code/87o-preserve-sparse-source-face-ids-across-the-cut-02.rs"
-```
-
-```text
---8<-- "journey/code/87o-preserve-sparse-source-face-ids-across-the-cut-03.rs"
-```
-
-</details>
-
 ### 2. `src/face_pick.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct PackedVertex { x: f32, y: f32, z: f32, r: f32, g: f32, b: f32 }
-struct FaceSettings { base: u32, _a: u32, _b: u32, _c: u32 }
-@group(2) @binding(0) var<storage, read> positions: array<PackedVertex>;
-@group(2) @binding(1) var<storage, read> indices: array<u32>;
-@group(2) @binding(2) var<storage, read> faces: array<u32>;
-@group(2) @binding(3) var<uniform> source: FaceSettings;
-@group(3) @binding(0) var<uniform> crop: Crop;
-struct FaceOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) @interpolate(flat) face: u32,
-}
-@vertex
-fn face_vertex(@builtin(vertex_index) index: u32) -> FaceOutput {
-    let vertex = positions[indices[index]];
-    let placed = geometry(vec3<f32>(vertex.x, vertex.y, vertex.z), vec3<f32>(vertex.r, vertex.g, vertex.b), vec3<f32>(0.0));
-    return FaceOutput(crop.transform * placed.position, faces[index / 3u] + source.base);
-}
-@fragment
-fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
-    return vec2<u32>(object.selection.y, (0x20000000u | input.face) + 1u);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7722,37 +6233,9 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87o-preserve-sparse-source-face-ids-across-the-cut-04.rs"
-```
-
-```text
---8<-- "journey/code/87o-preserve-sparse-source-face-ids-across-the-cut-05.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Connect the completed owner through this method.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density) else { self.picker.cancel(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7760,70 +6243,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/87o-preserve-sparse-source-face-ids-across-the-cut-06.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87p-invalidate-selected-masks-on-clipping-changes"></a>
 
 ### Step 26 of 38 · Invalidate selected masks on clipping changes (`87p-invalidate-selected-masks-on-clipping-changes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/38 Visual Trace (87p-invalidate-selected-masks-on-clipping-changes): Invalidate selected masks on clipping changes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_mask.wgsl, src/outline_gpu.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_mask.wgsl, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Invalidate selected masks on clipping changes.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/outline_mask.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/outline_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
 
 Invalidate selected masks on clipping changes.
 
-> **Self-Check Question:** *Does an unchanged camera prove the selection mask is current?*  
-> **Answer:** No. Its key also witnesses clipping revisions; cutting changes mask coverage independently of the view.
-
-- **Hands-On Lab Experiment:** Compare moved or flipped planes with cached selected original coverage.
-
-<details>
-<summary>Implementation 87p-invalidate-selected-masks-on-clipping-changes: Invalidate selected masks on clipping changes</summary>
-
-Invalidate selected masks on clipping changes.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does an unchanged camera prove the selection mask is current?* — No. Its key also witnesses clipping revisions; cutting changes mask coverage independently of the view.
 
 ### 1. `src/outline_mask.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var<uniform> view:View;
-@group(1) @binding(0) var<uniform> object:Object;
-@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}
-@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7837,8 +6292,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
@@ -7855,8 +6309,6 @@ fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
   });
   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7876,8 +6328,7 @@ fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
           ..Default::default()
@@ -7888,8 +6339,6 @@ fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
           mesh.draw(&mut pass);
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7903,8 +6352,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     transform: [f32; 16],
@@ -7921,8 +6369,6 @@ Replace it with:
     if self.key.as_ref() != Some(&key) {
       {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7943,8 +6389,7 @@ Replace it with:
       {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   size: [u32; 2],
@@ -7954,8 +6399,6 @@ Replace it with:
 
 pub struct Outline {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7969,8 +6412,7 @@ Replace it with:
 pub struct Outline {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -8385,55 +6827,9 @@ impl Outline {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-02.rs"
-```
-
-```text
---8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-03.rs"
-```
-
-```text
---8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-04.rs"
-```
-
-```text
---8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-05.rs"
-```
-
-```text
---8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-06.rs"
-```
-
-```text
---8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-07.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Connect the completed owner through this method.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass);self.guides.draw(&mut pass);}
-        if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density);
-        } else {self.outline.borrow_mut().take();}
-        self.widget.draw(&mut encoder,view);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8441,88 +6837,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/87p-invalidate-selected-masks-on-clipping-changes-08.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87q-share-clipping-at-finite-original-center-lines"></a>
 
 ### Step 27 of 38 · Share clipping at finite original center lines (`87q-share-clipping-at-finite-original-center-lines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/38 Visual Trace (87q-share-clipping-at-finite-original-center-lines): Share clipping at finite original center lines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_visibility.wgsl, src/finite_sources.rs, src/finite_stroke.wgsl, src/finite_stroke_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_visibility.wgs…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Share clipping at finite original center lines.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/finite_visibility.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_sources.rs` (*Connect matching source ownership and derived clipping.*) · `src/finite_stroke.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_stroke_pick.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_chain.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_chain_pick.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_marker.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_marker_pick.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_ink.rs` (*Add the compatible shared clipping layout without changing original attributes yet.*)
 
 Share clipping at finite original center lines.
 
-> **Self-Check Question:** *Does a wide ribbon test its displaced pixel against the cut?*  
-> **Answer:** No. Test the original centerline point, and exclude cut triangles from its finite occluders.
-
-- **Hands-On Lab Experiment:** Compare retained ink behind a removed solid and full-canvas coordinates before cropped picking.
-
-<details>
-<summary>Implementation 87q-share-clipping-at-finite-original-center-lines: Share clipping at finite original center lines</summary>
-
-Share clipping at finite original center lines.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does a wide ribbon test its displaced pixel against the cut?* — No. Test the original centerline point, and exclude cut triangles from its finite occluders.
 
 ### 1. `src/finite_visibility.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-// The tutorial still converts forward depth; allow two float rounding units until the reversed camera connects.
-const FINITE_GRID:bool=false;
-@group(1) @binding(0) var<storage,read> finite_projected:array<ProjectedTriangle>;
-@group(1) @binding(1) var<storage,read> finite_tiles:array<vec4<u32>>;
-@group(1) @binding(2) var finite_depth:texture_depth_2d;
-fn finite_physical(pixel:vec2<f32>,depth:f32,tolerance:f32)->bool{let at=finite_depth_pixel(pixel);let size=vec2<i32>(textureDimensions(finite_depth));if(any(at<vec2<i32>(0))||any(at>=size)){return false;}let z=1.0-textureLoad(finite_depth,at,0);return select(z<=depth+tolerance,z<depth-tolerance,FINITE_GRID);}
-fn finite_screen(p:vec4<f32>)->vec2<f32>{return(p.xy/p.w*vec2<f32>(0.5,-0.5)+0.5)*view.size;}
-fn finite_axis(a:vec4<f32>,b:vec4<f32>)->vec4<f32>{return vec4<f32>(finite_screen(a),finite_screen(b));}
-fn finite_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>)->bool{
- let delta=axis.zw-axis.xy;let length2=dot(delta,delta);let t=clamp(dot(pixel-axis.xy,delta)/max(length2,1e-20),0.0,1.0);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);let relative=abs(depth)*1.9073486e-6+abs(1.0-depth)*2.3841858e-7;
- if(any(at<vec2<f32>(0.0))||any(at>=view.size)){return finite_physical(pixel,depth,relative);}
- if(finite_tiles[0].x==0u){return finite_physical(pixel,depth,relative);}
- let span=f32(visibility_tile_span_of(u32(view.size.x),u32(view.size.y)));let size=vec2<u32>(ceil(view.size/span));let cell=vec2<u32>(at/span);let head=finite_tiles[1u+cell.y*size.x+cell.x];
- if(head.w!=0u||head.z!=head.x){return finite_physical(pixel,depth,relative);}
- for(var i=0u;i<head.x;i++){
-  let offset=head.y+i*2u;let nearest=bitcast<f32>(finite_tiles[(offset+1u)/4u][(offset+1u)%4u]);if(nearest<depth-relative||(!FINITE_GRID&&nearest<=depth+relative)){continue;}
-  let primitive=finite_tiles[offset/4u][offset%4u];if(primitive==0u||primitive>arrayLength(&finite_projected)){continue;}
-  let triangle=finite_projected[primitive-1u];let hit=projected_triangle_at(triangle,at);let tolerance=relative+0.00390625*(abs(triangle.gradient.x)+abs(triangle.gradient.y));
-  if(hit.y>0.5&&select(hit.x>depth+tolerance,hit.x>=depth-tolerance,FINITE_GRID)){return false;}
- }
- return true;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8552,36 +6902,9 @@ fn finite_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87q-share-clipping-at-finite-original-center-lines-01.rs"
-```
-
-```text
---8<-- "journey/code/87q-share-clipping-at-finite-original-center-lines-02.rs"
-```
-
-</details>
-
 ### 2. `src/finite_sources.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- let base=crate::finite_project_source::expand(base).replace("#include \"finite_visibility.wgsl\"",include_str!("finite_visibility.wgsl"));
- let base=if grid{base.replace("const FINITE_GRID:bool=false;","const FINITE_GRID:bool=true;")}else{base};
- if pick{format!("{}\n{}\n{ids}",base.replace("@group(1)","@group(2)").replace("return vec2<i32>(pixel);","return vec2<i32>(pixel)-vec2<i32>(i32(crop._a),i32(crop._b));"),include_str!("pick_crop.wgsl"))}else{base}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8593,17 +6916,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use the same shared clipping predicate before original-plane flags connect.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @builtin(vertex_index) index: u32) -> Output { return geometry(start, end, colour, width, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -8613,19 +6925,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/finite_stroke_pick.wgsl`
 
 Use the same shared clipping predicate before original-plane flags connect.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8637,17 +6936,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use the same shared clipping predicate before original-plane flags connect.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @location(6) heads: u32, @builtin(vertex_index) index: u32) -> Output { return geometry(start, end, colour, width, previous, next, heads, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -8657,19 +6945,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 6. `src/finite_chain_pick.wgsl`
 
 Use the same shared clipping predicate before original-plane flags connect.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8681,17 +6956,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Use the same shared clipping predicate before original-plane flags connect.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output { return geometry(center, diameter, colour, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}return colour(input);}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -8701,19 +6965,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 8. `src/finite_marker_pick.wgsl`
 
 Use the same shared clipping predicate before original-plane flags connect.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8725,73 +6976,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Add the compatible shared clipping layout without changing original attributes yet.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_style(stride,picking,grid);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let groups=if picking{vec![Some(view),Some(crop),Some(layout)]}else{vec![Some(view),Some(layout)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/87q-share-clipping-at-finite-original-center-lines-10.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87r-cache-explicit-original-plane-ink-flags"></a>
 
 ### Step 28 of 38 · Cache explicit original-plane ink flags (`87r-cache-explicit-original-plane-ink-flags`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/38 Visual Trace (87r-cache-explicit-original-plane-ink-flags): Cache explicit original-plane ink flags</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Cache explicit original-plane ink flags.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Own flag buffers before connecting them to vertex layouts.*)
 
 Cache explicit original-plane ink flags.
 
-> **Self-Check Question:** *Can a locked owner ID carry clipping exemptions?*  
-> **Answer:** Its pick ID can be zero. Keep an independent flag per original ink instance and account for its actual CPU/GPU allocation.
-
-- **Hands-On Lab Experiment:** Inspect equal-data caching, empty release and one four-byte flag per original instance.
-
-<details>
-<summary>Implementation 87r-cache-explicit-original-plane-ink-flags: Cache explicit original-plane ink flags</summary>
-
-Cache explicit original-plane ink flags.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can a locked owner ID carry clipping exemptions?* — Its pick ID can be zero. Keep an independent flag per original ink instance and account for its actual CPU/GPU allocation.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -8799,8 +7021,7 @@ Own flag buffers before connecting them to vertex layouts.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
@@ -8810,8 +7031,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8824,8 +7043,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         queue.write_buffer(&self.uniform, 0, &bytes);
@@ -8836,8 +7054,6 @@ Replace it with:
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
         let Some(vertices) = &self.vertices else { return; };
 ```
-
-</details>
 
 Replace it with:
 
@@ -8856,8 +7072,7 @@ Replace it with:
         let Some(vertices) = &self.vertices else { return; };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 label: Some("stroke instances"), contents: &data, usage: wgpu::BufferUsages::VERTEX,
@@ -8868,8 +7083,6 @@ Replace it with:
 
     pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8883,8 +7096,7 @@ Replace it with:
     pub fn view(&self, queue: &wgpu::Queue, transform: &[f32; 16], size: [u32; 2], density: f32) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -8892,8 +7104,6 @@ pub struct Lane {
     strict_depth:bool,
     pipeline: wgpu::RenderPipeline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8905,8 +7115,7 @@ pub struct Lane {
     pipeline: wgpu::RenderPipeline,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -9106,114 +7315,42 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87r-cache-explicit-original-plane-ink-flags-01.rs"
-```
-
-```text
---8<-- "journey/code/87r-cache-explicit-original-plane-ink-flags-02.rs"
-```
-
-```text
---8<-- "journey/code/87r-cache-explicit-original-plane-ink-flags-03.rs"
-```
-
-```text
---8<-- "journey/code/87r-cache-explicit-original-plane-ink-flags-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87s-bind-original-flags-without-changing-instance-strides"></a>
 
 ### Step 29 of 38 · Bind original flags without changing instance strides (`87s-bind-original-flags-without-changing-instance-strides`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/38 Visual Trace (87s-bind-original-flags-without-changing-instance-strides): Bind original flags without changing instance strides</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_ink.rs, src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_ink.rs, src/st…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Bind original flags without changing instance strides.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/finite_ink.rs` (*Connect matching source ownership and derived clipping.*) · `src/stroke_gpu.rs` (*Connect matching source ownership and derived clipping.*)
 
 Bind original flags without changing instance strides.
 
-> **Self-Check Question:** *Do flags change44,72 or32-byte original layouts?*  
-> **Answer:** No. A separate four-byte vertex stream preserves original geometry and integer owner addresses.
-
-- **Hands-On Lab Experiment:** Compare matching color/pick flag bindings and existing original ID stream7.
-
-<details>
-<summary>Implementation 87s-bind-original-flags-without-changing-instance-strides: Bind original flags without changing instance strides</summary>
-
-Bind original flags without changing instance strides.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Do flags change44,72 or32-byte original layouts?* — No. A separate four-byte vertex stream preserves original geometry and integer owner addresses.
 
 ### 1. `src/finite_ink.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_style(stride,picking,grid);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let clipping=crate::clipping_gpu::layout(device);let groups=if picking{vec![Some(view),Some(crop),Some(layout),Some(&clipping)]}else{vec![Some(view),Some(layout),Some(&clipping)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("finite original ink"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(if picking{"pick_vertex"}else{"vertex"}),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(if picking{"pick_fragment"}else{"fragment"}),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:if picking{wgpu::TextureFormat::Rg32Uint}else{format},blend:if picking{None}else{Some(wgpu::BlendState::ALPHA_BLENDING)},write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(depth),multisample:Default::default(),multiview_mask:None,cache:None})
-  }
-use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::BindGroup)>>}
-#[derive(Clone)]
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer}
-impl Ink{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool)->Self{
-  let attributes=match stride{44=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32].to_vec(),72=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Float32x3,5=>Float32x3,6=>Uint32].to_vec(),32=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32,2=>Float32x4].to_vec(),_=>panic!("Unsupported finite ink layout")};
-  let view=crate::gpu_layout::uniform(device,80);let crop=crate::gpu_layout::uniform(device,80);
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("finite ink coverage"),entries:&[crate::tile_pipelines::entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),wgpu::BindGroupLayoutEntry{binding:2,visibility:wgpu::ShaderStages::FRAGMENT,ty:wgpu::BindingType::Texture{sample_type:wgpu::TextureSampleType::Depth,view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None}]});
-let color=pipeline(device,format,stride,grid,false,&view,&crop,&layout,&attributes);let pick=pipeline(device,format,stride,grid,true,&view,&crop,&layout,&attributes);Self{color,pick,layout,bindings:RefCell::new(None)}
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)}]})}
- pub fn set(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView){let mut bindings=self.bindings.borrow_mut();if bindings.as_ref().is_some_and(|(p,t,d,_)|p==&tables.projected&&t==&tables.tiles&&d==depth){return}let group=self.group(device,tables,depth);*bindings=Some((tables.projected.clone(),tables.tiles.clone(),depth.clone(),group));}
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,vertices:&wgpu::Buffer,count:u32,verts:u32)->bool{let bindings=self.bindings.borrow();let Some((_,_,_,group))=bindings.as_ref()else{return false};pass.set_pipeline(&self.color);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.draw(0..verts,0..count);true}
- pub fn pick(&self,device:&wgpu::Device,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,crop:&wgpu::BindGroup,vertices:&wgpu::Buffer,ids:&wgpu::Buffer,count:u32,verts:u32,tables:&Tables,depth:&wgpu::TextureView){let group=self.group(device,tables,depth);pass.set_pipeline(&self.pick);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,crop,&[]);pass.set_bind_group(2,&group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,ids.slice(..));pass.draw(0..verts,0..count);}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9244,29 +7381,13 @@ let color=pipeline(device,format,stride,grid,false,&view,&crop,&layout,&attribut
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87s-bind-original-flags-without-changing-instance-strides-01.rs"
-```
-
-```text
---8<-- "journey/code/87s-bind-original-flags-without-changing-instance-strides-02.rs"
-```
-
-</details>
-
 ### 2. `src/stroke_gpu.rs`
 
 Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -9276,8 +7397,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9290,8 +7409,7 @@ Replace it with:
     pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn finite_frame(&self,device:&wgpu::Device,tables:&crate::finite_ink::Tables,depth:&wgpu::TextureView){if let Some(ink)=&self.finite{ink.set(device,tables,depth)}}
@@ -9302,8 +7420,6 @@ Replace it with:
         pass.set_vertex_buffer(0, vertices.slice(..));
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9317,8 +7433,7 @@ Replace it with:
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub struct Lane {
@@ -9518,134 +7633,42 @@ impl Lane {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87s-bind-original-flags-without-changing-instance-strides-03.rs"
-```
-
-```text
---8<-- "journey/code/87s-bind-original-flags-without-changing-instance-strides-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned"></a>
 
 ### Step 30 of 38 · Keep stroke color and pick exemptions aligned (`87t-keep-stroke-color-and-pick-exemptions-aligned`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/38 Visual Trace (87t-keep-stroke-color-and-pick-exemptions-aligned): Keep stroke color and pick exemptions aligned</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_stroke.wgsl, src/finite_stroke_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_stroke.wgsl, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Keep stroke color and pick exemptions aligned.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/finite_stroke.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_stroke_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
 
 Keep stroke color and pick exemptions aligned.
 
-> **Self-Check Question:** *Can color and picking disagree about original plane flags?*  
-> **Answer:** No. Carry the same flag through their original geometry recipes and shared visibility predicate.
-
-- **Hands-On Lab Experiment:** Compare cut ordinary originals with immune original-plane boundaries.
-
-<details>
-<summary>Implementation 87t-keep-stroke-color-and-pick-exemptions-aligned: Keep stroke color and pick exemptions aligned</summary>
-
-Keep stroke color and pick exemptions aligned.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can color and picking disagree about original plane flags?* — No. Carry the same flag through their original geometry recipes and shared visibility predicate.
 
 ### 1. `src/finite_stroke.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-
-fn hidden(colour: vec4<f32>) -> Output {
-    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0));
-}
-
-fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32) -> Output {
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    if (a.z < 0.0 && b.z < 0.0) { return hidden(colour); }
-    if (a.z < 0.0) { a = mix(a, b, -a.z / (b.z - a.z)); }
-    if (b.z < 0.0) { b = mix(b, a, -b.z / (a.z - b.z)); }
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour); }
-    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
-    let length2 = dot(delta, delta);
-    if (length2 < 0.000001) { return hidden(colour); }
-    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index];
-    let half_width = width * view.density * 0.5;
-    let extent = half_width + 0.70711;
-    var position = select(a, b, corner.x > 0.5);
-    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
-    return Output(position, colour, corner.y * extent, half_width,finite_axis(a,b),vec2<f32>(1.0-a.z/a.w,1.0-b.z/b.w),finite_screen(position));
-}
-
-#include "stroke_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32) -> Output { return geometry(start, end, colour, width, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,0u)){discard;}return colour(input);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9698,78 +7721,14 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-01.rs"
-```
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-02.rs"
-```
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-03.rs"
-```
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-04.rs"
-```
-
-</details>
-
 ### 2. `src/finite_stroke_pick.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,0u)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9810,77 +7769,38 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-05.rs"
-```
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-06.rs"
-```
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-07.rs"
-```
-
-```text
---8<-- "journey/code/87t-keep-stroke-color-and-pick-exemptions-aligned-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned"></a>
 
 ### Step 31 of 38 · Keep chain color and pick exemptions aligned (`87u-keep-chain-color-and-pick-exemptions-aligned`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/38 Visual Trace (87u-keep-chain-color-and-pick-exemptions-aligned): Keep chain color and pick exemptions aligned</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_chain.wgsl, src/finite_chain_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_chain.wgsl, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Keep chain color and pick exemptions aligned.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/finite_chain.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_chain_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
 
 Keep chain color and pick exemptions aligned.
 
-> **Self-Check Question:** *Can a chain arrowhead lose its original clipping exemption?*  
-> **Answer:** Carry the original flag through its geometry and both fragment paths. Reuse the [shared exemption contract](../../87t-keep-stroke-color-and-pick-exemptions-aligned.md).
-
-- **Hands-On Lab Experiment:** Cut an ordinary headed chain with a clipping plane and compare its color and ID result. An exempt plane boundary keeps its source flag through the same adapter.
-
-<details>
-<summary>Implementation 87u-keep-chain-color-and-pick-exemptions-aligned: Keep chain color and pick exemptions aligned</summary>
-
-Keep chain color and pick exemptions aligned.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Can a chain arrowhead lose its original clipping exemption?* — Carry the original flag through its geometry and both fragment paths. Reuse the [shared exemption contract](../../87t-keep-stroke-color-and-pick-exemptions-aligned.md).
 
 ### 1. `src/finite_chain.wgsl`
 
@@ -9888,8 +7808,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
@@ -9899,11 +7818,8 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,0u)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 ```
-
-</details>
 
 Replace it with:
 
@@ -9915,12 +7831,10 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
         * 2.0 / view.size * position.w, position.zw);
@@ -9930,8 +7844,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 }
 #include "chain_coverage.wgsl"
 ```
-
-</details>
 
 Replace it with:
 
@@ -9944,8 +7856,7 @@ Replace it with:
 #include "chain_coverage.wgsl"
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
         let offset = -aim * mix(-0.70711, head_length + 0.70711, corner.x)
@@ -9956,8 +7867,6 @@ Replace it with:
     let start_offset = direction * select(0.0, head_length, at_start);
     let end_offset = -direction * select(0.0, head_length, at_end);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9971,8 +7880,7 @@ Replace it with:
     let end_offset = -direction * select(0.0, head_length, at_end);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     let bisector = normalize(sum);
@@ -9983,8 +7891,6 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
     var a = view.transform * vec4<f32>(start, 1.0);
     var b = view.transform * vec4<f32>(end, 1.0);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9998,8 +7904,7 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
     var b = view.transform * vec4<f32>(end, 1.0);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     @location(4) @interpolate(flat) half_width: f32,
@@ -10009,8 +7914,6 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
     @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -10024,8 +7927,7 @@ Replace it with:
     @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
@@ -10108,93 +8010,14 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-01.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-02.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-03.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-04-shared-coverage.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-05.rs"
-```
-
-</details>
-
 ### 2. `src/finite_chain_pick.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) pixel: vec2<f32>,
-    @location(2) @interpolate(flat) origin: vec2<f32>,
-    @location(3) @interpolate(flat) direction: vec2<f32>,
-    @location(4) @interpolate(flat) half_width: f32,
-    @location(5) @interpolate(flat) part: u32,
-    @location(6) @interpolate(flat) head_length: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
-    @location(6) heads: u32, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, previous, next, heads, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.pixel = source.pixel;
-    output.origin = source.origin;
-    output.direction = source.direction;
-    output.half_width = source.half_width;
-    output.part = source.part;
-    output.head_length = source.head_length;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.pixel, input.origin, input.direction, input.half_width, input.part, input.head_length,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,0u)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10244,125 +8067,42 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-06.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-07.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-08.rs"
-```
-
-```text
---8<-- "journey/code/87u-keep-chain-color-and-pick-exemptions-aligned-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87v-keep-marker-color-and-pick-exemptions-aligned"></a>
 
 ### Step 32 of 38 · Keep marker color and pick exemptions aligned (`87v-keep-marker-color-and-pick-exemptions-aligned`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/38 Visual Trace (87v-keep-marker-color-and-pick-exemptions-aligned): Keep marker color and pick exemptions aligned</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_marker.wgsl, src/finite_marker_pick.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/finite_marker.wgsl, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Keep marker color and pick exemptions aligned.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/finite_marker.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_marker_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
 
 Keep marker color and pick exemptions aligned.
 
-> **Self-Check Question:** *Which clipping flag governs an expanded marker disc?*  
-> **Answer:** The flag of its original source. Its quad must not acquire a new flag or a different picking exemption; see the [shared contract](../../87t-keep-stroke-color-and-pick-exemptions-aligned.md).
-
-- **Hands-On Lab Experiment:** Place an ordinary point across a clipping plane and compare visible and pickable disc coverage. Check the exempt original-plane marker separately.
-
-<details>
-<summary>Implementation 87v-keep-marker-color-and-pick-exemptions-aligned: Keep marker color and pick exemptions aligned</summary>
-
-Keep marker color and pick exemptions aligned.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Which clipping flag governs an expanded marker disc?* — The flag of its original source. Its quad must not acquire a new flag or a different picking exemption; see the [shared contract](../../87t-keep-stroke-color-and-pick-exemptions-aligned.md).
 
 ### 1. `src/finite_marker.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0));
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = diameter * view.density * 0.5;
-    let offset = corners[index] * (radius + 0.70711);
-    let axis=finite_axis(position,position);let depths=vec2<f32>(1.0-position.z/position.w);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius,axis,depths,finite_screen(position));
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output { return geometry(center, diameter, colour, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,0u)){discard;}return colour(input);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10400,73 +8140,14 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags)){discard;}return colour(input);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-01.rs"
-```
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-02-shared-coverage.rs"
-```
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-03.rs"
-```
-
-</details>
-
 ### 2. `src/finite_marker_pick.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-@vertex
-fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(center, diameter, colour, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.offset = source.offset;
-    output.radius = source.radius;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.offset, input.radius,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths,0u)){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10506,77 +8187,38 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-04.rs"
-```
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-05.rs"
-```
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-06.rs"
-```
-
-```text
---8<-- "journey/code/87v-keep-marker-color-and-pick-exemptions-aligned-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries"></a>
 
 ### Step 33 of 38 · Resolve locked and selected original plane boundaries (`87w-resolve-locked-and-selected-original-plane-boundaries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/38 Visual Trace (87w-resolve-locked-and-selected-original-plane-boundaries): Resolve locked and selected original plane boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/highlight.rs, src/ren…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Resolve locked and selected original plane boundaries.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/highlight.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
 
 Resolve locked and selected original plane boundaries.
 
-> **Self-Check Question:** *Does selection change which planes cut?*  
-> **Answer:** No. Resolve exemptions from the original source owner for whole and part highlights, even when selectable IDs are zero.
-
-- **Hands-On Lab Experiment:** Inspect source edge-address lookup, locked outlines and separately charged flag allocations.
-
-<details>
-<summary>Implementation 87w-resolve-locked-and-selected-original-plane-boundaries: Resolve locked and selected original plane boundaries</summary>
-
-Resolve locked and selected original plane boundaries.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does selection change which planes cut?* — No. Resolve exemptions from the original source owner for whole and part highlights, even when selectable IDs are zero.
 
 ### 1. `src/highlight.rs`
 
@@ -10584,8 +8226,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -10595,8 +8236,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         + self.strokes.usage()[1] + self.paths.usage()[1] + self.markers.usage()[1] }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -10610,8 +8249,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -10628,8 +8266,6 @@ Replace it with:
             r.segments().into_iter().map(|mut s| { s.stroke.colour = yellow; s.stroke.width += 2.; s })))?;
         self.markers.set_points(device, scene.points().iter().filter(|r| ids.contains(&r.id) && scene.visible(r.id)).map(|r|
 ```
-
-</details>
 
 Replace it with:
 
@@ -10650,8 +8286,7 @@ Replace it with:
         self.markers.set_points(device, scene.points().iter().filter(|r| ids.contains(&r.id) && scene.visible(r.id)).map(|r|
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_sources::{Part, Target}, scene::Scene, stroke_gpu::Lane};
@@ -10744,35 +8379,13 @@ impl Highlight {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87w-resolve-locked-and-selected-original-plane-boundaries-01.rs"
-```
-
-```text
---8<-- "journey/code/87w-resolve-locked-and-selected-original-plane-boundaries-02.rs"
-```
-
-```text
---8<-- "journey/code/87w-resolve-locked-and-selected-original-plane-boundaries-03.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Connect the completed owner through this method. Resolve flags from current original owners and charge derived flag storage.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
@@ -10782,8 +8395,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn tile_usage(&self)->[u64;7]{self.tiles.borrow().usage()}
     pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
 ```
-
-</details>
 
 Replace it with:
 
@@ -10797,8 +8408,7 @@ Replace it with:
     pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
@@ -10808,8 +8418,6 @@ Replace it with:
             .expect("Prepared point placement fits the display range");
         self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.face_rgba(row.id) {for segment in &mut segments {segment.stroke.colour=colour;}}segments}))
 ```
-
-</details>
 
 Replace it with:
 
@@ -10823,8 +8431,7 @@ Replace it with:
         self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.face_rgba(row.id) {for segment in &mut segments {segment.stroke.colour=colour;}}segments}))
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -11319,71 +8926,38 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87w-resolve-locked-and-selected-original-plane-boundaries-04.rs"
-```
-
-```text
---8<-- "journey/code/87w-resolve-locked-and-selected-original-plane-boundaries-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87x-clip-cached-original-point-cloud-discs"></a>
 
 ### Step 34 of 38 · Clip cached original point cloud discs (`87x-clip-cached-original-point-cloud-discs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/38 Visual Trace (87x-clip-cached-original-point-cloud-discs): Clip cached original point cloud discs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/cloud_points.wgsl, src/renderer.rs, src/cloud_shader_contract.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs, src/clo…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Clip cached original point cloud discs.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/cloud_points.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*) · `src/cloud_shader_contract.rs` (*Validate the completed clipped point source rather than its unexpanded file.*)
 
 Clip cached original point cloud discs.
 
-> **Self-Check Question:** *Does changing a plane reupload the cloud columns?*  
-> **Answer:** No. Include the clipping revision in the cached disc-image key and bind the shared uniform before preparing it.
-
-- **Hands-On Lab Experiment:** Compare On/Off, unchanged resting views, exact original u32 addresses and one retained source upload.
-
-<details>
-<summary>Implementation 87x-clip-cached-original-point-cloud-discs: Clip cached original point cloud discs</summary>
-
-Clip cached original point cloud discs.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does changing a plane reupload the cloud columns?* — No. Include the clipping revision in the cached disc-image key and bind the shared uniform before preparing it.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -11391,8 +8965,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   let point = pipeline(
@@ -11403,8 +8976,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     "fs_point",
     &[wgpu::TextureFormat::Rgba8Unorm, wgpu::TextureFormat::Rg32Uint],
 ```
-
-</details>
 
 Replace it with:
 
@@ -11418,8 +8989,7 @@ Replace it with:
     &[wgpu::TextureFormat::Rgba8Unorm, wgpu::TextureFormat::Rg32Uint],
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> [wgpu::RenderPipeline; 3] {
@@ -11430,8 +9000,6 @@ fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> [w
   let resolver = ctx.device.create_shader_module(wgpu::ShaderModuleDescriptor {
     label: Some("forward-depth cloud resolve"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -11445,8 +9013,7 @@ fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> [w
     label: Some("forward-depth cloud resolve"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       eye: view.eye.map(f32::to_bits),
@@ -11457,8 +9024,6 @@ fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> [w
     if self.key.as_ref() == Some(&key) {
       self.skips += 1;
 ```
-
-</details>
 
 Replace it with:
 
@@ -11472,8 +9037,7 @@ Replace it with:
       self.skips += 1;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ..Default::default()
@@ -11483,8 +9047,6 @@ Replace it with:
       for draw in &self.draws {
         if draw.total > 0 {
 ```
-
-</details>
 
 Replace it with:
 
@@ -11498,8 +9060,7 @@ Replace it with:
         if draw.total > 0 {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       total: 0,
@@ -11509,8 +9070,6 @@ Replace it with:
     &mut self,
     ctx: &GpuCtx,
 ```
-
-</details>
 
 Replace it with:
 
@@ -11524,8 +9083,7 @@ Replace it with:
     ctx: &GpuCtx,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let window = make_buffer("cloud pick origin", 16);
@@ -11536,8 +9094,6 @@ Replace it with:
       resolve,
       pick,
 ```
-
-</details>
 
 Replace it with:
 
@@ -11551,8 +9107,7 @@ Replace it with:
       pick,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   pub total: u64,
@@ -11563,8 +9118,6 @@ impl Lane {
     let make_buffer = |label, size| {
       ctx.device.create_buffer(&wgpu::BufferDescriptor {
 ```
-
-</details>
 
 Replace it with:
 
@@ -11578,8 +9131,7 @@ impl Lane {
       ctx.device.create_buffer(&wgpu::BufferDescriptor {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   ortho: u32,
@@ -11592,8 +9144,6 @@ pub struct Lane {
   resolve: wgpu::RenderPipeline,
   pick: wgpu::RenderPipeline,
 ```
-
-</details>
 
 Replace it with:
 
@@ -11611,8 +9161,7 @@ pub struct Lane {
   pick: wgpu::RenderPipeline,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -12207,63 +9756,9 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-01.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-02.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-03.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-04.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-05.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-06.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-07.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-08.rs"
-```
-
-</details>
-
 ### 2. `src/cloud_points.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let ndc = clip.xyz / clip.w;
-
-    if (ndc.z < 0.0 || ndc.z > 1.0) {
-        return s;
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -12277,8 +9772,7 @@ Connect the completed owner through this method. Check the same assembled clippi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn cloud_error(&self)->Option<String> {self.cloud_error.borrow().clone()}
@@ -12291,8 +9785,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
     pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
 ```
-
-</details>
 
 Replace it with:
 
@@ -12308,8 +9800,7 @@ Replace it with:
     pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         format: wgpu::TextureFormat,
@@ -12320,8 +9811,6 @@ Replace it with:
         crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
         crate::shader_check::check(&device, crate::finite_project_source::tiles(), "Finite tiles");
 ```
-
-</details>
 
 Replace it with:
 
@@ -12335,8 +9824,7 @@ Replace it with:
         crate::shader_check::check(&device, crate::finite_project_source::tiles(), "Finite tiles");
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -12831,29 +10319,7 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-10.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-11.rs"
-```
-
-```text
---8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-12.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12861,82 +10327,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Validate the completed clipped point source rather than its unexpanded file.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[test]
-fn completed_cloud_modules_have_valid_vertex_and_fragment_interfaces() {
-    use wgpu::naga;
-    for source in [include_str!("cloud_points.wgsl"), include_str!("cloud_resolve.wgsl")] {
-        let module = naga::front::wgsl::parse_str(source)
-            .unwrap_or_else(|error| panic!("{}", error.emit_to_string(source)));
-        naga::valid::Validator::new(naga::valid::ValidationFlags::all(), naga::valid::Capabilities::all())
-            .validate(&module).unwrap();
-        assert!(module.entry_points.iter().any(|entry| entry.stage == naga::ShaderStage::Vertex));
-        assert!(module.entry_points.iter().any(|entry| entry.stage == naga::ShaderStage::Fragment));
-    }
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/87x-clip-cached-original-point-cloud-discs-13.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87y-clip-original-sheet-pens-and-integer-entities"></a>
 
 ### Step 35 of 38 · Clip original sheet pens and integer entities (`87y-clip-original-sheet-pens-and-integer-entities`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/38 Visual Trace (87y-clip-original-sheet-pens-and-integer-entities): Clip original sheet pens and integer entities</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sheet_pipeline.rs, src/sheet.wgsl, src/sheet_gpu.rs, src/pick_encode.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sheet_pipeline.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Clip original sheet pens and integer entities.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/sheet_pipeline.rs` (*Connect matching source ownership and derived clipping.*) · `src/sheet.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/sheet_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/pick_encode.rs` (*Connect matching source ownership and derived clipping.*)
 
 Clip original sheet pens and integer entities.
 
-> **Self-Check Question:** *Does a cropped pick lose the original sheet centerline?*  
-> **Answer:** No. Retain its un-cropped homogeneous position, authored pen width, original source entity and parent placement.
-
-- **Hands-On Lab Experiment:** Compare a segment crossing a cut, before-color picks and unchanged original columns.
-
-<details>
-<summary>Implementation 87y-clip-original-sheet-pens-and-integer-entities: Clip original sheet pens and integer entities</summary>
-
-Clip original sheet pens and integer entities.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Does a cropped pick lose the original sheet centerline?* — No. Retain its un-cropped homogeneous position, authored pen width, original source entity and parent placement.
 
 ### 1. `src/sheet_pipeline.rs`
 
@@ -12944,8 +10372,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let model_layout = crate::gpu_layout::uniform(device, 96);
@@ -12978,8 +10405,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     });
     let pipeline = make(
 ```
-
-</details>
 
 Replace it with:
 
@@ -13016,8 +10441,7 @@ Replace it with:
     let pipeline = make(
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub fn make(
@@ -13088,79 +10512,9 @@ pub fn pipelines(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87y-clip-original-sheet-pens-and-integer-entities-01.rs"
-```
-
-```text
---8<-- "journey/code/87y-clip-original-sheet-pens-and-integer-entities-02.rs"
-```
-
-</details>
-
 ### 2. `src/sheet.wgsl`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, projection_y: f32 }
-struct Model { transform: mat4x4<f32>, tint: vec4<f32>, ids: vec4<u32> }
-@group(0) @binding(0) var<uniform> view: View;
-@group(1) @binding(0) var<uniform> model: Model;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(linear) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-fn geometry(start: vec3<f32>, end: vec3<f32>, radius: f32, packed: u32, vertex: u32, segment: u32) -> Output {
-    var colour = vec4<f32>(f32(packed & 255u), f32((packed >> 8u) & 255u), f32((packed >> 16u) & 255u), f32(packed >> 24u)) / 255.0;
-    if (model.ids.z == 1u) { colour = vec4<f32>(1.0, 0.68, 0.05, colour.a); }
-    else if (model.tint.a > 0.0) { colour = vec4<f32>(model.tint.rgb, colour.a); }
-    var output = Output(vec4<f32>(2.0,2.0,2.0,1.0), colour, 0.0, 0.0, vec2<u32>(model.ids.x, (0x80000000u | (model.ids.y + segment)) + 1u));
-    var a = view.transform * model.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * model.transform * vec4<f32>(end, 1.0);
-    if (a.z < 0.0 && b.z < 0.0) { return output; }
-    if (a.z < 0.0) { a = mix(a,b,-a.z/(b.z-a.z)); }
-    if (b.z < 0.0) { b = mix(b,a,-b.z/(a.z-b.z)); }
-    if (a.w <= 0.0 || b.w <= 0.0) { return output; }
-    let delta = (b.xy/b.w-a.xy/a.w)*view.size;
-    let length2 = dot(delta,delta);
-    if (length2 < 0.000001) { return output; }
-    let normal = vec2<f32>(-delta.y,delta.x)*inverseSqrt(length2);
-    let corners = array<vec2<f32>,6>(vec2<f32>(0.0,-1.0),vec2<f32>(1.0,-1.0),vec2<f32>(0.0,1.0),vec2<f32>(0.0,1.0),vec2<f32>(1.0,-1.0),vec2<f32>(1.0,1.0));
-    let corner = corners[vertex];
-    var position = select(a,b,corner.x>0.5);
-    var half_width = view.density*0.5;
-    // Sheet pens are authored in world millimetres; instance scale changes positions while the authored pen remains unchanged.
-    if (radius>0.0) { half_width = radius*view.projection_y*view.size.y*0.5/position.w; }
-    if (model.ids.z == 1u) {half_width=max(half_width,view.density);}
-    let fade=select(1.0,max(half_width/0.5,0.5),half_width<0.5);colour.a=colour.a*fade;output.colour=colour;
-    half_width=max(half_width,0.5);
-    let extent = half_width+0.70711;
-    output.position = vec4<f32>(position.xy+normal*extent*2.0/view.size*corner.y*position.w,position.zw);
-    output.side = corner.y*extent; output.half_width = half_width;
-    return output;
-}
-fn coverage(input:Output)->f32 {return input.colour.a*clamp(input.half_width+0.5-abs(input.side),0.0,1.0);}
-@vertex
-fn vertex(@location(0) start:vec3<f32>,@location(1) radius:f32,@location(2) end:vec3<f32>,@location(3) packed:u32,@builtin(vertex_index) v:u32,@builtin(instance_index) i:u32)->Output {return geometry(start,end,radius,packed,v,i);}
-@fragment
-fn fragment(input:Output)->@location(0) vec4<f32> {return vec4<f32>(input.colour.rgb,coverage(input));}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -13214,42 +10568,9 @@ fn vertex(@location(0) start:vec3<f32>,@location(1) radius:f32,@location(2) end:
 fn fragment(input:Output)->@location(0) vec4<f32> {return vec4<f32>(input.colour.rgb,coverage(input));}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87y-clip-original-sheet-pens-and-integer-entities-03.rs"
-```
-
-```text
---8<-- "journey/code/87y-clip-original-sheet-pens-and-integer-entities-04.rs"
-```
-
-```text
---8<-- "journey/code/87y-clip-original-sheet-pens-and-integer-entities-05.rs"
-```
-
-</details>
-
 ### 3. `src/sheet_gpu.rs`
 
 Connect matching source ownership and derived clipping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    }
-    pub fn pick(&self, pass: &mut wgpu::RenderPass<'_>, crop: &wgpu::BindGroup) {
-        pass.set_pipeline(&self.pick);
-        pass.set_bind_group(0, &self.group, &[]);
-        pass.set_bind_group(2, crop, &[]);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -13261,73 +10582,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Connect matching source ownership and derived clipping.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("other original integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});
-            if let Some(clouds)=clouds {clouds.pick(ctx,&mut pass,window,mode);}
-            if let Some(sheets)=sheets {sheets.pick(&mut pass,crop_group);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/87y-clip-original-sheet-pens-and-integer-entities-07.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87z-clip-text-anchors-with-all-six-original-planes"></a>
 
 ### Step 36 of 38 · Clip text anchors with all six original planes (`87z-clip-text-anchors-with-all-six-original-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/38 Visual Trace (87z-clip-text-anchors-with-all-six-original-planes): Clip text anchors with all six original planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Clip text anchors with all six original planes.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
 
 Clip text anchors with all six original planes.
 
-> **Self-Check Question:** *Is text clipping a new glyph rasterization?*  
-> **Answer:** No. The current world-anchor rule removes cut labels before drawing and picking; shaped words remain cached.
-
-- **Hands-On Lab Experiment:** Compare the sixth plane, nameplate picks, original world text and retained font/glyph resources.
-
-<details>
-<summary>Implementation 87z-clip-text-anchors-with-all-six-original-planes: Clip text anchors with all six original planes</summary>
-
-Clip text anchors with all six original planes.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Is text clipping a new glyph rasterization?* — No. The current world-anchor rule removes cut labels before drawing and picking; shaped words remain cached.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -13335,8 +10627,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             framebuffer: [(800.0 * scale) as u32, (600.0 * scale) as u32],
@@ -13346,8 +10637,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -13360,8 +10649,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             mvp: [0.0; 16],
@@ -13372,8 +10660,6 @@ Replace it with:
         }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -13387,8 +10673,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub framebuffer: [u32; 2],
@@ -13397,8 +10682,6 @@ Replace it with:
     pub clip: [[f64; 4]; 4],
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -13410,8 +10693,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::text_gpu_support::GpuCtx;
@@ -13433,7 +10715,6 @@ pub struct TextFrame {
     pub ortho_half_height: f32,
     pub clip: [[f64; 4]; 6],
 }
-
 
 impl TextFrame {
     fn canvas(&self) -> TextFrame {
@@ -14160,43 +11441,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87z-clip-text-anchors-with-all-six-original-planes-01.rs"
-```
-
-```text
---8<-- "journey/code/87z-clip-text-anchors-with-all-six-original-planes-02.rs"
-```
-
-```text
---8<-- "journey/code/87z-clip-text-anchors-with-all-six-original-planes-03.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Connect the completed owner through this method.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -14204,54 +11451,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/87z-clip-text-anchors-with-all-six-original-planes-04.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-87aa-observe-actual-clipping-resources-and-errors"></a>
 
 ### Step 37 of 38 · Observe actual clipping resources and errors (`87aa-observe-actual-clipping-resources-and-errors`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/38 Visual Trace (87aa-observe-actual-clipping-resources-and-errors): Observe actual clipping resources and errors</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Observe actual clipping resources and errors.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/browser.rs` (*Connect matching source ownership and derived clipping.*)
 
 Observe actual clipping resources and errors.
 
-> **Self-Check Question:** *Do clipping counters prove Lenovo speed?*  
-> **Answer:** No. They show current rows, uniform writes and allocated flag bytes; real hardware motion timing remains separate.
-
-- **Hands-On Lab Experiment:** Compare unchanged frames, On/Off and the current f64 original plane coefficients.
-
-<details>
-<summary>Implementation 87aa-observe-actual-clipping-resources-and-errors: Observe actual clipping resources and errors</summary>
-
-Observe actual clipping resources and errors.
-
-Data flow: original source → checked derived clipping → current view.
+> **Check:** *Do clipping counters prove Lenovo speed?* — No. They show current rows, uniform writes and allocated flag bytes; real hardware motion timing remains separate.
 
 ### 1. `src/browser.rs`
 
@@ -14259,8 +11490,7 @@ Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
@@ -14270,8 +11500,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -14285,8 +11513,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
@@ -14296,8 +11523,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -14311,8 +11536,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -15179,75 +12403,40 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/87aa-observe-actual-clipping-resources-and-errors-01.rs"
-```
-
-```text
---8<-- "journey/code/87aa-observe-actual-clipping-resources-and-errors-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-87ab-exercise-original-clipping-color-and-picking"></a>
 
 ### Step 38 of 38 · Exercise original clipping color and picking (`87ab-exercise-original-clipping-color-and-picking`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 38/38 Visual Trace (87ab-exercise-original-clipping-color-and-picking): Exercise original clipping color and picking</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/clipping_source_tests.rs, src/lib.rs, src/clipping_gpu_tests.rs, src/clipping_uniform_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked derived clipping</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current view</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/clipping_source_tests…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked derived clipping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current view</text>
 </svg>
-</div>
-
-- **Goal:** Exercise original clipping color and picking.
-- **Data Flow Trace:** `original source → checked derived clipping → current view`
-- **Files You Touch:** `src/clipping_source_tests.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*) · `src/clipping_gpu_tests.rs` (*Retain the original source and explicit derived owner.*) · `src/clipping_uniform_tests.rs` (*Retain the original source and explicit derived owner.*)
 
 Exercise original clipping color and picking.
 
-> **Self-Check Question:** *What proves clipped owners cannot still be picked?*  
-> **Answer:** The supplied native checks read actual integer targets before color frames and compare retained/cut pixels across original families.
+> **Check:** *What proves clipped owners cannot still be picked?* — The supplied native checks read actual integer targets before color frames and compare retained/cut pixels across original families.
 
-- **What You Should See:** A blue original solid and red original line remain on the kept side; their cut halves are absent.
-- **Hands-On Lab Experiment:** Create Example CAD and Clipping Plane YZ 0,0,0. Fit the scene, switch Clipping Plane Off and On, then Flip it and Undo. Click the retained half and inspect the missing half. Save and reopen the drawing; optional GPU fixtures cover the additional ink families and pre-frame picks.
-
-<details>
-<summary>Implementation 87ab-exercise-original-clipping-color-and-picking: Exercise original clipping color and picking</summary>
-
-Exercise original clipping color and picking.
-
-Data flow: original source → checked derived clipping → current view.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -15261,10 +12450,7 @@ Copy this supplied file:
 --8<-- "journey/code/87ab-exercise-original-clipping-color-and-picking-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -15272,26 +12458,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod clipping_gpu;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/87ab-exercise-original-clipping-color-and-picking-02.rs" skip=23
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -15305,10 +12478,7 @@ Copy this supplied file:
 --8<-- "journey/code/87ab-exercise-original-clipping-color-and-picking-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -15316,26 +12486,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod clipping_source_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/87ab-exercise-original-clipping-color-and-picking-04.rs" skip=40
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -15349,10 +12506,7 @@ Copy this supplied file:
 --8<-- "journey/code/87ab-exercise-original-clipping-color-and-picking-05.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -15360,47 +12514,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed source owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[cfg(test)]
-mod clipping_gpu_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/87ab-exercise-original-clipping-color-and-picking-06.rs" skip=37
 ```
 
-</details>
-
-</details>
+**Result after `87ab-exercise-original-clipping-color-and-picking`:** A blue original solid and red original line remain on the kept side; their cut halves are absent.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 87ab-exercise-original-clipping-color-and-picking
-npm --prefix ../session_tests run course -- check 87ab-exercise-original-clipping-color-and-picking
-npm --prefix ../session_tests run course -- save 87ab-exercise-original-clipping-color-and-picking
+npm --prefix ../session_tests run course -- dependencies 17.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 17.3
+npm --prefix ../session_tests run course -- save 17.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-A blue original solid and red original line remain on the kept side; their cut halves are absent.
-
-- **Final Lesson Experiment:** Create Example CAD and Clipping Plane YZ 0,0,0. Fit the scene, switch Clipping Plane Off and On, then Flip it and Undo. Click the retained half and inspect the missing half. Save and reopen the drawing; optional GPU fixtures cover the additional ink families and pre-frame picks.
-
-Continue with [Verified closed sections and exact cap picks](../../consolidation/88-copy-original-closedness-and-winding.md).
+Continue with [17.4 · Verified closed sections and exact cap picks](../../consolidation/88-copy-original-closedness-and-winding.md).

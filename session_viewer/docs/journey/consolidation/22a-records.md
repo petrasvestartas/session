@@ -1,244 +1,103 @@
 # 3.3 · Validated files, bounds and useful projections
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.3** (Redraft `3.3`) · **14 checkpoints (`22a-records` → `26a-keys`)** · **Study time: 10–17.25 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `22a-records` → `26a-keys` (14 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected. By the final checkpoint (`26a-keys`), you will let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
+> **Goal:** Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 3 Visual Explanation: Local Kernel Mesh → 4x4 World Placement, AABB Fit & Incremental GPU Sync</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Local f64 mesh placed in world space by 4x4 matrix M. Center: Transactional .pb decode gate. Right: Dirty-flag GPU sync.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Local Space -> World Placement & AABB -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Local Source → World Placement</text>
-    <!-- Local mesh box at (0,0) -->
-    <rect x="38" y="128" width="54" height="44" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="38" y1="172" x2="98" y2="172" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <line x1="38" y1="172" x2="38" y2="115" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <text x="65" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Local</text>
-    <text x="65" y="186" text-anchor="middle" font-size="9" fill="#111111">(0,0,0) f64</text>
-    <!-- Transform arrow -->
-    <line x1="102" y1="145" x2="152" y2="132" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="127" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">M (4x4)</text>
-    <!-- Placed rotated box inside dashed World AABB -->
-    <rect x="164" y="96" width="108" height="86" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="4,3"/>
-    <polygon points="196,104 260,126 240,174 176,152" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="218" y="194" text-anchor="middle" font-size="9" font-weight="600" fill="#111111">Dashed: World AABB (Fit)</text>
-    <rect x="30" y="204" width="250" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="155" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Cold CPU source dropped after GPU upload;</text>
-    <text x="155" y="229" text-anchor="middle" font-size="9" fill="#111111">re-fetched by SHA/revision only when edited</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Transactional .pb Decode Gate -->
-    <rect x="317" y="64" width="235" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Transactional .pb Gate</text>
-    <rect x="333" y="96" width="203" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="434" y="113" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Async Fetch Ticket #N</text>
-    <text x="434" y="128" text-anchor="middle" font-size="9.5" fill="#111111">Cancels stale #N-1; checks byte cap</text>
-    <line x1="434" y1="138" x2="434" y2="154" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="333" y="156" width="203" height="78" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Atomic Validation Commit</text>
-    <text x="345" y="192" font-size="9.5" fill="#111111">• Valid topology -&gt; Replace Scene</text>
-    <text x="345" y="208" font-size="9.5" fill="#111111">• Corrupt bytes -&gt; Reject cleanly</text>
-    <text x="345" y="223" font-size="9.5" font-weight="600" fill="#111111">  (Zero partial scene corruption!)</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Incremental GPU Sync -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Incremental GPU Sync</text>
-    <rect x="590" y="96" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 1: Camera Orbit / Pan / Fit</text>
-    <text x="602" y="131" font-size="9.5" fill="#111111">• sync_scene = false, redraw = true</text>
-    <text x="602" y="147" font-size="9.5" font-weight="600" fill="#111111">• Writes 64-byte camera uniform ONLY</text>
-    <rect x="590" y="170" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="188" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 2: Mesh / Placement Edit</text>
-    <text x="602" y="205" font-size="9.5" fill="#111111">• sync_scene = true, redraw = true</text>
-    <text x="602" y="221" font-size="9.5" font-weight="600" fill="#111111">• Re-uploads dirty object buffers only</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 3.3 Pipeline Schematic: Validated files, bounds and useful projections</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (14 Checkpoints: 22a-records → 26a-keys)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Raw proto::Mesh</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">validation</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted record or</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">error</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">keyboard press</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">text ownership</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 3.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">Cargo.toml  ·  src/document.rs  ·  src/lib.rs  ·  src/specimen.rs  ·  examples/sample.rs  ·  src/document_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">14 Checkpoints: 22a-records → 26a-keys — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Protobuf (.pb)</text>
+  <rect x="46" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <rect x="108" y="64" width="54" height="36" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="170" y="64" width="54" height="36" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="73" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Hdr</text>
+  <text x="135" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Mesh</text>
+  <text x="197" y="86" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Xform</text>
+  <rect x="46" y="116" width="178" height="34" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="137" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Guardrail Check ✓</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Binary Decode</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Placed Mesh</text>
+  <polygon points="355,145 415,68 480,145" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="355" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="480" y1="145" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="415" y1="68" x2="415" y2="115" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">session_rust + Mat4</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Incremental Sync</text>
+  <rect x="612" y="62" width="184" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="81" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = false</text>
+  <text x="704" y="96" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Camera Orbit Only (64 B)</text>
+  <rect x="612" y="116" width="184" height="42" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">sync_scene = true</text>
+  <text x="704" y="150" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Upload Dirty Geometry</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Change { sync, redraw }</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
-| **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
-| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
+| **Protobuf** | `session_proto` (`.pb`) | Validated binary `Session` stream with byte/count guardrails. |
+| **Rust (`session_rust`)** | Kernel `Mesh` + `Mat4` Placement | Exact `f64` kernel mesh paired with a `4×4` world placement matrix. |
+| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Camera orbit updates 64B uniform (`sync=false`); edits upload dirty buffers (`sync=true`). |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`22a-records`](#checkpoint-22a-records) | Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected. | `Cargo.toml`, `src/document.rs`, `src/lib.rs` | `Raw proto::Mesh → validation → accepted record or error` |
-| **2** | [`22b-session`](#checkpoint-22b-session) | Validate a real Session and its source identities before browser import. | `src/document.rs`, `src/specimen.rs`, `examples/sample.rs`, `src/lib.rs` | `Source GUIDs and flat rows → validated Session shape; specimen → sample.pb` |
-| **3** | [`22c-decode`](#checkpoint-22c-decode) | Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion. | `src/document.rs`, `src/document_tests.rs`, `src/lib.rs` | `Bytes → decoded record → validation → shared Session and prepared Mesh values` |
-| **4** | [`22d-import`](#checkpoint-22d-import) | Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo. | `src/scene.rs`, `src/editor.rs`, `src/document_tests.rs` | `Loaded document → one history edit → rows with source identity → display` |
-| **5** | [`22e-file-reader`](#checkpoint-22e-file-reader) | Build and run the checkpoint. The current scene and commands remain available; file selection is connected next. | `src/file_input.rs`, `index.html`, `src/lib.rs` | `Selected File → request token → await array_buffer → owned byte event` |
-| **6** | [`23-import`](#checkpoint-23-import) | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. | `src/lib.rs`, `src/browser.rs` | `Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw` |
-| **7** | [`23a-bounds`](#checkpoint-23a-bounds) | Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds. | `src/bounds.rs`, `src/scene.rs`, `src/lib.rs`, `src/fit_tests.rs` | `Displayed vertices → coordinate minima/maxima → centre and radius` |
-| **8** | [`23b-fit-camera`](#checkpoint-23b-fit-camera) | Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation. | `src/camera.rs`, `src/fit_tests.rs` | `Bounds centre/radius and aspect → camera target, distance and clipping` |
-| **9** | [`24-fit`](#checkpoint-24-fit) | Frame all current objects without rotating them or changing the document. | `src/editor.rs`, `src/browser.rs`, `src/fit_tests.rs` | `Typed Fit → Editor → Scene::bounds → Camera::fit → redraw` |
-| **10** | [`24a-projection`](#checkpoint-24a-projection) | Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel. | `src/camera.rs`, `src/projection_tests.rs`, `src/lib.rs` | `Projection enum → camera matrix → drawing and inverse-matrix rays` |
-| **11** | [`24b-projection-actions`](#checkpoint-24b-projection-actions) | Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent. | `src/camera.rs`, `src/editor.rs`, `src/projection_tests.rs` | `Selected projection → fit opening; Action::Projection → view-only change` |
-| **12** | [`25-projection`](#checkpoint-25-projection) | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. | `src/browser.rs` | `Named View command → Projection value → Editor → camera matrix and reported mode` |
-| **13** | [`26-selected`](#checkpoint-26-selected) | Run Fit Selected while keeping geometry, selection and document history unchanged. | `src/scene.rs`, `src/editor.rs`, `src/browser.rs`, `src/lib.rs` | `Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame` |
-| **14** | [`26a-keys`](#checkpoint-26a-keys) | Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions. | `src/shortcuts.rs`, `src/panel.rs`, `src/browser.rs`, `src/lib.rs` | `keyboard press → text ownership → existing command → editor action → redraw` |
+![Recorded visual output for Lesson 3.3 (26a-keys)](../../screenshots/journey/26a-keys-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-22a-records"></a>
 
 ### Step 1 of 14 · Validate a raw mesh record (`22a-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/14 Visual Trace (22a-records): Validate a raw mesh record</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/document.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Raw proto::Mesh</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accepted record or error</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/document.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">accepted record or error</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
-- **Data Flow Trace:** `Raw proto::Mesh → validation → accepted record or error`
-- **Files You Touch:** `Cargo.toml` (*Add fixed protobuf and browser byte-reading dependencies for the import sequence.*) · `src/document.rs` (*Reject unsupported mesh records before kernel construction; check finite coordinates and referenced vertex keys.*) · `src/lib.rs` (*Register the raw-record validator.*)
 
 Define the source owners and check protobuf mesh records before building kernel objects. Accept finite coordinates, valid vertex references, triangles or quads, and object colours within the stated size limits.
 
 The validator borrows a record and returns Result<(), &str>. It inspects stored triangulation without constructing a Session or changing the scene.
 
-> **Self-Check Question:** *Why validate raw records before constructing a Session?*  
-> **Answer:** Invalid indices and unsupported forms should return a controlled error before kernel construction begins.
-
-- **What You Should See:** Inspect the supplied state fixtures. A valid box passes; non-finite coordinates and missing vertex references are rejected.
-- **Hands-On Lab Experiment:** Inspect the supplied record-validation fixture. Change one face vertex key to a missing key on paper and predict why the loader rejects it.
-
-<details>
-<summary>Implementation 22a-records: Validate a raw mesh record</summary>
-
-Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
-
-Data flow: Raw proto::Mesh → validation → accepted record or error.
+> **Check:** *Why validate raw records before constructing a Session?* — Invalid indices and unsupported forms should return a controlled error before kernel construction begins.
 
 ### 1. `Cargo.toml`
 
 Add fixed protobuf and browser byte-reading dependencies for the import sequence.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "FocusOptions"] }
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-session_rust = { path = "../../../session_rust", default-features = false }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -260,141 +119,52 @@ Create the file and type:
 
 Register the raw-record validator.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod navigation;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/22a-records-register.rs" skip=20
 ```
 
-</details>
+**Result after `22a-records`:** Inspect the supplied state fixtures. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+
+---
 
 <a id="checkpoint-22b-session"></a>
 
 ### Step 2 of 14 · Validate session identity and build a sample file (`22b-session`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/14 Visual Trace (22b-session): Validate session identity and build a sample file</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/specimen.rs, examples/sample.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Source GUIDs and flat rows</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated Session shape; specimen</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">sample.pb</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/document.rs, src/spec…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated Session shape…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sample.pb</text>
 </svg>
-</div>
-
-- **Goal:** Validate a real Session and its source identities before browser import.
-- **Data Flow Trace:** `Source GUIDs and flat rows → validated Session shape; specimen → sample.pb`
-- **Files You Touch:** `src/document.rs` (*Import the GUID set used by session validation.*) · `src/specimen.rs` (*Build a small three-piece frame with the real kernel. This is our file specimen, not a second renderer or a new file format.*) · `examples/sample.rs` (*Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.*) · `src/lib.rs` (*Register the specimen builder.*)
 
 Retain a shared Session with its display meshes and source GUIDs. Validate the supported session shape and flat tree before decoding it into kernel objects.
 
 HashSet compares unique mesh GUIDs with tree row names. The specimen builder creates three named meshes and writes their protobuf bytes to sample.pb.
 
-> **Self-Check Question:** *Why keep GUID separate from ObjectId?*  
-> **Answer:** GUID names a source mesh. ObjectId will name a particular viewer import, so the same source can be imported more than once.
-
-- **What You Should See:** Download the [supplied sample.pb](../fixtures/sample-23.pb) for the next browser import exercise. Its three meshes have distinct source identities; the supplied validation checks also cover duplicate GUIDs.
-- **Hands-On Lab Experiment:** Change the top beam width in the specimen, write sample.pb again, then restore the original value.
-
-<details>
-<summary>Implementation 22b-session: Validate session identity and build a sample file</summary>
-
-Validate a real Session and its source identities before browser import.
-
-Data flow: Source GUIDs and flat rows → validated Session shape; specimen → sample.pb.
+> **Check:** *Why keep GUID separate from ObjectId?* — GUID names a source mesh. ObjectId will name a particular viewer import, so the same source can be imported more than once.
 
 ### 1. `src/document.rs`
 
 Import the GUID set used by session validation. Check supported geometry, unique GUIDs and one flat tree row per mesh.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-use session_rust::{proto, Session};
-use std::rc::Rc;
-
-pub const MAX_BYTES: usize = 4 * 1024 * 1024;
-
-#[derive(Clone)]
-pub struct Source {
-    pub document: Rc<Session>,
-    pub guid: String,
-}
-
-pub struct Loaded {
-    pub document: Rc<Session>,
-    pub meshes: Vec<(String, Mesh)>,
-}
-
-pub fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
-    if mesh.vertices.len() > 10_000 || mesh.faces.is_empty() || mesh.faces.len() > 10_000 {
-        return Err("A mesh needs faces and at most 10,000 vertices and faces");
-    }
-    if mesh.color_mode != 0 { return Err("Per-face and per-vertex colours arrive later"); }
-    for (&key, vertex) in &mesh.vertices {
-        if key > u32::MAX as u64 || [vertex.x, vertex.y, vertex.z].iter().any(|v| !v.is_finite()) {
-            return Err("Invalid vertex key or coordinate");
-        }
-    }
-    for (&key, face) in &mesh.faces {
-        if key > u32::MAX as u64 || !(3..=4).contains(&face.vertices.len()) || !face.holes.is_empty()
-            || face.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
-            return Err("This checkpoint needs triangles or quads with existing vertices and no holes");
-        }
-    }
-    for (key, triangles) in &mesh.triangulation {
-        if !mesh.faces.contains_key(key) || triangles.vertices.len() % 3 != 0
-            || triangles.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
-            return Err("Invalid stored triangulation");
-        }
-    }
-    Ok(())
-}
-
-#[cfg(test)]
-mod record_checks {
-    use super::validate_mesh;
-
-    #[test]
-    fn raw_mesh_records_are_checked_before_construction() {
-        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();
-        assert!(validate_mesh(&record).is_ok());
-        record.vertices.values_mut().next().unwrap().x = f64::NAN;
-        assert!(validate_mesh(&record).is_err());
-        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);
-        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;
-        assert!(validate_mesh(&record).is_err());
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -487,21 +257,6 @@ mod record_checks {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/22b-session-import.rs"
-```
-
-```text
---8<-- "journey/code/22b-session-validator.rs"
-```
-
-</details>
-
 ### 2. `src/specimen.rs`
 
 Build a small three-piece frame with the real kernel. This is our file specimen, not a second renderer or a new file format.
@@ -512,8 +267,7 @@ Create the file and type:
 --8<-- "journey/code/23-import-02.rs"
 ```
 
-<details>
-<summary>Optional authoring helper</summary>
+**Optional authoring helper:**
 
 Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
 
@@ -527,20 +281,9 @@ Copy this supplied file:
 --8<-- "journey/code/23-import-03.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the specimen builder.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod document;
-```
-
-</details>
 
 After that block, type:
 
@@ -552,92 +295,48 @@ After that block, type:
 
 Check that the specimen passes validation and duplicate source GUIDs are rejected.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod record_checks {
-    use super::validate_mesh;
-
-    #[test]
-    fn raw_mesh_records_are_checked_before_construction() {
-        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();
-        assert!(validate_mesh(&record).is_ok());
-        record.vertices.values_mut().next().unwrap().x = f64::NAN;
-        assert!(validate_mesh(&record).is_err());
-        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);
-        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;
-        assert!(validate_mesh(&record).is_err());
-    }
-}
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/22b-session-tests.rs" skip=590
 ```
 
-</details>
+**Result after `22b-session`:** Download the [supplied sample.pb](../fixtures/sample-23.pb) for the next browser import exercise. Its three meshes have distinct source identities; the supplied validation checks also cover duplicate GUIDs.
+
+---
 
 <a id="checkpoint-22c-decode"></a>
 
 ### Step 3 of 14 · Decode and prepare the whole import (`22c-decode`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/14 Visual Trace (22c-decode): Decode and prepare the whole import</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/document_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Bytes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">decoded record</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared Session and</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepared…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/document.rs, src/docu…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared Session and prep…</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
-- **Data Flow Trace:** `Bytes → decoded record → validation → shared Session and prepared Mesh values`
-- **Files You Touch:** `src/document.rs` (*Import the protobuf decoding trait.*) · `src/document_tests.rs` (*Optional authoring fixture. Reject malformed bytes, oversize files and unsupported records before construction.*) · `src/lib.rs` (*Register the byte-level loader checks.*)
 
 Bound byte length, decode the protobuf message, validate it, then construct one shared Session and every display mesh. Return Loaded only when the whole preparation succeeds.
 
 The ? operator stops at the first error. No scene or history is changed here, so a bad later mesh cannot leave a partial import.
 
-> **Self-Check Question:** *Why prepare all meshes before editing the scene?*  
-> **Answer:** A preparation error then leaves the current scene, selection and redo branch untouched.
-
-- **What You Should See:** Inspect the supplied state fixtures. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
-- **Hands-On Lab Experiment:** Read the six malformed-record cases and predict which validation rule rejects each one.
-
-<details>
-<summary>Implementation 22c-decode: Decode and prepare the whole import</summary>
-
-Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
-
-Data flow: Bytes → decoded record → validation → shared Session and prepared Mesh values.
+> **Check:** *Why prepare all meshes before editing the scene?* — A preparation error then leaves the current scene, selection and redo branch untouched.
 
 ### 1. `src/document.rs`
 
@@ -645,8 +344,7 @@ Import the protobuf decoding trait. Decode bounded bytes and prepare every displ
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -684,8 +382,6 @@ mod session_checks {
 }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -694,8 +390,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Ok(())
@@ -706,8 +401,6 @@ pub fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
         return Err("A mesh needs faces and at most 10,000 vertices and faces");
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -721,8 +414,7 @@ fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub meshes: Vec<(String, Mesh)>,
@@ -733,8 +425,6 @@ pub fn validate(message: &proto::Session) -> Result<(), &'static str> {
     if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
         return Err("Placements, definitions and interactions arrive in later checkpoints");
 ```
-
-</details>
 
 Replace it with:
 
@@ -760,16 +450,13 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
         return Err("Placements, definitions and interactions arrive in later checkpoints");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::mesh::Mesh;
 use session_rust::{proto, Session};
 use std::{collections::HashSet, rc::Rc};
 ```
-
-</details>
 
 Replace it with:
 
@@ -780,8 +467,7 @@ use session_rust::{proto, Session};
 use std::{collections::HashSet, rc::Rc};
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -869,29 +555,7 @@ fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/22c-decode-message.rs"
-```
-
-```text
---8<-- "journey/code/22c-decode-load.rs"
-```
-
-```text
---8<-- "journey/code/22c-decode-private.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -905,20 +569,9 @@ Copy this supplied file:
 --8<-- "journey/code/22c-decode-tests.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the byte-level loader checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod specimen;
-```
-
-</details>
 
 After that block, type:
 
@@ -926,61 +579,42 @@ After that block, type:
 --8<-- "journey/code/22c-decode-register.rs" skip=18
 ```
 
-</details>
+**Result after `22c-decode`:** Inspect the supplied state fixtures. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
+
+---
 
 <a id="checkpoint-22d-import"></a>
 
 ### Step 4 of 14 · Commit an import as one undoable action (`22d-import`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/14 Visual Trace (22d-import): Commit an import as one undoable action</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/editor.rs, src/document_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Loaded document</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history edit</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rows with source identity</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/editor.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rows with source identi…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">display</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
-- **Data Flow Trace:** `Loaded document → one history edit → rows with source identity → display`
-- **Files You Touch:** `src/scene.rs` (*An imported display object remembers the document and source GUID it came from. Demo objects have no source document.*) · `src/editor.rs` (*Make file import an ordinary document action.*) · `src/document_tests.rs` (*Optional authoring fixture. Import editor actions and shared-owner comparison for transaction checks.*)
 
 Attach the retained source Session and GUID to every imported object. Prepare bytes before starting History::try_edit, then insert the whole loaded file as one document action.
 
 Rc::clone shares source ownership. Local ObjectId remains unique across imports; snapshots retain the same source allocation on Undo and Redo.
 
-> **Self-Check Question:** *Why retain Rc<Session> on imported rows?*  
-> **Answer:** Display arrays omit source metadata. Shared Session ownership keeps that information available without copying it into each row.
-
-- **What You Should See:** Inspect the supplied state fixtures. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
-- **Hands-On Lab Experiment:** Trace the supplied two-import fixture. Compare local IDs, source GUIDs and source allocation identity; browser file selection connects in the next lesson.
-
-<details>
-<summary>Implementation 22d-import: Commit an import as one undoable action</summary>
-
-Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
-
-Data flow: Loaded document → one history edit → rows with source identity → display.
+> **Check:** *Why retain Rc<Session> on imported rows?* — Display arrays omit source metadata. Shared Session ownership keeps that information available without copying it into each row.
 
 ### 1. `src/scene.rs`
 
@@ -988,8 +622,7 @@ An imported display object remembers the document and source GUID it came from. 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
@@ -1003,8 +636,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };
         self.objects.remove(index);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1031,8 +662,7 @@ Replace it with:
         self.objects.remove(index);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Object {
@@ -1042,8 +672,6 @@ pub struct Object {
 
 #[derive(Clone)]
 ```
-
-</details>
 
 Replace it with:
 
@@ -1057,8 +685,7 @@ pub struct Object {
 #[derive(Clone)]
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::mesh::Mesh;
@@ -1200,35 +827,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/23-import-06.rs"
-```
-
-```text
---8<-- "journey/code/23-import-07.rs"
-```
-
-```text
---8<-- "journey/code/23-import-08.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Make file import an ordinary document action. Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.selected = self.camera.ray(screen)
@@ -1238,8 +843,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1256,8 +859,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1267,8 +869,6 @@ pub enum Action {
     ToggleExtra,
     SelectNext,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1282,8 +882,7 @@ pub enum Action {
     SelectNext,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -1430,25 +1029,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/23-import-09.rs"
-```
-
-```text
---8<-- "journey/code/23-import-10.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1456,27 +1037,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Import editor actions and shared-owner comparison for transaction checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{document, specimen};
-use prost::Message;
-use session_rust::proto;
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/22d-import-test-imports.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1484,79 +1051,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Check whole-file Undo/Redo, failed import and repeated source identities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[test]
-fn malformed_and_unsupported_records_are_refused_before_construction()
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/22d-import-tests.rs"
 ```
 
-</details>
+**Result after `22d-import`:** Inspect the supplied state fixtures. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
 
-</details>
+---
 
 <a id="checkpoint-22e-file-reader"></a>
 
 ### Step 5 of 14 · Prepare asynchronous file delivery (`22e-file-reader`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/14 Visual Trace (22e-file-reader): Prepare asynchronous file delivery</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/file_input.rs, index.html, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Selected File</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">request token</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">await array_buffer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owned byte event</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/file_input.rs, index.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">await array_buffer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owned byte event</text>
 </svg>
-</div>
-
-- **Goal:** Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.
-- **Data Flow Trace:** `Selected File → request token → await array_buffer → owned byte event`
-- **Files You Touch:** `src/file_input.rs` (*Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback.*) · `index.html` (*Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.*) · `src/lib.rs` (*Expose the complete file-reader component while preparing its browser integration.*)
 
 Add the hidden file input and its reader. A shared request number identifies the latest selection; await reads the selected Blob, then a custom event returns owned bytes.
 
 The reader owns no mutable Editor borrow while waiting. Its browser-event registration and Open command are connected in the next step.
 
-> **Self-Check Question:** *Why compare the request number after await?*  
-> **Answer:** An older read may finish after a newer selection. Its result must not replace the current request.
-
-- **What You Should See:** The file reader compiles while the existing scene remains available. File selection connects next.
-- **Hands-On Lab Experiment:** Find the post-await request comparison. Predict which read is ignored if the second selection finishes first.
-
-<details>
-<summary>Implementation 22e-file-reader: Prepare asynchronous file delivery</summary>
-
-Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.
-
-Data flow: Selected File → request token → await array_buffer → owned byte event.
+> **Check:** *Why compare the request number after await?* — An older read may finish after a newer selection. Its result must not replace the current request.
 
 ### 1. `src/file_input.rs`
 
@@ -1572,19 +1108,6 @@ Create the file and type:
 
 Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```html
-<body>
-  <p id="status" role="status" hidden>Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-</body>
-</html>
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```html
@@ -1595,97 +1118,52 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Expose the complete file-reader component while preparing its browser integration.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-mod browser;
-
-use wasm_bindgen::prelude::*;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/22e-file-reader-register.rs"
 ```
 
-</details>
+**Result after `22e-file-reader`:** The file reader compiles while the existing scene remains available. File selection connects next.
+
+---
 
 <a id="checkpoint-23-import"></a>
 
 ### Step 6 of 14 · Open a file through the command line (`23-import`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/14 Visual Trace (23-import): Open a file through the command line</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/lib.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Open</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">hidden picker</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">viewer-file</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Action::Import</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">upload and redraw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/lib.rs, src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">viewer-file</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">upload and redraw</text>
 </svg>
-</div>
-
-- **Goal:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
-- **Data Flow Trace:** `Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw`
-- **Files You Touch:** `src/lib.rs` (*Keep the reader internal now that the browser callback owns file delivery.*) · `src/browser.rs` (*Add Open to the vocabulary.*)
 
 Type Open to activate the hidden picker. Route selection through the reader and completed bytes through Action::Import in the callback that owns Editor.
 
 The callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.
 
-> **Self-Check Question:** *Why do we retain the session after creating the arrays that the renderer needs?*  
-> **Answer:** The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.
-
-- **What You Should See:** Download the [supplied sample.pb](../fixtures/sample-23.pb). Type Open in the browser and choose that file; one Undo removes all three orange pieces and Redo restores them.
-- **Hands-On Lab Experiment:** Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.
-
-<details>
-<summary>Implementation 23-import: Open a file through the command line</summary>
-
-Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
-
-Data flow: Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw.
+> **Check:** *Why do we retain the session after creating the arrays that the renderer needs?* — The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.
 
 ### 1. `src/lib.rs`
 
 Keep the reader internal now that the browser callback owns file delivery.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod file_input;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1699,8 +1177,7 @@ Add Open to the vocabulary. Own a shared request number for asynchronous file re
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     )?;
@@ -1710,8 +1187,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     update.forget();
     report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
 ```
-
-</details>
 
 Replace it with:
 
@@ -1726,8 +1201,7 @@ Replace it with:
     report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -1737,8 +1211,6 @@ Replace it with:
             &browser_window,
             &pointer_canvas,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1754,8 +1226,7 @@ Replace it with:
             &pointer_canvas,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 return;
@@ -1785,8 +1256,6 @@ Replace it with:
             navigation_action(&event, &pointer_canvas, &mut gesture)
         } else {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1835,8 +1304,7 @@ Replace it with:
         } else {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let browser_window = window.clone();
@@ -1846,8 +1314,6 @@ Replace it with:
         let line = match panel.update(Some(&event), &input_canvas) {
             Ok(line) => line,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1861,8 +1327,7 @@ Replace it with:
             Ok(line) => line,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         config.format.add_srgb_suffix(),
@@ -1872,8 +1337,6 @@ Replace it with:
             "Example Triangle",
             "Select Next",
 ```
-
-</details>
 
 Replace it with:
 
@@ -1887,8 +1350,7 @@ Replace it with:
             "Select Next",
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2254,86 +1716,42 @@ fn present(
 }
 ```
 
-</details>
+**Result after `23-import`:** Download the [supplied sample.pb](../fixtures/sample-23.pb). Type Open in the browser and choose that file; one Undo removes all three orange pieces and Redo restores them.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/23-import-window-1.rs"
-```
-
-```text
---8<-- "journey/code/23-import-window-2.rs"
-```
-
-```text
---8<-- "journey/code/23-import-window-3.rs"
-```
-
-```text
---8<-- "journey/code/23-import-window-4.rs"
-```
-
-```text
---8<-- "journey/code/23-import-window-5.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-23a-bounds"></a>
 
 ### Step 7 of 14 · Measure the displayed scene bounds (`23a-bounds`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/14 Visual Trace (23a-bounds): Measure the displayed scene bounds</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/bounds.rs, src/scene.rs, src/lib.rs, src/fit_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Displayed vertices</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coordinate minima/maxima</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">centre and radius</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/bounds.rs, src/scene.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">coordinate minima/maxima</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">centre and radius</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.
-- **Data Flow Trace:** `Displayed vertices → coordinate minima/maxima → centre and radius`
-- **Files You Touch:** `src/bounds.rs` (*Store coordinate minima/maxima; compute the centre and enclosing-sphere radius from them.*) · `src/scene.rs` (*Accumulate displayed vertices into f64 bounds; return None for an empty scene.*) · `src/lib.rs` (*Register the bounds module beside Camera.*) · `src/fit_tests.rs` (*Optional authoring fixture. Check measured bounds and the empty-scene result.*)
 
 Accumulate displayed vertex coordinates into Bounds. Its centre is the midpoint of the minimum and maximum; its radius encloses the box corners.
 
 Scene::bounds returns Option<Bounds>. The first vertex starts the box; an empty scene returns None instead of invented dimensions.
 
-> **Self-Check Question:** *Why return None for an empty scene?*  
-> **Answer:** There is no geometry to frame. The caller can leave the current camera unchanged.
-
-- **What You Should See:** Inspect the supplied state fixtures. Known corners give the expected centre and radius; a scene with no objects has no bounds.
-- **Hands-On Lab Experiment:** Change one corner in the bounds test and calculate the midpoint before running it.
-
-<details>
-<summary>Implementation 23a-bounds: Measure the displayed scene bounds</summary>
-
-Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.
-
-Data flow: Displayed vertices → coordinate minima/maxima → centre and radius.
+> **Check:** *Why return None for an empty scene?* — There is no geometry to frame. The caller can leave the current camera unchanged.
 
 ### 1. `src/bounds.rs`
 
@@ -2349,15 +1767,6 @@ Create the file and type:
 
 Accumulate displayed vertices into f64 bounds; return None for an empty scene.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn objects(&self) -> &[Object] {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -2368,27 +1777,13 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Register the bounds module beside Camera.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod background;
-pub mod camera;
-pub mod mesh;
-pub mod scene;
-pub mod picking;
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/24-fit-fullscreen-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2402,25 +1797,9 @@ Copy this supplied file:
 --8<-- "journey/code/23a-bounds-tests.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the native Fit tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod document_tests;
-#[cfg(test)]
-mod navigation_tests;
-#[cfg(test)]
-mod gesture_tests;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2428,53 +1807,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/24-fit-fullscreen-2.rs"
 ```
 
-</details>
+**Result after `23a-bounds`:** Inspect the supplied state fixtures. Known corners give the expected centre and radius; a scene with no objects has no bounds.
+
+---
 
 <a id="checkpoint-23b-fit-camera"></a>
 
 ### Step 8 of 14 · Fit the camera around the bounds (`23b-fit-camera`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/14 Visual Trace (23b-fit-camera): Fit the camera around the bounds</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/fit_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Bounds centre/radius and aspect</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera target, distance and clipping</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/camera.rs, src/fit_te…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera target, distance…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera target, distance…</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
-- **Data Flow Trace:** `Bounds centre/radius and aspect → camera target, distance and clipping`
-- **Files You Touch:** `src/camera.rs` (*Keep the fitted scene scale with the camera. Distance says where the eye is; radius says how large the scene is.*) · `src/fit_tests.rs` (*Optional authoring fixture. Check projected corners, preserved orientation and zoom after fitting.*)
 
 Aim the camera at the bounds centre and back away until its enclosing sphere fits the smaller horizontal or vertical half-angle. Preserve orientation and keep a small margin.
 
 Store the measured radius on Camera. Use it for zoom limits and far depth reach. Keep the near plane at one ten-thousandth of eye distance, independently of scene size, so nearby CAD geometry remains visible when zooming into a large model.
 
-> **Self-Check Question:** *Why use the smaller half-angle?*  
-> **Answer:** That direction limits the visible space. Using only the vertical angle would crop a scene in a tall window.
-
-- **What You Should See:** Inspect the supplied state fixtures. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
-- **Hands-On Lab Experiment:** Change the 1.1 margin to 1.4, predict a smaller drawing, then restore it.
-
-<details>
-<summary>Implementation 23b-fit-camera: Fit the camera around the bounds</summary>
-
-Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
-
-Data flow: Bounds centre/radius and aspect → camera target, distance and clipping.
+> **Check:** *Why use the smaller half-angle?* — That direction limits the visible space. Using only the vertical angle would crop a scene in a tall window.
 
 ### 1. `src/camera.rs`
 
@@ -2482,8 +1850,7 @@ Keep the fitted scene scale with the camera. Distance says where the eye is; rad
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.target[2] - forward[2] * self.distance,
@@ -2493,8 +1860,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         projection * view
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2509,8 +1874,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2520,8 +1884,6 @@ Replace it with:
         }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2534,8 +1896,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2545,8 +1906,6 @@ impl Camera {
         let right = self.orientation.rotate_vector(Vector::x_axis());
         let up = self.orientation.rotate_vector(Vector::z_axis());
 ```
-
-</details>
 
 Replace it with:
 
@@ -2568,8 +1927,7 @@ impl Camera {
         let up = self.orientation.rotate_vector(Vector::z_axis());
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Self {
@@ -2579,8 +1937,6 @@ impl Camera {
             aspect: 640.0 / 480.0,
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2594,8 +1950,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Camera {
@@ -2605,8 +1960,6 @@ pub struct Camera {
     pub aspect: f64,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2620,8 +1973,7 @@ pub struct Camera {
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use session_rust::{Point, Quaternion, Vector, Xform};
@@ -2779,37 +2131,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/24-fit-04.rs"
-```
-
-```text
---8<-- "journey/code/24-fit-05.rs"
-```
-
-```text
---8<-- "journey/code/24-fit-06.rs"
-```
-
-```text
---8<-- "journey/code/24-fit-07.rs"
-```
-
-```text
---8<-- "journey/code/24-fit-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2817,47 +2139,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Check projected corners, preserved orientation and zoom after fitting.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::bounds::Bounds;
-
-#[test]
-fn bounds_measure_vertices_and_define_the_empty_case() {
-    let mut bounds = Bounds::point([-2.0, 1.0, 0.0]);
-    bounds.include([2.0, 3.0, 2.0]);
-    assert_eq!(bounds.centre(), [0.0, 2.0, 1.0]);
-    assert!((bounds.radius() - 6.0_f64.sqrt()).abs() < 1.0e-12);
-    let mut scene = crate::scene::Scene::demo();
-    assert!(scene.bounds().is_some());
-    while let Some(id) = scene.next(None) { scene.remove(id); }
-    assert!(scene.bounds().is_none());
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/23b-fit-camera-tests.rs"
 ```
 
-</details>
-
 ### 3. `src/camera.rs`
 
 Keep the current near fraction independent of scene radius.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Ray {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2867,19 +2157,7 @@ pub const NEAR_FRACTION:f64=1.0e-4;
 pub struct Ray {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/23b-fit-camera-near.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2887,90 +2165,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply geometric near-cut or f32 depth-resolution checks in original millimetre coordinates.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ew_projection().transform_point(&world);
-        let ray = camera.ray([screen[0] as f32, screen[1] as f32]).unwrap();
-        let offset = &world - &ray.origin;
-        assert!(offset.cross(&ray.direction).magnitude() < 1.0e-6);
-        assert!(offset.dot(&ray.direction) > 0.0);
-        assert!(offset.magnitude() < ray.max_distance);
-        assert!(camera.ray([f32::NAN, 0.0]).is_none());
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/23b-fit-camera-depth-tests.rs" skip=400
 ```
 
-</details>
+**Result after `23b-fit-camera`:** Inspect the supplied state fixtures. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
 
-</details>
+---
 
 <a id="checkpoint-24-fit"></a>
 
 ### Step 9 of 14 · Run Fit through the command line (`24-fit`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/14 Visual Trace (24-fit): Run Fit through the command line</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/fit_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Typed Fit</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Scene::bounds</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Camera::fit</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">redraw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Scene::bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">redraw</text>
 </svg>
-</div>
-
-- **Goal:** Frame all current objects without rotating them or changing the document.
-- **Data Flow Trace:** `Typed Fit → Editor → Scene::bounds → Camera::fit → redraw`
-- **Files You Touch:** `src/editor.rs` (*Fit is an explicit action, like Isometric. Import still changes the document; Fit only changes how you look at it.*) · `src/browser.rs` (*Add Fit to the vocabulary.*) · `src/fit_tests.rs` (*Optional authoring fixture. Import editor actions for fitting and document-history checks.*)
 
 Add Fit to Action and the command vocabulary. Editor measures scene bounds and asks Camera to fit them when geometry exists.
 
 Fit returns a view change. It retains selection and document history, and reuses the current geometry buffers. An empty scene leaves the camera unchanged.
 
-> **Self-Check Question:** *Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?*  
-> **Answer:** Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.
-
-- **What You Should See:** Open sample.pb, type Pan Right, then Fit. The whole scene returns with a margin while keeping its viewing direction.
-- **Hands-On Lab Experiment:** Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.
-
-<details>
-<summary>Implementation 24-fit: Run Fit through the command line</summary>
-
-Frame all current objects without rotating them or changing the document.
-
-Data flow: Typed Fit → Editor → Scene::bounds → Camera::fit → redraw.
+> **Check:** *Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?* — Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.
 
 ### 1. `src/editor.rs`
 
@@ -2978,8 +2214,7 @@ Fit is an explicit action, like Isometric. Import still changes the document; Fi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     Action::Pan(dx, dy) => self.camera.pan(dx, dy),
@@ -2989,8 +2224,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                         let aspect = self.camera.aspect;
                         self.camera = Camera { aspect, ..Camera::default() };
 ```
-
-</details>
 
 Replace it with:
 
@@ -3008,8 +2241,7 @@ Replace it with:
                         self.camera = Camera { aspect, ..Camera::default() };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Orbit(f64, f64),
@@ -3019,8 +2251,6 @@ Replace it with:
 
 #[derive(Debug, PartialEq, Eq)]
 ```
-
-</details>
 
 Replace it with:
 
@@ -3034,8 +2264,7 @@ Replace it with:
 #[derive(Debug, PartialEq, Eq)]
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3188,31 +2417,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/24-fit-09.rs"
-```
-
-```text
---8<-- "journey/code/24-fit-10.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Add Fit to the vocabulary. Route Fit through the editor action.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
@@ -3222,8 +2433,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     _ => return,
                 };
 ```
-
-</details>
 
 Replace it with:
 
@@ -3237,8 +2446,7 @@ Replace it with:
                 };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Orbit Right",
@@ -3248,8 +2456,6 @@ Replace it with:
         ],
     );
 ```
-
-</details>
 
 Replace it with:
 
@@ -3263,8 +2469,7 @@ Replace it with:
     );
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -3632,25 +2837,7 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/24-fit-window-1.rs"
-```
-
-```text
---8<-- "journey/code/24-fit-window-2.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3658,26 +2845,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Import editor actions for fitting and document-history checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{bounds::Bounds, camera::Camera};
-use session_rust::Point;
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/24-fit-test-imports.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3685,79 +2859,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Check imported bounds, selection, history and empty or single-point scenes.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-            assert!((camera.distance - distance / 1.01_f32 as f64).abs() < distance * 1.0e-10);
-        }
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/24-fit-editor-tests.rs" skip=115
 ```
 
-</details>
+**Result after `24-fit`:** Open sample.pb, type Pan Right, then Fit. The whole scene returns with a margin while keeping its viewing direction.
 
-</details>
+---
 
 <a id="checkpoint-24a-projection"></a>
 
 ### Step 10 of 14 · Build perspective and orthographic camera matrices (`24a-projection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/14 Visual Trace (24a-projection): Build perspective and orthographic camera matrices</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/projection_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Projection enum</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera matrix</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">drawing and inverse-matrix rays</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/camera.rs, src/projec…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera matrix</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">drawing and inverse-mat…</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
-- **Data Flow Trace:** `Projection enum → camera matrix → drawing and inverse-matrix rays`
-- **Files You Touch:** `src/camera.rs` (*Name the projection choices with an enum; derive copying and equality for this small value.*) · `src/projection_tests.rs` (*Optional authoring fixture. Check target-plane scale, depth-independent size and parallel picking rays.*) · `src/lib.rs` (*Register the new checks without changing the production browser entry point.*)
 
 Add Projection to Camera and choose the matching matrix. Give orthographic projection the same target-plane half-height as perspective: distance × tan(30°).
 
 Projection is a small Copy enum. Inverse-matrix picking remains shared: perspective rays spread out, while orthographic rays have separate origins and parallel directions.
 
-Keep the orthographic depth interval tied to scene reach, without the perspective far-plane multiplier. This preserves useful depth separation for thin CAD parts.
-
-> **Self-Check Question:** *Why can one picking method support both projections?*  
-> **Answer:** It inverts the selected camera matrix. The resulting near and far points define the correct ray for that matrix.
-
-- **What You Should See:** Inspect the supplied state fixtures. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
-- **Hands-On Lab Experiment:** Switch the browser between perspective and orthographic projection. Predict how distance changes apparent object size in perspective, then compare the drawing.
-
-<details>
-<summary>Implementation 24a-projection: Build perspective and orthographic camera matrices</summary>
-
-Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
-
-Data flow: Projection enum → camera matrix → drawing and inverse-matrix rays.
+> **Check:** *Why can one picking method support both projections?* — It inverts the selected camera matrix. The resulting near and far points define the correct ray for that matrix.
 
 ### 1. `src/camera.rs`
 
@@ -3765,8 +2908,7 @@ Name the projection choices with an enum; derive copying and equality for this s
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let view = Xform::look_at_right_handed(&eye, &target, &up);
@@ -3776,8 +2918,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         projection * view
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3798,8 +2938,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             radius: 1.0,
@@ -3816,8 +2955,6 @@ impl Camera {
         let radius = bounds.radius();
         self.radius = if radius > 0.0 { radius } else { 1.0 };
 ```
-
-</details>
 
 Replace it with:
 
@@ -3838,8 +2975,7 @@ impl Camera {
         self.radius = if radius > 0.0 { radius } else { 1.0 };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub radius: f64,
@@ -3849,8 +2985,6 @@ impl Camera {
 
 impl Default for Camera {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3864,8 +2998,7 @@ Replace it with:
 impl Default for Camera {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3875,8 +3008,6 @@ pub struct Ray {
     pub origin: Point,
     pub direction: Vector,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3897,8 +3028,7 @@ pub struct Ray {
     pub direction: Vector,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use session_rust::{Point, Quaternion, Vector, Xform};
@@ -4089,37 +3219,7 @@ mod near_range_tests{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/25-projection-01.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-02.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-03.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-04.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4133,25 +3233,9 @@ Copy this supplied file:
 --8<-- "journey/code/24a-projection-tests.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the new checks without changing the production browser entry point.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod fit_tests;
-#[cfg(test)]
-mod navigation_tests;
-#[cfg(test)]
-mod gesture_tests;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4159,8 +3243,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/25-projection-fullscreen-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4168,92 +3251,52 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply geometric near-cut or f32 depth-resolution checks in original millimetre coordinates.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-]*(gap-distance),camera.target[2]+forward[2]*(gap-distance));
-   let matrix=camera.view_projection();let inside=matrix.transform_point(&point(distance*NEAR_FRACTION*2.));let cut=matrix.transform_point(&point(distance*NEAR_FRACTION*0.5));
-   assert!((0.0..1.0).contains(&inside[2]),"near geometry remains in view: {inside:?}");assert!(cut[2]<0.,"the near plane still cuts ahead of the eye");
-  }
- }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/24a-projection-depth-tests.rs" skip=400
 ```
 
-</details>
+**Result after `24a-projection`:** Inspect the supplied state fixtures. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
 
-</details>
+---
 
 <a id="checkpoint-24b-projection-actions"></a>
 
 ### Step 11 of 14 · Fit and change projection through the editor (`24b-projection-actions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/14 Visual Trace (24b-projection-actions): Fit and change projection through the editor</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/editor.rs, src/projection_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Selected projection</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fit opening; Action::Projection</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view-only change</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/camera.rs, src/editor…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fit opening; Action::Pr…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">view-only change</text>
 </svg>
-</div>
-
-- **Goal:** Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
-- **Data Flow Trace:** `Selected projection → fit opening; Action::Projection → view-only change`
-- **Files You Touch:** `src/camera.rs` (*Fit the sphere through a perspective half-angle or the smaller orthographic half-extent.*) · `src/editor.rs` (*Carry the requested projection in Action for the named view commands.*) · `src/projection_tests.rs` (*Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks.*)
 
 Fit an enclosing sphere using the selected projection. Perspective uses the smaller half-angle; orthographic uses the smaller half-extent.
 
 Carry Projection in an editor action. Changing it preserves camera parameters and document history; Reset View still restores the perspective default.
 
-> **Self-Check Question:** *Why keep projection outside document history?*  
-> **Answer:** It changes how the document is seen. Undo should restore geometry while retaining the current view choice.
-
-- **What You Should See:** Inspect the supplied state fixtures. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
-- **Hands-On Lab Experiment:** Read the close-orthographic picking test and predict what Reset View does to its projection choice.
-
-<details>
-<summary>Implementation 24b-projection-actions: Fit and change projection through the editor</summary>
-
-Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
-
-Data flow: Selected projection → fit opening; Action::Projection → view-only change.
+> **Check:** *Why keep projection outside document history?* — It changes how the document is seen. Undo should restore geometry while retaining the current view choice.
 
 ### 1. `src/camera.rs`
 
 Fit the sphere through a perspective half-angle or the smaller orthographic half-extent.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.distance = self.radius * 1.1 / half_x.min(half_y).sin();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4267,8 +3310,7 @@ Carry the requested projection in Action for the named view commands. Change pro
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     Action::Pan(dx, dy) => self.camera.pan(dx, dy),
@@ -4278,8 +3320,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                         if let Some(bounds) = self.scene.bounds() {
                             self.camera.fit(&bounds);
 ```
-
-</details>
 
 Replace it with:
 
@@ -4293,8 +3333,7 @@ Replace it with:
                             self.camera.fit(&bounds);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Isometric,
@@ -4304,8 +3343,6 @@ Replace it with:
 
 #[derive(Debug, PartialEq, Eq)]
 ```
-
-</details>
 
 Replace it with:
 
@@ -4319,8 +3356,7 @@ Replace it with:
 #[derive(Debug, PartialEq, Eq)]
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4475,25 +3511,7 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/25-projection-07.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4501,26 +3519,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::camera::{Camera, Projection};
-use session_rust::{Point, Vector};
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/24b-projection-test-imports.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4528,81 +3533,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Optional authoring fixture. Check orthographic fitting, close selection, view history and reset.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(camera.ray([-0.5, 0.0]).unwrap().direction
-        .cross(&camera.ray([0.5, 0.0]).unwrap().direction).magnitude() > 0.1);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/24b-projection-editor-tests.rs" skip=137
 ```
 
-</details>
+**Result after `24b-projection-actions`:** Inspect the supplied state fixtures. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
 
-</details>
+---
 
 <a id="checkpoint-25-projection"></a>
 
 ### Step 12 of 14 · Run the named projection commands (`25-projection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/14 Visual Trace (25-projection): Run the named projection commands</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Named View command</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Projection value</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera matrix and reported</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">mode</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Editor</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera matrix and repor…</text>
 </svg>
-</div>
-
-- **Goal:** Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
-- **Data Flow Trace:** `Named View command → Projection value → Editor → camera matrix and reported mode`
-- **Files You Touch:** `src/browser.rs` (*Add the two named projection commands.*)
 
 Add View Perspective and View Orthographic to the command vocabulary and route them to Action::Projection. Report the active projection on the canvas after applying an action.
 
 The commands preserve target-plane scale and view parameters. Fit remains explicit; run it after switching if perspective crops nearby geometry.
 
-> **Self-Check Question:** *Why can the same ray-picking code work in both views even though their rays have different shapes?*  
-> **Answer:** Camera builds the selected projection and combines it with the same view transform. Drawing uses that matrix. Picking inverts it and maps a screen point at depths 0 and 1 back into the world. Those two points define the correct ray for either matrix. Perspective rays spread out; orthographic rays are parallel. Their different origins and directions come from the matrix, not a second picking routine.
-
-- **What You Should See:** Type View Orthographic, Fit, then View Perspective. The target stays fixed while depth changes relative sizes.
-- **Hands-On Lab Experiment:** Switch modes while looking squarely at the two original triangles. Which one changes size more? Their depths differ, and neither lies on the target plane. Now orbit: the mode should stay selected while the viewing direction changes. Explain why Isometric and Orthographic are not synonyms.
-
-<details>
-<summary>Implementation 25-projection: Run the named projection commands</summary>
-
-Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
-
-Data flow: Named View command → Projection value → Editor → camera matrix and reported mode.
+> **Check:** *Why can the same ray-picking code work in both views even though their rays have different shapes?* — Camera builds the selected projection and combines it with the same view transform. Drawing uses that matrix. Picking inverts it and maps a screen point at depths 0 and 1 back into the world. Those two points define the correct ray for either matrix. Perspective rays spread out; orthographic rays are parallel. Their different origins and directions come from the matrix, not a second picking routine.
 
 ### 1. `src/browser.rs`
 
@@ -4610,8 +3582,7 @@ Add the two named projection commands. Map each projection command to its enum v
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Ok(())
@@ -4621,8 +3592,6 @@ fn navigation_action(
     event: &web_sys::Event,
     canvas: &web_sys::HtmlCanvasElement,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4645,8 +3614,7 @@ fn navigation_action(
     canvas: &web_sys::HtmlCanvasElement,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -4656,8 +3624,6 @@ fn navigation_action(
             report("File imported. Undo removes the entire import.");
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4674,8 +3640,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
@@ -4685,8 +3650,6 @@ Replace it with:
                     "view reset" => Action::ResetView,
                     _ => return,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4705,8 +3668,7 @@ Replace it with:
                     _ => return,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "Orbit Right",
@@ -4716,8 +3678,6 @@ Replace it with:
             "View Reset",
         ],
 ```
-
-</details>
 
 Replace it with:
 
@@ -4732,8 +3692,7 @@ Replace it with:
         ],
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5123,107 +4082,46 @@ fn present(
 }
 ```
 
-</details>
+**Result after `25-projection`:** Type View Orthographic, Fit, then View Perspective. The target stays fixed while depth changes relative sizes.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/25-projection-window-1.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-window-2.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-window-3.rs"
-```
-
-```text
---8<-- "journey/code/25-projection-window-4.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-26-selected"></a>
 
 ### Step 13 of 14 · Frame one object without changing its size (`26-selected`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/14 Visual Trace (26-selected): Frame one object without changing its size</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/editor.rs, src/browser.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Fit Selected</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected bounds</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Camera::fit</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">frame</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/editor.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selected bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">frame</text>
 </svg>
-</div>
-
-- **Goal:** Run Fit Selected while keeping geometry, selection and document history unchanged.
-- **Data Flow Trace:** `Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame`
-- **Files You Touch:** `src/scene.rs` (*Find one stable ID and collect only its displayed vertices. An absent ID or empty mesh returns None.*) · `src/editor.rs` (*Name a separate action for fitting the selection.*) · `src/browser.rs` (*Expose Fit Selected in the existing command vocabulary.*) · `src/lib.rs` (*Register the focused state checks.*) · `src/selected_fit_tests.rs` (*Optional authoring fixture. Check both projection modes, selection, shared mesh identity, history and the empty-selection case.*)
 
 Make `Fit Selected` use one object's bounds with the same fitting policy as `Fit`.
 
 Scene finds the object by `ObjectId`. `?` returns `None` for a missing ID or empty mesh. Start bounds from its first vertex so the origin does not enlarge every box.
 
-Editor uses `Option::and_then` to request bounds only when selection exists, then passes them to Camera. No second fitting formula is needed.
-
-Fitting changes pixels occupied by the object, preserving its model coordinates and shared mesh. It changes neither document units nor object size.
-
-> **Self-Check Question:** *Does fitting an object change its coordinates or only the camera?*  
-> **Answer:** Only the camera target and distance change. The selected object keeps the same shared mesh and stable ID. Bounds are measured in existing model coordinates; fitting changes their screen coverage, not their physical dimensions.
-
-- **What You Should See:** Type `Select Next`, then `Fit Selected`. The selected object fills the view with a margin. Geometry, selection and Undo history stay unchanged.
-- **Hands-On Lab Experiment:** Select Next repeatedly and run Fit Selected after each selection. Predict the camera target from that object’s minimum and maximum coordinates. Then compare perspective and orthographic fits. Explain why neither operation should create an undo entry.
-
-<details>
-<summary>Implementation 26-selected: Frame one object without changing its size</summary>
-
-Run Fit Selected while keeping geometry, selection and document history unchanged.
-
-Data flow: Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame.
+> **Check:** *Does fitting an object change its coordinates or only the camera?* — Only the camera target and distance change. The selected object keeps the same shared mesh and stable ID. Bounds are measured in existing model coordinates; fitting changes their screen coverage, not their physical dimensions.
 
 ### 1. `src/scene.rs`
 
 Find one stable ID and collect only its displayed vertices. An absent ID or empty mesh returns None.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn objects(&self) -> &[Object] {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5237,8 +4135,7 @@ Name a separate action for fitting the selection. Borrow the selected ID, ask Sc
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                             self.camera.fit(&bounds);
@@ -5248,8 +4145,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                         let aspect = self.camera.aspect;
                         self.camera = Camera { aspect, ..Camera::default() };
 ```
-
-</details>
 
 Replace it with:
 
@@ -5269,8 +4164,7 @@ Replace it with:
                         self.camera = Camera { aspect, ..Camera::default() };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Isometric,
@@ -5279,8 +4173,6 @@ Replace it with:
     Projection(crate::camera::Projection),
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5293,8 +4185,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -5457,31 +4348,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/26-selected-02.rs"
-```
-
-```text
---8<-- "journey/code/26-selected-03.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Expose Fit Selected in the existing command vocabulary. Translate the named command into the new action.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                         Action::Projection(crate::camera::Projection::Orthographic)
@@ -5491,8 +4364,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     _ => return,
                 };
 ```
-
-</details>
 
 Replace it with:
 
@@ -5506,8 +4377,7 @@ Replace it with:
                 };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             "View Perspective",
@@ -5517,8 +4387,6 @@ Replace it with:
         ],
     );
 ```
-
-</details>
 
 Replace it with:
 
@@ -5532,8 +4400,7 @@ Replace it with:
     );
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5925,36 +4792,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/26-selected-04.rs"
-```
-
-```text
---8<-- "journey/code/26-selected-05.rs"
-```
-
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the focused state checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod projection_tests;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5962,8 +4802,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/26-selected-06.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5977,67 +4816,42 @@ Copy this supplied file:
 --8<-- "journey/code/26-selected-07.rs"
 ```
 
-</details>
+**Result after `26-selected`:** Type `Select Next`, then `Fit Selected`. The selected object fills the view with a margin. Geometry, selection and Undo history stay unchanged.
 
-</details>
+---
 
 <a id="checkpoint-26a-keys"></a>
 
 ### Step 14 of 14 · Fit and step history from the keyboard (`26a-keys`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/14 Visual Trace (26a-keys): Fit and step history from the keyboard</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/shortcuts.rs, src/panel.rs, src/browser.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">keyboard press</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">text ownership</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing command</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">editor action</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">redraw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/shortcuts.rs, src/pan…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing command</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">redraw</text>
 </svg>
-</div>
-
-- **Goal:** Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
-- **Data Flow Trace:** `keyboard press → text ownership → existing command → editor action → redraw`
-- **Files You Touch:** `src/shortcuts.rs` (*Classify canvas Fit and available history keys without owning browser or document state.*) · `src/panel.rs` (*Use current text focus and content to decide shortcut ownership.*) · `src/browser.rs` (*Echo an accepted shortcut through the same command route before the panel consumes typing.*) · `src/lib.rs` (*Register the shared shortcut policy.*) · `src/shortcuts_tests.rs` (*Copy the modifier and text-ownership checks.*)
 
 Classify a key before the panel can focus on its printable letter. F belongs to the unfocused canvas. History keys belong to the document when no nonempty focused text field owns them.
 
 Both Ctrl and Cmd use the same policy. Ignore repeated, composing and Alt-modified events. Echo the existing command and reuse the normal action route, preserving one history transaction.
 
-> **Self-Check Question:** *Why must Ctrl+Z stay with a nonempty focused command field?*  
-> **Answer:** It edits the text being typed. Document history must change only when that text does not own the shortcut.
-
-- **What You Should See:** Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
-- **Hands-On Lab Experiment:** Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
-
-<details>
-<summary>Implementation 26a-keys: Fit and step history from the keyboard</summary>
-
-Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
-
-Data flow: keyboard press → text ownership → existing command → editor action → redraw.
+> **Check:** *Why must Ctrl+Z stay with a nonempty focused command field?* — It edits the text being typed. Document history must change only when that text does not own the shortcut.
 
 ### 1. `src/shortcuts.rs`
 
@@ -6053,15 +4867,6 @@ Create the file and type:
 
 Use current text focus and content to decide shortcut ownership.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -6074,25 +4879,13 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/26a-keys-02.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Echo an accepted shortcut through the same command route before the panel consumes typing. Make canvas F fit the selection when present; otherwise fit the whole scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     "view orthographic" => {
@@ -6103,8 +4896,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     "view reset" => Action::ResetView,
                     _ => return,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6120,8 +4911,7 @@ Replace it with:
                     _ => return,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let mut gesture = Gesture::default();
@@ -6138,8 +4928,6 @@ Replace it with:
             crate::file_input::choose(&event, std::rc::Rc::clone(&request));
             None
 ```
-
-</details>
 
 Replace it with:
 
@@ -6165,8 +4953,7 @@ Replace it with:
             None
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -6566,35 +5353,9 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/26a-keys-03.rs"
-```
-
-```text
---8<-- "journey/code/26a-keys-04.rs"
-```
-
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the shared shortcut policy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod navigation;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6603,19 +5364,7 @@ pub mod shortcuts;
 pub mod navigation;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/26a-keys-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6629,20 +5378,9 @@ Copy this supplied file:
 --8<-- "journey/code/26a-keys-tests.rs"
 ```
 
-</details>
-
 ### 6. `src/lib.rs`
 
 Register the native checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod shortcuts;
-```
-
-</details>
 
 After that block, type:
 
@@ -6651,42 +5389,22 @@ After that block, type:
 mod shortcuts_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/26a-keys-06.rs"
-```
-
-</details>
-
-</details>
+**Result after `26a-keys`:** Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 26a-keys
-npm --prefix ../session_tests run course -- check 26a-keys
-npm --prefix ../session_tests run course -- save 26a-keys
+npm --prefix ../session_tests run course -- dependencies 3.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 3.3
+npm --prefix ../session_tests run course -- save 3.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 3.3 (26a-keys)](../../screenshots/journey/26a-keys-browser.png)
-
-Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
-
-- **Final Lesson Experiment:** Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
-
-Continue with [Local sources, world placement and display caches](27-placement.md).
+Continue with [3.4 · Local sources, world placement and display caches](27-placement.md).

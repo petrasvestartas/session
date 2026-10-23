@@ -1,211 +1,96 @@
 # 22.3 · Original boundary pens, joins and vertex markers
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.3** (Redraft `10.18`) · **4 checkpoints (`96zzzzzzn-respect-original-boundary-pens` → `96zzzzzzq-taper-crowded-original-mesh-vertices`)** · **Study time: 4–8 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzzzzzn-respect-original-boundary-pens` → `96zzzzzzq-taper-crowded-original-mesh-vertices` (4 steps) · **Production source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs)
 
-> **What You Will Learn & Build:** Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys. By the final checkpoint (`96zzzzzzq-taper-crowded-original-mesh-vertices`), you will keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
+> **Goal:** Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 22.3 Pipeline Schematic: Original boundary pens, joins and vertex markers</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (4 Checkpoints: 96zzzzzzn-respect-original-boundary-pens → 96zzzzzzq-taper-crowded-original-mesh-vertices)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original topology</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">and style order</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared prepared</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">numeric pens</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">existing boundary</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">stroke lane</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">actual source edge</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">queries</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Render bounds and</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">source vertex count</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 22.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/mesh_pens.rs  ·  src/lib.rs  ·  src/mesh_parts.rs  ·  src/bounds_original.rs  ·  src/pick_sources.rs  ·  src/source_pen_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">4 Checkpoints: 96zzzzzzn-respect-original-boundary-pens → 96zzzzzzq-taper-crowded-original-mesh-vertices — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzzzzzn-respect-original-boundary-pens`](#checkpoint-96zzzzzzn-respect-original-boundary-pens) | Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys. | `src/mesh_pens.rs`, `src/lib.rs`, `src/mesh_parts.rs`, `src/bounds_original.rs` | `Original topology and style order → shared prepared numeric pens → existing boundary stroke lane → actual source edge queries` |
-| **2** | [`96zzzzzzo-close-original-boundary-joins`](#checkpoint-96zzzzzzo-close-original-boundary-joins) | Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts. | `src/stroke_quad.wgsl`, `src/finite_project_source.rs`, `src/stroke.wgsl`, `src/finite_stroke.wgsl` | `Original endpoints → shared near-clipped screen quad → distance coverage → matching integer query` |
-| **3** | [`96zzzzzzp-draw-default-mesh-vertex-dots`](#checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots) | Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions. | `src/mesh_pens.rs`, `src/mesh_parts.rs`, `src/bounds_original.rs`, `src/plane_original.rs` | `Original nonzero edge incidence → endpoint address → anchored marker → existing point upload` |
-| **4** | [`96zzzzzzq-taper-crowded-original-mesh-vertices`](#checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices) | Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership. | `src/mesh.rs`, `src/marker.rs`, `src/pick_sources.rs`, `src/stroke_gpu.rs` | `Render bounds and source vertex count → one shared spacing scalar → signed GPU size → common radius and query coverage` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzzzzzn-respect-original-boundary-pens"></a>
 
 ### Step 1 of 4 · Respect original boundary pens (`96zzzzzzn-respect-original-boundary-pens`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/4 Visual Trace (96zzzzzzn-respect-original-boundary-pens): Respect original boundary pens</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh_pens.rs, src/lib.rs, src/mesh_parts.rs, src/bounds_original.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original topology and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">style…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared prepared numeric</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pens</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing boundary stroke</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lane</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">actual source edge queries</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/mesh_pens.rs, src/lib…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing boundary strok…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">actual source edge quer…</text>
 </svg>
-</div>
-
-- **Goal:** Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
-- **Data Flow Trace:** `Original topology and style order → shared prepared numeric pens → existing boundary stroke lane → actual source edge queries`
-- **Files You Touch:** `src/mesh_pens.rs` (*Prepare only numeric pens using the already-taught topology and original encounter order.*) · `src/lib.rs` (*Connect the prepared style producer to the independent learner runtime.*) · `src/mesh_parts.rs` (*Keep lightweight pens beside the existing shared source-key display.*) · `src/bounds_original.rs` (*Existing analytic bounds edges retain their default black pen.*) · `src/pick_sources.rs` (*Keep source endpoint keys, boundary addresses and pen slots aligned.*) · `src/source_pen_tests.rs` (*Supply real GPU/source/archive, sparse style-order and source-unload controls.*) · `src/renderer.rs` (*Connect Native validation outside the browser runtime.*) · `src/plane_original.rs` (*Existing analytic plane boundaries retain their default black pen.*) · `src/mesh_arena_tests.rs` (*Keep the supplied stale-binding GPU probe inside its actual bound arrays; preserve all pixel, identity and write-count assertions.*)
 
 A mesh with an authored seven-pixel pen currently looks identical to its one-pixel version. Prepare pens in the topology producer’s edge order, then feed the existing stroke lane. Use the same preparation to suppress coplanar seams while preserving source face identity.
 
 A Mesh width of zero hides an edge; a single zero width denotes an undecorated printed fill. BRep and NURBS widths instead use the default pen for nonpositive values. Dense meshes above the maintained triangle budget also keep their faces without edge decoration. Store only numeric pens on the existing shared display so source unloading does not change appearance.
 
-> **Self-Check Question:** *Why must edge colors and widths use topology encounter order instead of a sorted edge list?*  
-> **Answer:** The source stores edge style streams in the order seeded while walking faces and their rings. Sorting endpoint pairs changes that order and assigns styles to different original edges. Preserve actual endpoint keys for source queries.
-
-- **What You Should See:** The authored pen changes the actual GPU border. Sparse original keys and complete source records remain unchanged; coplanar seams and hidden mesh edges do not become visible ink.
-- **Hands-On Lab Experiment:** Compare default and seven-pixel borders, a hidden sparse edge, original per-edge colors, a coplanar face pair and BRep/NURBS boundary pens. Check source unload, shared placement and exact restoration.
-
-<details>
-<summary>Implementation 96zzzzzzn-respect-original-boundary-pens: Respect original boundary pens</summary>
-
-Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
-
-Data flow: Original topology and style order → shared prepared numeric pens → existing boundary stroke lane → actual source edge queries.
+> **Check:** *Why must edge colors and widths use topology encounter order instead of a sorted edge list?* — The source stores edge style streams in the order seeded while walking faces and their rings. Sorting endpoint pairs changes that order and assigns styles to different original edges. Preserve actual endpoint keys for source queries.
 
 ### 1. `src/mesh_pens.rs`
 
@@ -221,79 +106,15 @@ Create the file and type:
 
 Connect the prepared style producer to the independent learner runtime.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh_parts;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 pub mod mesh_pens;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-02.rs"
-```
-
-</details>
-
 ### 3. `src/mesh_parts.rs`
 
 Keep lightweight pens beside the existing shared source-key display. Reuse one topology preparation for styling and coplanar edge omission. Retain pens after the editable source is unloaded. Decode packed original colors only when preparing the existing stroke stream. Count actual retained numeric pen capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone,Default)]
-pub struct Parts {
-    pub faces: Vec<usize>,
-    pub triangles: Vec<u32>,
-    pub edges: Vec<(usize, usize)>,
-    pub endpoints: Vec<[[f64; 3]; 2]>,
-}
-
-impl Parts {
-    // Render triangles can split one source polygon; retain its original key rather than treating each display triangle as a new face.
-    pub fn new(source: &session_rust::Mesh, count: usize) -> Result<Self, &'static str> {
-        let faces = source.faces(); let mut triangles = Vec::new();
-        for (slot, &face) in faces.iter().enumerate() {
-            let slot = u32::try_from(slot).map_err(|_| "Too many source faces")?;
-            let cached = source.get_triangulation().get(&face).filter(|tris| !tris.is_empty());
-            let indices = if let Some(cached) = cached { cached.clone() } else {
-                let vertices = source.face_vertices(face).ok_or("Missing source face")?;
-                (1..vertices.len().saturating_sub(1)).map(|i| [vertices[0], vertices[i], vertices[i + 1]]).collect()
-            };
-            for tri in indices { if tri.iter().all(|&key| source.vertex_point(key).is_some()) { triangles.push(slot); } }
-        }
-        if triangles.len() != count { return Err("Source faces do not match the rendered triangles"); }
-        let edges = source.edges(); let mut endpoints = Vec::new();
-        for &(a, b) in &edges {
-            let a = source.vertex_point(a).ok_or("Missing edge endpoint")?;
-            let b = source.vertex_point(b).ok_or("Missing edge endpoint")?;
-            endpoints.push([[a[0], a[1], a[2]], [b[0], b[1], b[2]]]);
-        }
-        Ok(Self { faces, triangles, edges, endpoints })
-    }
-
-    pub fn bytes(&self) -> usize {
-        self.faces.capacity() * std::mem::size_of::<usize>() + self.triangles.capacity() * 4
-            + self.edges.capacity() * std::mem::size_of::<(usize, usize)>() + self.endpoints.capacity() * 48
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -342,45 +163,9 @@ impl Parts {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-07.rs"
-```
-
-</details>
-
 ### 4. `src/bounds_original.rs`
 
 Existing analytic bounds edges retain their default black pen.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        endpoints,
-```
-
-</details>
 
 After that block, type:
 
@@ -394,8 +179,7 @@ Keep source endpoint keys, boundary addresses and pen slots aligned. Respect eac
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let flag=if planes.contains(&row.id){4096}else{0};
@@ -411,8 +195,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -432,8 +214,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -554,33 +335,7 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-12.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -594,10 +349,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-13.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -605,35 +357,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Connect Native validation outside the browser runtime.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod source_face_policy_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-14.rs" skip=29
 ```
 
-</details>
-
 ### 8. `src/plane_original.rs`
 
 Existing analytic plane boundaries retain their default black pen.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -641,25 +373,13 @@ Edit the existing block to match this code; keep unchanged lines:
     let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-15.rs"
-```
-
-</details>
-
 ### 9. `src/pick_sources.rs`
 
 Resolve immutable mesh-row ownership and explicit display color once. Share the existing source-face eligibility classification. Resolve the original surface/BRep scalar pen once per row, outside its boundary segments. Retain identical original pick addresses without repeated per-segment hierarchy lookups.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 if width==0. {continue;}
@@ -670,8 +390,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             }
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -685,8 +403,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 facing=crate::packed_vertex::oct32(std::array::from_fn(|i|(0..3).map(|j|m[j*4+i]*n[j]).sum()));
@@ -696,8 +413,6 @@ Replace it with:
             let mut surface_edges=row.surface.as_ref().map(|surface|surface.edge_ids());
             for (index,(&(a,b),ends)) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints).enumerate() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -711,8 +426,7 @@ Replace it with:
             for (index,(&(a,b),ends)) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints).enumerate() {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if scene.forest.derived(owner) { 0 } else { tag }];
@@ -725,8 +439,6 @@ Replace it with:
                     append(&mut sources.faces,Kind::Face,Target{owner:row.id,part:Part::Face(key)})?;
                 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -745,8 +457,7 @@ Replace it with:
                 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -871,33 +582,7 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-19.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -905,79 +590,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the supplied stale-binding GPU probe inside its actual bound arrays; preserve all pixel, identity and write-count assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-  let v=vertices[indices[occurrence]];return Out(vec4<f32>(packed_position(v),1.),unpack4x8unorm(v.color));
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzn-respect-original-boundary-pens-20.rs"
 ```
 
-</details>
+**Result after `96zzzzzzn-respect-original-boundary-pens`:** The authored pen changes the actual GPU border. Sparse original keys and complete source records remain unchanged; coplanar seams and hidden mesh edges do not become visible ink.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzo-close-original-boundary-joins"></a>
 
 ### Step 2 of 4 · Close original boundary joins (`96zzzzzzo-close-original-boundary-joins`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/4 Visual Trace (96zzzzzzo-close-original-boundary-joins): Close original boundary joins</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_quad.wgsl, src/finite_project_source.rs, src/stroke.wgsl, src/finite_stroke.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original endpoints</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared near-clipped screen</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">quad</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">distance coverage</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matching integer query</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_quad.wgsl, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">distance coverage</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching integer query</text>
 </svg>
-</div>
-
-- **Goal:** Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
-- **Data Flow Trace:** `Original endpoints → shared near-clipped screen quad → distance coverage → matching integer query`
-- **Files You Touch:** `src/stroke_quad.wgsl` (*Share near-clipped round-stroke projection without new records or buffers.*) · `src/finite_project_source.rs` (*Expand the one shared projection helper in both consumers.*) · `src/stroke.wgsl` (*Use one shared stroke shape for ordinary and finite rendering.*) · `src/finite_stroke.wgsl` (*Use one shared stroke shape for ordinary and finite rendering.*) · `src/stroke_coverage.wgsl` (*Measure distance to the finite segment; keep near cuts flat.*) · `src/stroke_pick.wgsl` (*Keep color and integer queries on the same end policy.*) · `src/finite_stroke_pick.wgsl` (*Keep color and integer queries on the same end policy.*) · `src/round_caps_tests.rs` (*Copy actual GPU validation fixtures.*) · `src/renderer.rs` (*Register Native validation only.*) · `src/stroke_gpu.rs` (*Exercise the actual existing legacy pipeline in Native fixtures.*) · `src/cap_gpu_tests.rs` (*Sample the unoccluded original back face, away from the now-visible end-on construction-plane marker. Keep the zero section-fill assertion.*) · `src/finite_visibility_tests.rs` (*Retain exact clipped headed-chain comparison; distinguish genuine round source caps with exact body, flat-cut and bounded-cap pixel assertions.*)
 
 A wide source border leaves a white gap outside each corner. Expand the existing stroke quad along its length, then measure fragment distance to the finite segment. Share this footprint with the existing query shaders.
 
 Original endpoints receive round caps; a camera near-plane cut stays flat. A nonzero line viewed end-on uses its nearest reverse-depth endpoint. Identical source endpoints remain hidden. Both existing finite and legacy lanes consume the same helper without new geometry owners, buffers or metadata.
 
-> **Self-Check Question:** *Why must a near-plane cut remain flat even when original line endpoints are round?*  
-> **Answer:** Clipping creates a camera boundary rather than another original endpoint. A round cap there would invent ink beyond the visible source segment and allow queries on that invented shape.
-
-- **What You Should See:** Original borders close at wide corners; end-on original lines remain visible and queryable. Near cuts stay flat, complete source records remain unchanged, and shared geometry survives placement and source unload.
-- **Hands-On Lab Experiment:** Inspect actual original Mesh, NURBS and BRep corners, free ends, end-on lines, near cuts and a shared mirrored pair at both densities and projections. Compare integer source queries with the rendered footprint.
-
-<details>
-<summary>Implementation 96zzzzzzo-close-original-boundary-joins: Close original boundary joins</summary>
-
-Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
-
-Data flow: Original endpoints → shared near-clipped screen quad → distance coverage → matching integer query.
+> **Check:** *Why must a near-plane cut remain flat even when original line endpoints are round?* — Clipping creates a camera boundary rather than another original endpoint. A round cap there would invent ink beyond the visible source segment and allow queries on that invented shape.
 
 ### 1. `src/stroke_quad.wgsl`
 
@@ -993,15 +647,6 @@ Create the file and type:
 
 Expand the one shared projection helper in both consumers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .replace("#include \"stroke_coverage.wgsl\"", include_str!("stroke_coverage.wgsl"))
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -1011,58 +656,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 3. `src/stroke.wgsl`
 
 Use one shared stroke shape for ordinary and finite rendering. Distinguish genuine round ends from flat near-plane cuts. Carry only screen coordinates needed by existing fragment coverage. Replace duplicate projection with the shared clipped capsule.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-#include "near_clip.wgsl"
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-}
-
-fn hidden(colour: vec4<f32>) -> Output {
-    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0);
-}
-
-fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32) -> Output {
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    if (near_distance(a) < 0.0 && near_distance(b) < 0.0) { return hidden(colour); }
-    a=near_endpoint(a,b);
-    b=near_endpoint(b,a);
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour); }
-    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
-    let length2 = dot(delta, delta);
-    if (length2 < 0.000001) { return hidden(colour); }
-    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index];
-    let half_width = width * view.density * 0.5;
-    let extent = half_width + 0.70711;
-    var position = select(a, b, corner.x > 0.5);
-    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
-    return Output(position, colour, corner.y * extent, half_width);
-}
-
-#include "stroke_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32) -> Output { return geometry(start, end, colour, width, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1096,100 +689,9 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-06.rs"
-```
-
-</details>
-
 ### 4. `src/finite_stroke.wgsl`
 
 Use one shared stroke shape for ordinary and finite rendering. Distinguish genuine round ends from flat near-plane cuts. Let the shared projection own hidden, near-clipped and end-on cases. Retain contact rise and reuse the shared screen-space shape.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-#include "near_clip.wgsl"
-#include "contact_depth.wgsl"
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32, display:vec4<f32>, eye:vec4<f32> }
-@group(0) @binding(0) var<uniform> view: View;
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-    @location(12) @interpolate(flat) rise:f32,
-}
-
-fn hidden(colour: vec4<f32>,flags:u32) -> Output {
-    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0,flags,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0),0.);
-}
-
-fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32,metadata:InkRecord) -> Output {
-    let words=ink_words(metadata);let flags=words.x;
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    let z=vec2<f32>(a.z,b.z);let n=oct32_decode(words.y);
-    a=contact_layer(a,start,n,view.transform,view.size,view.eye);
-    b=contact_layer(b,end,n,view.transform,view.size,view.eye);
-    let rise=max(0.,max((a.z-z.x)/max(a.w,1e-20),(b.z-z.y)/max(b.w,1e-20)));
-    if (near_distance(a) < 0.0 && near_distance(b) < 0.0) { return hidden(colour,flags); }
-    a=near_endpoint(a,b);
-    b=near_endpoint(b,a);
-    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour,flags); }
-    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
-    let length2 = dot(delta, delta);
-    if (length2 < 0.000001) { return hidden(colour,flags); }
-    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
-        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let corner = corners[index];
-    let half_width = width * view.density * 0.5;
-    let extent = half_width + 0.70711;
-    var position = select(a, b, corner.x > 0.5);
-    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
-    return Output(position, colour, corner.y * extent, half_width,flags,finite_axis(a,b),vec2<f32>(a.z/a.w,b.z/b.w),finite_screen(position),rise);
-}
-
-#include "stroke_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32,@location(8) metadata:InkRecord) -> Output { return geometry(start, end, colour, width, index,metadata); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(input.rise,0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1233,46 +735,14 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(input.rise,0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-10.rs"
-```
-
-</details>
-
 ### 5. `src/stroke_coverage.wgsl`
 
 Measure distance to the finite segment; keep near cuts flat.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn colour(input: Output) -> vec4<f32> {
-    let coverage = clamp(input.half_width + 0.5 - abs(input.side), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1283,41 +753,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 6. `src/stroke_pick.wgsl`
 
 Keep color and integer queries on the same end policy. Carry the actual clipping-end policy into the cropped request. Reuse the exact color coverage in integer picking. Use full-viewport pixel coordinates for cropped coverage. Cropping changes clip position, not the original screen-space footprint. Pass the shared footprint to the ordinary pick fragment.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(start, end, colour, width, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1354,83 +789,9 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-17.rs"
-```
-
-</details>
-
 ### 7. `src/finite_stroke_pick.wgsl`
 
 Keep color and integer queries on the same end policy. Carry the actual clipping-end policy into the cropped request. Reuse the exact color coverage in integer picking.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-    @location(12) @interpolate(flat) rise:f32,
-}
-@vertex
-fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>,@location(8) metadata:InkRecord) -> PickOutput {
-    let source = geometry(start, end, colour, width, index,metadata);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.side = source.side;
-    output.half_width = source.half_width;
-    output.clip_flags=source.clip_flags;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.rise=source.rise;output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.side, input.half_width,input.clip_flags,input.finite_axis_value,input.finite_depths,input.finite_pixel,input.rise);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(input.rise,0.))<=0.){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1472,27 +833,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-20.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1506,10 +847,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-21.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1517,25 +855,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register Native validation only.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod source_pen_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-22.rs" skip=21
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1543,25 +869,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Exercise the actual existing legacy pipeline in Native fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-impl Lane {
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-23.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1569,44 +883,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Sample the unoccluded original back face, away from the now-visible end-on construction-plane marker. Keep the zero section-fill assertion.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{scene::Scene,renderer::Renderer,viewport::Viewport};
-use std::rc::Rc;
-pub(crate) fn source(open:bool)->session_rust::Mesh{
- let corners=(0..8).map(|i|session_rust::Point::new(if i%4==1||i%4==2{0.6}else{-0.6},if i%4>=2{0.6}else{-0.6},if i>=4{-0.2}else{-0.8})).collect();let mut faces=vec![vec![0,3,2,1],vec![0,1,5,4],vec![2,3,7,6],vec![0,4,7,3],vec![1,2,6,5]];if !open{faces.push(vec![4,5,6,7]);}let mut mesh=session_rust::Mesh::from_vertices_and_faces(corners,faces);mesh.set_objectcolor(session_rust::Color::new(1.,0.,0.,1.));mesh
-}
-pub(crate) fn scene(open:bool)->(Scene,crate::scene::ObjectId){let mut scene=Scene::empty();let owner=scene.insert(crate::prepared::PreparedMesh::new(source(open)).unwrap()).unwrap();let plane=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],0.9).unwrap();crate::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();(scene,owner)}
-pub(crate) fn matrix()->[f32;16]{session_rust::Xform::orthographic(-1.,1.,-1.,1.,1.,0.).m.map(|v|v as f32)}
-pub(crate) fn renderer(scene:&Scene)->Renderer{let instance=wgpu::Instance::new(wgpu::InstanceDescriptor{backends:wgpu::Backends::VULKAN,flags:Default::default(),memory_budget_thresholds:Default::default(),backend_options:Default::default(),display:None});let adapter=pollster::block_on(instance.request_adapter(&Default::default())).unwrap();let(device,queue)=pollster::block_on(adapter.request_device(&Default::default())).unwrap();device.on_uncaptured_error(std::sync::Arc::new(|e|panic!("actual original cap: {e}")));let mut renderer=Renderer::new(device,queue,wgpu::TextureFormat::Rgba8Unorm,scene);renderer.resize(Viewport{width:320,height:240});renderer}
-pub(crate) fn wait(r:&Renderer){r.device.poll(wgpu::PollType::Wait{submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();}
-pub(crate) fn pixels(r:&Renderer)->Vec<u8>{pixels_at(r,matrix())}
-pub(crate) fn pixels_at(r:&Renderer,transform:[f32;16])->Vec<u8>{let texture=r.device.create_texture(&wgpu::TextureDescriptor{label:Some("original cap pixel fixture"),size:wgpu::Extent3d{width:320,height:240,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::COPY_SRC,view_formats:&[]});r.draw(&texture.create_view(&Default::default()),&Default::default(),&transform);let pitch=1280;let read=r.device.create_buffer(&wgpu::BufferDescriptor{label:None,size:pitch*240,usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let mut encoder=r.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo{buffer:&read,layout:wgpu::TexelCopyBufferLayout{offset:0,bytes_per_row:Some(pitch as u32),rows_per_image:Some(240)}},texture.size());r.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();read.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());wait(r);rx.recv().unwrap().unwrap();let data=read.slice(..).get_mapped_range().to_vec();read.unmap();data}
-pub(crate) fn at(data:&[u8],x:usize,y:usize)->&[u8]{&data[(y*320+x)*4..(y*320+x+1)*4]}
-#[test]
-fn actual_closed_original_sections_draw_grey_hatch_and_selected_color_then_release_large_images(){
- let(mut scene,owner)=scene(false);let mut r=renderer(&scene);let solid=pixels(&r);let center=at(&solid,208,96);assert!(center[..3].iter().all(|v|(150..=155).contains(v)),"solid section: {center:?}");assert_eq!(r.cap_usage()[1],1);assert_eq!(r.cap_usage()[2],1);assert_eq!(r.cap_usage()[0],16+16+320*240*2);let uploads=r.stats()[0];r.set_clipping(true,false);let hatch=pixels(&r);assert_ne!(hatch,solid);assert!(hatch.chunks_exact(4).filter(|p|p[..3].iter().all(|v|*v<20)).count()>400,"hatch has actual black ink");r.set_clipping(true,true);r.select_objects(&scene,&[owner]).unwrap();let selected=pixels(&r);let center=at(&selected,208,96);assert!(center[0]>240&&center[1]>240&&center[2]<20,"selected original section: {center:?}");assert_eq!(r.stats()[0],uploads);assert_eq!(r.cap_usage()[2],1,"selection retains original closedness cache");let stored=selected.clone();r.use_uniform_surface_records();assert_eq!(pixels(&r),stored,"Exact uniform and shared cap crossing pixels");r.set_scene(&scene,None);r.select_objects(&scene,&[owner]).unwrap();assert_eq!(pixels(&r),stored);assert_eq!(r.stats()[0],uploads);scene.clear();r.set_scene(&scene,None);pixels(&r);assert_eq!(r.cap_usage()[0],16);assert_eq!(r.cap_usage()[1],0);
-}
-#[test]
-fn actual_open_originals_get_no_section_fill(){let(scene,_)=scene(true);let r=renderer(&scene);let image=pixels(&r);assert_eq!(r.cap_usage()[1],0);let center=at(&image,160,120);assert!(center[0]>center[1]+80&&center[0]>center[2]+80,"open back face remains red: {center:?}");}
-
-pub(crate) fn reversed(mut matrix:[f32;16])->[f32;16]{for column in 0..4{matrix[column*4+2]=matrix[column*4+3]-matrix[column*4+2];}matrix}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-24.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1614,195 +897,52 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain exact clipped headed-chain comparison; distinguish genuine round source caps with exact body, flat-cut and bounded-cap pixel assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{scene::{Scene,ObjectId},renderer::Renderer,viewport::Viewport};
-use std::rc::Rc;
-fn scene(depth:f64,kind:u8,sloped:bool)->(Scene,ObjectId,ObjectId){
- let mut scene=Scene::empty();let points=if sloped{[[-0.8,-0.8,0.1],[0.8,-0.8,0.1],[0.,0.8,0.9]]}else{[[-0.8,-0.8,0.5],[0.8,-0.8,0.5],[0.,0.8,0.5]]};let solid=scene.insert(crate::prepared::PreparedMesh::triangle(points,[0.1,0.5,0.8]).unwrap()).unwrap();let color=session_rust::Color::new(1.,0.,0.,1.);
- let ink=if kind==2{let mut p=session_rust::Point::new(0.,0.,depth);p.width=10.;p.pointcolor=color;scene.insert_point(crate::marker::PreparedPoint::new(Rc::new(p)).unwrap()).unwrap()}else{let mut line=session_rust::Line::new(-0.25,0.,depth,0.25,0.,depth);line.width=4.;line.linecolor=color;if kind==1{line.arrowhead=session_rust::Arrowhead::END;scene.insert_path(crate::chain::PreparedChain::line(Rc::new(line)).unwrap()).unwrap()}else{scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(line)).unwrap()).unwrap()}};(scene,solid,ink)
-}
-fn renderer(scene:&Scene,size:[u32;2],density:f32)->Renderer{renderer_limit(scene,size,density,None)}
-fn renderer_limit(scene:&Scene,size:[u32;2],density:f32,storage:Option<u64>)->Renderer{let instance=wgpu::Instance::new(wgpu::InstanceDescriptor{backends:wgpu::Backends::VULKAN,flags:Default::default(),memory_budget_thresholds:Default::default(),backend_options:Default::default(),display:None});let adapter=pollster::block_on(instance.request_adapter(&Default::default())).unwrap();let mut descriptor=wgpu::DeviceDescriptor::default();if let Some(bytes)=storage{descriptor.required_limits.max_storage_buffer_binding_size=bytes;}let(device,queue)=pollster::block_on(adapter.request_device(&descriptor)).unwrap();device.on_uncaptured_error(std::sync::Arc::new(|error|panic!("actual finite visibility: {error}")));let mut renderer=Renderer::new(device,queue,wgpu::TextureFormat::Rgba8Unorm,scene);renderer.resize(Viewport{width:size[0],height:size[1]});renderer.set_density(density);renderer}
-fn wait(renderer:&Renderer){renderer.device.poll(wgpu::PollType::Wait{submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();}
-fn red_pixels(renderer:&Renderer,size:[u32;2])->usize{red_frame(renderer,size,crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32)))}
-fn red_frame(renderer:&Renderer,size:[u32;2],matrix:[f32;16])->usize{let texture=renderer.device.create_texture(&wgpu::TextureDescriptor{label:Some("finite visibility pixels"),size:wgpu::Extent3d{width:size[0],height:size[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::COPY_SRC,view_formats:&[]});renderer.draw(&texture.create_view(&Default::default()),&Default::default(),&matrix);let pitch=(size[0]*4).div_ceil(256)*256;let read=renderer.device.create_buffer(&wgpu::BufferDescriptor{label:None,size:u64::from(pitch)*u64::from(size[1]),usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let mut encoder=renderer.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo{buffer:&read,layout:wgpu::TexelCopyBufferLayout{offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(size[1])}},texture.size());renderer.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();read.slice(..).map_async(wgpu::MapMode::Read,move|r|tx.send(r).unwrap());wait(renderer);rx.recv().unwrap().unwrap();let bytes=read.slice(..).get_mapped_range();let count=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..size[0]as usize*4].chunks_exact(4)).filter(|p|p[0]>200&&p[1]<50&&p[2]<50).count();drop(bytes);read.unmap();count}
-fn picked(renderer:&mut Renderer,at:[f32;2])->Option<[u32;2]>{pick_frame(renderer,at,crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32)))}
-fn pick_frame(renderer:&mut Renderer,at:[f32;2],matrix:[f32;16])->Option<[u32;2]>{renderer.request_pick(at,matrix).unwrap();wait(renderer);renderer.take_pick(matrix).unwrap().unwrap()}
-#[test]
-fn original_lines_headed_chains_and_points_share_actual_color_and_integer_occlusion(){
- for density in [1u32,2]{let size=[320*density,240*density];for kind in 0..3{
-  let(hidden,solid,_)=scene(0.7,kind,false);let mut renderer=renderer(&hidden,size,density as f32);
-  assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],solid.value(),"a hidden original cannot win a pick before the first color frame");assert_eq!(red_pixels(&renderer,size),0,"hidden family{kind}, density{density}");
-  let(front,_,ink)=scene(0.3,kind,false);renderer.set_scene(&front,None);assert!(red_pixels(&renderer,size)>30,"actual visible family{kind}, density{density}");assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],ink.value());
- }}
- for density in [1u32,2]{let size=[320*density,240*density];for kind in 0..2{
-  let make=|cropped:bool|{let mut scene=Scene::empty();let mut line=session_rust::Line::new(if cropped{0.}else{-0.8},0.,if cropped{0.}else{-0.2},0.8,0.,0.2);line.width=4.;line.linecolor=session_rust::Color::new(1.,0.,0.,1.);if kind==1&&!cropped{line.arrowhead=session_rust::Arrowhead::START;}let source=Rc::new(line);let id=if kind==1{scene.insert_path(crate::chain::PreparedChain::line(source.clone()).unwrap()).unwrap()}else{scene.insert_line(crate::stroke::PreparedLine::new(source.clone()).unwrap()).unwrap()};(scene,id,source)};
-  let(original,id,source)=make(false);let mut gpu=renderer(&original,size,density as f32);
-  assert_eq!(picked(&mut gpu,[-0.4,0.]),None,"near-clipped original ink cannot win a pick");
-  assert_eq!(picked(&mut gpu,[0.4,0.]).unwrap()[0],id.value());
-  let pixels=red_pixels(&gpu,size);assert!(pixels>100);
-  if kind==0{assert!(Rc::ptr_eq(&original.lines()[0].prepared.source,&source));}else{assert!(matches!(&original.paths()[0].prepared.source,crate::chain::Source::Line(actual) if Rc::ptr_eq(actual,&source)));}
-  let(cropped,_,_)=make(true);gpu.set_scene(&cropped,None);
-  assert_eq!(red_pixels(&gpu,size),pixels,"homogeneous near clipping matches the explicit segment and invents no arrowhead at DPR{density}");
- }}
-}
-#[test]
-fn a_line_on_a_sloping_original_face_keeps_its_full_css_width(){
- for density in [1u32,2]{let size=[320*density,240*density];let(front,_,_)=scene(0.3,0,false);let mut renderer=renderer(&front,size,density as f32);let flat=red_pixels(&renderer,size);let(sloped,_,ink)=scene(0.5,0,true);renderer.set_scene(&sloped,None);let grazing=red_pixels(&renderer,size);assert_eq!(grazing,flat,"finite center-line visibility preserves both sides of the four-CSS-pixel ribbon");assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],ink.value());}
-}
-
-#[test]
-fn shifted_view_frames_keep_original_color_and_crop_ownership(){
- let size=[320,240];let mut matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));matrix[12]=0.35;matrix[13]=-0.25;
- for kind in 0..3{let(hidden,solid,_)=scene(0.7,kind,false);let mut renderer=renderer(&hidden,size,1.);assert_eq!(red_frame(&renderer,size,matrix),0);assert_eq!(pick_frame(&mut renderer,[0.35,-0.25],matrix).unwrap()[0],solid.value());let(front,_,ink)=scene(0.3,kind,false);renderer.set_scene(&front,None);assert!(red_frame(&renderer,size,matrix)>30);assert_eq!(pick_frame(&mut renderer,[0.35,-0.25],matrix).unwrap()[0],ink.value());}
-}
-#[test]
-fn a_device_limit_retains_physical_color_and_pick_occlusion(){
- let size=[320,240];let(hidden,solid,_)=scene(0.7,0,false);let mut renderer=renderer_limit(&hidden,size,1.,Some(64*1024));assert_eq!(red_pixels(&renderer,size),0);assert_eq!(renderer.tile_usage()[..2],[96,16]);assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],solid.value());let(front,_,ink)=scene(0.3,0,false);renderer.set_scene(&front,None);assert!(red_pixels(&renderer,size)>30);assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],ink.value());
-}
-#[test]
-fn an_unchanged_dense_view_consumes_actual_overflow_and_stops_rebuilding(){
- let mut scene=Scene::empty();for _ in 0..8{scene.insert(crate::prepared::PreparedMesh::triangle([[-10.,-10.,0.5],[10.,-10.,0.5],[0.,10.,0.5]],[0.1,0.5,0.8]).unwrap()).unwrap();}let size=[320,240];let renderer=renderer(&scene,size,1.);let mut matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));
- let texture=renderer.device.create_texture(&wgpu::TextureDescriptor{label:None,size:wgpu::Extent3d{width:320,height:240,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});let view=texture.create_view(&Default::default());renderer.draw(&view,&Default::default(),&matrix);let initial=renderer.tile_usage()[4];matrix[12]=0.01;renderer.draw(&view,&Default::default(),&matrix);wait(&renderer);
- for _ in 0..6{renderer.draw(&view,&Default::default(),&matrix);wait(&renderer);}let settled=renderer.tile_usage();assert!(settled[4]>initial,"actual overlapping triangles require a larger shared pool");assert!(settled[6]<=6,"actual growth converges");for _ in 0..3{renderer.draw(&view,&Default::default(),&matrix);wait(&renderer);}assert_eq!(renderer.tile_usage(),settled,"a resting view has no redraw or report-copy loop");
-}
-
-#[test]
-fn coplanar_construction_grid_is_hidden_without_hiding_original_ink(){
- let size=[320,240];let(scene,_,_)=scene(0.3,0,false);let mut renderer=renderer(&scene,size,1.);let baseline=red_pixels(&renderer,size);let plane=crate::cplane::CPlane::Frame{origin:[0.,0.,0.5],x:[1.,0.,0.],y:[0.,1.,0.]};renderer.set_grid_on(Some(crate::grid::Settings{spacing:0.1,half_cells:1,..Default::default()}),plane).unwrap();assert_eq!(red_pixels(&renderer,size),baseline,"coplanar red construction grid cannot paint over the solid");let first=renderer.tile_usage();renderer.resize(crate::viewport::Viewport{width:319,height:239});let _=red_pixels(&renderer,[319,239]);assert_eq!(renderer.tile_usage()[5],first[5]+1,"physical viewport change invalidates projection even with the same tile dimensions");
-}
-
-#[test]
-fn a_point_on_a_sloping_original_face_keeps_its_disc_and_first_pick(){
- for density in [1u32,2]{
-  let size=[320*density,240*density];let(front,_,_)=scene(0.3,2,false);let mut renderer=renderer(&front,size,density as f32);let flat=red_pixels(&renderer,size);
-  let(sloped,_,point)=scene(0.5,2,true);renderer.set_scene(&sloped,None);
-  assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],point.value(),"surface-fitted point owns the first pick before color");
-  assert_eq!(red_pixels(&renderer,size),flat,"a coplanar point keeps the same full CSS disc on a sloping face");
-  let(hidden,solid,_)=scene(0.7,2,true);renderer.set_scene(&hidden,None);assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],solid.value());assert_eq!(red_pixels(&renderer,size),0);
- }
-}
-
-#[test]
-fn translucent_faces_reveal_original_ink_without_giving_it_pick_ownership(){
- for density in [1u32,2]{let size=[320*density,240*density];for kind in 0..3{
-  let(hidden,solid,_)=scene(0.7,kind,false);let mut renderer=renderer(&hidden,size,density as f32);renderer.set_opacity(0.1);
-  assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],solid.value(),"occluded family{kind} cannot win the first pick through glass at DPR{density}");
-  assert!(red_pixels(&renderer,size)>30,"hidden family{kind} still contributes its through-glass color");
-  assert_eq!(picked(&mut renderer,[0.,0.]).unwrap()[0],solid.value(),"drawing the translucent frame does not change pick ownership");
- }}
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzo-close-original-boundary-joins-25.rs"
 ```
 
-</details>
+**Result after `96zzzzzzo-close-original-boundary-joins`:** Original borders close at wide corners; end-on original lines remain visible and queryable. Near cuts stay flat, complete source records remain unchanged, and shared geometry survives placement and source unload.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots"></a>
 
 ### Step 3 of 4 · Draw default mesh vertex dots (`96zzzzzzp-draw-default-mesh-vertex-dots`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/4 Visual Trace (96zzzzzzp-draw-default-mesh-vertex-dots): Draw default mesh vertex dots</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh_pens.rs, src/mesh_parts.rs, src/bounds_original.rs, src/plane_original.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original nonzero edge</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">incidence</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">endpoint address</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">anchored marker</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing point upload</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/mesh_pens.rs, src/mes…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchored marker</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing point upload</text>
 </svg>
-</div>
-
-- **Goal:** Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
-- **Data Flow Trace:** `Original nonzero edge incidence → endpoint address → anchored marker → existing point upload`
-- **Files You Touch:** `src/mesh_pens.rs` (*Prepare numeric endpoint references and only authored point colors on the existing display owner.*) · `src/mesh_parts.rs` (*Retain four-byte references into existing f64 endpoints rather than duplicate positions or original meshes.*) · `src/bounds_original.rs` (*Bounding frames do not invent mesh vertex markers.*) · `src/plane_original.rs` (*Original planes retain their own frame glyph policy.*) · `src/pick_sources.rs` (*Build ordinary point instances with object ownership and no new editable component domain.*) · `src/renderer.rs` (*Upload through the existing point buffer once, releasing temporary CPU instances.*) · `src/mesh_marker_tests.rs` (*Exercise actual GPU dots, source keys, authored colors, incidence and shared source unloading.*) · `src/source_pen_tests.rs` (*Extend the existing real 200000-triangle budget case without duplicating its dense fixture.*) · `src/global_outline_tests.rs` (*This existing fixture manually isolates surface-buffer rebasing; suppress both original ink and new default dots while preserving every surface/grid/cap/pick/source assertion. Production complete-lane marker rebasing is separately exercised at a billion units.*) · `src/scene_origin_tests.rs` (*Keep the original point/control count exact after the new eight default Box vertex markers; verify all marker values, owners, ordering and large-origin equality independently.*)
 
 The original mesh border has ink but its default vertex dots are missing. Reuse its prepared topology to reference eligible endpoints, then upload their markers through the existing point lane.
 
 A nonzero authored edge makes its endpoint vertices eligible even when a coplanar seam is omitted from the ink. Printed and dense fills have no dots. Preserve exact authored point colors when requested; otherwise use the maintained dark default. These dots select their object and remain separate from active editing controls.
 
-> **Self-Check Question:** *Why retain an endpoint address rather than another original mesh or a second list of vertex positions?*  
-> **Answer:** The existing shared display owner already retains precise endpoints after source unloading. A compact address reuses those positions and keeps transformed instances independent without introducing another geometry owner.
-
-- **What You Should See:** Eligible original mesh vertices have their dark default or authored dot colors, original source queries remain correct, and shared placed geometry survives unloading and restoration.
-- **Hands-On Lab Experiment:** Inspect actual sparse original vertices, authored and ignored point colors, zero widths, coplanar seam incidence, source unload and a mirrored shared pair. Check both projections and pixel densities.
-
-<details>
-<summary>Implementation 96zzzzzzp-draw-default-mesh-vertex-dots: Draw default mesh vertex dots</summary>
-
-Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
-
-Data flow: Original nonzero edge incidence → endpoint address → anchored marker → existing point upload.
+> **Check:** *Why retain an endpoint address rather than another original mesh or a second list of vertex positions?* — The existing shared display owner already retains precise endpoints after source unloading. A compact address reuses those positions and keeps transformed instances independent without introducing another geometry owner.
 
 ### 1. `src/mesh_pens.rs`
 
 Prepare numeric endpoint references and only authored point colors on the existing display owner. Printed and dense fills have no default vertex decoration. Reuse the same source topology and sparse slot map once. A nonzero authored source edge makes its endpoints eligible, including a removed coplanar seam. Default dark color needs no per-vertex color allocation; common authored colors retain one entry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::source_mesh_topology::{SlotMap,mesh_topology};
-use session_rust::Mesh;
-pub type Pen=(f32,u32);
-
-pub fn width(value:f64)->f32 {
-    let value=value as f32;
-    if value.is_finite()&&value>0. {value} else {1.}
-}
-
-pub fn prepare(source:&Mesh,count:usize)->(Vec<(usize,usize)>,Vec<Pen>) {
-    if count>200_000||source.widths()==[0.] {return (Vec::new(),Vec::new());}
-    let keys=source.vertices();
-    let points=keys.iter().map(|key|{let p=&source.vertex[key];[p.x,p.y,p.z]}).collect::<Vec<_>>();
-    let topology=mesh_topology(source,&keys,&points,&SlotMap::new(&keys));
-    let mut pens=Vec::with_capacity(topology.edges.len());
-    for (i,&(_,_,colour)) in topology.edges.iter().enumerate() {
-        let widths=source.widths();
-        let value=if widths.len()==1 {widths[0]} else {widths.get(i).copied().unwrap_or(1.)};
-        let pair=topology.edge_faces[i].map(|face|topology.normals.get(face as usize).copied().flatten());
-        let flat=match pair {
-            [Some(a),Some(b)]=>a.iter().zip(b).map(|(a,b)|a*b).sum::<f64>()*if topology.opposed[i]{1.}else{-1.}>=1.-1e-9,
-            _=>false,
-        };
-        pens.push((if value==0.||flat {0.} else {width(value)},if topology.edges.len()>=10_000 {crate::source_topology_colour::BLACK} else {colour}));
-    }
-    if pens.first().is_some_and(|first|pens.iter().all(|pen|pen==first)) {pens=vec![pens[0]];}
-    (topology.edges.into_iter().map(|(a,b,_)|(a,b)).collect(),pens)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1844,86 +984,9 @@ pub fn prepare(source:&Mesh,count:usize)->(Vec<(usize,usize)>,Vec<Pen>,Vec<u32>,
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-05.rs"
-```
-
-</details>
-
 ### 2. `src/mesh_parts.rs`
 
 Retain four-byte references into existing f64 endpoints rather than duplicate positions or original meshes. Carry the prepared numerical decoration through source release. Keep the original shared display owner. Read authored point colors or the maintained default exactly, without byte quantization. Count actual retained numeric decoration capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone,Default)]
-pub struct Parts {
-    pub pens: Vec<crate::mesh_pens::Pen>,
-    pub faces: Vec<usize>,
-    pub triangles: Vec<u32>,
-    pub edges: Vec<(usize, usize)>,
-    pub endpoints: Vec<[[f64; 3]; 2]>,
-}
-
-impl Parts {
-    // Render triangles can split one source polygon; retain its original key rather than treating each display triangle as a new face.
-    pub fn new(source: &session_rust::Mesh, count: usize) -> Result<Self, &'static str> {
-        let faces = source.faces(); let mut triangles = Vec::new();
-        for (slot, &face) in faces.iter().enumerate() {
-            let slot = u32::try_from(slot).map_err(|_| "Too many source faces")?;
-            let cached = source.get_triangulation().get(&face).filter(|tris| !tris.is_empty());
-            let indices = if let Some(cached) = cached { cached.clone() } else {
-                let vertices = source.face_vertices(face).ok_or("Missing source face")?;
-                (1..vertices.len().saturating_sub(1)).map(|i| [vertices[0], vertices[i], vertices[i + 1]]).collect()
-            };
-            for tri in indices { if tri.iter().all(|&key| source.vertex_point(key).is_some()) { triangles.push(slot); } }
-        }
-        if triangles.len() != count { return Err("Source faces do not match the rendered triangles"); }
-        let (edges,pens)=crate::mesh_pens::prepare(source,count); let mut endpoints = Vec::new();
-        for &(a, b) in &edges {
-            let a = source.vertex_point(a).ok_or("Missing edge endpoint")?;
-            let b = source.vertex_point(b).ok_or("Missing edge endpoint")?;
-            endpoints.push([[a[0], a[1], a[2]], [b[0], b[1], b[2]]]);
-        }
-        Ok(Self { pens,faces, triangles, edges, endpoints })
-    }
-
-    pub fn pen(&self,index:usize)->(f32,[f32;4]) {
-        let &(width,colour)=self.pens.get(if self.pens.len()==1 {0} else {index}).unwrap_or(&(1.,crate::source_topology_colour::BLACK));
-        (width,colour.to_le_bytes().map(|v|v as f32/255.))
-    }
-
-    pub fn bytes(&self) -> usize {
-        self.pens.capacity()*std::mem::size_of::<crate::mesh_pens::Pen>()+self.faces.capacity() * std::mem::size_of::<usize>() + self.triangles.capacity() * 4
-            + self.edges.capacity() * std::mem::size_of::<(usize, usize)>() + self.endpoints.capacity() * 48
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1978,45 +1041,9 @@ impl Parts {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-10.rs"
-```
-
-</details>
-
 ### 3. `src/bounds_original.rs`
 
 Bounding frames do not invent mesh vertex markers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        pens:Vec::new(),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2024,29 +1051,9 @@ Edit the existing block to match this code; keep unchanged lines:
         dots:Vec::new(),dot_colours:Vec::new(),pens:Vec::new(),
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-11.rs"
-```
-
-</details>
-
 ### 4. `src/plane_original.rs`
 
 Original planes retain their own frame glyph policy.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2054,25 +1061,13 @@ Edit the existing block to match this code; keep unchanged lines:
     let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{dots:Vec::new(),dot_colours:Vec::new(),pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-12.rs"
-```
-
-</details>
-
 ### 5. `src/pick_sources.rs`
 
 Build ordinary point instances with object ownership and no new editable component domain. Transform numerical endpoints after origin anchoring; BRep, NURBS and derived contact shapes keep their own display policy. Account for temporary marker preparation; move it into the existing upload.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn bytes(&self) -> usize {
@@ -2082,8 +1077,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             + self.mesh_ink.capacity() * std::mem::size_of::<crate::stroke::Stroke>()
             + (self.mesh_ids.capacity() + self.line_ids.capacity() + self.path_ids.capacity() + self.marker_ids.capacity()) * 8
 ```
-
-</details>
 
 Replace it with:
 
@@ -2097,8 +1090,7 @@ Replace it with:
             + (self.mesh_ids.capacity() + self.line_ids.capacity() + self.path_ids.capacity() + self.marker_ids.capacity()) * 8
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let n=row.mesh.normals()[0];let m=crate::normals::matrix(&row.model)?;
@@ -2108,8 +1100,6 @@ Replace it with:
             let boundary_width=row.cad.as_ref().map(|c|c.source.width).or_else(||row.surface.as_ref().map(|s|s.source.width)).map(crate::mesh_pens::width);
             let mut cad_edges=row.cad.as_ref().map(|cad|cad.edge_ids.iter());
 ```
-
-</details>
 
 Replace it with:
 
@@ -2129,8 +1119,7 @@ Replace it with:
             let mut cad_edges=row.cad.as_ref().map(|cad|cad.edge_ids.iter());
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub mesh_metadata:Vec<u32>,
@@ -2139,8 +1128,6 @@ Replace it with:
     pub marker_ids: Vec<[u32; 2]>,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2153,8 +1140,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -2288,35 +1274,13 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-15.rs"
-```
-
-</details>
-
 ### 6. `src/renderer.rs`
 
 Upload through the existing point buffer once, releasing temporary CPU instances. Match default mesh, original point and active control ownership order.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
@@ -2327,8 +1291,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {for segment in &mut segments {segment.stroke.colour=colour;}}segments}))
             .expect("Prepared path placement fits the display range");
 ```
-
-</details>
 
 Replace it with:
 
@@ -2342,8 +1304,7 @@ Replace it with:
             .expect("Prepared path placement fits the display range");
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2989,25 +1950,7 @@ mod source_pen_tests;
 mod round_caps_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-17.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3021,10 +1964,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-18.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3032,25 +1972,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the three actual mesh marker GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod round_caps_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-19.rs" skip=21
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3058,25 +1986,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend the existing real 200000-triangle budget case without duplicating its dense fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert!(scene.objects()[0].mesh.parts.pens.is_empty());
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-20.rs" skip=55
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3084,31 +2000,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 This existing fixture manually isolates surface-buffer rebasing; suppress both original ink and new default dots while preserving every surface/grid/cap/pick/source assertion. Production complete-lane marker rebasing is separately exercised at a billion units.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn actual_precise_object_rebase_matches_local_pixels_records_selection_and_owners(){
- let mut local=Scene::empty();let owner=local.insert(PreparedMesh::triangle([[-0.2,-0.3,-0.4],[0.2,-0.3,-0.4],[0.,0.3,-0.4]],[0.1,0.3,0.9]).unwrap()).unwrap();local.translate(owner,[0.125,-0.25,0.]).unwrap();let mut gpu=renderer(&local);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(baseline.chunks_exact(4).filter(|p|p[2]>p[0].saturating_add(50)).count()>100);let source=local.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e12,-1e12,1e12];let mut far=local.clone();far.translate(owner,anchor).unwrap();gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[1,12]);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.stats()[0],uploads);
- let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let bytes=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),crate::object_record::BYTES as u64);assert_eq!(&bytes[48..60],&[0.125f32,-0.25,0.].into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());assert_eq!(&bytes[..crate::object_record::BYTES],&gpu.meshes[0].packed());
- gpu.select_objects(&far,&[owner]).unwrap();assert_ne!(pixels(&gpu),baseline);gpu.request_pick([0.125,-0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());gpu.select_objects(&far,&[]).unwrap();assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
- far.translate(owner,[0.001,0.,0.]).unwrap();gpu.set_scene(&far,None);let expected=crate::render_space::relative(far.objects()[0].model.m[12..15].try_into().unwrap(),anchor);assert_eq!(&gpu.meshes[0].packed()[48..60],&expected.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());assert!(expected[0]>0.125);assert_eq!(gpu.stats()[0],uploads);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-21.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3116,28 +2014,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 This existing fixture manually isolates surface-buffer rebasing; suppress both original ink and new default dots while preserving every surface/grid/cap/pick/source assertion. Production complete-lane marker rebasing is separately exercised at a billion units.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_ground(){
- let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.5,0.5,0.5)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,-0.5);let owner=scene.insert(prepared).unwrap();let plane=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],1.).unwrap();let plane_id=crate::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(crate::cap_gpu_tests::at(&baseline,160,120)[..3].iter().all(|v|(150..=156).contains(v)));let ground=gpu.ambient_rows.ground_at([0.;3]);let source=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [owner,plane_id]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();assert!(gpu.space.update(anchor,1.,0.).unwrap().moved);for mesh in &mut gpu.meshes {mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(gpu.anchor(),anchor);assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);assert_eq!(gpu.ambient_rows.ground[0]-anchor[2],-0.75);let frame=gpu.text_frame(matrix());assert_eq!(frame.origin,anchor);assert!(!frame.cut([anchor[0],anchor[1],anchor[2]-0.75]));assert!(frame.cut([anchor[0],anchor[1],anchor[2]-0.25]));assert_eq!(pixels(&gpu),baseline);let writes=gpu.clipping.borrow().writes;assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.clipping.borrow().writes,writes);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-22.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3145,28 +2028,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 This existing fixture manually isolates surface-buffer rebasing; suppress both original ink and new default dots while preserving every surface/grid/cap/pick/source assertion. Production complete-lane marker rebasing is separately exercised at a billion units.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn actual_source_grid_origin_cache_keeps_surface_pixels_owners_and_release(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let settings=Some(crate::grid::Settings{spacing:0.1,half_cells:5});let plane=|origin|crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]};gpu.set_grid_on(settings,plane([0.,0.,-0.75])).unwrap();let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let uploads=gpu.stats()[0];let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();far.translate(owner,anchor).unwrap();gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.space.update(anchor,2.,0.).unwrap();for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let far_plane=plane([anchor[0],anchor[1],anchor[2]-0.75]);gpu.set_grid_on(settings,far_plane).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);let grid_uploads=gpu.grid_usage()[2];gpu.set_grid_on(settings,far_plane).unwrap();assert_eq!(gpu.grid_usage()[2],grid_uploads);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];gpu.space.update(moved,2.,300.).unwrap();camera.target=moved;for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,moved);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_grid_on(settings,far_plane).unwrap();assert!(gpu.grid_usage()[2]>grid_uploads);assert_eq!(camera.view_projection_anchored(moved).to_f32(),local);assert!(crate::cap_gpu_tests::pixels_at(&gpu,local).chunks_exact(4).all(|p|p==&[255;4]));gpu.space.update(anchor,2.,600.).unwrap();for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_grid_on(settings,far_plane).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);gpu.request_pick([0.,0.],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],owner.value());assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_grid(None).unwrap();gpu.set_scene(&Scene::empty(),None);assert_eq!(&gpu.grid_usage()[..2],&[0,0]);assert_eq!(gpu.usage(),[0;4]);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-23.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3174,84 +2042,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the original point/control count exact after the new eight default Box vertex markers; verify all marker values, owners, ordering and large-origin equality independently.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-assert_eq!(current.marker_ids.len(),far.points().len()+far.control_markers_at(anchor).len());
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzp-draw-default-mesh-vertex-dots-24.rs"
 ```
 
-</details>
+**Result after `96zzzzzzp-draw-default-mesh-vertex-dots`:** Eligible original mesh vertices have their dark default or authored dot colors, original source queries remain correct, and shared placed geometry survives unloading and restoration.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices"></a>
 
 ### Step 4 of 4 · Taper crowded original mesh vertices (`96zzzzzzq-taper-crowded-original-mesh-vertices`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/4 Visual Trace (96zzzzzzq-taper-crowded-original-mesh-vertices): Taper crowded original mesh vertices</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh.rs, src/marker.rs, src/pick_sources.rs, src/stroke_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Render bounds and source</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">vertex…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one shared spacing scalar</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">signed GPU size</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">common radius and query</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">coverage</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/mesh.rs, src/marker.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">signed GPU size</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">common radius and query…</text>
 </svg>
-</div>
-
-- **Goal:** Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
-- **Data Flow Trace:** `Render bounds and source vertex count → one shared spacing scalar → signed GPU size → common radius and query coverage`
-- **Files You Touch:** `src/mesh.rs` (*Retain one prepared mesh spacing scalar after original source release.*) · `src/marker.rs` (*Name the render-only size mode explicitly; original point widths and editing-control diameters remain unchanged.*) · `src/pick_sources.rs` (*Reuse the existing32byte point instance, endpoint addresses and upload; no distance array, extra metadata or buffer.*) · `src/stroke_gpu.rs` (*Accept the explicit finite mesh-spacing size mode while rejecting zero and nonfinite display data.*) · `src/marker_radius.wgsl` (*Project one instance spacing at each vertex depth; retain the actual three-diameter taper and half-physical-pixel minimum.*) · `src/finite_project_source.rs` (*Expand one shared radius helper for both color/pick and existing finite/legacy paths.*) · `src/marker.wgsl` (*Use the same radius rule in the existing marker paths.*) · `src/finite_marker.wgsl` (*Use the same radius rule in the existing marker paths.*) · `src/mesh_density_tests.rs` (*Exercise actual dense physical footprints, explicit point/control independence, correct rear-edge visibility, source release and shared geometry.*) · `src/renderer.rs` (*Register the three actual source-bound density GPU checks.*) · `src/marker_coverage.wgsl` (*Measure the circle at the actual physical fragment pixel relative to its fixed centre; keep one shared colour/query coverage function.*) · `src/marker_pick.wgsl` (*Carry a fixed screen centre instead of interpolating the expanded quad offset.*) · `src/finite_marker_pick.wgsl` (*Reuse the existing fixed axis centre; drop the redundant interpolated offset.*)
 
 Dense original mesh dots overlap until the blue face becomes an opaque dark sheet. Estimate spacing once, then taper each default dot at its projected depth while keeping a half-physical-pixel minimum.
 
 Reuse the existing 32-byte point layout. Positive GPU sizes retain explicit CSS diameters; negative values carry prepared mesh spacing in millimetres. A named constructor makes this render-only mode explicit, and original source widths remain unchanged. One helper serves both existing finite and legacy color/query paths. The original mesh owner retains one scalar after source release; no per-vertex distance array, extra buffer or neighbor-normal table is added.
 
-Measure each disc from the fragment’s physical pixel and a fixed screen centre. Interpolating a quad offset shifts dense-dot coverage with rasterizer rounding. Crop queries must use the same pixel origin as colour.
-
-The half-pixel floor can still crowd a distant mesh. The readable and extreme views show that limit; the taper does not remove it.
-
-> **Self-Check Question:** *Why apply the half-physical-pixel minimum after the crowding taper?*  
-> **Answer:** Crowded default dots must become smaller before the lower bound is applied. This preserves a visible footprint without keeping an unnecessarily large radius at a higher pixel density.
-
-- **What You Should See:** Crowding-aware dots retain more of the face at readable zoom levels. At extreme zoom-out, the half-physical-pixel minimum can still overlap. Explicit point sizes, active controls, original ownership and shared geometry remain stable.
-- **Hands-On Lab Experiment:** Compare the actual crowded original grid with its preceding dark-sheet render and the maintained taper reference. Inspect both projections and densities, explicit points and controls, source unload, camera changes and shared mirrored placement. Compare the readable and extreme-zoom views: the minimum physical footprint intentionally limits further thinning.
-
-<details>
-<summary>Implementation 96zzzzzzq-taper-crowded-original-mesh-vertices: Taper crowded original mesh vertices</summary>
-
-Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
-
-Data flow: Render bounds and source vertex count → one shared spacing scalar → signed GPU size → common radius and query coverage.
+> **Check:** *Why apply the half-physical-pixel minimum after the crowding taper?* — Crowded default dots must become smaller before the lower bound is applied. This preserves a visible footprint without keeping an unnecessarily large radius at a higher pixel density.
 
 ### 1. `src/mesh.rs`
 
@@ -3259,8 +2091,7 @@ Retain one prepared mesh spacing scalar after original source release. Only actu
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -3276,8 +2107,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         display.parts = parts; Ok(display)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3300,8 +2129,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     normals: Vec<[f32; 3]>,
@@ -3310,8 +2138,6 @@ Replace it with:
     pub parts: crate::mesh_parts::Parts,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3324,8 +2150,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 #[derive(Clone)]
@@ -3428,39 +2253,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-03.rs"
-```
-
-</details>
-
 ### 2. `src/marker.rs`
 
 Name the render-only size mode explicitly; original point widths and editing-control diameters remain unchanged.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Marker {
-```
-
-</details>
 
 After that block, type:
 
@@ -3471,29 +2266,9 @@ After that block, type:
     }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-04.rs"
-```
-
-</details>
-
 ### 3. `src/pick_sources.rs`
 
 Reuse the existing32byte point instance, endpoint addresses and upload; no distance array, extra metadata or buffer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    sources.mesh_markers.push(crate::marker::Marker{center:model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32(),diameter:1.,colour:edge_colour.unwrap_or_else(||row.mesh.parts.dot_colour(i))});
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3501,46 +2276,15 @@ Edit the existing block to match this code; keep unchanged lines:
                     sources.mesh_markers.push(crate::marker::Marker::mesh_dot(model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32(),edge_colour.unwrap_or_else(||row.mesh.parts.dot_colour(i)),row.mesh.spacing));
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-05.rs"
-```
-
-</details>
-
 ### 4. `src/stroke_gpu.rs`
 
 Accept the explicit finite mesh-spacing size mode while rejecting zero and nonfinite display data.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if marker.diameter <= 0.0 || marker.values().iter().any(|v| !v.is_finite()) { return Err("Invalid marker display data"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
             if marker.diameter == 0.0 || marker.values().iter().any(|v| !v.is_finite()) { return Err("Invalid marker display data"); }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-06.rs"
-```
-
-</details>
 
 ### 5. `src/marker_radius.wgsl`
 
@@ -3556,15 +2300,6 @@ Create the file and type:
 
 Expand one shared radius helper for both color/pick and existing finite/legacy paths.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        .replace("#include \"marker_coverage.wgsl\"", include_str!("marker_coverage.wgsl"))
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -3575,41 +2310,6 @@ After that block, type:
 
 Use the same radius rule in the existing marker paths. Color and integer picking retain the same projected marker footprint.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-}
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0);
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = diameter * view.density * 0.5;
-    let offset = corners[index] * (radius + 0.70711);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius);
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output { return geometry(center, diameter, colour, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -3642,71 +2342,11 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-10.rs"
-```
-
-</details>
 
 ### 8. `src/finite_marker.wgsl`
 
 Use the same radius rule in the existing marker paths. Color and integer picking retain the same projected marker footprint.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32,flags:u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0,flags,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0));
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = diameter * view.density * 0.5;
-    let offset = corners[index] * (radius + 0.70711);
-    let axis=finite_axis(position,position);let depths=vec2<f32>(position.z/position.w);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius,flags,axis,depths,finite_screen(position));
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(center, diameter, colour, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -3744,29 +2384,12 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-12.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3780,10 +2403,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-13.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3791,38 +2411,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the three actual source-bound density GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod mesh_marker_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-14.rs" skip=22
 ```
 
-</details>
-
 ### 11. `src/marker_coverage.wgsl`
 
 Measure the circle at the actual physical fragment pixel relative to its fixed centre; keep one shared colour/query coverage function.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn colour(input: Output) -> vec4<f32> {
-    let coverage = clamp(input.radius + 0.5 - length(input.offset), 0.0, 1.0);
-    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3834,101 +2431,25 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Carry a fixed screen centre instead of interpolating the expanded quad offset.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
     @location(1) @interpolate(flat) centre: vec2<f32>,
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-02.wgsl"
-```
-
-</details>
 
 ### 13. `src/marker_pick.wgsl`
 
 Carry a fixed screen centre instead of interpolating the expanded quad offset.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
     @location(1) @interpolate(flat) centre: vec2<f32>,
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-03.wgsl"
-```
-
-</details>
-
 ### 14. `src/marker.wgsl`
 
 Compute the centre before expanding the existing quad; no new vertex buffer or radius policy. Pass the fixed screen centre through the existing location. Use the fragment built-in pixel rather than interpolated quad coordinates.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(flat) centre: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-}
-#include "marker_radius.wgsl"
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0);
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = marker_radius(position,diameter);
-    let offset = corners[index] * (radius + 0.70711);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius);
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output { return geometry(center, diameter, colour, index); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3964,62 +2485,9 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input.colour,input.radius,input.position.xy-input.centre); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-04.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-05.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-06.wgsl"
-```
-
-</details>
-
 ### 15. `src/marker_pick.wgsl`
 
 Give the cropped query the same centre in its local physical-pixel coordinates. Remove the unnecessary reconstructed colour-output record. Apply the same analytic disc coverage to integer queries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(flat) centre: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-}
-@vertex
-fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
-    let source = geometry(center, diameter, colour, index);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.offset = source.offset;
-    output.radius = source.radius;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.offset, input.radius);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4051,70 +2519,9 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-07.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-09.wgsl"
-```
-
-</details>
-
 ### 16. `src/finite_marker.wgsl`
 
 Reuse the existing fixed axis centre; drop the redundant interpolated offset. Use the actual fragment pixel and remove the second redundant varying.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-#include "marker_radius.wgsl"
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32,flags:u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0,flags,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0));
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = marker_radius(position,diameter);
-    let offset = corners[index] * (radius + 0.70711);
-    let axis=finite_axis(position,position);let depths=vec2<f32>(position.z/position.w);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius,flags,axis,depths,finite_screen(position));
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(center, diameter, colour, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4151,64 +2558,15 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
 
 ### 17. `src/finite_marker_pick.wgsl`
 
 Reuse the existing fixed axis centre; drop the redundant interpolated offset. Use the actual fragment pixel and remove the second redundant varying.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-}
-@vertex
-fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>,@location(8) flags:u32) -> PickOutput {
-    let source = geometry(center, diameter, colour, index,flags);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.offset = source.offset;
-    output.radius = source.radius;
-    output.clip_flags=source.clip_flags;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.offset, input.radius,input.clip_flags,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,true)<=0.){discard;}
-    return input.id;
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
@@ -4245,60 +2603,9 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-</details>
-
 ### 18. `src/finite_marker.wgsl`
 
 Keep the rejected-vertex result aligned with the smaller output. Reuse existing fixed source centre/depth fields and omit redundant pixel interpolation. Read visibility at the actual full-frame physical pixel. Evaluate colour coverage from the existing flat centre.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-}
-#include "marker_radius.wgsl"
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32,flags:u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0,flags,vec4<f32>(0.0),vec2<f32>(0.0),vec2<f32>(0.0));
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = marker_radius(position,diameter);
-    let offset = corners[index] * (radius + 0.70711);
-    let axis=finite_axis(position,position);let depths=vec2<f32>(position.z/position.w);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, offset, radius,flags,axis,depths,finite_screen(position));
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(center, diameter, colour, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4335,77 +2642,14 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.position.xy,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input.colour,input.radius,input.position.xy-input.finite_axis_value.xy);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-14.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-15.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-16.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-17.wgsl"
-```
-
-</details>
-
 ### 19. `src/finite_marker_pick.wgsl`
 
 Remove the deleted output varying from the query vertex. Keep the existing fixed axis/depth values without another varying. Restore the query fragment to the full physical frame once, then share it with coverage and visibility. Keep the integer-query disc identical to colour coverage. Use the same restored full-frame pixel for depth/section eligibility.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(7) @interpolate(flat) id: vec2<u32>,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-}
-@vertex
-fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>,@location(8) flags:u32) -> PickOutput {
-    let source = geometry(center, diameter, colour, index,flags);
-    var output: PickOutput;
-    output.position = crop.transform * source.position;
-    output.colour = source.colour;
-    output.offset = source.offset;
-    output.radius = source.radius;
-    output.clip_flags=source.clip_flags;
-    output.finite_axis_value=source.finite_axis_value;output.finite_depths=source.finite_depths;output.finite_pixel=source.finite_pixel;
-    output.id = id; return output;
-}
-@fragment
-fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
-    let source = Output(input.position, input.colour, input.offset, input.radius,input.clip_flags,input.finite_axis_value,input.finite_depths,input.finite_pixel);
-    if (!wanted(input.id.y, crop.mode)) { discard; }
-    if (colour(source).a <= 0.0) { discard; }
-    if(finite_disc_alpha(input.finite_pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,true)<=0.){discard;}
-    return input.id;
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4442,48 +2686,22 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-20.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-21.wgsl"
-```
-
-```text
---8<-- "journey/code/96zzzzzzq-taper-crowded-original-mesh-vertices-physical-centre-22.wgsl"
-```
-
-</details>
-
-</details>
+**Result after `96zzzzzzq-taper-crowded-original-mesh-vertices`:** Crowding-aware dots retain more of the face at readable zoom levels. At extreme zoom-out, the half-physical-pixel minimum can still overlap. Explicit point sizes, active controls, original ownership and shared geometry remain stable.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzzzzzq-taper-crowded-original-mesh-vertices
-npm --prefix ../session_tests run course -- check 96zzzzzzq-taper-crowded-original-mesh-vertices
-npm --prefix ../session_tests run course -- save 96zzzzzzq-taper-crowded-original-mesh-vertices
+npm --prefix ../session_tests run course -- dependencies 22.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 22.3
+npm --prefix ../session_tests run course -- save 22.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Crowding-aware dots retain more of the face at readable zoom levels. At extreme zoom-out, the half-physical-pixel minimum can still overlap. Explicit point sizes, active controls, original ownership and shared geometry remain stable.
-
-- **Final Lesson Experiment:** Compare the actual crowded original grid with its preceding dark-sheet render and the maintained taper reference. Inspect both projections and densities, explicit points and controls, source unload, camera changes and shared mirrored placement. Compare the readable and extreme-zoom views: the minimum physical footprint intentionally limits further thinning.
-
-Continue with [Original ambient inputs and real pass ordering](../../consolidation/96zzzzzzr-share-geometric-ambient-inputs.md).
+Continue with [22.4 · Original ambient inputs and real pass ordering](../../consolidation/96zzzzzzr-share-geometric-ambient-inputs.md).

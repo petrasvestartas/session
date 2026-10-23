@@ -1,207 +1,97 @@
 # 14.6 · Exact parabola recipes and editable freeform controls
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.6** (Redraft `8.6`) · **5 checkpoints (`76-copy-exact-planar-curve-definitions` → `76d-exercise-exact-curves-and-rational-control-edits`)** · **Study time: 2.5–5 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `76-copy-exact-planar-curve-definitions` → `76d-exercise-exact-curves-and-rational-control-edits` (5 steps) · **Production source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs)
 
-> **What You Will Learn & Build:** Complete the original parabola questions and input reader. By the final checkpoint (`76d-exercise-exact-curves-and-rational-control-edits`), you will exercise exact curves and rational control edits.
+> **Goal:** Exercise exact curves and rational control edits.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 14.6 Pipeline Schematic: Exact parabola recipes and editable freeform controls</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (5 Checkpoints: 76-copy-exact-planar-curve-definitions → 76d-exercise-exact-curves-and-rational-control-edits)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">shared questions</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">and frame</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">original exact</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">curve</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">derived preview</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">checked control</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">preview</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 14.6:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/freeform_parabola.rs  ·  src/primitive_registry.rs  ·  src/freeform_curve.rs  ·  src/lib.rs  ·  src/tool.rs  ·  src/commands.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">5 Checkpoints: 76-copy-exact-planar-curve-definitions → 76d-exercise-exact-curves-and-rational-control-edits — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`76-copy-exact-planar-curve-definitions`](#checkpoint-76-copy-exact-planar-curve-definitions) | Complete the original parabola questions and input reader. | `src/freeform_parabola.rs` | `shared questions and frame → original exact curve → derived preview` |
-| **2** | [`76a-expose-exact-curve-choices-in-the-existing-registry`](#checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry) | Expose exact curve choices in the existing registry. | `src/primitive_registry.rs` | `registered curve name → current option → shared answer owner` |
-| **3** | [`76b-retain-editable-freeform-controls-in-the-point-collector`](#checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector) | Write the original degree and closure rules for collected control points. | `src/freeform_curve.rs`, `src/lib.rs`, `src/tool.rs`, `src/commands.rs` | `collected original controls → degree and closure → NURBS curve → one history edit` |
-| **4** | [`76c-inspect-original-curve-data-through-the-browser-contract`](#checkpoint-76c-inspect-original-curve-data-through-the-browser-contract) | Inspect original curve data through the browser contract. | `src/browser.rs` | `original curve owner → explicit diagnostic facts → browser assertions` |
-| **5** | [`76d-exercise-exact-curves-and-rational-control-edits`](#checkpoint-76d-exercise-exact-curves-and-rational-control-edits) | Exercise exact curves and rational control edits. | `src/freeform_tests.rs`, `src/lib.rs` | `original curve → checked control preview → one transaction → exact restoration` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-76-copy-exact-planar-curve-definitions"></a>
 
 ### Step 1 of 5 · Read original parabola inputs in a checked frame (`76-copy-exact-planar-curve-definitions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/5 Visual Trace (76-copy-exact-planar-curve-definitions): Read original parabola inputs in a checked frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/freeform_parabola.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared questions and frame</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original exact curve</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived preview</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/freeform_parabola.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original exact curve</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived preview</text>
 </svg>
-</div>
-
-- **Goal:** Complete the original parabola questions and input reader.
-- **Data Flow Trace:** `shared questions and frame → original exact curve → derived preview`
-- **Files You Touch:** `src/freeform_parabola.rs` (*Extend this original owner with the day’s complete input helpers.*)
 
 Complete the original parabola questions and input reader. Orient the frame along its chord, retain the apex location in that frame, and reuse the preview and exact source builders from the previous checkpoint. The following registry connects the completed curve family.
 
-> **Self-Check Question:** *Why retain the apex in the chord frame?*  
-> **Answer:** The original curve can use the same input interpretation in any construction plane. Its display samples remain derived from that source.
-
-- **What You Should See:** The original round solids remain visible while exact curves connect. The final exercise displays original Circle, Ellipse, Arc, Parabola and a freeform Curve.
-- **Hands-On Lab Experiment:** Trace a nonplanar apex and a degenerate chord through the existing validation rules.
-
-<details>
-<summary>Implementation 76-copy-exact-planar-curve-definitions: Read original parabola inputs in a checked frame</summary>
-
-Complete the original parabola questions and input reader.
-
-Data flow: shared questions and frame → original exact curve → derived preview.
+> **Check:** *Why retain the apex in the chord frame?* — The original curve can use the same input interpretation in any construction plane. Its display samples remain derived from that source.
 
 ### 1. `src/freeform_parabola.rs`
 
 Extend this original owner with the day’s complete input helpers.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-const SAMPLES: usize = 32; // preview segments
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -209,8 +99,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/76-copy-exact-planar-curve-definitions-1.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -218,190 +107,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original curve validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::primitive_shape::{ Answer, Ask, CURVE, Frame, Part, Shape, positive};
-use session_rust::{Geometry, Point, Primitives};
-use std::rc::Rc;
-
-pub static SHAPE: Shape = Shape {
-    name: "Nurbs Curve Parabola",
-    options: CURVE,
-    upfront: false,
-    ask,
-    read,
-    outline,
-    build,
-};
-
-const SAMPLES: usize = 32; // preview segments
-
-/// Start, end, then the apex.
-fn ask(answers: &[Answer], _part: &Part, _option: &str) -> Option<Ask> {
-    match answers.len() {
-        0 => Some(Ask::point("Start")),
-        1 => Some(Ask::size("End or length")),
-        2 => Some(Ask::size("Apex or height")),
-        _ => None,
-    }
-}
-
-/// The frame runs from start to end; the apex is where the curve passes half way, off the chord.
-fn read(frame: &Frame, answers: &[Answer], _option: &str) -> Result<Part, String> {
-    let mut part = Part::new(frame.clone());
-    let Some(end) = answers.get(1) else {
-        return Ok(part);
-    };
-
-    if let Answer::Point(end) = end {
-        let [u, v, _] = frame.local(end);
-        part.frame = frame.turned(u, v);
-    }
-
-    let length = positive(frame.size(end), "The length")?; // a click lands on the plane
-    part.sizes.push(length);
-
-    if let Some(apex) = answers.get(2) {
-        let [u, v, w] = match apex {
-            Answer::Number(height) => [length * 0.5, *height, 0.0], // to the left of start → end
-            Answer::Point(p) => part.frame.local(p),
-        };
-
-        if v.hypot(w) <= 1e-9 * length {
-            return Err("The apex must lie off the line from start to end".into());
-        }
-
-        part.sizes.extend([u, w, v]); // the height last: the cursor readout shows it
-    }
-
-    Ok(part)
-}
-
-/// Start, apex and end in the world.
-fn points(part: &Part) -> Option<[Point; 3]> {
-    let [length, u, w, v] = part.sizes[..] else {
-        return None;
-    };
-    let frame = &part.frame;
-    Some([
-        frame.at(0.0, 0.0, 0.0),
-        frame.at(u, v, w),
-        frame.at(length, 0.0, 0.0),
-    ])
-}
-
-/// The chord, then the parabola.
-fn outline(part: &Part) -> Vec<Vec<Point>> {
-    let Some([start, apex, end]) = points(part) else {
-        return part.sizes.first().map_or_else(Vec::new, |length| {
-            vec![vec![
-                part.frame.at(0.0, 0.0, 0.0),
-                part.frame.at(*length, 0.0, 0.0),
-            ]]
-        });
-    };
-    // the Bezier control that makes the curve pass the apex half way
-    let control = [0, 1, 2].map(|i| 2.0 * apex[i] - 0.5 * (start[i] + end[i]));
-    let curve = (0..=SAMPLES)
-        .map(|i| {
-            let t = i as f64 / SAMPLES as f64;
-            let (a, b, c) = ((1.0 - t) * (1.0 - t), 2.0 * t * (1.0 - t), t * t);
-            Point::new(
-                a * start[0] + b * control[0] + c * end[0],
-                a * start[1] + b * control[1] + c * end[1],
-                a * start[2] + b * control[2] + c * end[2],
-            )
-        })
-        .collect();
-    vec![curve]
-}
-
-/// The kernel parabola through start, apex and end.
-fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
-    let [start, apex, end] =
-        points(part).ok_or("Nurbs Curve Parabola needs a start, an end and an apex")?;
-    let mut curve = Primitives::parabola(&start, &apex, &end);
-    curve.name = "parabola".into();
-    Ok(Geometry::NurbsCurve(Rc::new(curve)))
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/76-copy-exact-planar-curve-definitions-2.rs" skip=3319
 ```
 
-</details>
+**Result after `76-copy-exact-planar-curve-definitions`:** The original round solids remain visible while exact curves connect. The final exercise displays original Circle, Ellipse, Arc, Parabola and a freeform Curve.
 
-</details>
+---
 
 <a id="checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry"></a>
 
 ### Step 2 of 5 · Expose exact curve choices in the existing registry (`76a-expose-exact-curve-choices-in-the-existing-registry`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/5 Visual Trace (76a-expose-exact-curve-choices-in-the-existing-registry): Expose exact curve choices in the existing registry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_registry.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">registered curve name</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current option</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared answer owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/primitive_registry.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current option</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared answer owner</text>
 </svg>
-</div>
-
-- **Goal:** Expose exact curve choices in the existing registry.
-- **Data Flow Trace:** `registered curve name → current option → shared answer owner`
-- **Files You Touch:** `src/primitive_registry.rs` (*Register all current exact planar curve names and supported Arc options.*)
 
 Register current multiword names and the Arc Center and3 Points options. The shared question owner already validates dimensions and preserves accepted answers after failure.
 
-> **Self-Check Question:** *How does a three point arc choose its side?*  
-> **Answer:** The curve runs from the first point through the third point to the second point. Collinear points cannot determine a circle and are refused.
-
-- **Hands-On Lab Experiment:** Try Nurbs Curve Arc Center0,0,0 1 90, then its3 Points form0,0,0 2,0,0 1,1,0. Try360 degrees and correct the same unfinished arc to270.
-
-<details>
-<summary>Implementation 76a-expose-exact-curve-choices-in-the-existing-registry: Expose exact curve choices in the existing registry</summary>
-
-Expose exact curve choices in the existing registry.
-
-Data flow: registered curve name → current option → shared answer owner.
+> **Check:** *How does a three point arc choose its side?* — The curve runs from the first point through the third point to the second point. Collinear points cannot determine a circle and are refused.
 
 ### 1. `src/primitive_registry.rs`
 
 Register all current exact planar curve names and supported Arc options.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Quad Sphere",&crate::round_quad_sphere::SHAPE,0),
-    ("Quad Sphere Mesh",&crate::round_quad_sphere::SHAPE,0),
-    ("bo",&crate::primitive_box::SHAPE,0),
-];
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -409,60 +158,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/76a-expose-exact-curve-choices-in-the-existing-registry-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector"></a>
 
 ### Step 3 of 5 · Create editable freeform curves (`76b-retain-editable-freeform-controls-in-the-point-collector`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/5 Visual Trace (76b-retain-editable-freeform-controls-in-the-point-collector): Create editable freeform curves</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/freeform_curve.rs, src/lib.rs, src/tool.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">collected original</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">controls</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">degree and closure</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">NURBS curve</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/freeform_curve.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">NURBS curve</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history edit</text>
 </svg>
-</div>
-
-- **Goal:** Write the original degree and closure rules for collected control points.
-- **Data Flow Trace:** `collected original controls → degree and closure → NURBS curve → one history edit`
-- **Files You Touch:** `src/freeform_curve.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original freeform-curve constructor.*) · `src/tool.rs` (*Build original freeform curves from accepted controls and offer existing Finish/Close input.*) · `src/commands.rs` (*Route current Curve invocation and direct controls through the existing world-point collector.*)
 
 Write the original degree and closure rules for collected control points. Connect the resulting original NURBS curve to the existing point collector and command path.
 
-> **Self-Check Question:** *What makes the collected curve closed?*  
-> **Answer:** A final point coincident with the first closes it. Remove that repeated control and limit the degree to three while retaining the original editable controls.
-
-- **What You Should See:** Create a freeform curve through the existing browser command dock. Its original control points remain available for later editing.
-- **Hands-On Lab Experiment:** Collect an open curve, then one ending on its starting point. Compare the retained controls and cancel an unfinished draft.
-
-<details>
-<summary>Implementation 76b-retain-editable-freeform-controls-in-the-point-collector: Create editable freeform curves</summary>
-
-Write the original degree and closure rules for collected control points.
-
-Data flow: collected original controls → degree and closure → NURBS curve → one history edit.
+> **Check:** *What makes the collected curve closed?* — A final point coincident with the first closes it. Remove that repeated control and limit the degree to three while retaining the original editable controls.
 
 ### 1. `src/freeform_curve.rs`
 
@@ -478,24 +205,13 @@ Create the file and type:
 
 Register the original freeform-curve constructor.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod freeform_parabola;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-2.rs" skip=28
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -503,33 +219,11 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original validation fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use session_rust::{NurbsCurve,Point};
-/// A curve through control points; ending on the start closes it smoothly.
-pub fn curve(points: &[Point]) -> NurbsCurve {
-    let count = points.len();
-    let closed = count >= 4 && points[0].distance(&points[count - 1], None) <= 1e-12;
-
-    if closed {
-        return NurbsCurve::create(true, (count - 2).min(3), &points[..count - 1]);
-    }
-
-    NurbsCurve::create(false, (count - 1).min(3), points)
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-3.rs" skip=445
 ```
-
-</details>
 
 ### 4. `src/tool.rs`
 
@@ -537,8 +231,7 @@ Build original freeform curves from accepted controls and offer existing Finish/
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let points=points.iter().map(|p|session_rust::Point::new(p[0],p[1],p[2])).collect();
@@ -548,8 +241,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             _ => Err("The tool needs more points"),
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -568,8 +259,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(self,Self::Polyline|Self::Rectangle|Self::Polygon {..}) {
@@ -580,8 +270,6 @@ Replace it with:
     fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
         match (self, points) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -595,8 +283,7 @@ Replace it with:
         match (self, points) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -611,8 +298,6 @@ impl Tool for Shape {
     fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -630,8 +315,7 @@ impl Tool for Shape {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -751,35 +435,13 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-4.rs"
-```
-
-```text
---8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-5.rs"
-```
-
-```text
---8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-6.rs"
-```
-
-</details>
-
 ### 5. `src/commands.rs`
 
 Route current Curve invocation and direct controls through the existing world-point collector.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
@@ -791,8 +453,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
     if name == "Move" && words.len()>count {
 ```
-
-</details>
 
 Replace it with:
 
@@ -807,8 +467,7 @@ Replace it with:
     if name == "Move" && words.len()>count {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
@@ -818,8 +477,6 @@ Replace it with:
     ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
     ("Polyline Rectangle",||Action::BeginTool(crate::tool::Shape::Rectangle)),
 ```
-
-</details>
 
 Replace it with:
 
@@ -833,8 +490,7 @@ Replace it with:
     ("Polyline Rectangle",||Action::BeginTool(crate::tool::Shape::Rectangle)),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -994,87 +650,44 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
+**Result after `76b-retain-editable-freeform-controls-in-the-point-collector`:** Create a freeform curve through the existing browser command dock. Its original control points remain available for later editing.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-7.rs"
-```
-
-```text
---8<-- "journey/code/76b-retain-editable-freeform-controls-in-the-point-collector-8.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-76c-inspect-original-curve-data-through-the-browser-contract"></a>
 
 ### Step 4 of 5 · Inspect original curve data through the browser contract (`76c-inspect-original-curve-data-through-the-browser-contract`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/5 Visual Trace (76c-inspect-original-curve-data-through-the-browser-contract): Inspect original curve data through the browser contract</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve owner</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit diagnostic facts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">browser assertions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit diagnostic fac…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">browser assertions</text>
 </svg>
-</div>
-
-- **Goal:** Inspect original curve data through the browser contract.
-- **Data Flow Trace:** `original curve owner → explicit diagnostic facts → browser assertions`
-- **Files You Touch:** `src/browser.rs` (*Expose original curve identity, weighted controls and knots for current browser acceptance.*)
 
 Expose original control storage, knot storage, rational flag and GUID for the existing browser acceptance checks.
 
-> **Self-Check Question:** *Does a browser diagnostic change saved geometry?*  
-> **Answer:** No. It reads the original source for acceptance checks. The command input and geometry owner remain the same.
-
-- **Hands-On Lab Experiment:** Create an Arc Center of90 degrees. Compare its three controls and rational flag before Undo and after Redo.
-
-<details>
-<summary>Implementation 76c-inspect-original-curve-data-through-the-browser-contract: Inspect original curve data through the browser contract</summary>
-
-Inspect original curve data through the browser contract.
-
-Data flow: original curve owner → explicit diagnostic facts → browser assertions.
+> **Check:** *Does a browser diagnostic change saved geometry?* — No. It reads the original source for acceptance checks. The command input and geometry owner remain the same.
 
 ### 1. `src/browser.rs`
 
 Expose original curve identity, weighted controls and knots for current browser acceptance.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
-    let originals=serde_json::json!({"points":editor.scene.points().iter().map(|row|(0..3).map(|i|row.prepared.source[i]).collect::<Vec<_>>()).collect::<Vec<_>>(),"lines":editor.scene.lines().iter().map(|row|{let s=&row.prepared.source;[s.start(),s.end()].map(|p|[p[0],p[1],p[2]])}).collect::<Vec<_>>(),"polylines":editor.scene.paths().iter().filter(|row|matches!(row.prepared.source,crate::chain::Source::Polyline(_))).map(|row|row.prepared.source.coordinates()).collect::<Vec<_>>()});
-    canvas.set_attribute("data-drawing-originals",&originals.to_string())?;
-    canvas.set_attribute("data-cplane",&serde_json::json!({"fixed":editor.construction_plane.is_some(),"mode":format!("{:?}",editor.construction_plane),"chooser":editor.plane_menu}).to_string())?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1082,62 +695,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/76c-inspect-original-curve-data-through-the-browser-contract-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-76d-exercise-exact-curves-and-rational-control-edits"></a>
 
 ### Step 5 of 5 · Exercise exact curves and rational control edits (`76d-exercise-exact-curves-and-rational-control-edits`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/5 Visual Trace (76d-exercise-exact-curves-and-rational-control-edits): Exercise exact curves and rational control edits</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/freeform_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked control preview</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one transaction</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact restoration</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/freeform_tests.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact restoration</text>
 </svg>
-</div>
-
-- **Goal:** Exercise exact curves and rational control edits.
-- **Data Flow Trace:** `original curve → checked control preview → one transaction → exact restoration`
-- **Files You Touch:** `src/freeform_tests.rs` (*Copy integrated exact-original, closure/world-replay, failed-input, rational-edit and archive fixtures.*) · `src/lib.rs` (*Register the current curve component.*)
 
 Verify current original builders, failed input, world replay, history and exact archive reopening. Reuse the existing source-edit preview for a created rational arc.
 
-> **Self-Check Question:** *What must moving a rational control preserve?*  
-> **Answer:** Keep its weight and the knot vector. Convert the edited Euclidean point back to homogeneous coordinates using the same weight, leaving other controls unchanged.
+> **Check:** *What must moving a rational control preserve?* — Keep its weight and the knot vector. Convert the edited Euclidean point back to homogeneous coordinates using the same weight, leaving other controls unchanged.
 
-- **What You Should See:** Five original NURBS curve families render on white. Curve controls remain editable; rational edits preserve weights and knots. Failed input keeps accepted answers and original source identity survives archive reopening.
-- **Hands-On Lab Experiment:** Type Close, CPlane XY, Nurbs Curve Circle w-2,0,0 0.5, Nurbs Curve Ellipse w-0.7,0,0 0.55 0.3, Nurbs Curve Arc Center w0.7,0,0 0.5 270, Nurbs Curve Parabola w1.5,0,0 1 0.5, Curve w-0.5,1,0 w0,1.6,0 w0.5,1,0, View Reset and Fit. Select a curve, use Controls or F10, select a control and move its handle; Undo restores the original control. Save and reopen to retain original weights and knots.
-
-<details>
-<summary>Implementation 76d-exercise-exact-curves-and-rational-control-edits: Exercise exact curves and rational control edits</summary>
-
-Exercise exact curves and rational control edits.
-
-Data flow: original curve → checked control preview → one transaction → exact restoration.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1151,10 +742,7 @@ Copy this supplied file:
 --8<-- "journey/code/76d-exercise-exact-curves-and-rational-control-edits-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1162,45 +750,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the current curve component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod freeform_curve;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/76d-exercise-exact-curves-and-rational-control-edits-02.rs" skip=25
 ```
 
-</details>
-
-</details>
+**Result after `76d-exercise-exact-curves-and-rational-control-edits`:** Five original NURBS curve families render on white. Curve controls remain editable; rational edits preserve weights and knots. Failed input keeps accepted answers and original source identity survives archive reopening.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 76d-exercise-exact-curves-and-rational-control-edits
-npm --prefix ../session_tests run course -- check 76d-exercise-exact-curves-and-rational-control-edits
-npm --prefix ../session_tests run course -- save 76d-exercise-exact-curves-and-rational-control-edits
+npm --prefix ../session_tests run course -- dependencies 14.6
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 14.6
+npm --prefix ../session_tests run course -- save 14.6
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Five original NURBS curve families render on white. Curve controls remain editable; rational edits preserve weights and knots. Failed input keeps accepted answers and original source identity survives archive reopening.
-
-- **Final Lesson Experiment:** Type Close, CPlane XY, Nurbs Curve Circle w-2,0,0 0.5, Nurbs Curve Ellipse w-0.7,0,0 0.55 0.3, Nurbs Curve Arc Center w0.7,0,0 0.5 270, Nurbs Curve Parabola w1.5,0,0 1 0.5, Curve w-0.5,1,0 w0,1.6,0 w0.5,1,0, View Reset and Fit. Select a curve, use Controls or F10, select a control and move its handle; Undo restores the original control. Save and reopen to retain original weights and knots.
+Continue with [15.1 · Original transforms, part edits and solid recipes](../../consolidation/77-copy-current-transformation-and-source-edit-algorithms.md).

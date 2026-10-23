@@ -1,231 +1,93 @@
 # 11.4 · Original point identity and manifest source records
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.4** (Redraft `6.13`) · **6 checkpoints (`65-originals` → `65zb-validate-original-manifest-text-and-source-keys`)** · **Study time: 3–6 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `65-originals` → `65zb-validate-original-manifest-text-and-source-keys` (6 steps) · **Production source:** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs) · [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl) · [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl) · [app/cloud_query.rs](../../../../src/app/cloud_query.rs)
 
-> **What You Will Learn & Build:** Resolve source point identities and precise positions. By the final checkpoint (`65zb-validate-original-manifest-text-and-source-keys`), you will validate world text, heights and plane axes.
+> **Goal:** Validate world text, heights and plane axes.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
-    <!-- Outer CCW loop square -->
-    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Inner CW hole loop circle (white cutout!) -->
-    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
-    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
-    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
-    <!-- Curved 3D patch shape -->
-    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Elliptical 3D bore hole cutout in white -->
-    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
-    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
-    <!-- Smooth curve on left -->
-    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
-    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
-    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
-    <!-- Sharp crease corner on right -->
-    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
-    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
-    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
-    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
-    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 11.4 Pipeline Schematic: Original point identity and manifest source records</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (6 Checkpoints: 65-originals → 65zb-validate-original-manifest-text-and-source-keys)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">stored source row</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">original u32 ID</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">placed f64 point</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">local highlight</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 11.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/cloud.rs  ·  src/cloud_pick.rs  ·  src/scene.rs  ·  src/pick_sources.rs  ·  src/selection.rs  ·  src/highlight.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">6 Checkpoints: 65-originals → 65zb-validate-original-manifest-text-and-source-keys — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Trimmed B-Rep (u,v)</text>
+  <rect x="55" y="60" width="160" height="96" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="135" cy="108" r="24" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="112" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Hole</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Outer + Inner Loops</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Crease Split</text>
+  <polyline points="338,144 419,98 500,144" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="419" cy="98" r="4.5" fill="#111111"/>
+  <line x1="419" y1="98" x2="386" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <line x1="419" y1="98" x2="452" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="372" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N1</text>
+  <text x="458" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N2</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Sharp Edge Normals</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Sub-ID Pick</text>
+  <polygon points="650,74 758,74 780,138 628,138" fill="url(#hatch)" stroke="#111111" stroke-width="2.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[brep, face_2]</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Face &amp; Edge IDs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`65-originals`](#checkpoint-65-originals) | Resolve source point identities and precise positions. | `src/cloud.rs`, `src/cloud_pick.rs`, `src/scene.rs`, `src/pick_sources.rs` | `stored source row → original u32 ID → placed f64 point → local highlight` |
-| **2** | [`65a-addresses`](#checkpoint-65a-addresses) | Recover original IDs from integer cloud pixels. | `src/pick_sources.rs`, `src/cloud_gpu.rs`, `src/cloud_resolve.wgsl` | `active original parent → complete resident run → integer stored address → original ID lookup` |
-| **3** | [`65b-controls`](#checkpoint-65b-controls) | Enter source controls with the current command or F10. | `src/editor.rs`, `src/commands.rs`, `src/shortcuts.rs`, `src/shortcuts_tests.rs` | `selected cloud → Controls or F10 → one original parent → point selection` |
-| **4** | [`65c-cloud-point`](#checkpoint-65c-cloud-point) | Pick original points and prove source query reuse. | `src/cloud_pick_tests.rs`, `src/lib.rs`, `src/pick_gpu_tests.rs` | `original sparse IDs → actual integer readback → local marker → cancellation and source reuse` |
-| **5** | [`65za-read-original-manifest-records-and-placements`](#checkpoint-65za-read-original-manifest-records-and-placements) | Pin the parser dependencies and write geometry/text records with their defaults. | `Cargo.toml`, `src/manifest.rs`, `src/lib.rs` | `original family → pure calculation → result or refusal` |
-| **6** | [`65zb-validate-original-manifest-text-and-source-keys`](#checkpoint-65zb-validate-original-manifest-text-and-source-keys) | Validate world text, heights and plane axes. | `src/manifest.rs` | `original family → pure calculation → result or refusal` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-65-originals"></a>
 
 ### Step 1 of 6 · Resolve source point identities and precise positions (`65-originals`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/6 Visual Trace (65-originals): Resolve source point identities and precise positions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs, src/cloud_pick.rs, src/scene.rs, src/pick_sources.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stored source row</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original u32 ID</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed f64 point</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">local highlight</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud.rs, src/cloud_p…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed f64 point</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local highlight</text>
 </svg>
-</div>
-
-- **Goal:** Resolve source point identities and precise positions.
-- **Data Flow Trace:** `stored source row → original u32 ID → placed f64 point → local highlight`
-- **Files You Touch:** `src/cloud.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/cloud_pick.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/scene.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/pick_sources.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/selection.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/highlight.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/part_preview.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep the original point ID distinct from its current storage row. A selected point retains the original cloud owner and independent f64 placement.
 
-> **Self-Check Question:** *Can an original ID be packed into the tagged GPU address?*  
-> **Answer:** No. The GPU address has a bounded storage index. Original IDs can use all 32 bits, including 4294967295; resolve them from the original source after readback.
-
-- **What You Should See:** The coloured original cloud remains visible. The final checkpoint adds a local yellow highlight for a selected original point.
-- **Hands-On Lab Experiment:** Trace a cloud with original IDs 4294967295 and 16777217. Translate its row by 1000000000.125; compare source coordinates with the precise placed selection position.
-
-<details>
-<summary>Implementation 65-originals: Resolve source point identities and precise positions</summary>
-
-Resolve source point identities and precise positions.
-
-Data flow: stored source row → original u32 ID → placed f64 point → local highlight.
+> **Check:** *Can an original ID be packed into the tagged GPU address?* — No. The GPU address has a bounded storage index. Original IDs can use all 32 bits, including 4294967295; resolve them from the original source after readback.
 
 ### 1. `src/cloud.rs`
 
 Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone)]
-pub struct Row {
-  pub id: crate::scene::ObjectId,
-  pub guid: String,
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -249,8 +111,7 @@ Retain source point identity, one control owner and precise placement without re
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
@@ -260,8 +121,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
         if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -275,8 +134,7 @@ Replace it with:
         if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
@@ -287,8 +145,6 @@ Replace it with:
         self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
 ```
-
-</details>
 
 Replace it with:
 
@@ -302,8 +158,7 @@ Replace it with:
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -317,8 +172,6 @@ Replace it with:
     }
     pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -339,8 +192,7 @@ Replace it with:
     pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -446,7 +298,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -977,43 +828,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/65-originals-03.rs"
-```
-
-```text
---8<-- "journey/code/65-originals-04.rs"
-```
-
-```text
---8<-- "journey/code/65-originals-05.rs"
-```
-
-</details>
-
 ### 4. `src/pick_sources.rs`
 
 Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Part { Object, Face(usize), SurfaceEdge(usize), BRepEdge(usize), MeshEdge(usize, usize), PathEdge(usize), Curve, Control(usize) }
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1024,46 +841,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 5. `src/selection.rs`
 
 Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{pick_sources::{Part, Target}, scene::Scene};
-
-impl Target {
-    pub fn valid(self, scene: &Scene) -> bool {
-        if scene.pick_id(self.owner.value()).is_none() { return false; }
-        match self.part {
-            Part::Object => true,
-            Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
-            Part::BRepEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.cad.as_ref().is_some_and(|cad|cad.edges.iter().any(|border|border.edge==edge))),
-            Part::SurfaceEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.surface.as_ref().is_some_and(|s|s.grid.boundaries.iter().any(|b|b.edge==edge))),
-            Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
-            Part::PathEdge(index) => scene.paths().iter().any(|r| r.id == self.owner && matches!(&r.prepared.source,
-                crate::chain::Source::Polyline(line) if line.get_points().windows(2).nth(index).is_some_and(|pair| pair[0].to_f32() != pair[1].to_f32()))),
-            Part::Curve => scene.lines().iter().any(|r| r.id == self.owner) || scene.paths().iter().any(|r| r.id == self.owner && !matches!(r.prepared.source, crate::chain::Source::Polyline(_))),
-            Part::Control(index) => scene.paths().iter().any(|r| r.id == self.owner && r.controls_visible && matches!(&r.prepared.source,
-                crate::chain::Source::Curve(curve, _) if crate::controls::Control::new(std::rc::Rc::clone(curve), index).is_ok())),
-        }
-    }
-
-    pub fn describe(self) -> String {
-        match self.part {
-            Part::Object => format!("Object {}", self.owner.value()),
-            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
-            Part::BRepEdge(edge)=>format!("Object {} · original BRep edge {edge}",self.owner.value()),
-            Part::SurfaceEdge(edge)=>format!("Object {} · surface domain edge {edge}",self.owner.value()),
-            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),
-            Part::PathEdge(index) => format!("Object {} · source segment {index}", self.owner.value()),
-            Part::Curve => format!("Object {} · original curve", self.owner.value()),
-            Part::Control(index) => format!("Object {} · original control {index}", self.owner.value()),
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1104,36 +881,9 @@ impl Target {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/65-originals-07.rs"
-```
-
-```text
---8<-- "journey/code/65-originals-08.rs"
-```
-
-</details>
-
 ### 6. `src/highlight.rs`
 
 Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                markers.push(crate::marker::Marker { diameter: marker.display.diameter + 4., colour: yellow, ..marker.display });
-            }
-            Part::Object => {}
-        } }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1147,8 +897,7 @@ Retain source point identity, one control owner and precise placement without re
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1158,8 +907,6 @@ pub fn origin(scene:&Scene,target:Target) -> Option<[f64;3]> {
     if points.is_empty() {return None;}
     Some(std::array::from_fn(|i|points.iter().map(|p|p[i]/points.len() as f64).sum()))
 ```
-
-</details>
 
 Replace it with:
 
@@ -1173,8 +920,7 @@ pub fn origin(scene:&Scene,target:Target) -> Option<[f64;3]> {
     Some(std::array::from_fn(|i|points.iter().map(|p|p[i]/points.len() as f64).sum()))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1184,8 +930,6 @@ pub fn points(scene:&Scene,target:Target) -> Result<Vec<Point>, &'static str> {
     let points=if let Some(row)=scene.objects().iter().find(|r|r.id==target.owner) {
         if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1199,8 +943,7 @@ pub fn points(scene:&Scene,target:Target) -> Result<Vec<Point>, &'static str> {
         if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{Scene,ObjectId},pick_sources::{Part,Target}};
@@ -1275,36 +1018,9 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/65-originals-10.rs"
-```
-
-```text
---8<-- "journey/code/65-originals-11.rs"
-```
-
-</details>
-
 ### 8. `src/lib.rs`
 
 Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod cloud_gpu;
-```
-
-</details>
 
 After that block, type:
 
@@ -1312,74 +1028,44 @@ After that block, type:
 --8<-- "journey/code/65-originals-12.rs" skip=20
 ```
 
-</details>
+**Result after `65-originals`:** The coloured original cloud remains visible. The final checkpoint adds a local yellow highlight for a selected original point.
+
+---
 
 <a id="checkpoint-65a-addresses"></a>
 
 ### Step 2 of 6 · Recover original IDs from integer cloud pixels (`65a-addresses`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/6 Visual Trace (65a-addresses): Recover original IDs from integer cloud pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs, src/cloud_gpu.rs, src/cloud_resolve.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">active original parent</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">complete resident run</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">integer stored address</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original ID lookup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_sources.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer stored address</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID lookup</text>
 </svg>
-</div>
-
-- **Goal:** Recover original IDs from integer cloud pixels.
-- **Data Flow Trace:** `active original parent → complete resident run → integer stored address → original ID lookup`
-- **Files You Touch:** `src/pick_sources.rs` (*Return original integer storage addresses and query the active parent’s complete resident points.*) · `src/cloud_gpu.rs` (*Return original integer storage addresses and query the active parent’s complete resident points.*) · `src/cloud_resolve.wgsl` (*Return original integer storage addresses and query the active parent’s complete resident points.*)
 
 In control mode, return the cached owner and original storage address. Only the active parent exposes original points; other visible clouds still occlude.
 
-> **Self-Check Question:** *Can ordinary coarse display points limit the control query?*  
-> **Answer:** No. The active resident parent uses the complete original resident prefix. Returning to object viewing restores ordinary LOD, reusing source columns; streamed queries later inspect bounded source pages instead.
-
-- **Hands-On Lab Experiment:** Compare a coarse 64-point view with its active 2000064-point source query. Keep the same GPU upload counter and return to the 64-point display after Controls Off.
-
-<details>
-<summary>Implementation 65a-addresses: Recover original IDs from integer cloud pixels</summary>
-
-Recover original IDs from integer cloud pixels.
-
-Data flow: active original parent → complete resident run → integer stored address → original ID lookup.
+> **Check:** *Can ordinary coarse display points limit the control query?* — No. The active resident parent uses the complete original resident prefix. Returning to object viewing restores ordinary LOD, reusing source columns; streamed queries later inspect bounded source pages instead.
 
 ### 1. `src/pick_sources.rs`
 
 Return original integer storage addresses and query the active parent’s complete resident points.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        if mode == Mode::Object { return Some(Target { owner, part: Part::Object }); }
-        let (kind, address) = sub_id::decode(pixel[1])?;
-        let target = match (mode, kind) {
-            (Mode::Face, Kind::Face) => self.faces.get(address),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1391,19 +1077,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Return original integer storage addresses and query the active parent’s complete resident points.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        ortho_h: view.ortho_h,
-        height_px: size[1],
-        lod_px: view.lod_px,
-        nodes: &row.prepared.nodes,
-      };
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -1414,76 +1087,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Return original integer storage addresses and query the active parent’s complete resident points.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let q=vec2<i32>(p.xy)+vec2<i32>(window.origin);let d=textureLoad(sdepth,q,0);if (d>=1.0) {discard;}
-    let ids=textureLoad(sids,q,0).xy;
-    return Pick(select(vec2<u32>(0u),vec2<u32>(ids.x,0u),window.mode==0u),d);
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/65a-addresses-03.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-65b-controls"></a>
 
 ### Step 3 of 6 · Enter source controls with the current command or F10 (`65b-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/6 Visual Trace (65b-controls): Enter source controls with the current command or F10</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/shortcuts.rs, src/shortcuts_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected cloud</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Controls or F10</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one original parent</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">point selection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one original parent</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">point selection</text>
 </svg>
-</div>
-
-- **Goal:** Enter source controls with the current command or F10.
-- **Data Flow Trace:** `selected cloud → Controls or F10 → one original parent → point selection`
-- **Files You Touch:** `src/editor.rs` (*Route the current Controls command and canvas-owned F10 to one original cloud parent.*) · `src/commands.rs` (*Route the current Controls command and canvas-owned F10 to one original cloud parent.*) · `src/shortcuts.rs` (*Route the current Controls command and canvas-owned F10 to one original cloud parent.*) · `src/shortcuts_tests.rs` (*Copy the earlier shortcut checks plus focused F10 ownership coverage.*)
 
 Type Controls after selecting one cloud, or press F10 while the canvas owns keys. Draw only a local point highlight and preserve history.
 
-> **Self-Check Question:** *Should F10 run while a name or command field owns the key?*  
-> **Answer:** No. Fields and open popups retain keyboard ownership. Controls activates one selected cloud, removes its whole selection highlight and leaves original geometry and history intact.
-
-- **Hands-On Lab Experiment:** Type Example Cloud, Select Next and Controls. Pick a point and inspect its original ID. Type Controls Off to return to its parent; compare the same source GUID and upload count.
-
-<details>
-<summary>Implementation 65b-controls: Enter source controls with the current command or F10</summary>
-
-Enter source controls with the current command or F10.
-
-Data flow: selected cloud → Controls or F10 → one original parent → point selection.
+> **Check:** *Should F10 run while a name or command field owns the key?* — No. Fields and open popups retain keyboard ownership. Controls activates one selected cloud, removes its whole selection highlight and leaves original geometry and history intact.
 
 ### 1. `src/editor.rs`
 
@@ -1491,8 +1132,7 @@ Route the current Controls command and canvas-owned F10 to one original cloud pa
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 };
@@ -1503,8 +1143,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let prepared = crate::prepared::PreparedMesh::new(crate::normal_example::specimen(mode))?;
                 self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1525,8 +1163,7 @@ Replace it with:
                 self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 if let Some(target) = target.filter(|t| t.part == crate::pick_sources::Part::Object) { self.objects.set(&self.scene, [target.owner], false); }
@@ -1537,8 +1174,6 @@ Replace it with:
                 let id = self.camera.ray(screen).and_then(|ray| crate::picking::pick(&self.scene, &ray));
                 self.select_objects(id, false);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1552,8 +1187,7 @@ Replace it with:
                 self.select_objects(id, false);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1563,8 +1197,6 @@ Replace it with:
         if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
-
-</details>
 
 Replace it with:
 
@@ -1578,8 +1210,7 @@ Replace it with:
         self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2332,42 +1963,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/65b-controls-01.rs"
-```
-
-```text
---8<-- "journey/code/65b-controls-02.rs"
-```
-
-```text
---8<-- "journey/code/65b-controls-03.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Route the current Controls command and canvas-owned F10 to one original cloud parent.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Example Smooth", || Action::AddNormals(crate::normal_example::Mode::Smooth)),
-    ("Example Winding", || Action::AddNormals(crate::normal_example::Mode::Winding)),
-    ("Controls On", || Action::Controls(true)),
-    ("Controls Off", || Action::Controls(false)),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2378,44 +1976,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 3. `src/shortcuts.rs`
 
 Route the current Controls command and canvas-owned F10 to one original cloud parent.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Shortcut { Undo, Redo, Fit, Hide, Show, Delete, SelectAll }
-
-impl Shortcut {
-    pub fn command(self) -> &'static str {
-        match self { Self::Undo => "Undo", Self::Redo => "Redo", Self::Fit => "Fit", Self::Hide=>"Hide",Self::Show=>"Show",Self::Delete=>"Delete",Self::SelectAll=>"Select All" }
-    }
-}
-
-pub fn key(text: &str, command: bool, shift: bool, alt: bool, composing: bool,
-    focused: bool, text_empty: bool) -> Option<Shortcut> {
-    if alt || composing { return None; }
-    if command {
-        if focused && !text_empty { return None; }
-        match text.to_ascii_lowercase().as_str() {
-            "a" => Some(Shortcut::SelectAll),
-            "z" if shift => Some(Shortcut::Redo),
-            "z" => Some(Shortcut::Undo),
-            "y" => Some(Shortcut::Redo),
-            _ => None,
-        }
-    } else if !focused {match text.to_ascii_lowercase().as_str() {"f"=>Some(Shortcut::Fit),"h"=>Some(Shortcut::Hide),"s"=>Some(Shortcut::Show),"delete"=>Some(Shortcut::Delete),_=>None}}
-    else {None}
-}
-
-pub fn context_key(context:&egui::Context,command_text:&str,text:&str,command:bool,shift:bool,alt:bool,composing:bool)->Option<Shortcut> {
-    if egui::Popup::is_any_open(context) {return None;}
-    let empty_command=context.memory(|memory|memory.focused())==Some(egui::Id::new("command-input"))&&command_text.is_empty();
-    key(text,command,shift,alt,composing,context.egui_wants_keyboard_input(),empty_command)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2452,23 +2012,7 @@ pub fn context_key(context:&egui::Context,command_text:&str,text:&str,command:bo
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/65b-controls-05.rs"
-```
-
-```text
---8<-- "journey/code/65b-controls-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2476,81 +2020,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the earlier shortcut checks plus focused F10 ownership coverage.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/65b-controls-07.rs" skip=8
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-65c-cloud-point"></a>
 
 ### Step 4 of 6 · Pick original points and prove source query reuse (`65c-cloud-point`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/6 Visual Trace (65c-cloud-point): Pick original points and prove source query reuse</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_pick_tests.rs, src/lib.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original sparse IDs</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual integer readback</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">local marker</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cancellation and source</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reuse</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_pick_tests.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local marker</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cancellation and source…</text>
 </svg>
-</div>
-
-- **Goal:** Pick original points and prove source query reuse.
-- **Data Flow Trace:** `original sparse IDs → actual integer readback → local marker → cancellation and source reuse`
-- **Files You Touch:** `src/cloud_pick_tests.rs` (*Copy original point-ID, f64 placement, eligibility, parent and source/history invariants.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual full-u32 integer picks, local highlights, locked coverage, resident source queries, cancellation and shared-upload checks.*)
 
 Copy source and GPU regressions. Query original points omitted by a real coarse view, then restore display detail without reuploading source columns.
 
-> **Self-Check Question:** *Do the native checks replace browser or Lenovo acceptance?*  
-> **Answer:** No. They verify actual integer pixels and source invariants on the available software GPU. The browser contract remains pending, and hardware rotation/zoom timing still needs the Lenovo.
+> **Check:** *Do the native checks replace browser or Lenovo acceptance?* — No. They verify actual integer pixels and source invariants on the available software GPU. The browser contract remains pending, and hardware rotation/zoom timing still needs the Lenovo.
 
-- **What You Should See:** Select the cloud, type Controls or press canvas F10, then click a visible original point. Its source ID is reported and only that point receives a yellow marker. Controls Off returns to the original parent and ordinary view detail. Cloud point editing is explicitly guarded until77. Close releases all cloud and highlight owners.
-- **Hands-On Lab Experiment:** Type Example Cloud, Select Next and Controls, then click an original point and read its reported source ID. Use Controls Off to return to the parent. Read the optional high-ID and coarse-view fixtures for cases too large to infer from this small browser example.
-
-<details>
-<summary>Implementation 65c-cloud-point: Pick original points and prove source query reuse</summary>
-
-Pick original points and prove source query reuse.
-
-Data flow: original sparse IDs → actual integer readback → local marker → cancellation and source reuse.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2564,10 +2073,7 @@ Copy this supplied file:
 --8<-- "journey/code/65c-cloud-point-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2575,26 +2081,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod cloud_pick;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/65c-cloud-point-02.rs" skip=21
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2602,122 +2095,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual full-u32 integer picks, local highlights, locked coverage, resident source queries, cancellation and shared-upload checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    camera.distance=100./std::f64::consts::FRAC_PI_6.tan();assert_eq!(camera_pixels(&mut renderer,&camera),coarse);assert_eq!(renderer.cloud_usage()[0],64);assert_eq!(renderer.cloud_usage()[2],uploads);
-    scene.clear();renderer.set_scene(&scene,None);assert_eq!(renderer.cloud_usage(),[0;5]);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/65c-cloud-point-03.rs" skip=297
 ```
 
-</details>
+**Result after `65c-cloud-point`:** Select the cloud, type Controls or press canvas F10, then click a visible original point. Its source ID is reported and only that point receives a yellow marker. Controls Off returns to the original parent and ordinary view detail. Cloud point editing is explicitly guarded until77. Close releases all cloud and highlight owners.
 
-</details>
+---
 
 <a id="checkpoint-65za-read-original-manifest-records-and-placements"></a>
 
 ### Step 5 of 6 · Read original manifest records and placements (`65za-read-original-manifest-records-and-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/6 Visual Trace (65za-read-original-manifest-records-and-placements): Read original manifest records and placements</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/manifest.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Cargo.toml, src/manifest.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Pin the parser dependencies and write geometry/text records with their defaults.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `Cargo.toml` (*Edit the named browser features and pinned manifest dependencies; keep existing entries.*) · `src/manifest.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original manifest records and helpers.*)
 
 Pin the parser dependencies and write geometry/text records with their defaults. Resolve full matrices before translations and keep one shared automatic-grid placement helper.
 
-> **Self-Check Question:** *Why distinguish stored size from decoded size?*  
-> **Answer:** An encoded source declares its decoded size. It is downloaded and decoded as a whole instead of being treated as a raw range-readable file.
-
-- **What You Should See:** Manifest records retain original source keys and precise placements; loading is not connected yet.
-- **Hands-On Lab Experiment:** Trace a matrix, translation and automatic placement. Compare an encoded source with an unencoded source.
-
-<details>
-<summary>Implementation 65za-read-original-manifest-records-and-placements: Read original manifest records and placements</summary>
-
-Pin the parser dependencies and write geometry/text records with their defaults.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why distinguish stored size from decoded size?* — An encoded source declares its decoded size. It is downloaded and decoded as a whole instead of being treated as a raw range-readable file.
 
 ### 1. `Cargo.toml`
 
 Edit the named browser features and pinned manifest dependencies; keep existing entries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-[package]
-name = "viewer_journey"
-version = "0.1.0"
-edition = "2024"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[workspace]
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-console_error_panic_hook = "=0.1.7"
-prost = "=0.14.4"
-sha2 = "=0.10.8"
-uuid = { version = "=1.26.1", features = ["v4", "js"] }
-js-sys = "=0.3.105"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-session_rust = { path = "../../../session_rust", default-features = false }
-getrandom = { version = "=0.2.17", features = ["js"] }
-
-egui = { version = "=0.34.3", default-features = false }
-egui-wgpu = { version = "=0.34.3", default-features = false }
-
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-glyphon = "=0.11.0"
-anyhow = "=1.0.104"
-ttf-parser = {version="=0.25.1",default-features=false}
-
-[dev-dependencies]
-pollster = "=0.4.0"
-log = "=0.4.34"
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2767,25 +2188,6 @@ pollster = "=0.4.0"
 log = "=0.4.34"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/65za-read-original-manifest-records-and-placements-cargo-1.toml"
-```
-
-```text
---8<-- "journey/code/65za-read-original-manifest-records-and-placements-cargo-2.toml"
-```
-
-```text
---8<-- "journey/code/65za-read-original-manifest-records-and-placements-cargo-3.toml"
-```
-
-</details>
-
 ### 2. `src/manifest.rs`
 
 Type the whole original helpers introduced today.
@@ -2800,98 +2202,50 @@ Create the file and type:
 
 Register the original manifest records and helpers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod cloud_pick_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/65za-read-original-manifest-records-and-placements-6.rs" skip=35
 ```
 
-</details>
+**Result after `65za-read-original-manifest-records-and-placements`:** Manifest records retain original source keys and precise placements; loading is not connected yet.
+
+---
 
 <a id="checkpoint-65zb-validate-original-manifest-text-and-source-keys"></a>
 
 ### Step 6 of 6 · Validate original manifest text and source keys (`65zb-validate-original-manifest-text-and-source-keys`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/6 Visual Trace (65zb-validate-original-manifest-text-and-source-keys): Validate original manifest text and source keys</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/manifest.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/manifest.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pure calculation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">result or refusal</text>
 </svg>
-</div>
-
-- **Goal:** Validate world text, heights and plane axes.
-- **Data Flow Trace:** `original family → pure calculation → result or refusal`
-- **Files You Touch:** `src/manifest.rs` (*Extend this original owner with today’s complete helper.*)
 
 Validate world text, heights and plane axes. Reuse the original format readers, write immutable-source keys and add placement/name accessors using the earlier records.
 
-> **Self-Check Question:** *Why validate text axes before making labels?*  
-> **Answer:** World text needs finite unit directions with a usable right-angle frame. Invalid axes would produce an unusable placement even when the text itself parses.
-
-- **What You Should See:** Manifest validation can reject malformed text and source keys before browser loading is connected.
-- **Hands-On Lab Experiment:** Trace empty text, an invalid height and non-unit axes through the original checks. Compare a content-addressed source key with a mutable filename.
-
-<details>
-<summary>Implementation 65zb-validate-original-manifest-text-and-source-keys: Validate original manifest text and source keys</summary>
-
-Validate world text, heights and plane axes.
-
-Data flow: original family → pure calculation → result or refusal.
+> **Check:** *Why validate text axes before making labels?* — World text needs finite unit directions with a usable right-angle frame. Invalid axes would produce an unusable placement even when the text itself parses.
 
 ### 1. `src/manifest.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn text_right() -> [f64; 3] {
-    [1.0, 0.0, 0.0]
-}
-
-/// World +Y.
-fn text_up() -> [f64; 3] {
-    [0.0, 1.0, 0.0]
-}
-
-/// A translation matrix.
-fn translation(at: [f64; 3]) -> Xform {
-    Xform::translation(at[0], at[1], at[2])
-}
-
-/// True when any value is not finite.
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2899,27 +2253,22 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/65zb-validate-original-manifest-text-and-source-keys-1.rs"
 ```
 
-</details>
+**Result after `65zb-validate-original-manifest-text-and-source-keys`:** Manifest validation can reject malformed text and source keys before browser loading is connected.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 65zb-validate-original-manifest-text-and-source-keys
-npm --prefix ../session_tests run course -- check 65zb-validate-original-manifest-text-and-source-keys
-npm --prefix ../session_tests run course -- save 65zb-validate-original-manifest-text-and-source-keys
+npm --prefix ../session_tests run course -- dependencies 11.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 11.4
+npm --prefix ../session_tests run course -- save 11.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Manifest validation can reject malformed text and source keys before browser loading is connected.
-
-- **Final Lesson Experiment:** Trace empty text, an invalid height and non-unit axes through the original checks. Compare a content-addressed source key with a mutable filename.
+Continue with [12.1 · Complete viewer files and published scene sources](../../consolidation/66-read-scene-manifests.md).

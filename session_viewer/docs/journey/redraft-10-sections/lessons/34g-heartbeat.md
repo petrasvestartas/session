@@ -1,244 +1,102 @@
 # 4.4 · Heartbeat suspension and revocable startup
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.4** (Redraft `3.11`) · **8 checkpoints (`34g-heartbeat` → `34gbca-startup`)** · **Study time: 6.75–12.75 h**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Checkpoints:** `34g-heartbeat` → `34gbca-startup` (8 steps) · **Production source:** `session_viewer/src`
 
-> **What You Will Learn & Build:** Refresh actual last-seen metadata independently of first failure, event history and GPU ownership. By the final checkpoint (`34gbca-startup`), you will stop delayed adapter or device delivery from installing a renderer after final exit.
+> **Goal:** Stop delayed adapter or device delivery from installing a renderer after final exit.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 4 Visual Explanation: Browser Lifetime State Machine, Circular Fault Ring-Buffer & GPU Recovery</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Active ↔ Hidden (bfcache) ↔ Device Lost state transitions. Center: Bounded circular fault ring. Right: Rc/Drop listener guard.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: State Machine Diagram -->
-    <rect x="18" y="64" width="280" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="158" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Browser &amp; GPU State Machine</text>
-    <rect x="34" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Active Frame</text>
-    <text x="89" y="132" text-anchor="middle" font-size="9" fill="#111111">Heartbeat ON</text>
-    <rect x="174" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="229" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Tab Hidden</text>
-    <text x="229" y="132" text-anchor="middle" font-size="9" fill="#111111">Timers Paused</text>
-    <line x1="144" y1="114" x2="172" y2="114" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="174" y1="128" x2="146" y2="128" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <!-- Bottom recovery state -->
-    <rect x="54" y="172" width="210" height="56" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="159" y="191" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Device Lost → Conservative Rebuild</text>
-    <text x="159" y="206" text-anchor="middle" font-size="9.5" fill="#111111">Re-create Adapter/Device at safe 1x MSAA</text>
-    <text x="159" y="220" text-anchor="middle" font-size="9" fill="#111111">&amp; restore retained Editor scene</text>
-    <line x1="89" y1="142" x2="115" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="195" y1="172" x2="125" y2="144" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
-
-    <line x1="298" y1="154" x2="320" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Circular Fault Ring-Buffer -->
-    <rect x="322" y="64" width="240" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="442" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Bounded Fault Ring-Buffer</text>
-    <circle cx="442" cy="144" r="46" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <circle cx="442" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <line x1="442" y1="98" x2="442" y2="122" stroke="#111111" stroke-width="1.2"/>
-    <line x1="442" y1="166" x2="442" y2="190" stroke="#111111" stroke-width="1.2"/>
-    <line x1="396" y1="144" x2="420" y2="144" stroke="#111111" stroke-width="1.2"/>
-    <line x1="464" y1="144" x2="488" y2="144" stroke="#111111" stroke-width="1.2"/>
-    <line x1="410" y1="112" x2="426" y2="128" stroke="#111111" stroke-width="1.2"/>
-    <line x1="458" y1="160" x2="474" y2="176" stroke="#111111" stroke-width="1.2"/>
-    <line x1="474" y1="112" x2="458" y2="128" stroke="#111111" stroke-width="1.2"/>
-    <line x1="426" y1="160" x2="410" y2="176" stroke="#111111" stroke-width="1.2"/>
-    <text x="442" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">v1 JSON</text>
-    <text x="442" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Fixed capacity: overwrites oldest</text>
-    <text x="442" y="225" text-anchor="middle" font-size="9" fill="#111111">Uncaptured GPU errors never OOM</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Rc/Drop Event Listener Guard -->
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rc / Drop Listener Table</text>
-    <rect x="602" y="98" width="204" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="704" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Runtime::new() Registration</text>
-    <text x="614" y="133" font-size="9.5" fill="#111111">Stores (EventTarget, type, Closure)</text>
-    <text x="614" y="146" font-size="9.5" fill="#111111">Uses Weak::upgrade() in callbacks</text>
-    <line x1="704" y1="152" x2="704" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="602" y="172" width="204" height="56" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="190" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">impl Drop for Runtime</text>
-    <text x="614" y="207" font-size="9.5" fill="#111111">Calls remove_event_listener()</text>
-    <text x="614" y="220" font-size="9.5" font-weight="600" fill="#111111">Zero leaked WASM closures!</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 4.4 Pipeline Schematic: Heartbeat suspension and revocable startup</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 34g-heartbeat → 34gbca-startup)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">real UTC/context</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded heartbeat</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">update</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">release report</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">borrow</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded metadata</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">persistence</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">final exit</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 4.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/diagnostic.rs  ·  src/heartbeat_tests.rs  ·  src/lib.rs  ·  src/browser_report.rs  ·  src/timer.rs  ·  src/close_report_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 34g-heartbeat → 34gbca-startup — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Owned Listeners</text>
+  <rect x="44" y="62" width="182" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="80" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">pointerdown / move</text>
+  <rect x="44" y="98" width="182" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="116" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">keydown / wheel</text>
+  <rect x="44" y="136" width="182" height="28" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="154" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Drop -&gt; Unregister All</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Zero Closure Leaks</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Tab Lifecycle</text>
+  <rect x="324" y="90" width="76" height="44" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="362" y="116" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Active</text>
+  <rect x="438" y="90" width="76" height="44" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="476" y="116" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Paused</text>
+  <path d="M 400 100 L 434 100" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 438 124 L 404 124" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="419" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">pagehide</text>
+  <text x="419" y="148" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">pageshow</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">bfcache Safe</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Fault Recovery</text>
+  <circle cx="704" cy="108" r="42" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="704" cy="108" r="24" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Ring</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">1x Safe Fallback</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
-| **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
-| **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
+| **Rust / WASM** | `Drop` Listener Table | Unregisters DOM closures on teardown with zero memory leaks. |
+| **Browser DOM** | `pagehide` / `pageshow` | Pauses GPU timers when hidden or in `bfcache`. |
+| **WebGPU** | Fault Ring-Buffer + `1x` Fallback | Records GPU validation/OOM faults and rebuilds pipelines safely. |
 
-**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`34g-heartbeat`](#checkpoint-34g-heartbeat) | Refresh actual last-seen metadata independently of first failure, event history and GPU ownership. | `src/diagnostic.rs`, `src/heartbeat_tests.rs`, `src/lib.rs`, `src/browser_report.rs` | `real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence` |
-| **2** | [`34ga-timer`](#checkpoint-34ga-timer) | Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner. | `src/timer.rs`, `src/lib.rs`, `src/browser_report.rs` | `metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release` |
-| **3** | [`34gb-close`](#checkpoint-34gb-close) | Persist a healthy final exit as closed while preserving first-failure evidence and every observation. | `src/diagnostic.rs`, `src/close_report_tests.rs`, `src/lib.rs`, `src/browser_report.rs` | `real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence` |
-| **4** | [`34gba-lifecycle`](#checkpoint-34gba-lifecycle) | Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup. | `src/report_lifecycle.rs`, `src/lib.rs`, `src/browser_report.rs` | `owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer` |
-| **5** | [`34gbb-suspension`](#checkpoint-34gbb-suspension) | Check that clearing one pause reason cannot resume a still-suspended heartbeat. | `src/suspension.rs`, `src/suspension_tests.rs`, `src/lib.rs` | `hidden + frozen + cached + final closure → one scheduling decision` |
-| **6** | [`34gbba-browser`](#checkpoint-34gbba-browser) | Pause the actual diagnostic timer while any browser suspension reason remains. | `src/report_lifecycle.rs`, `src/browser_report.rs` | `Document and Window events → independent pause reasons → stop or retain one heartbeat timer` |
-| **7** | [`34gbc-authority`](#checkpoint-34gbc-authority) | Prevent a waiting task from regaining startup permission after closure. | `src/startup.rs`, `src/startup_tests.rs`, `src/lib.rs` | `task ticket + close ticket → shared flag → delayed result refused after closure` |
-| **8** | [`34gbca-startup`](#checkpoint-34gbca-startup) | Stop delayed adapter or device delivery from installing a renderer after final exit. | `src/browser_startup.rs`, `src/lib.rs`, `src/browser.rs` | `final exit → revoke ticket → adapter/device resolves → refuse renderer installation` |
+![Recorded visual output for Lesson 4.4 (34gbca-startup)](../../../screenshots/journey/34gbca-startup-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-34g-heartbeat"></a>
 
 ### Step 1 of 8 · Refresh heartbeat without rewriting failure evidence (`34g-heartbeat`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (34g-heartbeat): Refresh heartbeat without rewriting failure evidence</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/diagnostic.rs, src/heartbeat_tests.rs, src/lib.rs, src/browser_report.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">real UTC/context</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded heartbeat update</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">release report borrow</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded metadata</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">persistence</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/diagnostic.rs, src/he…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">release report borrow</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded metadata persis…</text>
 </svg>
-</div>
-
-- **Goal:** Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
-- **Data Flow Trace:** `real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence`
-- **Files You Touch:** `src/diagnostic.rs` (*Advance heartbeat independently of observations, outcome and the first fatal timestamp; invalid timestamp text leaves the report unchanged.*) · `src/heartbeat_tests.rs` (*Optional authoring fixture. Verify all run outcomes, first-failure/event retention and atomic timestamp-text bounds without a browser clock dependency.*) · `src/lib.rs` (*Include native heartbeat state proofs.*) · `src/browser_report.rs` (*Refresh actual browser context and UTC heartbeat, release its borrow, then persist metadata without invoking renderer or recording synthetic observations.*)
 
 Refresh lastSeen without recording an event. A periodic heartbeat would otherwise fill the 24-event window and push out useful observations.
 
 `Report::heartbeat` validates timestamp text before updating that single field. Running, Ready, Closed and Failed keep their outcome, events and first fatal reason.
 
-The browser wrapper supplies current UTC/context and persists after ending the report borrow. It receives no renderer or document. This lesson supplies the operation; the next owns its timer.
-
-> **Self-Check Question:** *Why must a heartbeat not append a fatal event or rewrite the first failure time?*  
-> **Answer:** A heartbeat proves recent observation of a page, not a new failure. Rewriting failure time would recreate the stale-warning bug, while synthetic heartbeat events would rotate meaningful observations out of the recent window.
-
-- **What You Should See:** In the debug console, call `window.wasmBindings.heartbeat()`. Download `Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
-- **Hands-On Lab Experiment:** Implement heartbeat through record("fatal", ...), then predict which failure/outcome assertion fails. Implement it as a recent observation instead and explain why frequent beats would evict useful events.
-
-<details>
-<summary>Implementation 34g-heartbeat: Refresh heartbeat without rewriting failure evidence</summary>
-
-Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
-
-Data flow: real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence.
+> **Check:** *Why must a heartbeat not append a fatal event or rewrite the first failure time?* — A heartbeat proves recent observation of a page, not a new failure. Rewriting failure time would recreate the stale-warning bug, while synthetic heartbeat events would rotate meaningful observations out of the recent window.
 
 ### 1. `src/diagnostic.rs`
 
 Advance heartbeat independently of observations, outcome and the first fatal timestamp; invalid timestamp text leaves the report unchanged.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -251,19 +109,7 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34g-heartbeat-01.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -277,20 +123,9 @@ Copy this supplied file:
 --8<-- "journey/code/34g-heartbeat-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Include native heartbeat state proofs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod diagnostic;
-```
-
-</details>
 
 After that block, type:
 
@@ -299,29 +134,9 @@ After that block, type:
 mod heartbeat_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34g-heartbeat-03.rs"
-```
-
-</details>
-
 ### 4. `src/browser_report.rs`
 
 Refresh actual browser context and UTC heartbeat, release its borrow, then persist metadata without invoking renderer or recording synthetic observations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn download() -> Result<(), JsValue> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -339,77 +154,42 @@ pub fn heartbeat() -> Result<(), JsValue> {
 pub fn download() -> Result<(), JsValue> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34g-heartbeat`:** In the debug console, call `window.wasmBindings.heartbeat()`. Download `Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34g-heartbeat-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34ga-timer"></a>
 
 ### Step 2 of 8 · Own the periodic diagnostic heartbeat (`34ga-timer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (34ga-timer): Own the periodic diagnostic heartbeat</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/timer.rs, src/lib.rs, src/browser_report.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">metadata startup</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Timer owns native handle</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">heartbeat persists</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">metadata</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">clear interval before</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">callback…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/timer.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">heartbeat persists meta…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">clear interval before c…</text>
 </svg>
-</div>
-
-- **Goal:** Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner.
-- **Data Flow Trace:** `metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release`
-- **Files You Touch:** `src/timer.rs` (*Own the actual interval and callback together; clear its native timer before Rust releases the closure.*) · `src/lib.rs` (*Keep browser interval ownership out of the native editor model.*) · `src/browser_report.rs` (*Retain metadata scheduling independently of the GPU runtime lifetime.*)
 
 Own the browser interval and its Rust closure together. `Timer` stores the Window, native handle and Closure. Drop clears the interval before releasing the callback environment.
 
 Keep one timer outside the GPU runtime and schedule a metadata heartbeat every 15000 milliseconds. Its callback captures no renderer or document, so diagnostics can continue after device loss.
 
-Stop takes the owner out of the `RefCell` before dropping it. Replacement stops the old timer first; failed registration leaves no old timer running. Never dispose the timer from inside its active callback. Browser suspension/final-exit handling follows.
-
-> **Self-Check Question:** *Why must clearing the interval happen before dropping its Rust Closure?*  
-> **Answer:** JavaScript holds the callback function while the interval is registered. Dropping the Rust environment first could leave a callback that invokes released state. The owner clears the native interval in Drop before field cleanup releases the closure.
-
-- **What You Should See:** Download `Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.
-- **Hands-On Lab Experiment:** Call start_periodic twice and inspect the cleared handles. Make registration throw and explain why the previous owner must not remain running. Never drop the owner from inside its own active callback.
-
-<details>
-<summary>Implementation 34ga-timer: Own the periodic diagnostic heartbeat</summary>
-
-Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner.
-
-Data flow: metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release.
+> **Check:** *Why must clearing the interval happen before dropping its Rust Closure?* — JavaScript holds the callback function while the interval is registered. Dropping the Rust environment first could leave a callback that invokes released state. The owner clears the native interval in Drop before field cleanup releases the closure.
 
 ### 1. `src/timer.rs`
 
@@ -425,15 +205,6 @@ Create the file and type:
 
 Keep browser interval ownership out of the native editor model.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod report_storage;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -441,25 +212,13 @@ After that block, type:
 mod timer;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34ga-timer-02.rs"
-```
-
-</details>
-
 ### 3. `src/browser_report.rs`
 
 Retain metadata scheduling independently of the GPU runtime lifetime. Install periodic metadata refresh at run startup; report scheduler unavailability without rejecting drawing or current downloads. Replace one owned interval at a time, cancel outside the slot borrow, and keep the callback metadata-only.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     crate::file_output::download_named(json.as_bytes(), "viewer-diagnostic.json")
@@ -469,8 +228,6 @@ fn persist() -> bool {
     let report = REPORT.with(|slot| slot.borrow().clone());
     let Some(report) = report else { return false; };
 ```
-
-</details>
 
 Replace it with:
 
@@ -496,8 +253,7 @@ fn persist() -> bool {
     let Some(report) = report else { return false; };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let report = Report::new(store.tab.clone(), js_sys::Date::new_0().to_iso_string().into(), context()?);
@@ -508,8 +264,6 @@ fn persist() -> bool {
 
 pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -525,8 +279,7 @@ Replace it with:
 pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) };
@@ -536,8 +289,6 @@ pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
 
 fn context() -> Result<Context, JsValue> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -551,8 +302,7 @@ Replace it with:
 fn context() -> Result<Context, JsValue> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::diagnostic::{Context, Report};
@@ -671,98 +421,46 @@ pub fn diagnostic_snapshot() -> Result<String, JsValue> {
 }
 ```
 
-</details>
+**Result after `34ga-timer`:** Download `Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34ga-timer-03.rs"
-```
-
-```text
---8<-- "journey/code/34ga-timer-04.rs"
-```
-
-```text
---8<-- "journey/code/34ga-timer-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34gb-close"></a>
 
 ### Step 3 of 8 · Mark a final healthy run closed (`34gb-close`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (34gb-close): Mark a final healthy run closed</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/diagnostic.rs, src/close_report_tests.rs, src/lib.rs, src/browser_report.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">real UTC/context</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">close healthy outcome or</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retain…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">release borrow</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">metadata-only persistence</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/diagnostic.rs, src/cl…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">release borrow</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">metadata-only persisten…</text>
 </svg>
-</div>
-
-- **Goal:** Persist a healthy final exit as closed while preserving first-failure evidence and every observation.
-- **Data Flow Trace:** `real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence`
-- **Files You Touch:** `src/diagnostic.rs` (*Mark a healthy final exit closed without erasing a failure or appending synthetic observations.*) · `src/close_report_tests.rs` (*Optional authoring fixture. Prove healthy/failed final outcomes, repeatability and atomic refusal separately from browser suspension.*) · `src/lib.rs` (*Include native final-close policy proofs.*) · `src/browser_report.rs` (*Refresh real context/time, release the report borrow and persist the final outcome without accessing GPU state.*)
 
 Mark a healthy run Closed when it finally ends. Keep Failed and its original fatal reason. A cached page has not ended and must not call this operation.
 
 `close` first validates its timestamp through heartbeat, then changes the healthy outcome. Invalid text leaves the whole value untouched. Guard the ready milestone too: a delayed success must not reopen a Closed report.
 
-The browser wrapper refreshes UTC/context and persists after ending its short metadata borrow. It does no GPU work. Automatic page-exit hooks come next; closing metadata does not cancel an outstanding GPU request.
-
-> **Self-Check Question:** *Why must a failed run remain failed when its page later closes?*  
-> **Answer:** Closing the page says the lifetime ended. It does not repair the error. Keeping Failed and its original fatal timestamp preserves useful evidence and prevents a later close from making the run look healthy.
-
-- **What You Should See:** Run the close checks below. Closing a healthy report marks it Closed; closing a Failed report preserves its first fatal reason. A late ready milestone must not reopen Closed.
-- **Hands-On Lab Experiment:** Compare closing a Ready report and a Failed report. Explain why a persisted pagehide must not call this operation.
-
-<details>
-<summary>Implementation 34gb-close: Mark a final healthy run closed</summary>
-
-Persist a healthy final exit as closed while preserving first-failure evidence and every observation.
-
-Data flow: real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence.
+> **Check:** *Why must a failed run remain failed when its page later closes?* — Closing the page says the lifetime ended. It does not repair the error. Keeping Failed and its original fatal timestamp preserves useful evidence and prevents a later close from making the run look healthy.
 
 ### 1. `src/diagnostic.rs`
 
 Mark a healthy final exit closed without erasing a failure or appending synthetic observations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -776,19 +474,7 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gb-close-01.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -802,20 +488,9 @@ Copy this supplied file:
 --8<-- "journey/code/34gb-close-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Include native final-close policy proofs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod diagnostic;
-```
-
-</details>
 
 After that block, type:
 
@@ -824,29 +499,9 @@ After that block, type:
 mod close_report_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gb-close-03.rs"
-```
-
-</details>
-
 ### 4. `src/browser_report.rs`
 
 Refresh real context/time, release the report borrow and persist the final outcome without accessing GPU state.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn download() -> Result<(), JsValue> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -864,29 +519,9 @@ pub fn close_report() -> Result<(), JsValue> {
 pub fn download() -> Result<(), JsValue> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gb-close-04.rs"
-```
-
-</details>
-
 ### 5. `src/diagnostic.rs`
 
 A delayed ready milestone must not reopen a final closed run; cache suspension retains Ready without closing.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -894,29 +529,9 @@ Edit the existing block to match this code; keep unchanged lines:
         } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() && self.outcome != Outcome::Closed {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gb-close-05.rs"
-```
-
-</details>
-
 ### 6. `src/browser_report.rs`
 
 Let Chrome submit a real late milestone through the same metadata path; release builds gain no user control.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -925,79 +540,42 @@ Edit the existing block to match this code; keep unchanged lines:
 pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34gb-close`:** Run the close checks below. Closing a healthy report marks it Closed; closing a Failed report preserves its first fatal reason. A late ready milestone must not reopen Closed.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gb-close-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34gba-lifecycle"></a>
 
 ### Step 4 of 8 · Own diagnostic page transitions (`34gba-lifecycle`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (34gba-lifecycle): Own diagnostic page transitions</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_lifecycle.rs, src/lib.rs, src/browser_report.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned metadata listeners</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached pause or final</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">close</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">deferred matching-owner</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">disposal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cached pageshow resumes</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_lifecycle.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">deferred matching-owner…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached pageshow resumes…</text>
 </svg>
-</div>
-
-- **Goal:** Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup.
-- **Data Flow Trace:** `owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer`
-- **Files You Touch:** `src/report_lifecycle.rs` (*Own two metadata callbacks independently of GPU; retain cached outcomes, defer final callback destruction, and guard cleanup by allocation identity.*) · `src/lib.rs` (*Keep page transition ownership in the browser layer.*) · `src/browser_report.rs` (*Install metadata lifecycle ownership before scheduling heartbeat; denied listener registration leaves drawing and current downloads available.*)
 
 Own diagnostic page events independently of the GPU. Two Window listeners and an `Rc` token keep metadata active after drawing/input cleanup. They retain no renderer or document.
 
 On cached `pagehide`, record the transition and stop the heartbeat, retaining the outcome and listeners. On `pageshow`, record the return and resume one timer.
 
-On final `pagehide`, close metadata immediately, then detach listeners on the next microtask. The active Rust callback must return before its Closure drops. Compare the captured token with the current owner so old cleanup cannot stop a replacement. Take the owner out of its `RefCell` before dropping it.
-
-A partial registration failure drops its registered bindings and records unavailable lifecycle support; current drawing/downloads remain usable. Visibility/freeze events and cancellation of pending GPU startup are still subsequent work.
-
-> **Self-Check Question:** *Why does deferred final cleanup compare allocation identity before stopping metadata?*  
-> **Answer:** An earlier pagehide may have queued cleanup before a replacement installs its listeners and timer. The old allocation token must not match the replacement; otherwise the old task could stop the new diagnostic lifetime.
-
-- **What You Should See:** In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Report`: the transitions are recorded and the healthy outcome stays Ready.
-- **Hands-On Lab Experiment:** Dispatch persisted pagehide/pageshow and compare them with a final pagehide. Replace metadata ownership before queued cleanup and explain why the earlier token cannot stop it.
-
-<details>
-<summary>Implementation 34gba-lifecycle: Own diagnostic page transitions</summary>
-
-Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup.
-
-Data flow: owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer.
+> **Check:** *Why does deferred final cleanup compare allocation identity before stopping metadata?* — An earlier pagehide may have queued cleanup before a replacement installs its listeners and timer. The old allocation token must not match the replacement; otherwise the old task could stop the new diagnostic lifetime.
 
 ### 1. `src/report_lifecycle.rs`
 
@@ -1013,15 +591,6 @@ Create the file and type:
 
 Keep page transition ownership in the browser layer.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod timer;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -1029,29 +598,9 @@ After that block, type:
 mod report_lifecycle;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gba-lifecycle-02.rs"
-```
-
-</details>
-
 ### 3. `src/browser_report.rs`
 
 Install metadata lifecycle ownership before scheduling heartbeat; denied listener registration leaves drawing and current downloads available.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if let Err(error) = start_periodic() { let _ = observe("diagnostic", &format!("Heartbeat unavailable: {error:?}")); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1060,64 +609,42 @@ Edit the existing block to match this code; keep unchanged lines:
     if let Err(error) = start_periodic() { let _ = observe("diagnostic", &format!("Heartbeat unavailable: {error:?}")); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34gba-lifecycle`:** In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Report`: the transitions are recorded and the healthy outcome stays Ready.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gba-lifecycle-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34gbb-suspension"></a>
 
 ### Step 5 of 8 · Keep each heartbeat pause reason separate (`34gbb-suspension`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (34gbb-suspension): Keep each heartbeat pause reason separate</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/suspension.rs, src/suspension_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">hidden + frozen + cached + final closure</text>
-    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one scheduling decision</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/suspension.rs, src/su…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one scheduling decision</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one scheduling decision</text>
 </svg>
-</div>
-
-- **Goal:** Check that clearing one pause reason cannot resume a still-suspended heartbeat.
-- **Data Flow Trace:** `hidden + frozen + cached + final closure → one scheduling decision`
-- **Files You Touch:** `src/suspension.rs` (*Keep hidden, frozen and cached reasons independent; final closure permanently refuses scheduling.*) · `src/suspension_tests.rs` (*Optional authoring fixture. Check overlapping reasons, initial hidden state, duplicate delivery and final closure that cannot resume.*) · `src/lib.rs` (*Register the pure policy and its native checks.*)
 
 Give heartbeat scheduling three independent reasons to pause: hidden, frozen and cached. Clearing one reason must leave the others intact. Final closure permanently prevents resumption.
 
 The policy is ordinary Rust, without browser or GPU ownership. Native checks exercise overlapping reasons and different release orders. Browser event delivery is connected in the next step.
 
-> **Self-Check Question:** *Why does becoming visible not always allow the heartbeat to resume?*  
-> **Answer:** Visibility clears only the hidden reason. A freeze or cached-page reason can still prohibit scheduling; final closure never resumes.
-
-- **What You Should See:** Inspect the supplied state fixtures. Every remaining pause reason prevents resumption, and clearing all reasons permits it. A closed policy stays closed.
-- **Hands-On Lab Experiment:** Change the first test to clear Frozen last. Predict which earlier clear remains paused, then run the checks.
-
-<details>
-<summary>Implementation 34gbb-suspension: Keep each heartbeat pause reason separate</summary>
-
-Check that clearing one pause reason cannot resume a still-suspended heartbeat.
-
-Data flow: hidden + frozen + cached + final closure → one scheduling decision.
+> **Check:** *Why does becoming visible not always allow the heartbeat to resume?* — Visibility clears only the hidden reason. A freeze or cached-page reason can still prohibit scheduling; final closure never resumes.
 
 ### 1. `src/suspension.rs`
 
@@ -1129,8 +656,7 @@ Create the file and type:
 --8<-- "journey/code/34gbb-suspension-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1144,20 +670,9 @@ Copy this supplied file:
 --8<-- "journey/code/34gbb-suspension-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the pure policy and its native checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod diagnostic;
-```
-
-</details>
 
 After that block, type:
 
@@ -1167,128 +682,46 @@ pub mod suspension;
 mod suspension_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34gbb-suspension`:** Inspect the supplied state fixtures. Every remaining pause reason prevents resumption, and clearing all reasons permits it. A closed policy stays closed.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gbb-suspension-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34gbba-browser"></a>
 
 ### Step 6 of 8 · Connect visibility and freezing to heartbeat scheduling (`34gbba-browser`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (34gbba-browser): Connect visibility and freezing to heartbeat scheduling</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/report_lifecycle.rs, src/browser_report.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Document and Window events</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent pause reasons</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stop or retain one heartbeat timer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/report_lifecycle.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent pause reaso…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stop or retain one hear…</text>
 </svg>
-</div>
-
-- **Goal:** Pause the actual diagnostic timer while any browser suspension reason remains.
-- **Data Flow Trace:** `Document and Window events → independent pause reasons → stop or retain one heartbeat timer`
-- **Files You Touch:** `src/report_lifecycle.rs` (*Use the scheduling policy in the existing metadata owner.*) · `src/browser_report.rs` (*Refuse suspended scheduling and retain an existing timer, so repeated resume events cannot restart or duplicate it.*)
 
 Connect visibilitychange, freeze and resume on Document. Keep pagehide and pageshow on Window. Each event changes its own pause reason before synchronizing the heartbeat.
 
 Read Document.hidden at startup and on return. Start one timer only when the policy permits it. Repeated resume events retain the existing timer. Final closure prevents restart before deferred listener cleanup.
 
-> **Self-Check Question:** *Why does timer synchronization happen after updating the event’s reasons?*  
-> **Answer:** The scheduling decision must include both the changed reason and current visibility. It must not resume between clearing cached state and discovering the document is still hidden.
-
-- **What You Should See:** Switch away from the viewer tab, then return and type Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.
-- **Hands-On Lab Experiment:** In the debug console, dispatch Document freeze, cached Window pagehide, then Document resume. The cached reason still blocks scheduling until pageshow.
-
-<details>
-<summary>Implementation 34gbba-browser: Connect visibility and freezing to heartbeat scheduling</summary>
-
-Pause the actual diagnostic timer while any browser suspension reason remains.
-
-Data flow: Document and Window events → independent pause reasons → stop or retain one heartbeat timer.
+> **Check:** *Why does timer synchronization happen after updating the event’s reasons?* — The scheduling decision must include both the changed reason and current visibility. It must not resume between clearing cached state and discovering the document is still hidden.
 
 ### 1. `src/report_lifecycle.rs`
 
 Use the scheduling policy in the existing metadata owner. Store pause reasons beside the owned listeners and allocation token. Keep replacement identity independent of scheduling state. Read or update scheduling state without retaining a borrow while the timer changes. Read the initial hidden state and retain Document for later visibility observations. Pause cached scheduling; close the policy permanently before final cleanup is deferred. On page return, clear only the cached reason and refresh actual visibility. Observe Document visibility and freezing, then synchronize one timer after updating all affected reasons. Bind all three Document events; partial registration still cleans up through the listener owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::{closure::Closure, JsCast, JsValue};
-use crate::{browser_report as report, listeners::Listeners};
-
-thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners)>> = const { RefCell::new(None) }; }
-
-fn current(token: &Rc<()>) -> bool {
-    ACTIVE.with(|slot| slot.borrow().as_ref().is_some_and(|(id, _)| Rc::ptr_eq(id, token)))
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle)]
-pub fn stop() -> bool {
-    let owner = ACTIVE.with(|slot| slot.borrow_mut().take());
-    let active = owner.is_some(); report::stop_periodic(); drop(owner); active
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen(js_name = install_report_lifecycle)]
-pub fn install() -> Result<(), JsValue> {
-    stop(); let window = web_sys::window().ok_or("No browser window")?;
-    let token = Rc::new(()); let guarded = Rc::clone(&token);
-    let callback = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if !current(&guarded) { return; }
-        match event.type_().as_str() {
-            "pagehide" => {
-                let cached = event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted());
-                let _ = report::observe("lifecycle", if cached { "pagehide cached" } else { "pagehide final" });
-                report::stop_periodic();
-                if !cached {
-                    let _ = report::close_report(); let token = Rc::clone(&guarded);
-                    wasm_bindgen_futures::spawn_local(async move { if current(&token) { stop(); } });
-                }
-            }
-            "pageshow" => {
-                let _ = report::observe("lifecycle", "pageshow");
-                if let Err(error) = report::start_periodic() {
-                    let _ = report::observe("diagnostic", &format!("Heartbeat unavailable: {error:?}"));
-                }
-            }
-            _ => {}
-        }
-    });
-    let mut listeners = Listeners::new(callback);
-    listeners.listen(window.as_ref(), "pagehide")?; listeners.listen(window.as_ref(), "pageshow")?;
-    ACTIVE.with(|slot| slot.replace(Some((token, listeners)))); Ok(())
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn report_lifecycle_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1367,62 +800,9 @@ pub fn install() -> Result<(), JsValue> {
 pub fn report_lifecycle_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gbba-browser-01.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-02.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-03.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-04.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-05.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-06.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-07.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-08.rs"
-```
-
-```text
---8<-- "journey/code/34gbba-browser-09.rs"
-```
-
-</details>
-
 ### 2. `src/browser_report.rs`
 
 Refuse suspended scheduling and retain an existing timer, so repeated resume events cannot restart or duplicate it.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn start_periodic() -> Result<(), JsValue> {
-    stop_periodic();
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1432,68 +812,42 @@ pub fn start_periodic() -> Result<(), JsValue> {
     if BEAT.with(|slot| slot.borrow().is_some()) { return Ok(()); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34gbba-browser`:** Switch away from the viewer tab, then return and type Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gbba-browser-10.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34gbc-authority"></a>
 
 ### Step 7 of 8 · Give pending startup a revocable ticket (`34gbc-authority`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (34gbc-authority): Give pending startup a revocable ticket</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/startup.rs, src/startup_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">task ticket + close ticket</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared flag</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">delayed result refused after closure</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/startup.rs, src/start…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared flag</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">delayed result refused…</text>
 </svg>
-</div>
-
-- **Goal:** Prevent a waiting task from regaining startup permission after closure.
-- **Data Flow Trace:** `task ticket + close ticket → shared flag → delayed result refused after closure`
-- **Files You Touch:** `src/startup.rs` (*Share startup permission between the waiting task and its close callback.*) · `src/startup_tests.rs` (*Optional authoring fixture. Check delayed tickets, repeated closure and an independent replacement owner.*) · `src/lib.rs` (*Register startup authority and its native checks.*)
 
 Give pending startup a shared permission flag. The task and close callback hold cloned tickets; revoking either ticket refuses every later result.
 
 A replacement gets a separate allocation. This step checks the policy natively; the next step connects it to actual GPU requests.
 
-> **Self-Check Question:** *Why clone the ticket instead of copying its boolean value?*  
-> **Answer:** A copied boolean would keep its old value. Rc shares the Cell, so the waiting task sees the close callback’s revocation.
-
-- **What You Should See:** Inspect the supplied state fixtures. Revocation reaches every waiting ticket, repeated closure stays revoked, and an independent replacement remains allowed.
-- **Hands-On Lab Experiment:** Revoke the device ticket instead of the owner in the first test. Predict whether the adapter ticket still permits startup, then run the checks.
-
-<details>
-<summary>Implementation 34gbc-authority: Give pending startup a revocable ticket</summary>
-
-Prevent a waiting task from regaining startup permission after closure.
-
-Data flow: task ticket + close ticket → shared flag → delayed result refused after closure.
+> **Check:** *Why clone the ticket instead of copying its boolean value?* — A copied boolean would keep its old value. Rc shares the Cell, so the waiting task sees the close callback’s revocation.
 
 ### 1. `src/startup.rs`
 
@@ -1505,8 +859,7 @@ Create the file and type:
 --8<-- "journey/code/34gbc-authority-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1520,20 +873,9 @@ Copy this supplied file:
 --8<-- "journey/code/34gbc-authority-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register startup authority and its native checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod suspension;
-```
-
-</details>
 
 After that block, type:
 
@@ -1543,73 +885,42 @@ pub mod startup;
 mod startup_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `34gbc-authority`:** Inspect the supplied state fixtures. Revocation reaches every waiting ticket, repeated closure stays revoked, and an independent replacement remains allowed.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gbc-authority-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-34gbca-startup"></a>
 
 ### Step 8 of 8 · Refuse GPU results after final page exit (`34gbca-startup`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (34gbca-startup): Refuse GPU results after final page exit</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_startup.rs, src/lib.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">final exit</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">revoke ticket</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">adapter/device resolves</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">refuse renderer</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">installation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser_startup.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">adapter/device resolves</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">refuse renderer install…</text>
 </svg>
-</div>
-
-- **Goal:** Stop delayed adapter or device delivery from installing a renderer after final exit.
-- **Data Flow Trace:** `final exit → revoke ticket → adapter/device resolves → refuse renderer installation`
-- **Files You Touch:** `src/browser_startup.rs` (*Own one temporary page-exit binding across GPU awaits, independent of optional diagnostic listeners.*) · `src/lib.rs` (*Register the browser startup guard.*) · `src/browser.rs` (*Keep the guard alive from startup until the runtime owns the drawing callbacks.*)
 
 Keep one temporary pagehide listener while startup awaits the GPU. Final exit revokes its shared ticket; cached transitions retain permission.
 
 Check authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed report instead of recording a new fatal error. The listener is released when startup returns.
 
-> **Self-Check Question:** *Why check permission before turning a rejected GPU request into an error?*  
-> **Answer:** The page may have closed while the request was pending. That obsolete rejection must not overwrite Closed with a new failure; an active startup still reports genuine errors.
-
-- **What You Should See:** Reload and type `Report`. Startup reaches `ready` with a geometry-on-screen event.
-- **Hands-On Lab Experiment:** In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.
-
-<details>
-<summary>Implementation 34gbca-startup: Refuse GPU results after final page exit</summary>
-
-Stop delayed adapter or device delivery from installing a renderer after final exit.
-
-Data flow: final exit → revoke ticket → adapter/device resolves → refuse renderer installation.
+> **Check:** *Why check permission before turning a rejected GPU request into an error?* — The page may have closed while the request was pending. That obsolete rejection must not overwrite Closed with a new failure; an active startup still reports genuine errors.
 
 ### 1. `src/browser_startup.rs`
 
@@ -1625,15 +936,6 @@ Create the file and type:
 
 Register the browser startup guard.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod report_lifecycle;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -1641,25 +943,13 @@ After that block, type:
 mod browser_startup;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gbca-startup-02.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Keep the guard alive from startup until the runtime owns the drawing callbacks. After the adapter await, refuse a revoked result before requesting a device or interpreting an error. After the device await, destroy a late device and return quietly before configuring the surface or creating resources.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             compatible_surface: Some(&surface),
@@ -1675,8 +965,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     let errors = fault.clone();
     device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
 ```
-
-</details>
 
 Replace it with:
 
@@ -1700,8 +988,7 @@ Replace it with:
     device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .ok_or("Missing canvas")?
@@ -1711,8 +998,6 @@ Replace it with:
         backends: wgpu::Backends::BROWSER_WEBGPU,
         flags: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -1726,8 +1011,7 @@ Replace it with:
         flags: Default::default(),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -2316,52 +1600,21 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34gbca-startup-03.rs"
-```
-
-```text
---8<-- "journey/code/34gbca-startup-04.rs"
-```
-
-```text
---8<-- "journey/code/34gbca-startup-05.rs"
-```
-
-</details>
-
-</details>
+**Result after `34gbca-startup`:** Reload and type `Report`. Startup reaches `ready` with a geometry-on-screen event.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 34gbca-startup
-npm --prefix ../session_tests run course -- check 34gbca-startup
-npm --prefix ../session_tests run course -- save 34gbca-startup
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 4.4
+npm --prefix ../session_tests run course -- save 4.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 4.4 (34gbca-startup)](../../../screenshots/journey/34gbca-startup-browser.png)
-
-Reload and type `Report`. Startup reaches `ready` with a geometry-on-screen event.
-
-- **Final Lesson Experiment:** In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.
-
-Continue with [Measured phases and conservative GPU recovery](../../consolidation/34gc-messages.md).
+Continue with [4.5 · Measured phases and conservative GPU recovery](../../consolidation/34gc-messages.md).

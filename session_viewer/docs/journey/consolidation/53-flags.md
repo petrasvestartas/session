@@ -1,242 +1,97 @@
 # 8.3 · Layers, visibility and source-preserving properties
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.3** (Redraft `5.9`) · **23 checkpoints (`53-flags` → `53u-layers`)** · **Study time: 11.5–23 h**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Checkpoints:** `53-flags` → `53u-layers` (23 steps) · **Production source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../src/state/drag.rs) · [state/box_select.rs](../../../src/state/box_select.rs)
 
-> **What You Will Learn & Build:** Separate layer presentation from original sources. By the final checkpoint (`53u-layers`), you will exercise layers shortcuts colours and exact source ownership.
+> **Goal:** Exercise layers shortcuts colours and exact source ownership.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 8 Visual Explanation: Scene Tree Transform Hierarchy, Layer Lamp Restoration & Inspector UI</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Parent-to-child matrix composition M_world = M_parent * M_local. Center: Lamp visibility inheritance. Right: Focus lock.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Visual Scene Tree Graph -->
-    <rect x="18" y="64" width="270" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="153" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Scene Tree Matrix Hierarchy</text>
-    <!-- Root node -->
-    <rect x="103" y="94" width="100" height="28" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="153" y="112" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Root Assembly</text>
-    <!-- Branches to Child A and Child B -->
-    <line x1="133" y1="122" x2="83" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="173" y1="122" x2="223" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="33" y="148" width="100" height="32" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="83" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Child Frame A</text>
-    <text x="83" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_A</text>
-    <rect x="173" y="148" width="100" height="32" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-    <text x="223" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Leaf Mesh B</text>
-    <text x="223" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_B</text>
-    <text x="153" y="206" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">M_world = M_parent * M_local</text>
-    <text x="153" y="222" text-anchor="middle" font-size="9" fill="#111111">Full path IDs disambiguate same names</text>
-
-    <line x1="288" y1="154" x2="310" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Lamp Visibility Inheritance & Restoration -->
-    <rect x="312" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="444" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Lamp Visibility Gate (Non-Destructive)</text>
-    <!-- 3 input switches feeding effective visibility -->
-    <rect x="328" y="98" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="114" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Layer Lamp</text>
-    <rect x="328" y="130" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="146" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parent Lamp</text>
-    <rect x="328" y="162" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="376" y="178" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Own Lamp</text>
-    <!-- AND gate box -->
-    <line x1="424" y1="110" x2="462" y2="134" stroke="#111111" stroke-width="1.2"/>
-    <line x1="424" y1="142" x2="462" y2="142" stroke="#111111" stroke-width="1.2"/>
-    <line x1="424" y1="174" x2="462" y2="150" stroke="#111111" stroke-width="1.2"/>
-    <rect x="462" y="122" width="98" height="40" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="511" y="140" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">AND Gate</text>
-    <text x="511" y="154" text-anchor="middle" font-size="9" fill="#111111">Drawn &amp; Pickable</text>
-    <text x="444" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Toggling Parent OFF hides child without</text>
-    <text x="444" y="223" text-anchor="middle" font-size="9" fill="#111111">overwriting stored Own Lamp state!</text>
-
-    <line x1="577" y1="154" x2="599" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Inspector Focus Adapter -->
-    <rect x="601" y="64" width="221" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="711" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Inspector &amp; Focus Adapter</text>
-    <rect x="617" y="98" width="189" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="627" y="115" font-size="9.5" font-weight="700" fill="#111111">[o] [L] Layer_01 (Renaming...)</text>
-    <text x="627" y="131" font-size="9" fill="#111111">Active egui text input has focus</text>
-    <line x1="711" y1="140" x2="711" y2="162" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="617" y="164" width="189" height="62" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="711" y="182" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">src/command_dock/mod.rs</text>
-    <text x="627" y="198" font-size="9" fill="#111111">Focus adapter pauses Command:</text>
-    <text x="627" y="212" font-size="9" fill="#111111">auto-capture until Enter/Escape</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 8.3 Pipeline Schematic: Layers, visibility and source-preserving properties</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (23 Checkpoints: 53-flags → 53u-layers)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original source</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">plain viewer</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">identities</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">presentation</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">unchanged saved</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">real layer controls</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 8.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/view_flags.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/gpu_mesh.rs  ·  src/triangle.wgsl</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">23 Checkpoints: 53-flags → 53u-layers — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Scene Tree</text>
+  <rect x="85" y="58" width="100" height="28" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="135" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Group (Mp)</text>
+  <line x1="115" y1="86" x2="80" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="155" y1="86" x2="190" y2="118" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="38" y="122" width="84" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="80" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part A</text>
+  <rect x="148" y="122" width="84" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="190" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part B</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Mw = Mp * Ml</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Layer Lamps</text>
+  <rect x="330" y="66" width="178" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="350" cy="84" r="6" fill="#111111"/>
+  <text x="428" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Layer ON</text>
+  <rect x="330" y="114" width="178" height="36" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="350" cy="132" r="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="428" y="136" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Parent OFF (Masked)</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Preserves Child State</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Focus Adapter</text>
+  <rect x="614" y="66" width="180" height="36" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[Rename Layer_01|]</text>
+  <rect x="614" y="114" width="180" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <text x="704" y="136" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Dock Shortcut Yielded</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">command_dock/mod.rs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
-| **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
-| **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
+| **Rust (`session_rust`)** | `M_world = M_parent * M_local` | Hierarchical scene-tree transforms with full tree-path identity. |
+| **Rust (Layers)** | `layer && parents && own_lamp` | Hiding a parent or layer masks children without losing child lamp state. |
+| **Rust (`command_dock`)** | Focus Yield Adapter | Yields Command Dock shortcuts while renaming a layer in the UI. |
 
-**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`53-flags`](#checkpoint-53-flags) | Separate layer presentation from original sources. | `src/view_flags.rs`, `src/lib.rs` | `original source → plain viewer identities → independent presentation → unchanged saved geometry` |
-| **2** | [`53a-ids`](#checkpoint-53a-ids) | Index live identities and initialise view flags. | `src/scene.rs`, `src/hierarchy.rs` | `monotonic object identity → shared membership set → original flag initialisation → checked lifetime` |
-| **3** | [`53b-uniform`](#checkpoint-53b-uniform) | Update surface colour and pickability in small GPU records. | `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/face_pick.rs`, `src/renderer.rs` | `original shared vertices → 160-byte settings → integer eligibility → optional face RGB` |
-| **4** | [`53bb-eligibility`](#checkpoint-53bb-eligibility) | Resolve live visibility and selection eligibility. | `src/scene.rs`, `src/multi_selection_tests.rs`, `src/pick_gpu_tests.rs` | `live view flags → eligible source identities → placed bounds → protected selection` |
-| **5** | [`53c-presentation`](#checkpoint-53c-presentation) | Use current visibility and colours in every derived pass. | `src/renderer.rs`, `src/highlight.rs`, `src/pick_sources.rs`, `src/snap_sources.rs` | `one view state → surface and wire passes → source picking and snapping → consistent bounds` |
-| **6** | [`53d-hide-show`](#checkpoint-53d-hide-show) | Connect Hide Show and canvas Delete shortcuts. | `src/editor.rs`, `src/history.rs`, `src/commands.rs`, `src/shortcuts.rs` | `canvas key ownership → presentation or document action → selection repair → unchanged source metadata` |
-| **7** | [`53e-properties`](#checkpoint-53e-properties) | Apply eye lock and independent colour properties. | `src/layer_properties.rs`, `src/lib.rs`, `src/editor.rs`, `src/hierarchy.rs` | `stable row key → descendant identities → one presentation property → repaired selection` |
-| **8** | [`53f-portable`](#checkpoint-53f-portable) | Keep tree identities stable across edits and saves. | `src/hierarchy.rs` | `source key → stable portable UUID → shared document records → collision-free repeated save` |
-| **9** | [`53g-branches`](#checkpoint-53g-branches) | Represent group edits with temporary branches. | `src/layer_edit.rs`, `src/lib.rs` | `shared flat tree → temporary branch ownership → subtree edit → repaired flat records` |
-| **10** | [`53h-layer-targets`](#checkpoint-53h-layer-targets) | Validate current layers and protected ancestors. | `src/scene.rs`, `src/layer_edit.rs`, `src/layer_properties.rs` | `stable key → group outside geometry → editable source guard → protected current ancestry` |
-| **11** | [`53i-copy-records`](#checkpoint-53i-copy-records) | Copy row identities while sharing source allocations. | `src/scene.rs` | `original row → fresh identity → shared source and display → inherited view colours` |
-| **12** | [`53j-transfers`](#checkpoint-53j-transfers) | Move and copy objects between layer trees. | `src/layer_edit.rs` | `eligible selection → unique parent moves or explicit copies → target subtree → unchanged world placement` |
-| **13** | [`53k-new-rename`](#checkpoint-53k-new-rename) | Create and rename uniquely named layers. | `src/layer_edit.rs` | `eligible group → unique new name → stable node identity → one document transaction` |
-| **14** | [`53l-delete-duplicate`](#checkpoint-53l-delete-duplicate) | Delete and duplicate complete layer contents. | `src/layer_edit.rs` | `protected group → complete subtree → shared-source copies or removal → exact undo` |
-| **15** | [`53m-actions`](#checkpoint-53m-actions) | Commit group edits through one history boundary. | `src/layer_edit.rs`, `src/editor.rs` | `checked layer action → document or presentation boundary → repaired selection → one undo` |
-| **16** | [`53n-routing`](#checkpoint-53n-routing) | Create geometry on the current layer or Created. | `src/layer_edit.rs`, `src/scene.rs`, `src/hierarchy.rs`, `src/snapshot_tests.rs` | `new original geometry → current group or Created → stable tree node → ordinary source ownership` |
-| **17** | [`53o-palette`](#checkpoint-53o-palette) | Supply nine colour swatches and RGB sliders. | `src/layer_palette.rs`, `src/lib.rs` | `nine swatches → measured controls → RGB bytes → one channel value` |
-| **18** | [`53p-panel-state`](#checkpoint-53p-panel-state) | Resolve layer presentation for real tree controls. | `src/tree_panel.rs` | `stable tree rows → current presentation → pending UI drafts → checked scene actions` |
-| **19** | [`53q-properties-ui`](#checkpoint-53q-properties-ui) | Draw eye lock and independent colour menus. | `src/tree_panel.rs` | `row presentation → real eye and lock controls → channel menu → pending property action` |
-| **20** | [`53r-name`](#checkpoint-53r-name) | Own rename text and populated deletion confirmation. | `src/tree_panel.rs` | `focused name draft → owned Enter or Escape → checked rename → explicit deletion confirmation` |
-| **21** | [`53s-tree-controls`](#checkpoint-53s-tree-controls) | Connect group menus to the wider tree panel. | `src/tree_panel.rs` | `wider right-side tree → group context menu → pending edit or draft → checked source operation` |
-| **22** | [`53t-input`](#checkpoint-53t-input) | Route layer controls before handles and canvas input. | `src/panel.rs`, `src/browser.rs` | `measured panel input → pending layer edit → checked editor result → canvas ownership outside` |
-| **23** | [`53u-layers`](#checkpoint-53u-layers) | Exercise layers shortcuts colours and exact source ownership. | `src/command_dock/mod.rs`, `src/view_flags_tests.rs`, `src/lib.rs`, `src/layer_edit_tests.rs` | `real layer controls → source-preserving properties → group edit → exact undo and save → canvas shortcuts` |
+![Recorded visual output for Lesson 8.3 (53u-layers)](../../screenshots/journey/53u-layers.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-53-flags"></a>
 
 ### Step 1 of 23 · Separate layer presentation from original sources (`53-flags`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/23 Visual Trace (53-flags): Separate layer presentation from original sources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/view_flags.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plain viewer identities</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent presentation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged saved geometry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/view_flags.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent presentation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged saved geometry</text>
 </svg>
-</div>
-
-- **Goal:** Separate layer presentation from original sources.
-- **Data Flow Trace:** `original source → plain viewer identities → independent presentation → unchanged saved geometry`
-- **Files You Touch:** `src/view_flags.rs` (*Store presentation identities and independent colour channels outside source geometry.*) · `src/lib.rs` (*Register the new source component.*)
 
 Store hidden identities, locks and independent face/edge RGB overrides without owning a mesh. Document edits and presentation settings have different lifetimes.
 
-> **Self-Check Question:** *Does hiding a row rewrite its original visible flag?*  
-> **Answer:** No. Presentation holds the viewer identity in a separate set. Original geometry and its source metadata remain unchanged.
-
-- **What You Should See:** Continue the nested-frame exercise from52k. This preparation connects one layer component; full menus and canvas shortcuts are exercised at the end of53.
-- **Hands-On Lab Experiment:** Follow one identity through a shared snapshot. Changing presentation should copy only the small flag record, never the original mesh.
-
-<details>
-<summary>Implementation 53-flags: Separate layer presentation from original sources</summary>
-
-Separate layer presentation from original sources.
-
-Data flow: original source → plain viewer identities → independent presentation → unchanged saved geometry.
+> **Check:** *Does hiding a row rewrite its original visible flag?* — No. Presentation holds the viewer identity in a separate set. Original geometry and its source metadata remain unchanged.
 
 ### 1. `src/view_flags.rs`
 
@@ -252,75 +107,46 @@ Create the file and type:
 
 Register the new source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod hierarchy_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/53-flags-02.rs" skip=34
 ```
 
-</details>
+**Result after `53-flags`:** Continue the nested-frame exercise from52k. This preparation connects one layer component; full menus and canvas shortcuts are exercised at the end of53.
+
+---
 
 <a id="checkpoint-53a-ids"></a>
 
 ### Step 2 of 23 · Index live identities and initialise view flags (`53a-ids`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/23 Visual Trace (53a-ids): Index live identities and initialise view flags</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/hierarchy.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">monotonic object identity</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared membership set</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original flag</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">initialisation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked lifetime</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/hierarc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original flag initialis…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked lifetime</text>
 </svg>
-</div>
-
-- **Goal:** Index live identities and initialise view flags.
-- **Data Flow Trace:** `monotonic object identity → shared membership set → original flag initialisation → checked lifetime`
-- **Files You Touch:** `src/scene.rs` (*Maintain live identities and initialise independent flags in every source insertion and removal path.*) · `src/hierarchy.rs` (*Index read-only identities once instead of walking the tree for each surface pick.*)
 
 Maintain constant-time live identity membership across every geometry lane. Initialise presentation from original source flags once, then preserve the original metadata.
 
-> **Self-Check Question:** *Why maintain a live identity set?*  
-> **Answer:** A surface pick should check membership directly rather than scan every mesh. Removing a row updates this set without reusing its identity.
-
-- **Hands-On Lab Experiment:** Insert a line, point, curve and mesh. Remove one and confirm that its integer identity stops resolving while other lanes remain eligible.
-
-<details>
-<summary>Implementation 53a-ids: Index live identities and initialise view flags</summary>
-
-Index live identities and initialise view flags.
-
-Data flow: monotonic object identity → shared membership set → original flag initialisation → checked lifetime.
+> **Check:** *Why maintain a live identity set?* — A surface pick should check membership directly rather than scan every mesh. Removing a row updates this set without reusing its identity.
 
 ### 1. `src/scene.rs`
 
@@ -328,8 +154,7 @@ Maintain live identities and initialise independent flags in every source insert
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -351,8 +176,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let mut ids: Vec<_> = self.objects.iter().filter(|r| r.visible() && !r.metadata.is_locked).map(|r| r.id)
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -372,8 +195,7 @@ Replace it with:
         let mut ids: Vec<_> = self.objects.iter().filter(|r| r.visible() && !r.metadata.is_locked).map(|r| r.id)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -383,8 +205,6 @@ Replace it with:
         self.points = Vec::new();
         self.paths = Vec::new();
 ```
-
-</details>
 
 Replace it with:
 
@@ -399,8 +219,7 @@ Replace it with:
         self.paths = Vec::new();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         while self.objects.iter().any(|object| object.guid == guid) {
@@ -410,8 +229,6 @@ Replace it with:
         let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
         self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
 ```
-
-</details>
 
 Replace it with:
 
@@ -426,8 +243,7 @@ Replace it with:
         self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
@@ -437,8 +253,6 @@ Replace it with:
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -453,8 +267,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
@@ -463,8 +276,6 @@ Replace it with:
         self.paths.push(PathObject { controls_visible: false, id, guid, prepared, model: session_rust::Xform::identity() }); Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -478,8 +289,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             guid = uuid::Uuid::new_v4().to_string();
@@ -488,8 +298,6 @@ Replace it with:
         self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() }); Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -503,8 +311,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -515,8 +322,6 @@ Replace it with:
                 let point = object.world_point(*vertex);
                 match &mut bounds {
 ```
-
-</details>
 
 Replace it with:
 
@@ -530,8 +335,7 @@ Replace it with:
                 match &mut bounds {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -542,8 +346,6 @@ Replace it with:
         scene.insert(turquoise).expect("ID available");
         scene
 ```
-
-</details>
 
 Replace it with:
 
@@ -557,8 +359,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -568,8 +369,6 @@ pub struct Scene {
     points: Vec<PointObject>,
     paths: Vec<PathObject>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -584,8 +383,7 @@ pub struct Scene {
     paths: Vec<PathObject>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -689,7 +487,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1153,63 +950,13 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53a-ids-01.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-02.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-03.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-04.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-05.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-06.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-07.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-08.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-09.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-10.rs"
-```
-
-</details>
-
 ### 2. `src/hierarchy.rs`
 
 Index read-only identities once instead of walking the tree for each surface pick.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             stack.push((node,Some(index),depth,inside,readonly,true));
@@ -1223,8 +970,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let mut out=ids.to_vec();
         for doc in &self.documents {for (index,node) in doc.nodes.iter().enumerate() {if node.object.is_some_and(|id|ids.contains(&id)) {out.extend(doc.nodes[index+1..node.end].iter().filter_map(|n|n.object));}}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1242,8 +987,7 @@ Replace it with:
         for doc in &self.documents {for (index,node) in doc.nodes.iter().enumerate() {if node.object.is_some_and(|id|ids.contains(&id)) {out.extend(doc.nodes[index+1..node.end].iter().filter_map(|n|n.object));}}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Node { pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
@@ -1254,8 +998,6 @@ pub struct Forest { pub documents:Vec<Rc<Document>> }
 impl Forest {
     pub fn add(&mut self,key:u32,label:String,root:Option<proto::TreeNode>,objects:&[(String,ObjectId,String)]) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1269,8 +1011,7 @@ impl Forest {
     pub fn add(&mut self,key:u32,label:String,root:Option<proto::TreeNode>,objects:&[(String,ObjectId,String)]) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::scene::{Scene,ObjectId};
@@ -1372,161 +1113,42 @@ pub fn rows(scene:&Scene)->Vec<Row> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53a-ids-11.rs"
-```
-
-```text
---8<-- "journey/code/53a-ids-12.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53b-uniform"></a>
 
 ### Step 3 of 23 · Update surface colour and pickability in small GPU records (`53b-uniform`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/23 Visual Trace (53b-uniform): Update surface colour and pickability in small GPU records</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/triangle.wgsl, src/face_pick.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original shared vertices</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">160-byte settings</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">integer eligibility</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">optional face RGB</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_mesh.rs, src/tria…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer eligibility</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">optional face RGB</text>
 </svg>
-</div>
-
-- **Goal:** Update surface colour and pickability in small GPU records.
-- **Data Flow Trace:** `original shared vertices → 160-byte settings → integer eligibility → optional face RGB`
-- **Files You Touch:** `src/gpu_mesh.rs` (*Extend surface settings without changing original geometry or integer identity precision.*) · `src/triangle.wgsl` (*Extend surface settings without changing original geometry or integer identity precision.*) · `src/face_pick.rs` (*Extend surface settings without changing original geometry or integer identity precision.*) · `src/renderer.rs` (*Derive dynamic pick ownership and face colour while reusing surface geometry buffers.*)
 
 Add an optional face colour to the160-byte surface record. Visibility and locks determine integer pick owners; recolouring reuses the original vertex allocation.
 
-> **Self-Check Question:** *Must recolouring upload a second mesh?*  
-> **Answer:** No. The optional face colour occupies one16-byte uniform range. Geometry stays shared, and selected gold takes precedence over the display override.
-
-- **Hands-On Lab Experiment:** Compare settings writes for a face colour, selection and model change. Each should update only its changed range.
-
-<details>
-<summary>Implementation 53b-uniform: Update surface colour and pickability in small GPU records</summary>
-
-Update surface colour and pickability in small GPU records.
-
-Data flow: original shared vertices → 160-byte settings → integer eligibility → optional face RGB.
+> **Check:** *Must recolouring upload a second mesh?* — No. The optional face colour occupies one16-byte uniform range. Geometry stays shared, and selected gold takes precedence over the display override.
 
 ### 1. `src/gpu_mesh.rs`
 
 Extend surface settings without changing original geometry or integer identity precision.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_geometry::GpuGeometry, scene::Object};
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
-
-pub struct GpuMesh {
-    pub geometry: Rc<GpuGeometry>,
-    model_group: wgpu::BindGroup,
-    pub id: crate::scene::ObjectId,
-    model: wgpu::Buffer,
-    previous: [u8; 144],
-}
-
-fn settings(object: &Object, selected: bool) -> [u8; 144] {
-    let mut bytes = [0; 144];
-    for (index, value) in object.model.m.iter().enumerate() {
-        bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
-    }
-    // Integer settings preserve every object identity, including 16,777,217, which a single-precision float rounds to another value.
-    bytes[64..68].copy_from_slice(&u32::from(selected).to_ne_bytes());
-    let id = if object.metadata.is_locked { 0 } else { object.id.value() };
-    bytes[68..72].copy_from_slice(&id.to_ne_bytes());
-    let normals = crate::normals::matrix(&object.model).expect("Scene placements are checked before insertion or editing");
-    for (index, value) in normals.iter().enumerate() {
-        bytes[80 + index * 4..84 + index * 4].copy_from_slice(&value.to_ne_bytes());
-    }
-    bytes
-}
-
-impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
-        let geometry = Rc::new(GpuGeometry::upload(device, Rc::clone(&object.mesh)));
-        Self::with_geometry(device, layout, object, selected, geometry)
-    }
-
-    pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
-        object: &Object, selected: bool, geometry: Rc<GpuGeometry>) -> Self
-    {
-        let bytes = settings(object, selected);
-        let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("object placement"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-        });
-        let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("object placement"),
-            layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
-        });
-        Self { geometry, model_group, id: object.id, model, previous: bytes }
-    }
-
-    pub fn settings_bytes(&self) -> u64 { self.model.size() }
-
-    pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
-        let next = settings(object, selected);
-        let mut writes = [0, 0];
-        for (start, end) in [(0, 64), (64, 80), (80, 144)] {
-            if next[start..end] != self.previous[start..end] {
-                queue.write_buffer(&self.model, start as u64, &next[start..end]);
-                writes[0] += 1;
-                writes[1] += end - start;
-            }
-        }
-        self.previous = next;
-        writes
-    }
-
-    pub fn bind_model(&self, pass: &mut wgpu::RenderPass<'_>) { pass.set_bind_group(1, &self.model_group, &[]); }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_bind_group(1, &self.model_group, &[]);
-        self.geometry.draw(pass);
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1611,85 +1233,9 @@ impl GpuMesh {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53b-uniform-01.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-02.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-03.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-04.rs"
-```
-
-</details>
-
 ### 2. `src/triangle.wgsl`
 
 Extend surface settings without changing original geometry or integer identity precision.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-struct ObjectSettings {
-    model: mat4x4<f32>,
-    selection: vec4<u32>,
-    normal_matrix: mat4x4<f32>,
-}
-@group(1) @binding(0) var<uniform> object: ObjectSettings;
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec3<f32>,
-    @location(1) world: vec3<f32>,
-    @location(2) normal: vec3<f32>,
-}
-
-fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>) -> VertexOutput {
-    var output: VertexOutput;
-    let world = object.model * vec4<f32>(position, 1.0);
-    output.position = view.transform * world;
-    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x != 0u);
-    output.world = world.xyz;
-    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
-    let derivative = cross(dpdx(input.world), dpdy(input.world));
-    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
-    let face = select(derivative, -derivative, front);
-    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
-    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
-    let bounded = direction / max(scale, 1e-30);
-    let normal = bounded / max(length(bounded), 1e-30);
-    if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), 1.0); }
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
-
-@vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1743,37 +1289,9 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput { return geometry(position, colour, normal); }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53b-uniform-05.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-06.rs"
-```
-
-</details>
-
 ### 3. `src/face_pick.rs`
 
 Extend surface settings without changing original geometry or integer identity precision.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn new(device: &wgpu::Device) -> Self {
-        let storage = layout(device); let view = crate::gpu_layout::uniform(device, 80);
-        let model = crate::gpu_layout::uniform(device, 144); let crop = crate::gpu_layout::uniform(device, 80);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor { label: Some("source face IDs"),
-            bind_group_layouts: &[Some(&view), Some(&model), Some(&storage), Some(&crop)], immediate_size: 0 });
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1787,16 +1305,13 @@ Derive dynamic pick ownership and face colour while reusing surface geometry buf
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.queue.submit([encoder.finish()]);
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1810,8 +1325,7 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -1822,8 +1336,6 @@ fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f
         } }
         if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; } Ok(())
 ```
-
-</details>
 
 Replace it with:
 
@@ -1837,8 +1349,7 @@ Replace it with:
         if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; } Ok(())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn usage(&self) -> [u64; 4] { crate::memory::gpu(&self.meshes) }
@@ -1848,8 +1359,6 @@ Replace it with:
             + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1862,8 +1371,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let geometry = self.geometry.get(&self.device, &object.mesh);
@@ -1874,8 +1382,6 @@ Replace it with:
             self.meshes.push(row);
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1889,8 +1395,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
@@ -1901,8 +1406,6 @@ Replace it with:
                 self.settings_bytes += bytes;
                 row
 ```
-
-</details>
 
 Replace it with:
 
@@ -1916,8 +1419,7 @@ Replace it with:
                 row
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
@@ -1928,8 +1430,6 @@ Replace it with:
             label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout)], immediate_size: 0 });
         let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1943,8 +1443,7 @@ Replace it with:
         let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2302,91 +1801,38 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53b-uniform-08.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-09.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-10.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-11.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-12.rs"
-```
-
-```text
---8<-- "journey/code/53b-uniform-13.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53bb-eligibility"></a>
 
 ### Step 4 of 23 · Resolve live visibility and selection eligibility (`53bb-eligibility`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/23 Visual Trace (53bb-eligibility): Resolve live visibility and selection eligibility</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/multi_selection_tests.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">live view flags</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible source identities</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed bounds</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">protected selection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/multi_s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">placed bounds</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">protected selection</text>
 </svg>
-</div>
-
-- **Goal:** Resolve live visibility and selection eligibility.
-- **Data Flow Trace:** `live view flags → eligible source identities → placed bounds → protected selection`
-- **Files You Touch:** `src/scene.rs` (*Resolve current source visibility, eligible picks and placed bounds from independent presentation.*) · `src/multi_selection_tests.rs` (*Copy the complete selection regression with real view-state fixtures.*) · `src/pick_gpu_tests.rs` (*Copy the integer-pick regression using actual presentation locks.*)
 
 Resolve visible unlocked identities from presentation while keeping original flags untouched. Bounds and control markers use the same live state; rendering connects next.
 
-> **Self-Check Question:** *Is a locked visible surface a selectable object?*  
-> **Answer:** No. It remains visible and can occlude geometry behind it, but its integer owner and independent selection are disabled.
-
-- **Hands-On Lab Experiment:** Compare visible unlocked, visible locked and hidden identities. They should resolve consistently without changing original source metadata.
-
-<details>
-<summary>Implementation 53bb-eligibility: Resolve live visibility and selection eligibility</summary>
-
-Resolve live visibility and selection eligibility.
-
-Data flow: live view flags → eligible source identities → placed bounds → protected selection.
+> **Check:** *Is a locked visible surface a selectable object?* — No. It remains visible and can occlude geometry behind it, but its integer owner and independent selection are disabled.
 
 ### 1. `src/scene.rs`
 
@@ -2394,8 +1840,7 @@ Resolve current source visibility, eligible picks and placed bounds from indepen
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2416,8 +1861,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2433,8 +1876,7 @@ Replace it with:
     pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2445,8 +1887,6 @@ Replace it with:
                 let p = control.position().expect("Validated original control");
                 let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
 ```
-
-</details>
 
 Replace it with:
 
@@ -2460,8 +1900,7 @@ Replace it with:
                 let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -2478,8 +1917,6 @@ Replace it with:
             match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2499,8 +1936,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 }
@@ -2511,8 +1947,6 @@ Replace it with:
                 let point = [point[0], point[1], point[2]];
                 match &mut bounds {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2526,8 +1960,7 @@ Replace it with:
                 match &mut bounds {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         *self = saved;
@@ -2544,8 +1977,6 @@ Replace it with:
         let mut bounds: Option<crate::bounds::Bounds> = None;
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2560,8 +1991,7 @@ Replace it with:
         let mut bounds: Option<crate::bounds::Bounds> = None;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2578,8 +2008,6 @@ impl Scene {
     pub fn demo() -> Self {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2593,8 +2021,7 @@ impl Scene {
     pub fn demo() -> Self {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -2698,7 +2125,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -3149,45 +2575,7 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53bb-eligibility-01.rs"
-```
-
-```text
---8<-- "journey/code/53bb-eligibility-02.rs"
-```
-
-```text
---8<-- "journey/code/53bb-eligibility-03.rs"
-```
-
-```text
---8<-- "journey/code/53bb-eligibility-04.rs"
-```
-
-```text
---8<-- "journey/code/53bb-eligibility-05.rs"
-```
-
-```text
---8<-- "journey/code/53bb-eligibility-06.rs"
-```
-
-```text
---8<-- "journey/code/53bb-eligibility-07.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3195,30 +2583,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the complete selection regression with real view-state fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let mut editor = Editor::default(); editor.apply(Action::AddPoint).unwrap();
-    let weak = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-    Rc::make_mut(&mut editor.scene.objects_mut()[0].metadata).is_locked = true;
-    Rc::make_mut(&mut editor.scene.objects_mut()[1].metadata).is_visible = false;
-    editor.apply(Action::SelectAll).unwrap(); assert_eq!(editor.selected_objects(), vec![editor.scene.points()[0].id]);
-    editor.apply(Action::Close).unwrap(); assert!(weak.upgrade().is_none()); assert!(editor.selected_objects().is_empty());
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/53bb-eligibility-08.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3226,81 +2597,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the integer-pick regression using actual presentation locks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let front = scene.insert(triangle(0.2)).unwrap(); renderer.set_scene(&scene, None);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), Some([front.value(), 0]));
-    let mut locked = scene.objects[1].metadata.as_ref().clone(); locked.is_locked = true;
-    scene.objects[1].metadata = Rc::new(locked); renderer.set_scene(&scene, None);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), None);
-    assert_eq!(scene.pick_id(front.value()), None);
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/53bb-eligibility-09.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53c-presentation"></a>
 
 ### Step 5 of 23 · Use current visibility and colours in every derived pass (`53c-presentation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/23 Visual Trace (53c-presentation): Use current visibility and colours in every derived pass</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/highlight.rs, src/pick_sources.rs, src/snap_sources.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one view state</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">surface and wire passes</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source picking and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">snapping</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">consistent bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/high…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source picking and snap…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">consistent bounds</text>
 </svg>
-</div>
-
-- **Goal:** Use current visibility and colours in every derived pass.
-- **Data Flow Trace:** `one view state → surface and wire passes → source picking and snapping → consistent bounds`
-- **Files You Touch:** `src/renderer.rs` (*Apply independent face, edge and object colours across every derived rendering lane.*) · `src/highlight.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/pick_sources.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/snap_sources.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/picking.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/pick_gpu_tests.rs` (*Copy the preserved integer-pick regression with current visibility and lock fixtures.*)
 
 Make surfaces, wires, markers, snapping and highlighting consult the same presentation flags. Preserve source colours when no channel override is present.
 
-> **Self-Check Question:** *Should a hidden mesh remain available to snapping?*  
-> **Answer:** No. Rendering, picking, snapping and bounds use the same visible identity set. A locked visible surface still occludes the pick buffer with owner zero.
-
-- **Hands-On Lab Experiment:** Hide a selected parent and its attributes. Check that rendering, fitting and snapping agree without changing any source coordinate.
-
-<details>
-<summary>Implementation 53c-presentation: Use current visibility and colours in every derived pass</summary>
-
-Use current visibility and colours in every derived pass.
-
-Data flow: one view state → surface and wire passes → source picking and snapping → consistent bounds.
+> **Check:** *Should a hidden mesh remain available to snapping?* — No. Rendering, picking, snapping and bounds use the same visible identity set. A locked visible surface still occludes the pick buffer with owner zero.
 
 ### 1. `src/renderer.rs`
 
@@ -3308,8 +2642,7 @@ Apply independent face, edge and object colours across every derived rendering l
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
@@ -3331,8 +2664,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
             let row = if let Some(index) = matching {
 ```
-
-</details>
 
 Replace it with:
 
@@ -3357,8 +2688,7 @@ Replace it with:
             let row = if let Some(index) = matching {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3716,43 +3046,9 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53c-presentation-01.rs"
-```
-
-```text
---8<-- "journey/code/53c-presentation-02.rs"
-```
-
-</details>
-
 ### 2. `src/highlight.rs`
 
 Use current presentation eligibility while preserving original source records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn objects(&mut self, device: &wgpu::Device, scene: &Scene, ids: &[crate::scene::ObjectId]) -> Result<(), &'static str> {
-        self.mesh = None; let yellow = [1., 0.75, 0.05, 1.];
-        self.strokes.set(device, scene.lines().iter().filter(|r| ids.contains(&r.id) && r.visible()).map(|r|
-            crate::stroke::Stroke { colour: yellow, width: r.prepared.display.width + 2., ..r.stroke() }))?;
-        self.paths.set_chains(device, scene.paths().iter().filter(|r| ids.contains(&r.id) && r.visible()).flat_map(|r|
-            r.segments().into_iter().map(|mut s| { s.stroke.colour = yellow; s.stroke.width += 2.; s })))?;
-        self.markers.set_points(device, scene.points().iter().filter(|r| ids.contains(&r.id) && r.visible()).map(|r|
-            crate::marker::Marker { colour: yellow, diameter: r.prepared.display.diameter + 4., ..r.marker() }))?;
-        Ok(())
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3766,8 +3062,7 @@ Use current presentation eligibility while preserving original source records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 sources.path_ids.push(id(row.id, ids[1]));
@@ -3778,8 +3073,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             let ids = append(&mut sources.controls, Kind::Control, Target { owner: row.parent, part: Part::Control(row.control.index) })?;
             sources.marker_ids.push(id(row.parent, ids[1]));
 ```
-
-</details>
 
 Replace it with:
 
@@ -3793,8 +3086,7 @@ Replace it with:
             sources.marker_ids.push(id(row.parent, ids[1]));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn new(scene: &Scene) -> Result<Self, &'static str> {
@@ -3819,8 +3111,6 @@ Replace it with:
             for (index, _) in points.windows(2).enumerate().filter(|(_, pair)| pair[0] != pair[1]) {
                 let part = if matches!(row.prepared.source, crate::chain::Source::Polyline(_)) { Part::PathEdge(index) } else { Part::Curve };
 ```
-
-</details>
 
 Replace it with:
 
@@ -3848,8 +3138,7 @@ Replace it with:
                 let part = if matches!(row.prepared.source, crate::chain::Source::Polyline(_)) { Part::PathEdge(index) } else { Part::Curve };
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -3937,79 +3226,9 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53c-presentation-04.rs"
-```
-
-```text
---8<-- "journey/code/53c-presentation-05.rs"
-```
-
-```text
---8<-- "journey/code/53c-presentation-06.rs"
-```
-
-</details>
-
 ### 4. `src/snap_sources.rs`
 
 Use current presentation eligibility while preserving original source records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{scene::{Scene, ObjectId}, snap::{Hit, Kind}};
-
-pub enum Target { Point(Hit), Wire { ends: [[f64; 3]; 2], owner: ObjectId } }
-
-pub fn collect(scene: &Scene) -> Vec<Target> {
-    let mut out = Vec::new();
-    for row in scene.points().iter().filter(|r| r.visible()) { let p = row.point(); point(&mut out,row.id,[p[0],p[1],p[2]],Kind::End); }
-    for row in scene.lines().iter().filter(|r| r.visible()) { let ends = row.endpoints().map(|p| [p[0],p[1],p[2]]); polyline(&mut out,row.id,&ends); }
-    for row in scene.paths().iter().filter(|r| r.visible()) {
-        let points: Vec<_> = row.points().iter().map(|p| [p[0],p[1],p[2]]).collect();
-        if let crate::chain::Source::Curve(curve, _) = &row.prepared.source {
-            let (a,b) = curve.domain();
-            for (t,kind) in [(a,Kind::End),(b,Kind::End),((a+b)*0.5,Kind::Mid)] { let p = row.model.transform_point(&curve.point_at(t)); point(&mut out,row.id,[p[0],p[1],p[2]],kind); }
-            wires(&mut out,row.id,&points);
-        } else { polyline(&mut out,row.id,&points); }
-        if points.len()>=4 && (0..3).map(|i| (points[0][i]-points[points.len()-1][i]).powi(2)).sum::<f64>().sqrt()<=1e-9 {
-            let corners=&points[..points.len()-1]; let center=std::array::from_fn(|i| corners.iter().map(|p| p[i]).sum::<f64>()/corners.len() as f64);
-            point(&mut out,row.id,center,Kind::Center);
-        }
-    }
-    for row in scene.objects().iter().filter(|r| r.visible()) {
-        let mut seen = std::collections::HashSet::new();
-        if let Some(source) = row.geometry() { for key in source.vertices() {
-            if let Some(p) = source.vertex_point(key) { let p = row.model.transform_point(&p); point(&mut out,row.id,[p[0],p[1],p[2]],Kind::Vertex); seen.insert(key); }
-        } }
-        for (&(a,b),ends) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints) {
-            let ends=ends.map(|p| { let p=row.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])); [p[0],p[1],p[2]] });
-            for (key,p) in [(a,ends[0]),(b,ends[1])] { if seen.insert(key) { point(&mut out,row.id,p,Kind::Vertex); } }
-            out.push(Target::Wire { ends,owner:row.id });
-        }
-    }
-    out
-}
-
-fn point(out: &mut Vec<Target>, owner: ObjectId, point: [f64; 3], kind: Kind) { out.push(Target::Point(Hit { point,kind,owner:Some(owner) })); }
-fn wires(out: &mut Vec<Target>, owner: ObjectId, points: &[[f64; 3]]) { for ends in points.windows(2) { out.push(Target::Wire { ends:[ends[0],ends[1]],owner }); } }
-fn polyline(out: &mut Vec<Target>, owner: ObjectId, points: &[[f64; 3]]) {
-    for (i,&p) in points.iter().enumerate() { point(out,owner,p,if i==0 || i+1==points.len() { Kind::End } else { Kind::Vertex }); }
-    for p in points.windows(2) { point(out,owner,std::array::from_fn(|i| (p[0][i]+p[1][i])*0.5),Kind::Mid); }
-    wires(out,owner,points);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4057,37 +3276,9 @@ fn polyline(out: &mut Vec<Target>, owner: ObjectId, points: &[[f64; 3]]) {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53c-presentation-07.rs"
-```
-
-```text
---8<-- "journey/code/53c-presentation-08.rs"
-```
-
-</details>
-
 ### 5. `src/picking.rs`
 
 Use current presentation eligibility while preserving original source records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut nearest = ray.max_distance;
-    let mut hit = None;
-    for object in scene.objects().iter().filter(|row| row.visible()) {
-        let vertices = object.mesh.vertices();
-        for triangle in object.mesh.indices().chunks_exact(3) {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4095,8 +3286,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/53c-presentation-09.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4104,81 +3294,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the preserved integer-pick regression with current visibility and lock fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), None);
-    assert_eq!(scene.pick_id(front.value()), None);
-    let mut hidden = scene.objects[1].metadata.as_ref().clone(); hidden.is_visible = false;
-    scene.objects[1].metadata = Rc::new(hidden); renderer.set_scene(&scene, None);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), Some([back.value(), 0]));
-    renderer.request_pick([0.95, 0.95], identity()).unwrap(); assert_eq!(finish(&mut renderer), None);
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/53c-presentation-10.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53d-hide-show"></a>
 
 ### Step 6 of 23 · Connect Hide Show and canvas Delete shortcuts (`53d-hide-show`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/23 Visual Trace (53d-hide-show): Connect Hide Show and canvas Delete shortcuts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/history.rs, src/commands.rs, src/shortcuts.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canvas key ownership</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">presentation or document</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">action</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selection repair</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged source metadata</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/histor…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selection repair</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged source metada…</text>
 </svg>
-</div>
-
-- **Goal:** Connect Hide Show and canvas Delete shortcuts.
-- **Data Flow Trace:** `canvas key ownership → presentation or document action → selection repair → unchanged source metadata`
-- **Files You Touch:** `src/editor.rs` (*Hide selected descendants without a document edit and reveal all sources with Show.*) · `src/history.rs` (*Keep canvas shortcuts and presentation separate from text editing and document history.*) · `src/commands.rs` (*Keep canvas shortcuts and presentation separate from text editing and document history.*) · `src/shortcuts.rs` (*Keep canvas shortcuts and presentation separate from text editing and document history.*) · `src/shortcuts_tests.rs` (*Copy the preserved focus/modifier cases and new H/S/Delete ownership checks.*)
 
 Hide selected descendants and clear their selection; Show reveals all sources. H/S/Delete own canvas input while text fields retain editing and platform Undo/Redo.
 
-> **Self-Check Question:** *Does Hide become an Undo transaction?*  
-> **Answer:** No. Hide and Show alter presentation. Delete changes the document and remains undoable; text-field Delete edits text instead of deleting geometry.
-
-- **Hands-On Lab Experiment:** Use H then S outside the command field. Use Delete on a selected object, undo once, then type H/S inside a focused text field.
-
-<details>
-<summary>Implementation 53d-hide-show: Connect Hide Show and canvas Delete shortcuts</summary>
-
-Connect Hide Show and canvas Delete shortcuts.
-
-Data flow: canvas key ownership → presentation or document action → selection repair → unchanged source metadata.
+> **Check:** *Does Hide become an Undo transaction?* — No. Hide and Show alter presentation. Delete changes the document and remains undoable; text-field Delete edits text instead of deleting geometry.
 
 ### 1. `src/editor.rs`
 
@@ -4186,8 +3339,7 @@ Hide selected descendants without a document edit and reveal all sources with Sh
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4197,8 +3349,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
             Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4213,8 +3363,7 @@ Replace it with:
             Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
@@ -4224,8 +3373,6 @@ Replace it with:
     AddNested,
     AddLine,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4240,8 +3387,7 @@ Replace it with:
     AddLine,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4921,39 +4067,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53d-hide-show-01.rs"
-```
-
-```text
---8<-- "journey/code/53d-hide-show-02.rs"
-```
-
-</details>
-
 ### 2. `src/history.rs`
 
 Keep canvas shortcuts and presentation separate from text editing and document history.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let Some(saved) = from.pop() else { return false; };
-        to.push(scene.clone());
-        scene.restore(saved);
-        true
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4965,18 +4081,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Keep canvas shortcuts and presentation separate from text editing and document history.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
-    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
-    ("Example Box", || Action::AddBox),
-    ("Example Nested",||Action::AddNested),
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -4986,37 +4090,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/shortcuts.rs`
 
 Keep canvas shortcuts and presentation separate from text editing and document history.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Shortcut { Undo, Redo, Fit }
-
-impl Shortcut {
-    pub fn command(self) -> &'static str {
-        match self { Self::Undo => "Undo", Self::Redo => "Redo", Self::Fit => "Fit" }
-    }
-}
-
-pub fn key(text: &str, command: bool, shift: bool, alt: bool, composing: bool,
-    focused: bool, text_empty: bool) -> Option<Shortcut> {
-    if alt || composing { return None; }
-    if command {
-        if focused && !text_empty { return None; }
-        match text.to_ascii_lowercase().as_str() {
-            "z" if shift => Some(Shortcut::Redo),
-            "z" => Some(Shortcut::Undo),
-            "y" => Some(Shortcut::Redo),
-            _ => None,
-        }
-    } else if !focused && text.eq_ignore_ascii_case("f") { Some(Shortcut::Fit) }
-    else { None }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5046,23 +4119,7 @@ pub fn key(text: &str, command: bool, shift: bool, alt: bool, composing: bool,
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53d-hide-show-05.rs"
-```
-
-```text
---8<-- "journey/code/53d-hide-show-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5070,80 +4127,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the preserved focus/modifier cases and new H/S/Delete ownership checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert_eq!(key("f", false, false, false, false, true, true), None);
-    assert_eq!(key("f", true, false, false, false, false, true), None);
-    assert_eq!(key("h", false, false, false, false, false, true), None);
-    assert_eq!(key("s", false, false, false, false, false, true), None);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/53d-hide-show-07.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53e-properties"></a>
 
 ### Step 7 of 23 · Apply eye lock and independent colour properties (`53e-properties`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/23 Visual Trace (53e-properties): Apply eye lock and independent colour properties</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_properties.rs, src/lib.rs, src/editor.rs, src/hierarchy.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable row key</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">descendant identities</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one presentation property</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">repaired selection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_properties.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one presentation proper…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">repaired selection</text>
 </svg>
-</div>
-
-- **Goal:** Apply eye lock and independent colour properties.
-- **Data Flow Trace:** `stable row key → descendant identities → one presentation property → repaired selection`
-- **Files You Touch:** `src/layer_properties.rs` (*Apply one property to a row and its descendants without mutating source geometry.*) · `src/lib.rs` (*Register the new source component.*) · `src/editor.rs` (*Route layer properties through selection repair and snap-cache invalidation.*) · `src/hierarchy.rs` (*Resolve nearest source tree colours once when a document is imported.*) · `src/scene.rs` (*Seed inherited source-node colours without rewriting their original records.*)
 
 Resolve a stable tree row to its descendants and update only their presentation. Face and edge Original clear separate overrides.
 
-> **Self-Check Question:** *Does restoring Faces Original clear the edge colour?*  
-> **Answer:** No. Each channel has its own map. Clearing the face override leaves the independently chosen edge override intact.
-
-- **What You Should See:** Preparation: the property actions now store independent parent lamps and face/edge overrides. The browser picture is unchanged; controls connect at53t.
-- **Hands-On Lab Experiment:** Trace Hidden through layer_properties.rs: a group changes its lamp key and held rows, while an object changes its own hidden set. Predict which child remains hidden when a parent is shown. Run the full interactive exercise after53t.
-
-<details>
-<summary>Implementation 53e-properties: Apply eye lock and independent colour properties</summary>
-
-Apply eye lock and independent colour properties.
-
-Data flow: stable row key → descendant identities → one presentation property → repaired selection.
+> **Check:** *Does restoring Faces Original clear the edge colour?* — No. Each channel has its own map. Clearing the face override leaves the independently chosen edge override intact.
 
 ### 1. `src/layer_properties.rs`
 
@@ -5159,16 +4180,6 @@ Create the file and type:
 
 Register the new source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod view_flags;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -5181,8 +4192,7 @@ Route layer properties through selection repair and snap-cache invalidation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5192,8 +4202,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Show=>{std::rc::Rc::make_mut(&mut self.scene.view).show_all();self.snap_index=None;return Ok(Change::Preview);},
             Action::TreePick {ids,additive}=>{let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
 ```
-
-</details>
 
 Replace it with:
 
@@ -5207,8 +4215,7 @@ Replace it with:
             Action::TreePick {ids,additive}=>{let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -5218,8 +4225,6 @@ pub enum Action {
     GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
     GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
 ```
-
-</details>
 
 Replace it with:
 
@@ -5233,8 +4238,7 @@ pub enum Action {
     GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -5916,37 +4920,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53e-properties-03.rs"
-```
-
-```text
---8<-- "journey/code/53e-properties-04.rs"
-```
-
-</details>
-
 ### 4. `src/hierarchy.rs`
 
 Resolve nearest source tree colours once when a document is imported.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Rc::make_mut(&mut self.readonly_ids).extend(nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(Document {key,label,nodes}));
-    }
-```
-
-</details>
 
 After that block, type:
 
@@ -5958,77 +4934,46 @@ After that block, type:
 
 Seed inherited source-node colours without rewriting their original records.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);Ok(())
-    }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/53e-properties-06.rs"
 ```
 
-</details>
+**Result after `53e-properties`:** Preparation: the property actions now store independent parent lamps and face/edge overrides. The browser picture is unchanged; controls connect at53t.
+
+---
 
 <a id="checkpoint-53f-portable"></a>
 
 ### Step 8 of 23 · Keep tree identities stable across edits and saves (`53f-portable`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/23 Visual Trace (53f-portable): Keep tree identities stable across edits and saves</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/hierarchy.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source key</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable portable UUID</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared document records</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">collision-free repeated</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">save</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/hierarchy.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared document records</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">collision-free repeated…</text>
 </svg>
-</div>
-
-- **Goal:** Keep tree identities stable across edits and saves.
-- **Data Flow Trace:** `source key → stable portable UUID → shared document records → collision-free repeated save`
-- **Files You Touch:** `src/hierarchy.rs` (*Preserve portable UUIDs and rebuild immutable tree indexes after group edits.*)
 
 Give each imported node a stable portable UUID in addition to its document-scoped source key. Repeated saves preserve identity; repeated imports remain distinct.
 
-> **Self-Check Question:** *Why avoid allocating new tree UUIDs on every Save?*  
-> **Answer:** Saving is not a document edit. Stable portable UUIDs allow repeated snapshots to preserve the exact hierarchy while separating repeated imports.
-
-- **Hands-On Lab Experiment:** Save one generated tree twice, then import the same nested file twice. Compare decoded tree identities rather than protobuf byte ordering.
-
-<details>
-<summary>Implementation 53f-portable: Keep tree identities stable across edits and saves</summary>
-
-Keep tree identities stable across edits and saves.
-
-Data flow: source key → stable portable UUID → shared document records → collision-free repeated save.
+> **Check:** *Why avoid allocating new tree UUIDs on every Save?* — Saving is not a document edit. Stable portable UUIDs allow repeated snapshots to preserve the exact hierarchy while separating repeated imports.
 
 ### 1. `src/hierarchy.rs`
 
@@ -6036,8 +4981,7 @@ Preserve portable UUIDs and rebuild immutable tree indexes after group edits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -6048,8 +4992,6 @@ fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&s
         let Some(row)=scene.objects().iter().find(|r|r.id==id) else {return Ok(None);};
         node.name=row.guid.clone();matrix=row.model.clone();let local=&parent.inverse().ok_or("Parent placement cannot be inverted for Save")?*&matrix;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6063,8 +5005,7 @@ fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&s
         node.name=row.guid.clone();matrix=row.model.clone();let local=&parent.inverse().ok_or("Parent placement cannot be inverted for Save")?*&matrix;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         out
@@ -6074,8 +5015,6 @@ fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&s
     pub fn descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {
         let mut out=ids.to_vec();
 ```
-
-</details>
 
 Replace it with:
 
@@ -6093,8 +5032,7 @@ Replace it with:
         let mut out=ids.to_vec();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             if exit {nodes[parent.unwrap()].end=nodes.len();continue;}
@@ -6105,8 +5043,6 @@ Replace it with:
             stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6120,8 +5056,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     xforms.get(guid).cloned().unwrap_or_else(Xform::identity)
@@ -6132,8 +5067,6 @@ pub struct Document {pub key:u32,pub label:String,pub nodes:Vec<Node>}
 #[derive(Clone,Default)]
 pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6149,8 +5082,7 @@ pub struct Document {pub key:u32,pub label:String,pub nodes:Vec<Node>}
 pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::scene::{Scene,ObjectId};
@@ -6269,83 +5201,38 @@ pub fn rows(scene:&Scene)->Vec<Row> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53f-portable-01.rs"
-```
-
-```text
---8<-- "journey/code/53f-portable-02.rs"
-```
-
-```text
---8<-- "journey/code/53f-portable-03.rs"
-```
-
-```text
---8<-- "journey/code/53f-portable-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53g-branches"></a>
 
 ### Step 9 of 23 · Represent group edits with temporary branches (`53g-branches`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/23 Visual Trace (53g-branches): Represent group edits with temporary branches</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared flat tree</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary branch ownership</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">subtree edit</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">repaired flat records</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">subtree edit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">repaired flat records</text>
 </svg>
-</div>
-
-- **Goal:** Represent group edits with temporary branches.
-- **Data Flow Trace:** `shared flat tree → temporary branch ownership → subtree edit → repaired flat records`
-- **Files You Touch:** `src/layer_edit.rs` (*Represent atomic subtree edits without owning kernel geometry.*) · `src/lib.rs` (*Register the new source component.*)
 
 Convert one immutable flat tree into temporary branches for an edit, then flatten it with repaired parents, depths and subtree endpoints.
 
-> **Self-Check Question:** *Does making a temporary branch copy source geometry?*  
-> **Answer:** No. Branches contain lightweight node metadata and identities. Original source and display allocations remain shared by scene snapshots.
-
-- **Hands-On Lab Experiment:** Move a nested branch in the temporary tree and inspect its new parent and depth. Its geometry identity should not change.
-
-<details>
-<summary>Implementation 53g-branches: Represent group edits with temporary branches</summary>
-
-Represent group edits with temporary branches.
-
-Data flow: shared flat tree → temporary branch ownership → subtree edit → repaired flat records.
+> **Check:** *Does making a temporary branch copy source geometry?* — No. Branches contain lightweight node metadata and identities. Original source and display allocations remain shared by scene snapshots.
 
 ### 1. `src/layer_edit.rs`
 
@@ -6361,74 +5248,44 @@ Create the file and type:
 
 Register the new source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod layer_properties;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/53g-branches-02.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-53h-layer-targets"></a>
 
 ### Step 10 of 23 · Validate current layers and protected ancestors (`53h-layer-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/23 Visual Trace (53h-layer-targets): Validate current layers and protected ancestors</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/layer_edit.rs, src/layer_properties.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable key</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">group outside geometry</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">editable source guard</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">protected current ancestry</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/layer_e…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">editable source guard</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">protected current ances…</text>
 </svg>
-</div>
-
-- **Goal:** Validate current layers and protected ancestors.
-- **Data Flow Trace:** `stable key → group outside geometry → editable source guard → protected current ancestry`
-- **Files You Touch:** `src/scene.rs` (*Retain the generated-document identity separately from the selected current layer.*) · `src/layer_edit.rs` (*Resolve eligible groups and current-layer ancestry without changing source records.*) · `src/layer_properties.rs` (*Protect the current layer and every ancestor from hiding.*)
 
 A layer is a group outside every object. Resolve it by stable key, reject released editable sources and protect the current layer’s ancestors.
 
-> **Self-Check Question:** *Can an attributes group become the current layer?*  
-> **Answer:** No. Groups beneath an object are part of that object’s source ownership. New independent geometry belongs only to a document or ordinary layer group.
-
-- **Hands-On Lab Experiment:** Try choosing an object or its attributes as current. Then choose a normal sublayer and check that its ancestors refuse hiding or deletion.
-
-<details>
-<summary>Implementation 53h-layer-targets: Validate current layers and protected ancestors</summary>
-
-Validate current layers and protected ancestors.
-
-Data flow: stable key → group outside geometry → editable source guard → protected current ancestry.
+> **Check:** *Can an attributes group become the current layer?* — No. Groups beneath an object are part of that object’s source ownership. New independent geometry belongs only to a document or ordinary layer group.
 
 ### 1. `src/scene.rs`
 
@@ -6436,8 +5293,7 @@ Retain the generated-document identity separately from the selected current laye
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -6447,8 +5303,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.view=Default::default();
         self.forest=Default::default();
 ```
-
-</details>
 
 Replace it with:
 
@@ -6462,8 +5316,7 @@ Replace it with:
         self.forest=Default::default();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -6474,8 +5327,6 @@ Replace it with:
         scene.insert(turquoise).expect("ID available");
         scene
 ```
-
-</details>
 
 Replace it with:
 
@@ -6489,8 +5340,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -6500,8 +5350,6 @@ pub struct Scene {
     pub view:Rc<crate::view_flags::Flags>,
     pub forest:crate::hierarchy::Forest,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6515,8 +5363,7 @@ pub struct Scene {
     pub forest:crate::hierarchy::Forest,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -6620,7 +5467,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -7073,40 +5919,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53h-layer-targets-01.rs"
-```
-
-```text
---8<-- "journey/code/53h-layer-targets-02.rs"
-```
-
-```text
---8<-- "journey/code/53h-layer-targets-03.rs"
-```
-
-</details>
-
 ### 2. `src/layer_edit.rs`
 
 Resolve eligible groups and current-layer ancestry without changing source records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    nodes[index].end=nodes.len();
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7118,93 +5933,48 @@ After that block, type:
 
 Protect the current layer and every ancestor from hiding.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn apply(scene:&mut Scene,key:&str,property:Property)->Result<(), &'static str> {
-    let rows=hierarchy::rows(scene);let index=rows.iter().position(|row|row.key==key).ok_or("This layer row is gone")?;let row=&rows[index];
-    if matches!(property,Property::Hidden(true)) && scene.view.current.as_ref().is_some_and(|key|rows[index..row.end].iter().any(|row|&row.key==key)) {return Err("The current layer cannot be hidden");}
-    let view=Rc::make_mut(&mut scene.view);
-    match property {
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/53h-layer-targets-05.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-53i-copy-records"></a>
 
 ### Step 11 of 23 · Copy row identities while sharing source allocations (`53i-copy-records`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/23 Visual Trace (53i-copy-records): Copy row identities while sharing source allocations</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original row</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh identity</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source and display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inherited view colours</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source and displ…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">inherited view colours</text>
 </svg>
-</div>
-
-- **Goal:** Copy row identities while sharing source allocations.
-- **Data Flow Trace:** `original row → fresh identity → shared source and display → inherited view colours`
-- **Files You Touch:** `src/scene.rs` (*Allocate copied rows without duplicating original CPU geometry or rewriting coordinates.*)
 
 Allocate a fresh viewer identity and portable geometry GUID for copies. Keep precise world placement, original geometry and display storage shared.
 
-> **Self-Check Question:** *Does copying a row bake its world placement into vertices?*  
-> **Answer:** No. The copied row shares original geometry and keeps the same precise placement matrix. Saving writes its separate portable geometry identity.
-
-- **Hands-On Lab Experiment:** Copy a mesh and compare its source allocation, display allocation, world matrix and new viewer identity with the original.
-
-<details>
-<summary>Implementation 53i-copy-records: Copy row identities while sharing source allocations</summary>
-
-Copy row identities while sharing source allocations.
-
-Data flow: original row → fresh identity → shared source and display → inherited view colours.
+> **Check:** *Does copying a row bake its world placement into vertices?* — No. The copied row shares original geometry and keeps the same precise placement matrix. Saving writes its separate portable geometry identity.
 
 ### 1. `src/scene.rs`
 
 Allocate copied rows without duplicating original CPU geometry or rewriting coordinates.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7212,73 +5982,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/53i-copy-records-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-53j-transfers"></a>
 
 ### Step 12 of 23 · Move and copy objects between layer trees (`53j-transfers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/23 Visual Trace (53j-transfers): Move and copy objects between layer trees</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible selection</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique parent moves or</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">target subtree</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged world placement</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">target subtree</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged world placeme…</text>
 </svg>
-</div>
-
-- **Goal:** Move and copy objects between layer trees.
-- **Data Flow Trace:** `eligible selection → unique parent moves or explicit copies → target subtree → unchanged world placement`
-- **Files You Touch:** `src/layer_edit.rs` (*Transfer source-owned branches and copy explicit selections with checked node and depth limits.*)
 
 Move a selected parent with its attached subtree once. Copy each explicitly selected object; preserve world placements and roll back failed document transactions.
 
-> **Self-Check Question:** *Should selecting a parent and child move that child twice?*  
-> **Answer:** No. Parent moves carry a deduplicated subtree. Object-layer copying keeps each explicit selected object as a separate new row.
-
-- **Hands-On Lab Experiment:** Move a parent between imported documents, save and reopen, then undo. Compare both the parent and attached attribute world matrices exactly.
-
-<details>
-<summary>Implementation 53j-transfers: Move and copy objects between layer trees</summary>
-
-Move and copy objects between layer trees.
-
-Data flow: eligible selection → unique parent moves or explicit copies → target subtree → unchanged world placement.
+> **Check:** *Should selecting a parent and child move that child twice?* — No. Parent moves carry a deduplicated subtree. Object-layer copying keeps each explicit selected object as a separate new row.
 
 ### 1. `src/layer_edit.rs`
 
 Transfer source-owned branches and copy explicit selections with checked node and depth limits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    flatten(tree,None,0,&mut document.nodes);scene.forest.replace(owner,document);Rc::make_mut(&mut scene.view).refresh(&scene.forest);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7286,72 +6025,42 @@ After that block, type:
 --8<-- "journey/code/53j-transfers-01.rs" skip=139
 ```
 
-</details>
+---
 
 <a id="checkpoint-53k-new-rename"></a>
 
 ### Step 13 of 23 · Create and rename uniquely named layers (`53k-new-rename`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/23 Visual Trace (53k-new-rename): Create and rename uniquely named layers</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible group</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique new name</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable node identity</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one document transaction</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable node identity</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one document transaction</text>
 </svg>
-</div>
-
-- **Goal:** Create and rename uniquely named layers.
-- **Data Flow Trace:** `eligible group → unique new name → stable node identity → one document transaction`
-- **Files You Touch:** `src/layer_edit.rs` (*Create checked layer groups and rename labels without replacing their stable identities.*)
 
 Create a sibling or sublayer with a fresh stable identity. Trim new names, reject empty/slashed/used names, and preserve the current key through rename and Undo.
 
-> **Self-Check Question:** *Does renaming the current layer change its identity?*  
-> **Answer:** No. Its stable node key remains unchanged, so current-layer selection follows the renamed record and returns through Undo.
-
-- **Hands-On Lab Experiment:** Create Layer01 and a sublayer, then rename it. Try an empty name, a slash and an existing name; failures must preserve the redo branch.
-
-<details>
-<summary>Implementation 53k-new-rename: Create and rename uniquely named layers</summary>
-
-Create and rename uniquely named layers.
-
-Data flow: eligible group → unique new name → stable node identity → one document transaction.
+> **Check:** *Does renaming the current layer change its identity?* — No. Its stable node key remains unchanged, so current-layer selection follows the renamed record and returns through Undo.
 
 ### 1. `src/layer_edit.rs`
 
 Create checked layer groups and rename labels without replacing their stable identities.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Ok(())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7359,73 +6068,42 @@ After that block, type:
 --8<-- "journey/code/53k-new-rename-01.rs" skip=14
 ```
 
-</details>
+---
 
 <a id="checkpoint-53l-delete-duplicate"></a>
 
 ### Step 14 of 23 · Delete and duplicate complete layer contents (`53l-delete-duplicate`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/23 Visual Trace (53l-delete-duplicate): Delete and duplicate complete layer contents</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">protected group</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">complete subtree</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared-source copies or</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removal</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact undo</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared-source copies or…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact undo</text>
 </svg>
-</div>
-
-- **Goal:** Delete and duplicate complete layer contents.
-- **Data Flow Trace:** `protected group → complete subtree → shared-source copies or removal → exact undo`
-- **Files You Touch:** `src/layer_edit.rs` (*Delete protected subtrees and duplicate descendants while sharing original source geometry.*)
 
 Refuse root and current-layer deletion. Remove a group with every descendant, or duplicate its source-owned subtree and independent view flags as one edit.
 
-> **Self-Check Question:** *Can deleting a layer leave its read-only attributes behind?*  
-> **Answer:** No. The complete layer subtree belongs to one deletion transaction. Undo restores all identities, source sharing and read-only ownership together.
-
-- **Hands-On Lab Experiment:** Duplicate Posts, hide and lock the copy, then delete and undo it. The original and copy should keep separate identities and exact placements.
-
-<details>
-<summary>Implementation 53l-delete-duplicate: Delete and duplicate complete layer contents</summary>
-
-Delete and duplicate complete layer contents.
-
-Data flow: protected group → complete subtree → shared-source copies or removal → exact undo.
+> **Check:** *Can deleting a layer leave its read-only attributes behind?* — No. The complete layer subtree belongs to one deletion transaction. Undo restores all identities, source sharing and read-only ownership together.
 
 ### 1. `src/layer_edit.rs`
 
 Delete protected subtrees and duplicate descendants while sharing original source geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut tree=branch(doc,0);let node=&mut find(&mut tree,&node.source.guid).unwrap().node;node.label=label.to_owned();node.source.name=label.to_owned();replace(scene,owner,tree);Ok(())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7433,73 +6111,42 @@ After that block, type:
 --8<-- "journey/code/53l-delete-duplicate-01.rs" skip=191
 ```
 
-</details>
+---
 
 <a id="checkpoint-53m-actions"></a>
 
 ### Step 15 of 23 · Commit group edits through one history boundary (`53m-actions`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/23 Visual Trace (53m-actions): Commit group edits through one history boundary</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked layer action</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">document or presentation</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">boundary</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">repaired selection</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one undo</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs, src/ed…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">repaired selection</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one undo</text>
 </svg>
-</div>
-
-- **Goal:** Commit group edits through one history boundary.
-- **Data Flow Trace:** `checked layer action → document or presentation boundary → repaired selection → one undo`
-- **Files You Touch:** `src/layer_edit.rs` (*Dispatch current selection and document layer edits through their separate ownership boundaries.*) · `src/editor.rs` (*Commit each successful layer document action once and preserve redo on failure.*)
 
 Dispatch checked layer actions through document history. Choosing current is presentation; invalid names, stale keys and protected deletions leave Undo/Redo untouched.
 
-> **Self-Check Question:** *Should setting the current layer consume Undo?*  
-> **Answer:** No. It changes where later geometry is created. New, rename, move, copy, duplicate and delete each become one document transaction.
-
-- **Hands-On Lab Experiment:** Create a layer, set it current, rename it, then undo twice. The two document edits reverse without an extra current-selection history entry.
-
-<details>
-<summary>Implementation 53m-actions: Commit group edits through one history boundary</summary>
-
-Commit group edits through one history boundary.
-
-Data flow: checked layer action → document or presentation boundary → repaired selection → one undo.
+> **Check:** *Should setting the current layer consume Undo?* — No. It changes where later geometry is created. New, rename, move, copy, duplicate and delete each become one document transaction.
 
 ### 1. `src/layer_edit.rs`
 
 Dispatch current selection and document layer edits through their separate ownership boundaries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    find(&mut tree,&parent).unwrap().children.push(copy);replace(scene,owner,tree);Ok(())
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -7513,8 +6160,7 @@ Commit each successful layer document action once and preserve redo on failure.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -7524,8 +6170,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::Hide=>{let ids=self.scene.with_descendants(&self.selected_objects());std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids,true);self.select_objects([],false);self.snap_index=None;return Ok(Change::Preview);},
             Action::Show=>{std::rc::Rc::make_mut(&mut self.scene.view).show_all();self.snap_index=None;return Ok(Change::Preview);},
 ```
-
-</details>
 
 Replace it with:
 
@@ -7542,8 +6186,7 @@ Replace it with:
             Action::Show=>{std::rc::Rc::make_mut(&mut self.scene.view).show_all();self.snap_index=None;return Ok(Change::Preview);},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -7553,8 +6196,6 @@ pub enum Action {
     TreePick {ids:Vec<ObjectId>,additive:bool},
     GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
 ```
-
-</details>
 
 Replace it with:
 
@@ -7568,8 +6209,7 @@ pub enum Action {
     GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -8256,90 +6896,42 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53m-actions-02.rs"
-```
-
-```text
---8<-- "journey/code/53m-actions-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53n-routing"></a>
 
 ### Step 16 of 23 · Create geometry on the current layer or Created (`53n-routing`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/23 Visual Trace (53n-routing): Create geometry on the current layer or Created</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs, src/scene.rs, src/hierarchy.rs, src/snapshot_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">new original geometry</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current group or Created</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable tree node</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordinary source ownership</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs, src/sc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable tree node</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordinary source ownersh…</text>
 </svg>
-</div>
-
-- **Goal:** Create geometry on the current layer or Created.
-- **Data Flow Trace:** `new original geometry → current group or Created → stable tree node → ordinary source ownership`
-- **Files You Touch:** `src/layer_edit.rs` (*Attach new geometry to checked current groups or the generated root.*) · `src/scene.rs` (*Route generated geometry through one stable layer attachment in every insertion lane.*) · `src/hierarchy.rs` (*Avoid duplicate fallback rows once generated lines, curves and points have tree nodes.*) · `src/snapshot_tests.rs` (*Copy the preserved source/placement regression with its generated Created hierarchy assertion.*)
 
 Attach every generated geometry lane to the chosen group, preserving world position. When no current group exists, create or reuse the generated Created root.
 
-> **Self-Check Question:** *Can a newly drawn line disappear from the layer tree?*  
-> **Answer:** No. Lines, points, curves and meshes all attach to stable source-backed nodes. They remain visible tree rows even before mixed saving arrives.
-
-- **Hands-On Lab Experiment:** Choose an empty sublayer as current. Add a mesh, line, point and curve; each should appear under that layer and undo independently.
-
-<details>
-<summary>Implementation 53n-routing: Create geometry on the current layer or Created</summary>
-
-Create geometry on the current layer or Created.
-
-Data flow: new original geometry → current group or Created → stable tree node → ordinary source ownership.
+> **Check:** *Can a newly drawn line disappear from the layer tree?* — No. Lines, points, curves and meshes all attach to stable source-backed nodes. They remain visible tree rows even before mixed saving arrives.
 
 ### 1. `src/layer_edit.rs`
 
 Attach new geometry to checked current groups or the generated root.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let old=&scene.forest.documents[owner];let mut document=Document {key:old.key,label:old.label.clone(),nodes:Vec::new()};
-    flatten(tree,None,0,&mut document.nodes);scene.forest.replace(owner,document);Rc::make_mut(&mut scene.view).refresh(&scene.forest);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -8353,8 +6945,7 @@ Route generated geometry through one stable layer attachment in every insertion 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Rc::make_mut(&mut self.ids).insert(id);
@@ -8365,8 +6956,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8383,8 +6972,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let id = ObjectId(self.next_id); self.next_id = next;
@@ -8394,8 +6982,6 @@ Replace it with:
         Ok(id)
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8410,8 +6996,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let id = ObjectId(self.next_id); self.next_id = next;
@@ -8422,8 +7007,6 @@ Replace it with:
 
     pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8437,8 +7020,7 @@ Replace it with:
     pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let id = ObjectId(self.next_id); self.next_id = next;
@@ -8449,8 +7031,6 @@ Replace it with:
 
     pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8464,8 +7044,7 @@ Replace it with:
     pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -8569,7 +7148,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -9048,47 +7626,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53n-routing-02.rs"
-```
-
-```text
---8<-- "journey/code/53n-routing-03.rs"
-```
-
-```text
---8<-- "journey/code/53n-routing-04.rs"
-```
-
-```text
---8<-- "journey/code/53n-routing-05.rs"
-```
-
-</details>
-
 ### 3. `src/hierarchy.rs`
 
 Avoid duplicate fallback rows once generated lines, curves and points have tree nodes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9096,8 +7636,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/53n-routing-06.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9105,79 +7644,44 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the preserved source/placement regression with its generated Created hierarchy assertion.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    let placement = message.xforms.iter().find(|entry| entry.guid == object.guid).unwrap();
-    assert_eq!(placement.xform.as_ref().unwrap().matrix, object.model.m.to_vec());
-    assert_eq!(message.tree.unwrap().root.unwrap().children.len(), meshes.len());
-    assert_eq!(object.geometry().unwrap().guid(), source.guid);
-    editor.apply(Action::Undo).unwrap();
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/53n-routing-07.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53o-palette"></a>
 
 ### Step 17 of 23 · Supply nine colour swatches and RGB sliders (`53o-palette`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/23 Visual Trace (53o-palette): Supply nine colour swatches and RGB sliders</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_palette.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">nine swatches</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measured controls</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">RGB bytes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one channel value</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_palette.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">RGB bytes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one channel value</text>
 </svg>
-</div>
-
-- **Goal:** Supply nine colour swatches and RGB sliders.
-- **Data Flow Trace:** `nine swatches → measured controls → RGB bytes → one channel value`
-- **Files You Touch:** `src/layer_palette.rs` (*Draw maintained colour swatches and checked RGB sliders without editing source geometry.*) · `src/lib.rs` (*Register the new source component.*)
 
 Provide the maintained palette and byte-range RGB sliders as measured egui controls. Each chosen colour belongs to one independent face or edge channel.
 
-> **Self-Check Question:** *Why return an RGB value from the palette helper?*  
-> **Answer:** It keeps drawing controls separate from editing scene presentation. The caller resolves the row identity and applies the selected channel.
-
-- **Hands-On Lab Experiment:** Compare Red Orange Yellow Green Blue Violet White Gray Black with a custom RGB value. Source colours should remain available through Original.
-
-<details>
-<summary>Implementation 53o-palette: Supply nine colour swatches and RGB sliders</summary>
-
-Supply nine colour swatches and RGB sliders.
-
-Data flow: nine swatches → measured controls → RGB bytes → one channel value.
+> **Check:** *Why return an RGB value from the palette helper?* — It keeps drawing controls separate from editing scene presentation. The caller resolves the row identity and applies the selected channel.
 
 ### 1. `src/layer_palette.rs`
 
@@ -9193,128 +7697,48 @@ Create the file and type:
 
 Register the new source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod layer_edit;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/53o-palette-02.rs" skip=21
 ```
 
-</details>
+---
 
 <a id="checkpoint-53p-panel-state"></a>
 
 ### Step 18 of 23 · Resolve layer presentation for real tree controls (`53p-panel-state`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/23 Visual Trace (53p-panel-state): Resolve layer presentation for real tree controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable tree rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current presentation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending UI drafts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked scene actions</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending UI drafts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked scene actions</text>
 </svg>
-</div>
-
-- **Goal:** Resolve layer presentation for real tree controls.
-- **Data Flow Trace:** `stable tree rows → current presentation → pending UI drafts → checked scene actions`
-- **Files You Touch:** `src/tree_panel.rs` (*Keep row presentation and pending layer drafts separate from source and history ownership.*)
 
 Refresh tree rows with their current visibility, lock state, colour channels and eligible group actions. Keep rename and confirmation drafts outside document history.
 
-> **Self-Check Question:** *Does a layer-name draft change saved geometry?*  
-> **Answer:** No. Draft text and error messages belong to the panel. The document changes only after a checked rename action succeeds.
-
-- **Hands-On Lab Experiment:** Compare a hidden row, locked row and empty layer. Empty groups still need a context menu even though they contain no selectable geometry.
-
-<details>
-<summary>Implementation 53p-panel-state: Resolve layer presentation for real tree controls</summary>
-
-Resolve layer presentation for real tree controls.
-
-Data flow: stable tree rows → current presentation → pending UI drafts → checked scene actions.
+> **Check:** *Does a layer-name draft change saved geometry?* — No. Draft text and error messages belong to the panel. The document changes only after a checked rename action succeeds.
 
 ### 1. `src/tree_panel.rs`
 
 Keep row presentation and pending layer drafts separate from source and history ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{hierarchy::Row,scene::ObjectId};
-#[cfg(any(test,target_arch="wasm32"))]
-use crate::command_dock::{Control,record};
-use std::collections::HashSet;
-
-#[derive(Default)]
-pub struct TreePanel {pub open:bool,pub rows:Vec<Row>,pub selected:Vec<ObjectId>,expanded:HashSet<String>,pub rect:Option<egui::Rect>,pub action:Option<(Vec<ObjectId>,bool)>,page:usize}
-impl TreePanel {
-    pub fn refresh(&mut self,scene:&crate::scene::Scene,selected:Vec<ObjectId>) {self.rows=crate::hierarchy::rows(scene);self.selected=selected;}
-    pub fn all(&mut self) {self.open=true;self.expanded.extend(self.rows.iter().enumerate().filter(|(index,r)|r.end>*index+1).map(|(_,r)|r.key.clone()));self.page=0;}
-    pub fn visible(&self)->Vec<usize> {
-        let mut out=Vec::new();let mut index=0;
-        while index<self.rows.len() {out.push(index);let row=&self.rows[index];index=if self.expanded.contains(&row.key) {index+1} else {row.end.max(index+1)};}
-        out
-    }
-}
-
-#[cfg(any(test,target_arch="wasm32"))]
-pub fn draw(root:&mut egui::Ui,model:&mut TreePanel,controls:&mut Option<Vec<Control>>) {
-    model.rect=None;if !model.open {return;}
-    let visible=model.visible();let pages=visible.len().div_ceil(128).max(1);model.page=model.page.min(pages-1);
-    let response=egui::Area::new("session-tree".into()).anchor(egui::Align2::RIGHT_TOP,egui::vec2(-8.,8.)).order(egui::Order::Foreground).show(root.ctx(),|ui| {
-        egui::Frame::group(ui.style()).fill(egui::Color32::from_rgb(248,248,248)).show(ui,|ui| {
-            ui.set_width(240.);ui.horizontal(|ui| {ui.strong("Layers");let close=ui.button("×");record(controls,"tree/close","Close Layers",&close);if close.clicked() {model.open=false;}});
-            if pages>1 {ui.horizontal(|ui| {if ui.button("Previous").clicked() {model.page=model.page.saturating_sub(1);}ui.label(format!("{} / {pages}",model.page+1));if ui.button("Next").clicked() {model.page=(model.page+1).min(pages-1);}});}
-            let height=(root.max_rect().height()-100.).max(60.);
-            egui::ScrollArea::vertical().max_height(height).show(ui,|ui| {
-                for &index in visible.iter().skip(model.page*128).take(128) {
-                    let row=&model.rows[index];ui.horizontal(|ui| {
-                        ui.add_space(row.depth.min(12) as f32*12.);
-                        if row.end>index+1 {let arrow=ui.small_button(if model.expanded.contains(&row.key) {"▾"} else {"▸"});record(controls,&format!("tree/open/{}",row.key),"Expand or collapse",&arrow);if arrow.clicked() {if !model.expanded.insert(row.key.clone()) {model.expanded.remove(&row.key);}}} else {ui.add_space(18.);}
-                        let selected=row.ids.iter().any(|id|model.selected.contains(id));
-                        let label=if row.label.is_empty() {row.ids.first().map_or("Group".into(),|id|format!("Object {}",id.value()))} else {row.label.clone()};
-                        let button=ui.add_enabled(!row.readonly && !row.ids.is_empty(),egui::Button::new(format!("{label} ({})",row.ids.len())).selected(selected)).on_disabled_hover_text("Source attribute: read only; edit its parent");
-                        record(controls,&format!("tree/select/{}",row.key),&label,&button);
-                        if button.clicked() {model.action=Some((row.ids.clone(),ui.input(|input|input.modifiers.shift)));}
-                    });
-                }
-            });
-        });
-    });model.rect=model.open.then_some(response.response.rect);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9368,86 +7792,42 @@ pub fn draw(root:&mut egui::Ui,model:&mut TreePanel,controls:&mut Option<Vec<Con
 struct RowState {hidden:bool,locked:bool,selectable:bool,current:bool,has_faces:bool,colours:[Option<[u8;3]>;2],group:bool,root:bool,holds_current:bool}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53p-panel-state-01.rs"
-```
-
-```text
---8<-- "journey/code/53p-panel-state-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53q-properties-ui"></a>
 
 ### Step 19 of 23 · Draw eye lock and independent colour menus (`53q-properties-ui`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/23 Visual Trace (53q-properties-ui): Draw eye lock and independent colour menus</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">row presentation</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">real eye and lock controls</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">channel menu</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending property action</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">channel menu</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending property action</text>
 </svg>
-</div>
-
-- **Goal:** Draw eye lock and independent colour menus.
-- **Data Flow Trace:** `row presentation → real eye and lock controls → channel menu → pending property action`
-- **Files You Touch:** `src/tree_panel.rs` (*Draw actual layer property controls and record colour-popup rectangles for input ownership.*)
 
 Use actual measured eye, lock and colour controls. The current layer cannot be hidden; Faces and Edges expose separate Original, swatch and RGB choices.
 
-> **Self-Check Question:** *Should a colour popup outside the panel allow canvas picking underneath?*  
-> **Answer:** No. Its measured rectangle owns pointer and wheel input until the popup closes. The canvas resumes ownership outside panel controls.
-
-- **Hands-On Lab Experiment:** Open the Edges menu, choose green, then restore Faces Original. Inspect the unchanged edge channel and original source colours.
-
-<details>
-<summary>Implementation 53q-properties-ui: Draw eye lock and independent colour menus</summary>
-
-Draw eye lock and independent colour menus.
-
-Data flow: row presentation → real eye and lock controls → channel menu → pending property action.
+> **Check:** *Should a colour popup outside the panel allow canvas picking underneath?* — No. Its measured rectangle owns pointer and wheel input until the popup closes. The canvas resumes ownership outside panel controls.
 
 ### 1. `src/tree_panel.rs`
 
 Draw actual layer property controls and record colour-popup rectangles for input ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-struct RowState {hidden:bool,locked:bool,selectable:bool,current:bool,has_faces:bool,colours:[Option<[u8;3]>;2],group:bool,root:bool,holds_current:bool}
-```
-
-</details>
 
 After that block, type:
 
@@ -9455,73 +7835,42 @@ After that block, type:
 --8<-- "journey/code/53q-properties-ui-01.rs" skip=154
 ```
 
-</details>
+---
 
 <a id="checkpoint-53r-name"></a>
 
 ### Step 20 of 23 · Own rename text and populated deletion confirmation (`53r-name`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/23 Visual Trace (53r-name): Own rename text and populated deletion confirmation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">focused name draft</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned Enter or Escape</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked rename</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit deletion</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">confirmation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked rename</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit deletion confi…</text>
 </svg>
-</div>
-
-- **Goal:** Own rename text and populated deletion confirmation.
-- **Data Flow Trace:** `focused name draft → owned Enter or Escape → checked rename → explicit deletion confirmation`
-- **Files You Touch:** `src/tree_panel.rs` (*Own name-field keys and show explicit populated-layer deletion controls.*)
 
 Focus the layer-name field, consume Enter/Escape before the command dock, preserve invalid drafts and require explicit confirmation before deleting populated layers.
 
-> **Self-Check Question:** *What should H S and Delete do in the rename field?*  
-> **Answer:** They edit text, rather than operating on the canvas. Invalid names remain visible with an error, and Escape cancels the draft without a document edit.
-
-- **Hands-On Lab Experiment:** Type H/S in a name, submit a used name, correct it, then cancel a populated deletion. No canvas shortcut or accidental deletion should occur.
-
-<details>
-<summary>Implementation 53r-name: Own rename text and populated deletion confirmation</summary>
-
-Own rename text and populated deletion confirmation.
-
-Data flow: focused name draft → owned Enter or Escape → checked rename → explicit deletion confirmation.
+> **Check:** *What should H S and Delete do in the rename field?* — They edit text, rather than operating on the canvas. Invalid names remain visible with an error, and Escape cancels the draft without a document edit.
 
 ### 1. `src/tree_panel.rs`
 
 Own name-field keys and show explicit populated-layer deletion controls.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }) {menus.push(menu.response.rect);}
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -9529,58 +7878,38 @@ After that block, type:
 --8<-- "journey/code/53r-name-01.rs" skip=44
 ```
 
-</details>
+---
 
 <a id="checkpoint-53s-tree-controls"></a>
 
 ### Step 21 of 23 · Connect group menus to the wider tree panel (`53s-tree-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/23 Visual Trace (53s-tree-controls): Connect group menus to the wider tree panel</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">wider right-side tree</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">group context menu</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending edit or draft</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked source operation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending edit or draft</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked source operation</text>
 </svg>
-</div>
-
-- **Goal:** Connect group menus to the wider tree panel.
-- **Data Flow Trace:** `wider right-side tree → group context menu → pending edit or draft → checked source operation`
-- **Files You Touch:** `src/tree_panel.rs` (*Connect measured group menus and property controls while preserving read-only source selection guards.*)
 
 Make empty groups respond to context menus. Expose current, new, sublayer, rename, duplicate, move, copy and protected deletion through real tree controls.
 
-> **Self-Check Question:** *Why keep an empty group’s label enabled?*  
-> **Answer:** Its geometry selection is empty, but its context menu still creates sublayers, sets current, renames or deletes the group.
-
-- **Hands-On Lab Experiment:** Right-click an empty Layer01. Create a sublayer, set it current, then copy a selected object onto it and undo once.
-
-<details>
-<summary>Implementation 53s-tree-controls: Connect group menus to the wider tree panel</summary>
-
-Connect group menus to the wider tree panel.
-
-Data flow: wider right-side tree → group context menu → pending edit or draft → checked source operation.
+> **Check:** *Why keep an empty group’s label enabled?* — Its geometry selection is empty, but its context menu still creates sublayers, sets current, renames or deletes the group.
 
 ### 1. `src/tree_panel.rs`
 
@@ -9588,8 +7917,7 @@ Connect measured group menus and property controls while preserving read-only so
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -9621,8 +7949,6 @@ pub fn draw(root:&mut egui::Ui,model:&mut TreePanel,controls:&mut Option<Vec<Con
 #[derive(Clone,Copy,Default)]
 struct RowState {hidden:bool,locked:bool,selectable:bool,current:bool,has_faces:bool,colours:[Option<[u8;3]>;2],group:bool,root:bool,holds_current:bool}
 ```
-
-</details>
 
 Replace it with:
 
@@ -9673,8 +7999,7 @@ pub fn draw(root:&mut egui::Ui,model:&mut TreePanel,controls:&mut Option<Vec<Con
 struct RowState {hidden:bool,locked:bool,selectable:bool,current:bool,has_faces:bool,colours:[Option<[u8;3]>;2],group:bool,root:bool,holds_current:bool}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{hierarchy::Row,scene::ObjectId};
@@ -9778,75 +8103,38 @@ fn dialogs(ui:&mut egui::Ui,model:&mut TreePanel,controls:&mut Option<Vec<Contro
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53s-tree-controls-01.rs"
-```
-
-```text
---8<-- "journey/code/53s-tree-controls-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53t-input"></a>
 
 ### Step 22 of 23 · Route layer controls before handles and canvas input (`53t-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/23 Visual Trace (53t-input): Route layer controls before handles and canvas input</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measured panel input</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending layer edit</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked editor result</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">canvas ownership outside</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs, src/browser…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked editor result</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">canvas ownership outside</text>
 </svg>
-</div>
-
-- **Goal:** Route layer controls before handles and canvas input.
-- **Data Flow Trace:** `measured panel input → pending layer edit → checked editor result → canvas ownership outside`
-- **Files You Touch:** `src/panel.rs` (*Preserve active text-field focus and let popup rectangles own pointer and wheel input.*) · `src/browser.rs` (*Route pending layer edits and properties first, retain errors and expose current presentation diagnostics.*)
 
 Apply pending layer actions before handle gestures and asynchronous picks. Preserve existing text-field focus, include popup rectangles and retain rename errors until corrected.
 
-> **Self-Check Question:** *Should a failed layer rename close its field?*  
-> **Answer:** No. The typed name and error remain visible. Successful submission closes the draft; neither result submits a canvas pick beneath the control.
-
-- **Hands-On Lab Experiment:** Rename a group to a used name, then correct it. Scroll inside the colour menu and confirm that navigation resumes only outside the panel.
-
-<details>
-<summary>Implementation 53t-input: Route layer controls before handles and canvas input</summary>
-
-Route layer controls before handles and canvas input.
-
-Data flow: measured panel input → pending layer edit → checked editor result → canvas ownership outside.
+> **Check:** *Should a failed layer rename close its field?* — No. The typed name and error remain visible. Successful submission closes the draft; neither result submits a canvas pick beneath the control.
 
 ### 1. `src/panel.rs`
 
@@ -9854,8 +8142,7 @@ Preserve active text-field focus and let popup rectangles own pointer and wheel 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             unit: match event.delta_mode() { 1 => egui::MouseWheelUnit::Line, 2 => egui::MouseWheelUnit::Page, _ => egui::MouseWheelUnit::Point },
@@ -9866,8 +8153,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         over
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9881,8 +8166,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn pointer(&mut self, event: &web_sys::PointerEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {
@@ -9893,8 +8177,6 @@ Replace it with:
         if event.type_() == "pointerdown" {
             self.pointer_owned = over;
 ```
-
-</details>
 
 Replace it with:
 
@@ -9908,8 +8190,7 @@ Replace it with:
             self.pointer_owned = over;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         };
@@ -9920,8 +8201,6 @@ Replace it with:
             if !self.context.egui_wants_keyboard_input() && !number { self.model.focus_command=true; }
             self.context.memory_mut(|memory|memory.request_focus(egui::Id::new(if number {"number-input"} else {"command-input"})));
 ```
-
-</details>
 
 Replace it with:
 
@@ -9935,8 +8214,7 @@ Replace it with:
             self.context.memory_mut(|memory|memory.request_focus(egui::Id::new(if number {"number-input"} else {"command-input"})));
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -10209,35 +8487,13 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53t-input-01.rs"
-```
-
-```text
---8<-- "journey/code/53t-input-02.rs"
-```
-
-```text
---8<-- "journey/code/53t-input-03.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Route pending layer edits and properties first, retain errors and expose current presentation diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .get_element_by_id("canvas")
@@ -10247,8 +8503,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
     canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -10264,8 +8518,7 @@ Replace it with:
     canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 if waiting { panel.result("Reloading editable sources…"); Ok(None) }
@@ -10275,8 +8528,6 @@ Replace it with:
             match change {
                 Ok(Some(Change::Scene)) => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -10290,8 +8541,7 @@ Replace it with:
                 Ok(Some(Change::Scene)) => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } };
@@ -10301,8 +8551,6 @@ Replace it with:
             if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
 ```
-
-</details>
 
 Replace it with:
 
@@ -10316,8 +8564,7 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             None
@@ -10328,8 +8575,6 @@ Replace it with:
         } else if let Some(handle_action)=handle_action {
             renderer.cancel_pick();gesture.cancel();Some(handle_action)
 ```
-
-</details>
 
 Replace it with:
 
@@ -10347,8 +8592,7 @@ Replace it with:
             renderer.cancel_pick();gesture.cancel();Some(handle_action)
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -11064,91 +9308,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53t-input-04.rs"
-```
-
-```text
---8<-- "journey/code/53t-input-05-selection-refresh.rs"
-```
-
-```text
---8<-- "journey/code/53t-input-06.rs"
-```
-
-```text
---8<-- "journey/code/53t-input-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-53u-layers"></a>
 
 ### Step 23 of 23 · Exercise layers shortcuts colours and exact source ownership (`53u-layers`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/23 Visual Trace (53u-layers): Exercise layers shortcuts colours and exact source ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/command_dock/mod.rs, src/view_flags_tests.rs, src/lib.rs, src/layer_edit_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">real layer controls</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source-preserving</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">properties</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">group edit</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact undo and save</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">canvas shortcuts</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/command_dock/mod.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">group edit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">canvas shortcuts</text>
 </svg>
-</div>
-
-- **Goal:** Exercise layers shortcuts colours and exact source ownership.
-- **Data Flow Trace:** `real layer controls → source-preserving properties → group edit → exact undo and save → canvas shortcuts`
-- **Files You Touch:** `src/command_dock/mod.rs` (*Request command focus once; an open dock must allow the layer name to own typing.*) · `src/view_flags_tests.rs` (*Copy the full source ownership, history and actual control regressions.*) · `src/lib.rs` (*Register the new source component.*) · `src/layer_edit_tests.rs` (*Copy the full source ownership, history and actual control regressions.*) · `src/layer_ui_tests.rs` (*Copy the full source ownership, history and actual control regressions.*) · `src/pick_gpu_tests.rs` (*Copy the actual GPU colour, independent channel and geometry-reuse regression.*)
 
 The new layer-name field and the command dock share egui keyboard focus.
 
 Adapt the existing dock at this boundary: request focus once when focus_command is set, and gate completion and Escape on the field response. command_open describes display state, so it must not reclaim the keyboard every frame. Then exercise the full layer workflow using supplied source, history, GPU and combined egui fixtures. Preserve precise original geometry while presentation and layer membership change independently.
 
-> **Self-Check Question:** *Which layer operations belong in document Undo?*  
-> **Answer:** New, rename, move, copy, duplicate and delete. Hiding, showing, locking, recolouring, expansion and choosing current change presentation without consuming document Undo.
-
-- **What You Should See:** Type Close, Example Nested, Fit, View Isometric, then Layers All. Right-click Frame to create a sublayer, set it current, and add Example Box. Rename the layer, edit Faces and Edges separately, duplicate it and delete the copy with confirmation. Undo each document edit. Select Posts, press H then S outside text fields, and verify that Delete plus Undo restores its parent and attribute together. Hide one child, switch its parent off and on, and verify the child stays hidden while visible siblings return. Selecting a panel row fits its current selection.
-- **Hands-On Lab Experiment:** Create a sublayer, set it current, add geometry, rename, colour Faces and Edges, duplicate and delete with confirmation. Undo each document edit; use H/S/Delete only outside focused fields.
-
-<details>
-<summary>Implementation 53u-layers: Exercise layers shortcuts colours and exact source ownership</summary>
-
-Exercise layers shortcuts colours and exact source ownership.
-
-Data flow: real layer controls → source-preserving properties → group edit → exact undo and save → canvas shortcuts.
+> **Check:** *Which layer operations belong in document Undo?* — New, rename, move, copy, duplicate and delete. Hiding, showing, locking, recolouring, expansion and choosing current change presentation without consuming document Undo.
 
 ### 1. `src/command_dock/mod.rs`
 
@@ -11156,8 +9349,7 @@ Request command focus once; an open dock must allow the layer name to own typing
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         model.inline_suffix = false;
@@ -11168,8 +9360,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         model.command.clear();
         model.completion_visible = false;
 ```
-
-</details>
 
 Replace it with:
 
@@ -11183,8 +9373,7 @@ Replace it with:
         model.completion_visible = false;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if keys.browse != 0 || keys.tab {
@@ -11195,8 +9384,6 @@ Replace it with:
     if !focused || !model.completion_visible || choices.is_empty() || !model.options.is_empty() {
         return None;
 ```
-
-</details>
 
 Replace it with:
 
@@ -11210,8 +9397,7 @@ Replace it with:
         return None;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     previous: Option<egui::Rect>,
@@ -11222,8 +9408,6 @@ Replace it with:
         if model.focus_command {
             command_cursor_end(ui.ctx(), id, &model.command);
 ```
-
-</details>
 
 Replace it with:
 
@@ -11237,8 +9421,7 @@ Replace it with:
             command_cursor_end(ui.ctx(), id, &model.command);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use std::collections::VecDeque;
@@ -11906,29 +10089,7 @@ pub fn draw(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/53u-layers-focus-adapter-1.rs"
-```
-
-```text
---8<-- "journey/code/53u-layers-focus-adapter-2.rs"
-```
-
-```text
---8<-- "journey/code/53u-layers-focus-adapter-3.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11942,21 +10103,9 @@ Copy this supplied file:
 --8<-- "journey/code/53u-layers-01.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the new source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod layer_palette;
-```
-
-</details>
 
 After that block, type:
 
@@ -11964,8 +10113,7 @@ After that block, type:
 --8<-- "journey/code/53u-layers-02.rs" skip=24
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -11979,21 +10127,9 @@ Copy this supplied file:
 --8<-- "journey/code/53u-layers-03.rs"
 ```
 
-</details>
-
 ### 5. `src/lib.rs`
 
 Register the new source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod view_flags_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -12001,8 +10137,7 @@ After that block, type:
 --8<-- "journey/code/53u-layers-04.rs" skip=35
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12016,21 +10151,9 @@ Copy this supplied file:
 --8<-- "journey/code/53u-layers-05.rs"
 ```
 
-</details>
-
 ### 7. `src/lib.rs`
 
 Register the new source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod layer_edit_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -12038,8 +10161,7 @@ After that block, type:
 --8<-- "journey/code/53u-layers-06.rs" skip=35
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12047,49 +10169,27 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the actual GPU colour, independent channel and geometry-reuse regression.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.set_preview(Some(&draft)).unwrap(); scene.clear(); renderer.set_scene(&scene, None); assert_eq!(renderer.preview_bytes(), 0);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/53u-layers-07.rs" skip=141
 ```
 
-</details>
-
-</details>
+**Result after `53u-layers`:** Type Close, Example Nested, Fit, View Isometric, then Layers All. Right-click Frame to create a sublayer, set it current, and add Example Box. Rename the layer, edit Faces and Edges separately, duplicate it and delete the copy with confirmation. Undo each document edit. Select Posts, press H then S outside text fields, and verify that Delete plus Undo restores its parent and attribute together. Hide one child, switch its parent off and on, and verify the child stays hidden while visible siblings return. Selecting a panel row fits its current selection.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 53u-layers
-npm --prefix ../session_tests run course -- check 53u-layers
-npm --prefix ../session_tests run course -- save 53u-layers
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 8.3
+npm --prefix ../session_tests run course -- save 8.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 8.3 (53u-layers)](../../screenshots/journey/53u-layers.png)
-
-Type Close, Example Nested, Fit, View Isometric, then Layers All. Right-click Frame to create a sublayer, set it current, and add Example Box. Rename the layer, edit Faces and Edges separately, duplicate it and delete the copy with confirmation. Undo each document edit. Select Posts, press H then S outside text fields, and verify that Delete plus Undo restores its parent and attribute together. Hide one child, switch its parent off and on, and verify the child stays hidden while visible siblings return. Selecting a panel row fits its current selection.
-
-- **Final Lesson Experiment:** Create a sublayer, set it current, add geometry, rename, colour Faces and Edges, duplicate and delete with confirmation. Undo each document edit; use H/S/Delete only outside focused fields.
-
-Continue with [Navigation, delayed picks and direct dragging](54-camera.md).
+Continue with [8.4 · Navigation, delayed picks and direct dragging](54-camera.md).

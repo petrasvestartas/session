@@ -1,118 +1,64 @@
 # Section 3: Scene Documents, Transactions, and Browser GPU Lifetime
 
-> **Gemini Notebook Student Guide** · **Absorbs:** Chapter 3 (*Documents, editing and ownership*), Chapter 4 (*Browser lifetime and recovery*) · **Lessons:** 12 (`3.1`–`4.5`) · **Checkpoints:** 136 (`17-solid` → `34geb-reload`)
+**Absorbs:** Ch 3 (*Documents, editing and ownership*), Ch 4 (*Browser lifetime and recovery*) · **Lessons:** 12 · **Checkpoints:** 136 (`17-solid` → `34geb-reload`)
 
-## 1. Learning Outcome
-
-Integrate the `session_rust` geometry kernel, manage a single `Editor` owner with high-DPI viewport resizing and pointer capture, decode/save `.pb` Protobuf scene files asynchronously with transactional rollback and source-ownership guards, and harden the browser runtime with `Rc`/`Drop` listener cleanup, structured GPU fault diagnostics, `pagehide`/heartbeat suspension, and conservative WebGPU device recovery.
-
-## 2. WebGPU & Architecture Schematic (First-Year Student Guide)
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 3 Visual Explanation: Local Kernel Mesh → 4x4 World Placement, AABB Fit & Incremental GPU Sync</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Local f64 mesh placed in world space by 4x4 matrix M. Center: Transactional .pb decode gate. Right: Dirty-flag GPU sync.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Local Space -> World Placement & AABB -->
-    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Local Source → World Placement</text>
-    <!-- Local mesh box at (0,0) -->
-    <rect x="38" y="128" width="54" height="44" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="38" y1="172" x2="98" y2="172" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <line x1="38" y1="172" x2="38" y2="115" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
-    <text x="65" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Local</text>
-    <text x="65" y="186" text-anchor="middle" font-size="9" fill="#111111">(0,0,0) f64</text>
-    <!-- Transform arrow -->
-    <line x1="102" y1="145" x2="152" y2="132" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-    <text x="127" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">M (4x4)</text>
-    <!-- Placed rotated box inside dashed World AABB -->
-    <rect x="164" y="96" width="108" height="86" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="4,3"/>
-    <polygon points="196,104 260,126 240,174 176,152" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="218" y="194" text-anchor="middle" font-size="9" font-weight="600" fill="#111111">Dashed: World AABB (Fit)</text>
-    <rect x="30" y="204" width="250" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
-    <text x="155" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Cold CPU source dropped after GPU upload;</text>
-    <text x="155" y="229" text-anchor="middle" font-size="9" fill="#111111">re-fetched by SHA/revision only when edited</text>
-
-    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Transactional .pb Decode Gate -->
-    <rect x="317" y="64" width="235" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Transactional .pb Gate</text>
-    <rect x="333" y="96" width="203" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="434" y="113" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Async Fetch Ticket #N</text>
-    <text x="434" y="128" text-anchor="middle" font-size="9.5" fill="#111111">Cancels stale #N-1; checks byte cap</text>
-    <line x1="434" y1="138" x2="434" y2="154" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <rect x="333" y="156" width="203" height="78" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="434" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Atomic Validation Commit</text>
-    <text x="345" y="192" font-size="9.5" fill="#111111">• Valid topology -&gt; Replace Scene</text>
-    <text x="345" y="208" font-size="9.5" fill="#111111">• Corrupt bytes -&gt; Reject cleanly</text>
-    <text x="345" y="223" font-size="9.5" font-weight="600" fill="#111111">  (Zero partial scene corruption!)</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Incremental GPU Sync -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Incremental GPU Sync</text>
-    <rect x="590" y="96" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 1: Camera Orbit / Pan / Fit</text>
-    <text x="602" y="131" font-size="9.5" fill="#111111">• sync_scene = false, redraw = true</text>
-    <text x="602" y="147" font-size="9.5" font-weight="600" fill="#111111">• Writes 64-byte camera uniform ONLY</text>
-    <rect x="590" y="170" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="188" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 2: Mesh / Placement Edit</text>
-    <text x="602" y="205" font-size="9.5" fill="#111111">• sync_scene = true, redraw = true</text>
-    <text x="602" y="221" font-size="9.5" font-weight="600" fill="#111111">• Re-uploads dirty object buffers only</text>
-    
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Near Clip (w &gt; 0)</text>
+  <line x1="115" y1="58" x2="115" y2="162" stroke="#111111" stroke-width="2"/>
+  <text x="115" y="176" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">w = near</text>
+  <line x1="55" y1="142" x2="115" y2="110" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 4"/>
+  <line x1="115" y1="110" x2="210" y2="68" stroke="#111111" stroke-width="3"/>
+  <circle cx="55" cy="142" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="115" cy="110" r="4.5" fill="#111111"/>
+  <circle cx="210" cy="68" r="4" fill="#111111"/>
+  <text x="68" y="156" font-family="monospace" font-size="9" fill="#111111">Clipped</text>
+  <text x="180" y="95" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Kept</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Ribbon Quad</text>
+  <polygon points="338,120 480,68 498,108 356,160" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="347" y1="140" x2="489" y2="88" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="347" cy="140" r="4" fill="#111111"/>
+  <circle cx="489" cy="88" r="4" fill="#111111"/>
+  <line x1="418" y1="114" x2="407" y2="88" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="385" y="84" font-family="monospace" font-size="10" font-weight="700" fill="#111111">+n</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">6-Vert Extrusion</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. SDF Anti-Alias</text>
+  <line x1="620" y1="148" x2="788" y2="148" stroke="#111111" stroke-width="1.5"/>
+  <path d="M 628 148 L 656 76 L 752 76 L 780 148" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="704" y="68" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">alpha = 1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">smoothstep() Edge</text>
 </svg>
-</div>
 
-```
-+---------------------------------------------------------------------------------------------------+
-|                   ASYNC TRANSACTION & GPU LIFETIME ARCHITECTURE (CHAPTERS 3 & 4)                  |
-+---------------------------------------------------------------------------------------------------+
-  [File / URL .pb Bytes] 
-         |  (Ticket #N created; cancels Ticket #N-1)
-         v
-  +------------------------------+      Rejects invalid Protobuf     +------------------------------+
-  | Bounded Decode & Validation  | --------------------------------> | Keep Existing Document Intact|
-  +------------------------------+      (Zero partial mutation)      +------------------------------+
-         | Validated Scene
-         v
-  +------------------------------+      Release cold CPU bytes       +------------------------------+
-  | Editor Owner (Document +     | <===============================> | Shared GPU Geometry Cache    |
-  | Undo History + Placements)   |      Re-fetch exact revision      | (Retained Vertex/Index Buf)  |
-  +------------------------------+      by SHA/Version on edit       +------------------------------+
-         |
-         v
-  +-------------------------------------------------------------------------------------------------+
-  | Browser Runtime Guard: Active Listeners (Drop-safe) | Heartbeat Suspend | GPU Fault -> Recover  |
-  +-------------------------------------------------------------------------------------------------+
-```
+> **Learning Outcome:** Integrate the `session_rust` geometry kernel, manage a single `Editor` owner with high-DPI viewport resizing and pointer capture, decode/save `.pb` Protobuf scene files asynchronously with transactional rollback and source-ownership guards, and harden the browser runtime with `Rc`/`Drop` listener cleanup, structured GPU fault diagnostics, `pagehide`/heartbeat suspension, and conservative WebGPU device recovery.
 
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+## 1. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-| Layer | Construct | What It Does in Plain English |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **Rust (Smart Ptrs)** | `Rc<RefCell<Runtime>>` + `Closure::wrap` | Shares mutable application state safely with JS event callbacks in single-threaded WASM and drops closures cleanly on shutdown. |
 | **Protobuf / Rust** | `Message::decode(bytes)?` | Deserializes binary `session_proto` records into validated `session_rust` geometry structs. |
 | **Rust (Generations)** | `Ticket { id: u64, revision: u64 }` | Ensures an older slow async file/network fetch can never overwrite a newer scene state. |
 | **WebGPU (Faults)** | `device.on_uncaptured_error(...)` | Captures validation/out-of-memory faults into a bounded schema-validated diagnostic report and triggers safe reload. |
 
-## 3. Existing Chapters & Lessons Absorbed
+## 2. Lessons in This Section
 
-| Redraft Lesson | Existing Lesson | Title | Checkpoints | Range (`first` → `last`) | Consolidated Lesson Page |
+| Redraft | Existing | Lesson Title | Checkpoints | Range | Open Lesson |
 | :--- | :--- | :--- | ---: | :--- | :--- |
 | `3.1` | `3.1` | **Kernel geometry and a single editor owner** | 5 | `17-solid` → `19-actions` | [17-solid.md](../../consolidation/17-solid.md) · [Redraft](../lessons/17-solid.md) |
 | `3.2` | `3.2` | **One drawing size and one captured gesture** | 8 | `19a-viewport` → `22-shortcuts` | [19a-viewport.md](../../consolidation/19a-viewport.md) · [Redraft](../lessons/19a-viewport.md) |
@@ -127,41 +73,10 @@ Integrate the `session_rust` geometry kernel, manage a single `Editor` owner wit
 | `3.11` | `4.4` | **Heartbeat suspension and revocable startup** | 8 | `34g-heartbeat` → `34gbca-startup` | [34g-heartbeat.md](../../consolidation/34g-heartbeat.md) · [Redraft](../lessons/34g-heartbeat.md) |
 | `3.12` | `4.5` | **Measured phases and conservative GPU recovery** | 15 | `34gc-messages` → `34geb-reload` | [34gc-messages.md](../../consolidation/34gc-messages.md) · [Redraft](../lessons/34gc-messages.md) |
 
-## 4. Rendering, Geometry, Interaction, and Runtime Features Covered
+## 3. Core Features & Exercises
 
-### Rendering & Shaders
-- Surface directional/headlight Lambertian lighting (`dot(normal, light_dir)`)
-- Device-pixel-ratio (`DPR`) physical surface reconfiguration on window resize
-- Incremental GPU setting updates vs geometry cache reuse (updating view uniforms without re-uploading unchanging mesh buffers)
-
-### Geometry & Data Structures
-- Kernel `session_rust` solids (`Mesh`), axis-aligned scene bounding boxes (`Bounds`), and camera `Fit` / named projections (`Top`, `Front`, `Right`, `Perspective`, `Orthographic`)
-- Local-space source geometry vs 4x4 world placement matrices (`Model` transform)
-- Protobuf binary scene encoding/decoding (`session_proto`) with schema validation before allocation
-
-### User Interaction & Selection
-- Pointer capture (`setPointerCapture`) so drags stay owned across window boundaries; normalized wheel delta units (line vs pixel scroll)
-- Keyboard shortcuts, asynchronous file Open/Save dialogs, and transactional tickets that cancel stale in-flight imports
-
-### Browser Runtime & Production Authority (`session_viewer/src`)
-- Releasable CPU/GPU source ownership, fetch-on-demand source restoration, and replay of captured edits after source hydration
-- Browser callback lifetime ownership, bounded diagnostic event ring-buffer & JSON report download, `visibilitychange`/`pagehide` heartbeat suspension, and GPU device-lost recovery
-- Production authority: `src/state.rs`, `src/app/session_io.rs`, `src/app/decode.rs`, `src/app/fetch.rs`, `src/app/scene_release.rs`, `src/app/loader.rs`, `src/engine/gpu/device.rs`
-
-## 5. Practical Exercises & Expected Visible Results
-
-| Checkpoint(s) | Practical Student Exercise | Expected Visible Result |
+| Checkpoint | Exercise | Expected Result |
 | :--- | :--- | :--- |
 | `22-shortcuts / 26a-keys` | Import `sample-23.pb`, switch between `Top`, `Front`, and `Perspective` views, select one object, and run `Fit Selected`. | The camera frames only the selected object’s world bounding box while keeping the object above the Command Dock. |
 | `30e-recovery / 32gja-failures` | Release cold CPU source geometry, trigger a move edit that requires the original source, and test importing a truncated `.pb` file. | The truncated `.pb` is rejected atomically without clearing the current scene; the edit fetches the exact version-matched source and replays the move. |
 | `33b-cache / 34geb-reload` | Dispatch `pagehide` (`persisted: true`) and `pageshow` events in the browser console, then trigger a simulated GPU fault. | The runtime suspends timers on `pagehide`, resumes on `pageshow`, records a bounded diagnostic JSON report on GPU fault, and recovers the scene cleanly. |
-
-## 6. Verified Work vs. Remaining Implementation or Validation
-
-### Verified in Repository Evidence
-- [x] All 12 consolidated lessons (`3.1`–`3.7`, `4.1`–`4.5`) and all 136 checkpoints (`17-solid`..`34geb-reload`) are integrated and pass `checkpoints.test.ts` and the strict Vite docs build.
-- [x] Current endpoint passes 5 file-read cases, document phases, atomic failed import, and one-reload recovery in browser checks (`current-state.json` line 35).
-
-### Remaining Implementation or Validation
-- [ ] Browser lifecycle acceptance and the 5 measured performance categories (cold load, input-to-frame, steady frame time, upload/allocation, idle) remain open in Stage B2.
-- [ ] Chapter-specific accepted visual review images for Chapters 3 and 4 remain open.

@@ -1,208 +1,99 @@
 # 18.2 · Original contact metadata and ambient light
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.2** (Redraft `9.6`) · **33 checkpoints (`90-copy-maintained-original-contact-radius` → `90v-exercise-actual-contacts-cache-and-source-ownership`)** · **Study time: 16.5–33 h**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Checkpoints:** `90-copy-maintained-original-contact-radius` → `90v-exercise-actual-contacts-cache-and-source-ownership` (33 steps) · **Production source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs)
 
-> **What You Will Learn & Build:** Derive the existing contact radius from the original scene bounds. By the final checkpoint (`90v-exercise-actual-contacts-cache-and-source-ownership`), you will exercise actual contacts cache and source ownership.
+> **Goal:** Exercise actual contacts cache and source ownership.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
-    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
-    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
-    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
-    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
-    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="706" cy="175" r="4" fill="#111111"/>
-    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 18.2 Pipeline Schematic: Original contact metadata and ambient light</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (33 Checkpoints: 90-copy-maintained-original-contact-radius → 90v-exercise-actual-contacts-cache-and-source-ownership)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original properties</text>
-    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">cached ambient recipes</text>
-    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">shaded contact</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 18.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/ambient_radius.rs  ·  src/lib.rs  ·  src/ambient_camera.rs  ·  src/ambient_rows.rs  ·  src/ambient.wgsl  ·  src/ambient_composite.wgsl</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">33 Checkpoints: 90-copy-maintained-original-contact-radius → 90v-exercise-actual-contacts-cache-and-source-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Indexed Mesh</text>
+  <polygon points="65,68 185,68 65,148" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="185,68 185,148 65,148" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="65" cy="68" r="4" fill="#111111"/><text x="44" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v0</text>
+  <circle cx="185" cy="68" r="4" fill="#111111"/><text x="193" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v1</text>
+  <circle cx="65" cy="148" r="4" fill="#111111"/><text x="44" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v2</text>
+  <circle cx="185" cy="148" r="4" fill="#111111"/><text x="193" y="152" font-family="monospace" font-size="10" font-weight="700" fill="#111111">v3</text>
+  <text x="135" y="176" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">idx: [0,1,2, 2,1,3]</text>
+  <text x="135" y="191" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">4 Verts · 2 Triangles</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. view_proj * pos</text>
+  <circle cx="332" cy="112" r="5" fill="#111111"/>
+  <text x="332" y="132" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Eye</text>
+  <line x1="332" y1="112" x2="495" y2="62" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <line x1="332" y1="112" x2="495" y2="158" stroke="#111111" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="384" y="86" width="24" height="50" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="64" width="38" height="92" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="396" y="80" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Near</text>
+  <text x="481" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Far</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">mat4x4&lt;f32&gt; Uniform</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Z-Depth &amp; Ray Pick</text>
+  <rect x="688" y="68" width="84" height="62" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="642" y="84" width="84" height="62" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <line x1="604" y1="142" x2="676" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="680" cy="106" r="4" fill="#111111"/>
+  <text x="644" y="78" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 (Front)</text>
+  <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`90-copy-maintained-original-contact-radius`](#checkpoint-90-copy-maintained-original-contact-radius) | Derive the existing contact radius from the original scene bounds. | `src/ambient_radius.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **2** | [`90a-copy-current-viewing-rays`](#checkpoint-90a-copy-current-viewing-rays) | Unproject pixel neighbors into aligned world-space ray rows. | `src/ambient_camera.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **3** | [`90b-adapt-the-earlier-forward-camera`](#checkpoint-90b-adapt-the-earlier-forward-camera) | Adapt the earlier forward camera. | `src/ambient_camera.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **4** | [`90c-gather-weak-original-ambient-properties`](#checkpoint-90c-gather-weak-original-ambient-properties) | Gather weak original ambient properties. | `src/ambient_rows.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **5** | [`90d-copy-current-horizon-and-bilateral-recipes`](#checkpoint-90d-copy-current-horizon-and-bilateral-recipes) | Keep ray, depth, normal, radius and history inputs in explicit bind groups. | `src/ambient.wgsl` | `declare the ambient pass resource contracts` |
-| **6** | [`90da-reconstruct-original-surfaces-from-depth`](#checkpoint-90da-reconstruct-original-surfaces-from-depth) | Unproject framebuffer depth and recover ray positions without changing original CAD geometry. | `src/ambient.wgsl` | `reconstruct original surfaces from depth` |
-| **7** | [`90db-encode-normals-and-read-original-contact-metadata`](#checkpoint-90db-encode-normals-and-read-original-contact-metadata) | Read original radii, section normals and geometric fallback normals through the existing property textures. | `src/ambient.wgsl` | `encode normals and read original contact metadata` |
-| **8** | [`90dc-prepare-a-compact-depth-radius-and-normal-target`](#checkpoint-90dc-prepare-a-compact-depth-radius-and-normal-target) | Write ray distance, contact radius and octahedral normal into separate attachments. | `src/ambient.wgsl` | `prepare a compact depth radius and normal target` |
-| **9** | [`90dd-measure-ground-contact-along-bounded-horizons`](#checkpoint-90dd-measure-ground-contact-along-bounded-horizons) | Sample bounded directions and steps using the retained mip levels and physical contact radius. | `src/ambient.wgsl` | `measure ground contact along bounded horizons` |
-| **10** | [`90de-integrate-cosine-weighted-surface-visibility`](#checkpoint-90de-integrate-cosine-weighted-surface-visibility) | Accumulate the occluded part of each projected normal slice, with bounded horizon sampling. | `src/ambient.wgsl` | `integrate cosine weighted surface visibility` |
-| **11** | [`90df-filter-contact-without-crossing-unrelated-surfaces`](#checkpoint-90df-filter-contact-without-crossing-unrelated-surfaces) | Weight neighboring occlusion by surface separation, normal and contact radius. | `src/ambient.wgsl` | `filter contact without crossing unrelated surfaces` |
-| **12** | [`90dg-reject-invalid-ambient-history-before-blending`](#checkpoint-90dg-reject-invalid-ambient-history-before-blending) | Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood. | `src/ambient.wgsl` | `reject invalid ambient history before blending` |
-| **13** | [`90dh-reconstruct-full-resolution-contact-from-low-resolution-samples`](#checkpoint-90dh-reconstruct-full-resolution-contact-from-low-resolution-samples) | Use surface-aware weights to combine the four nearby low-resolution values. | `src/ambient.wgsl` | `reconstruct full resolution contact from low resolution samples` |
-| **14** | [`90di-collect-bounded-sample-corrections-with-gpu-atomics`](#checkpoint-90di-collect-bounded-sample-corrections-with-gpu-atomics) | Pack per-sample corrections and claim each affected tile once for indirect edge draws. | `src/ambient.wgsl` | `collect bounded sample corrections with gpu atomics` |
-| **15** | [`90dj-composite-contact-as-black-alpha-over-the-original-scene`](#checkpoint-90dj-composite-contact-as-black-alpha-over-the-original-scene) | Load the current contact amount and use per-sample masks for corrected edge draws. | `src/ambient_composite.wgsl` | `composite contact as black alpha over the original scene` |
-| **16** | [`90e-bind-real-original-normals-and-radii`](#checkpoint-90e-bind-real-original-normals-and-radii) | Read optional shader-interface validation before runtime pipeline creation. | `src/ambient_shader_contract.rs`, `src/lib.rs` | `assembled WGSL → Naga parse → type/entry validation → later pipeline creation` |
-| **17** | [`90f-write-original-surface-contact-properties`](#checkpoint-90f-write-original-surface-contact-properties) | Write original surface contact properties. | `src/ambient_sources.wgsl` | `original properties → cached ambient recipes → shaded contact` |
-| **18** | [`90g-build-the-depth-equal-original-property-pass`](#checkpoint-90g-build-the-depth-equal-original-property-pass) | Build the depth-equal original property pass. | `src/depth.rs`, `src/ambient_source_pipeline.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **19** | [`90h-cache-original-radius-buffers-and-draw-properties`](#checkpoint-90h-cache-original-radius-buffers-and-draw-properties) | Cache original radius buffers and draw properties. | `src/ambient_source_gpu.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **20** | [`90i-own-actual-ambient-image-allocation`](#checkpoint-90i-own-actual-ambient-image-allocation) | Own actual ambient image allocation. | `src/ambient_image.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **21** | [`90j-prepare-reduced-and-full-ambient-targets`](#checkpoint-90j-prepare-reduced-and-full-ambient-targets) | Prepare reduced and full ambient targets. | `src/ambient_images.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **22** | [`90k-build-explicit-ambient-fullscreen-pipelines`](#checkpoint-90k-build-explicit-ambient-fullscreen-pipelines) | Build explicit ambient fullscreen pipelines. | `src/ambient_pipeline.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **23** | [`90l-match-current-ambient-sampling-layouts`](#checkpoint-90l-match-current-ambient-sampling-layouts) | Match current ambient sampling layouts. | `src/ambient_pipeline.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **24** | [`90m-cache-reduced-levels-and-filtered-samples`](#checkpoint-90m-cache-reduced-levels-and-filtered-samples) | Cache reduced levels and filtered samples. | `src/ambient_groups.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **25** | [`90n-bind-exact-current-ambient-source-images`](#checkpoint-90n-bind-exact-current-ambient-source-images) | Bind exact current ambient source images. | `src/ambient_groups.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **26** | [`90o-record-explicit-ambient-passes`](#checkpoint-90o-record-explicit-ambient-passes) | Record explicit ambient passes. | `src/ambient_pass.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **27** | [`90p-own-cached-ambient-pipelines-and-release-images`](#checkpoint-90p-own-cached-ambient-pipelines-and-release-images) | Own cached ambient pipelines and release images. | `src/ambient_gpu.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **28** | [`90q-prepare-changed-ambient-framebuffer-inputs`](#checkpoint-90q-prepare-changed-ambient-framebuffer-inputs) | Prepare changed ambient framebuffer inputs. | `src/ambient_gpu.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **29** | [`90r-render-a-complete-ambient-result-in-one-frame`](#checkpoint-90r-render-a-complete-ambient-result-in-one-frame) | Render a complete ambient result in one frame. | `src/ambient_gpu.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **30** | [`90s-count-actual-ambient-resources-and-work`](#checkpoint-90s-count-actual-ambient-resources-and-work) | Count actual ambient resources and work. | `src/ambient_gpu.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **31** | [`90t-route-original-scene-properties-into-ambient-shading`](#checkpoint-90t-route-original-scene-properties-into-ambient-shading) | Route original scene properties into ambient shading. | `src/renderer.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **32** | [`90u-enable-arctic-as-a-presentation-change`](#checkpoint-90u-enable-arctic-as-a-presentation-change) | Enable Arctic as a presentation change. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `original properties → cached ambient recipes → shaded contact` |
-| **33** | [`90v-exercise-actual-contacts-cache-and-source-ownership`](#checkpoint-90v-exercise-actual-contacts-cache-and-source-ownership) | Exercise actual contacts cache and source ownership. | `src/ambient_gpu_tests.rs`, `src/renderer.rs`, `src/arctic_tests.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-90-copy-maintained-original-contact-radius"></a>
 
 ### Step 1 of 33 · Derive original contact radius (`90-copy-maintained-original-contact-radius`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/33 Visual Trace (90-copy-maintained-original-contact-radius): Derive original contact radius</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_radius.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_radius.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Derive the existing contact radius from the original scene bounds.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_radius.rs` (*Type the complete original geometry query and reuse its current consumer.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Derive the existing contact radius from the original scene bounds. Return zero for invalid bounds, scale the half-diagonal and retain the minimum radius. Reuse this scalar in the following ambient resources.
 
-> **Self-Check Question:** *Is contact radius a screen-space constant?*  
-> **Answer:** No. It derives from the placed original bounds, with the maintained minimum. Zoom changes its pixel footprint rather than its world size.
-
-- **Hands-On Lab Experiment:** Inspect half-extents, five-percent radius and the invalid-bounds guard.
-
-<details>
-<summary>Implementation 90-copy-maintained-original-contact-radius: Derive original contact radius</summary>
-
-Derive the existing contact radius from the original scene bounds.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Is contact radius a screen-space constant?* — No. It derives from the placed original bounds, with the maintained minimum. Zoom changes its pixel footprint rather than its world size.
 
 ### 1. `src/ambient_radius.rs`
 
@@ -218,70 +109,44 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod pyramid_gpu;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90-copy-maintained-original-contact-radius-02.rs" skip=22
 ```
 
-</details>
+---
 
 <a id="checkpoint-90a-copy-current-viewing-rays"></a>
 
 ### Step 2 of 33 · Write current viewing rays (`90a-copy-current-viewing-rays`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/33 Visual Trace (90a-copy-current-viewing-rays): Write current viewing rays</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_camera.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_camera.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Unproject pixel neighbors into aligned world-space ray rows.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_camera.rs` (*Type the complete existing WebGPU helper and reuse its current consumer.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Unproject neighboring pixel positions with the inverse camera matrix. Divide by the homogeneous coordinate, derive world-space pixel steps at two depths, and pack the ray origins and directions into six aligned vec4 rows for the existing ambient shader.
 
-> **Self-Check Question:** *Does a ray need source geometry?*  
-> **Answer:** No. Reconstruct its near point and direction from the inverse camera, then derive their changes across one pixel.
-
-- **Hands-On Lab Experiment:** Trace the maintained24-float ray recipe and affine pixel increments.
-
-<details>
-<summary>Implementation 90a-copy-current-viewing-rays: Write current viewing rays</summary>
-
-Unproject pixel neighbors into aligned world-space ray rows.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Does a ray need source geometry?* — No. Reconstruct its near point and direction from the inverse camera, then derive their changes across one pixel.
 
 ### 1. `src/ambient_camera.rs`
 
@@ -297,120 +162,48 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_radius;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90a-copy-current-viewing-rays-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-90b-adapt-the-earlier-forward-camera"></a>
 
 ### Step 3 of 33 · Adapt the earlier forward camera (`90b-adapt-the-earlier-forward-camera`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/33 Visual Trace (90b-adapt-the-earlier-forward-camera): Adapt the earlier forward camera</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_camera.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_camera.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Adapt the earlier forward camera.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_camera.rs` (*Adapt the earlier camera to the maintained ambient convention.*)
 
 Adapt the earlier forward camera.
 
-> **Self-Check Question:** *Can reversed ambient recipes read forward hardware depth directly?*  
-> **Answer:** No. Flip the camera depth consistently, retain its inverse and derive the same reversed rays used by the shader.
-
-- **Hands-On Lab Experiment:** Compare original camera coordinates with the320-byte ambient uniform and finite inverse guard.
-
-<details>
-<summary>Implementation 90b-adapt-the-earlier-forward-camera: Adapt the earlier forward camera</summary>
-
-Adapt the earlier forward camera.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Can reversed ambient recipes read forward hardware depth directly?* — No. Flip the camera depth consistently, retain its inverse and derive the same reversed rays used by the shader.
 
 ### 1. `src/ambient_camera.rs`
 
 Adapt the earlier camera to the maintained ambient convention.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn pixel_rays(inverse: &[f32; 16], size: (u32, u32)) -> [f32; 24] {
-    // world point at a pixel and depth, as the shader's `world`
-    let world = |x: f64, y: f64, z: f64| -> [f64; 3] {
-        let ndc = [
-            x / f64::from(size.0) * 2.0 - 1.0,
-            1.0 - y / f64::from(size.1) * 2.0,
-            z,
-            1.0,
-        ];
-        let p: [f64; 4] = std::array::from_fn(|row| {
-            (0..4)
-                .map(|col| f64::from(inverse[col * 4 + row]) * ndc[col])
-                .sum()
-        });
-        [p[0] / p[3], p[1] / p[3], p[2] / p[3]]
-    };
-    let near = [
-        world(0.0, 0.0, 1.0),
-        world(1.0, 0.0, 1.0),
-        world(0.0, 1.0, 1.0),
-    ];
-    let half = [
-        world(0.0, 0.0, 0.5),
-        world(1.0, 0.0, 0.5),
-        world(0.0, 1.0, 0.5),
-    ];
-    let ray: [[f64; 3]; 3] =
-        std::array::from_fn(|i| std::array::from_fn(|k| half[i][k] - near[i][k]));
-    let mut out = [0.0; 24];
-    for (i, base) in [near, ray].iter().enumerate() {
-        for k in 0..3 {
-            out[i * 12 + k] = base[0][k] as f32;
-            out[i * 12 + 4 + k] = (base[1][k] - base[0][k]) as f32;
-            out[i * 12 + 8 + k] = (base[2][k] - base[0][k]) as f32;
-        }
-    }
-    out
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -418,54 +211,38 @@ After that block, type:
 --8<-- "journey/code/90b-adapt-the-earlier-forward-camera-01.rs" skip=1245
 ```
 
-</details>
+---
 
 <a id="checkpoint-90c-gather-weak-original-ambient-properties"></a>
 
 ### Step 4 of 33 · Gather weak original ambient properties (`90c-gather-weak-original-ambient-properties`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/33 Visual Trace (90c-gather-weak-original-ambient-properties): Gather weak original ambient properties</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_rows.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_rows.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Gather weak original ambient properties.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_rows.rs` (*Gather current original contact properties without retaining source documents.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Gather weak original ambient properties.
 
-> **Self-Check Question:** *Must navigation rescan original vertices?*  
-> **Answer:** No. Reuse weak local bounds and derive placed radii and the virtual-ground height when scene inputs change.
-
-- **Hands-On Lab Experiment:** Compare shared source displays, world placements, visible originals and empty-cache release.
-
-<details>
-<summary>Implementation 90c-gather-weak-original-ambient-properties: Gather weak original ambient properties</summary>
-
-Gather weak original ambient properties.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Must navigation rescan original vertices?* — No. Reuse weak local bounds and derive placed radii and the virtual-ground height when scene inputs change.
 
 ### 1. `src/ambient_rows.rs`
 
@@ -481,65 +258,46 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_camera;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90c-gather-weak-original-ambient-properties-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-90d-copy-current-horizon-and-bilateral-recipes"></a>
 
 ### Step 5 of 33 · Declare the ambient pass resource contracts (`90d-copy-current-horizon-and-bilateral-recipes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/33 Visual Trace (90d-copy-current-horizon-and-bilateral-recipes): Declare the ambient pass resource contracts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">declare the ambient pass resource contracts</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">declare the ambient pas…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">declare the ambient pas…</text>
 </svg>
-</div>
-
-- **Goal:** Keep ray, depth, normal, radius and history inputs in explicit bind groups.
-- **Data Flow Trace:** `declare the ambient pass resource contracts`
-- **Files You Touch:** `src/ambient.wgsl` (*Keep ray, depth, normal, radius and history inputs in explicit bind groups.*)
 
 The uniform carries both projection matrices and affine ray coefficients.
 
 Keep geometry depth, reconstructed distance, normal encoding and physical radius in separate texture contracts. Storage corrections and atomic tile flags belong to the optional sample-correction path; history textures belong to temporal reuse. This prepares the shader; the existing pipeline lessons connect it later.
 
-> **Self-Check Question:** *Which resource stores geometry depth and which stores reconstructed ray distance?*  
-> **Answer:** The depth texture stores projected geometry depth. The linear target stores signed distance along a viewing ray; a negative value marks a ground hit.
-
-- **What You Should See:** The declare the ambient pass resource contracts shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Which resource stores geometry depth and which stores reconstructed ray distance? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90d-copy-current-horizon-and-bilateral-recipes: Declare the ambient pass resource contracts</summary>
-
-Keep ray, depth, normal, radius and history inputs in explicit bind groups.
-
-Data flow: declare the ambient pass resource contracts.
+> **Check:** *Which resource stores geometry depth and which stores reconstructed ray distance?* — The depth texture stores projected geometry depth. The linear target stores signed distance along a viewing ray; a negative value marks a ground hit.
 
 ### 1. `src/ambient.wgsl`
 
@@ -551,78 +309,46 @@ Create the file and type:
 --8<-- "journey/code/90d-copy-current-horizon-and-bilateral-recipes-01.wgsl"
 ```
 
-</details>
+**Result after `90d-copy-current-horizon-and-bilateral-recipes`:** The declare the ambient pass resource contracts shader section is written; the ambient pass is not connected yet.
+
+---
 
 <a id="checkpoint-90da-reconstruct-original-surfaces-from-depth"></a>
 
 ### Step 6 of 33 · Reconstruct original surfaces from depth (`90da-reconstruct-original-surfaces-from-depth`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/33 Visual Trace (90da-reconstruct-original-surfaces-from-depth): Reconstruct original surfaces from depth</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reconstruct original surfaces from depth</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reconstruct original su…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reconstruct original su…</text>
 </svg>
-</div>
-
-- **Goal:** Unproject framebuffer depth and recover ray positions without changing original CAD geometry.
-- **Data Flow Trace:** `reconstruct original surfaces from depth`
-- **Files You Touch:** `src/ambient.wgsl` (*Unproject framebuffer depth and recover ray positions without changing original CAD geometry.*)
 
 Convert a pixel center into normalized device coordinates, multiply by inverse_mvp, and divide by homogeneous w.
 
 The affine ray helpers instead recover positions at a known ray distance. A missing geometry depth may still produce a ground intersection; keep that distinction when reconstructing contact. These helpers use the existing forward-depth adapter at this checkpoint.
 
-> **Self-Check Question:** *Why is a cleared depth pixel different from a ground-plane intersection?*  
-> **Answer:** A cleared pixel has no geometry surface. A valid downward ray can still intersect the ground plane, which is recorded separately from geometry.
-
-- **What You Should See:** The reconstruct original surfaces from depth shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why is a cleared depth pixel different from a ground-plane intersection? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90da-reconstruct-original-surfaces-from-depth: Reconstruct original surfaces from depth</summary>
-
-Unproject framebuffer depth and recover ray positions without changing original CAD geometry.
-
-Data flow: reconstruct original surfaces from depth.
+> **Check:** *Why is a cleared depth pixel different from a ground-plane intersection?* — A cleared pixel has no geometry surface. A valid downward ray can still intersect the ground plane, which is recorded separately from geometry.
 
 ### 1. `src/ambient.wgsl`
 
 Unproject framebuffer depth and recover ray positions without changing original CAD geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-// Geometry access: ambient_geometry.wgsl, appended by ssao.rs
-@group(1) @binding(0) var linear: texture_2d<f32>;
-@group(1) @binding(1) var radii: texture_2d<u32>;
-@group(1) @binding(2) var normals: texture_2d<f32>;
-@group(2) @binding(0) var occlusion: texture_2d<f32>;
-@group(2) @binding(1) var linear_sampler: sampler;
-
-struct DepthRadius {
-    @location(0) depth: f32,
-    @location(1) radius: u32,
-    @location(2) normal: vec2<f32>,
-};
-struct Hit {
-    point: vec3<f32>,
-    along: f32,
-    radius: f32,
-};
-```
-
-</details>
 
 After that block, type:
 
@@ -665,84 +391,46 @@ fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90da-reconstruct-original-surfaces-from-depth`:** The reconstruct original surfaces from depth shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90da-reconstruct-original-surfaces-from-depth-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90db-encode-normals-and-read-original-contact-metadata"></a>
 
 ### Step 7 of 33 · Encode normals and read original contact metadata (`90db-encode-normals-and-read-original-contact-metadata`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/33 Visual Trace (90db-encode-normals-and-read-original-contact-metadata): Encode normals and read original contact metadata</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">encode normals and read original contact metadata</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">encode normals and read…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">encode normals and read…</text>
 </svg>
-</div>
-
-- **Goal:** Read original radii, section normals and geometric fallback normals through the existing property textures.
-- **Data Flow Trace:** `encode normals and read original contact metadata`
-- **Files You Touch:** `src/ambient.wgsl` (*Read original radii, section normals and geometric fallback normals through the existing property textures.*)
 
 An octahedral encoding folds a unit normal into two coordinates, reducing the normal attachment size.
 
 Read the original physical radius and normal from the property pass. For a section cap, use its clipping-plane normal. Only the remaining surfaces use depth-neighbor reconstruction; choose the nearer valid neighbors to avoid crossing a depth discontinuity.
 
-> **Self-Check Question:** *Why must a section cap supply its own surface normal?*  
-> **Answer:** A cap is a new displayed surface. Its normal comes from the clipping plane rather than an original triangle or a neighboring depth pixel.
-
-- **What You Should See:** The encode normals and read original contact metadata shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why must a section cap supply its own surface normal? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90db-encode-normals-and-read-original-contact-metadata: Encode normals and read original contact metadata</summary>
-
-Read original radii, section normals and geometric fallback normals through the existing property textures.
-
-Data flow: encode normals and read original contact metadata.
+> **Check:** *Why must a section cap supply its own surface normal?* — A cap is a new displayed surface. Its normal comes from the clipping plane rather than an original triangle or a neighboring depth pixel.
 
 ### 1. `src/ambient.wgsl`
 
 Read original radii, section normals and geometric fallback normals through the existing property textures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if direction.z>=-1e-7 || near.z<ambient.params.x { return vec4<f32>(0.0); }
-    return vec4<f32>(near+direction*((ambient.params.x-near.z)/direction.z),1.0);
-}
-fn surface(pixel: vec2<f32>, sample: i32) -> vec4<f32> {
-    return surface_at_depth(pixel,depth_sample(pixel,sample));
-}
-fn full_pixel(pixel: vec2<f32>) -> vec2<f32> {
-    return floor(pixel/ambient.extent.yz*ambient.params.zw)+0.5;
-}
-fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
-    return ray_origin(pixel)+ray_direction(pixel)*abs(along);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -778,76 +466,46 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90db-encode-normals-and-read-original-contact-metadata`:** The encode normals and read original contact metadata shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90db-encode-normals-and-read-original-contact-metadata-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90dc-prepare-a-compact-depth-radius-and-normal-target"></a>
 
 ### Step 8 of 33 · Prepare a compact depth radius and normal target (`90dc-prepare-a-compact-depth-radius-and-normal-target`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/33 Visual Trace (90dc-prepare-a-compact-depth-radius-and-normal-target): Prepare a compact depth radius and normal target</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepare a compact depth radius and normal target</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepare a compact depth…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepare a compact depth…</text>
 </svg>
-</div>
-
-- **Goal:** Write ray distance, contact radius and octahedral normal into separate attachments.
-- **Data Flow Trace:** `prepare a compact depth radius and normal target`
-- **Files You Touch:** `src/ambient.wgsl` (*Write ray distance, contact radius and octahedral normal into separate attachments.*)
 
 The preparation fragment emits three outputs: signed ray distance, a packed radius/source coordinate, and encoded normal.
 
 Pack the radius as a half-float witness while reserving coordinate bits for mip reduction. sample_hit decodes the selected coordinate and reconstructs its world position, so a reduced sample keeps its original surface relationship.
 
-> **Self-Check Question:** *Why carry the selected source coordinate through radius mip reduction?*  
-> **Answer:** Mip reduction must retain the coordinate of the chosen sample, so its reconstructed position and contact radius still refer to the same original surface.
-
-- **What You Should See:** The prepare a compact depth radius and normal target shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why carry the selected source coordinate through radius mip reduction? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90dc-prepare-a-compact-depth-radius-and-normal-target: Prepare a compact depth radius and normal target</summary>
-
-Write ray distance, contact radius and octahedral normal into separate attachments.
-
-Data flow: prepare a compact depth radius and normal target.
+> **Check:** *Why carry the selected source coordinate through radius mip reduction?* — Mip reduction must retain the coordinate of the chosen sample, so its reconstructed position and contact radius still refer to the same original surface.
 
 ### 1. `src/ambient.wgsl`
 
 Write ray distance, contact radius and octahedral normal into separate attachments.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
- if(cap>=0.5){let plane=(u32(cap)-1u)&7u;let n=-clipping.planes[plane].xyz;return select(-n,n,dot(n,-ray_direction(pixel))>0.0);}
- let a=surface(pixel+vec2<f32>(1.,0.),sample);let b=surface(pixel-vec2<f32>(1.,0.),sample);let c=surface(pixel+vec2<f32>(0.,1.),sample);let d=surface(pixel-vec2<f32>(0.,1.),sample);
- let dx=select(p-b.xyz,a.xyz-p,a.w>0.&& (b.w==0.||distance(a.xyz,p)<distance(b.xyz,p)));let dy=select(p-d.xyz,c.xyz-p,c.w>0.&&(d.w==0.||distance(c.xyz,p)<distance(d.xyz,p)));let n=cross(dx,dy);let normal=n/max(length(n),1e-12);return select(-normal,normal,dot(normal,-ray_direction(pixel))>0.);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -893,84 +551,46 @@ fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90dc-prepare-a-compact-depth-radius-and-normal-target`:** The prepare a compact depth radius and normal target shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90dc-prepare-a-compact-depth-radius-and-normal-target-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90dd-measure-ground-contact-along-bounded-horizons"></a>
 
 ### Step 9 of 33 · Measure ground contact along bounded horizons (`90dd-measure-ground-contact-along-bounded-horizons`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/33 Visual Trace (90dd-measure-ground-contact-along-bounded-horizons): Measure ground contact along bounded horizons</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">measure ground contact along bounded horizons</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">measure ground contact…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">measure ground contact…</text>
 </svg>
-</div>
-
-- **Goal:** Sample bounded directions and steps using the retained mip levels and physical contact radius.
-- **Data Flow Trace:** `measure ground contact along bounded horizons`
-- **Files You Touch:** `src/ambient.wgsl` (*Sample bounded directions and steps using the retained mip levels and physical contact radius.*)
 
 Ground contact samples fixed angular directions and quadratically spaced steps.
 
 Choose a coarser mip when the sample span grows, then reject invalid hits and hits beyond their physical radius. A stable pixel pattern offsets directions when history is reusable. The algorithm modifies the displayed contact amount, not the source geometry.
 
-> **Self-Check Question:** *What bounds the number of samples and their world reach?*  
-> **Answer:** The direction and step loops have fixed limits, and each hit is checked against its physical contact radius. Mip choice changes work without changing the source radius.
-
-- **What You Should See:** The measure ground contact along bounded horizons shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. What bounds the number of samples and their world reach? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90dd-measure-ground-contact-along-bounded-horizons: Measure ground contact along bounded horizons</summary>
-
-Sample bounded directions and steps using the retained mip levels and physical contact radius.
-
-Data flow: measure ground contact along bounded horizons.
+> **Check:** *What bounds the number of samples and their world reach?* — The direction and step loops have fixed limits, and each hit is checked against its physical contact radius. Mip choice changes work without changing the source radius.
 
 ### 1. `src/ambient.wgsl`
 
 Sample bounded directions and steps using the retained mip levels and physical contact radius.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let mask = (1u<<u32(level))-1u;
-    let offset_coord = vec2<u32>(encoded&3u,(encoded>>2u)&3u)&vec2<u32>(mask);
-    let source_coord = (vec2<u32>(coord)<<vec2<u32>(u32(level)))+offset_coord;
-    let pixel = full_pixel(vec2<f32>(source_coord)+0.5);
-    return Hit(position_at(pixel,along),along,unpack2x16float((encoded>>4u)<<2u).x*ambient.params.y);
-}
-fn stride() -> u32 {
-    return select(1u,2u,ambient.near.w!=0.0);
-}
-fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
-    return (u32(pixel.x)+u32(pixel.y))%stride;
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1024,82 +644,46 @@ fn filtered_ground(at: vec2<f32>) -> f32 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90dd-measure-ground-contact-along-bounded-horizons`:** The measure ground contact along bounded horizons shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90dd-measure-ground-contact-along-bounded-horizons-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90de-integrate-cosine-weighted-surface-visibility"></a>
 
 ### Step 10 of 33 · Integrate cosine weighted surface visibility (`90de-integrate-cosine-weighted-surface-visibility`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/33 Visual Trace (90de-integrate-cosine-weighted-surface-visibility): Integrate cosine weighted surface visibility</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">integrate cosine weighted surface visibility</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integrate cosine weight…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integrate cosine weight…</text>
 </svg>
-</div>
-
-- **Goal:** Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.
-- **Data Flow Trace:** `integrate cosine weighted surface visibility`
-- **Files You Touch:** `src/ambient.wgsl` (*Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.*)
 
 For each angular slice, project the surface normal into the plane spanned by the view and sample direction.
 
 Search both sides for the highest occluding horizon. arc integrates cosine-weighted visibility between horizon angles; the projected normal length weights the slice. Bias rejects near self-contact, and physical-radius falloff bounds distant contribution.
 
-> **Self-Check Question:** *How does the projected normal affect a horizon slice contribution?*  
-> **Answer:** Project the normal into the slice plane, integrate its visible horizon arc, and weight that slice by the projected normal length.
-
-- **What You Should See:** The integrate cosine weighted surface visibility shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. How does the projected normal affect a horizon slice contribution? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90de-integrate-cosine-weighted-surface-visibility: Integrate cosine weighted surface visibility</summary>
-
-Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.
-
-Data flow: integrate cosine weighted surface visibility.
+> **Check:** *How does the projected normal affect a horizon slice contribution?* — Project the normal into the slice plane, integrate its visible horizon arc, and weight that slice by the projected normal length.
 
 ### 1. `src/ambient.wgsl`
 
 Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if ray.z>=-1e-7 || origin.z<ambient.params.x { return 0.0; }
-    let along = (ambient.params.x-origin.z)/ray.z;
-    let p = origin+ray*along;
-    let pixel_world = max(length(ambient.near_x.xyz+ambient.ray_x.xyz*along),1e-6);
-    let noise = fract(52.9829189*fract(dot(floor(pixel.xy),vec2<f32>(0.06711056,0.00583715))));
-    return ground_contact(at,p,pixel_world,noise,phase(pixel.xy,stride()));
-}
-fn filtered_ground(at: vec2<f32>) -> f32 {
-    return textureSampleLevel(occlusion,linear_sampler,at/ambient.params.zw,0.0).x;
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1165,83 +749,46 @@ fn arc(h: f32, n: f32) -> f32 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90de-integrate-cosine-weighted-surface-visibility`:** The integrate cosine weighted surface visibility shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90de-integrate-cosine-weighted-surface-visibility-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90df-filter-contact-without-crossing-unrelated-surfaces"></a>
 
 ### Step 11 of 33 · Filter contact without crossing unrelated surfaces (`90df-filter-contact-without-crossing-unrelated-surfaces`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/33 Visual Trace (90df-filter-contact-without-crossing-unrelated-surfaces): Filter contact without crossing unrelated surfaces</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">filter contact without crossing unrelated surfaces</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">filter contact without…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">filter contact without…</text>
 </svg>
-</div>
-
-- **Goal:** Weight neighboring occlusion by surface separation, normal and contact radius.
-- **Data Flow Trace:** `filter contact without crossing unrelated surfaces`
-- **Files You Touch:** `src/ambient.wgsl` (*Weight neighboring occlusion by surface separation, normal and contact radius.*)
 
 A separable seven-tap filter reduces sampling noise.
 
 Its spatial Gaussian is multiplied by a surface weight based on normal separation and physical radius. Keep geometry and ground samples separate. Return the current neighborhood range as well as the filtered value; the temporal pass uses that range to limit stale history.
 
-> **Self-Check Question:** *Why can a plain screen-space blur leak contact through a thin part?*  
-> **Answer:** Nearby pixels can belong to distant or differently oriented surfaces. Bilateral weights reject those neighbors before their contact values are averaged.
-
-- **What You Should See:** The filter contact without crossing unrelated surfaces shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why can a plain screen-space blur leak contact through a thin part? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90df-filter-contact-without-crossing-unrelated-surfaces: Filter contact without crossing unrelated surfaces</summary>
-
-Weight neighboring occlusion by surface separation, normal and contact radius.
-
-Data flow: filter contact without crossing unrelated surfaces.
+> **Check:** *Why can a plain screen-space blur leak contact through a thin part?* — Nearby pixels can belong to distant or differently oriented surfaces. Bilateral weights reject those neighbors before their contact values are averaged.
 
 ### 1. `src/ambient.wgsl`
 
 Weight neighboring occlusion by surface separation, normal and contact radius.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-                if dot(delta,normal)<=span*0.07+bias { continue; }
-                let weight = max(1.0-smoothstep(radius*0.5,radius*2.0,span),0.75*(1.0-smoothstep(radius*4.0,radius*16.0,span)));
-                horizon = max(horizon,mix(low,dot(delta/span,view),weight));
-            }
-            let h = acos(clamp(horizon,-1.0,1.0));
-            slice_occ += arc(signed_n+1.570796327,signed_n)-arc(h,signed_n);
-        }
-        occluded += normal_length*slice_occ;
-    }
-    return clamp(occluded*(1.08*f32(stride)/4.0),0.0,0.65);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1288,86 +835,46 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90df-filter-contact-without-crossing-unrelated-surfaces`:** The filter contact without crossing unrelated surfaces shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90df-filter-contact-without-crossing-unrelated-surfaces-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90dg-reject-invalid-ambient-history-before-blending"></a>
 
 ### Step 12 of 33 · Reject invalid ambient history before blending (`90dg-reject-invalid-ambient-history-before-blending`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/33 Visual Trace (90dg-reject-invalid-ambient-history-before-blending): Reject invalid ambient history before blending</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reject invalid ambient history before blending</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reject invalid ambient…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reject invalid ambient…</text>
 </svg>
-</div>
-
-- **Goal:** Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.
-- **Data Flow Trace:** `reject invalid ambient history before blending`
-- **Files You Touch:** `src/ambient.wgsl` (*Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.*)
 
 Reproject the current reconstructed point with previous_mvp.
 
 Validate the prior viewport, clip w, signed surface category and depth before reading history. Clamp accepted history to the current filter range before blending. Store signed projected depth for the next frame, so reuse cannot silently mix ground and original geometry.
 
-> **Self-Check Question:** *When must a previous pixel be rejected even if its screen coordinate is in range?*  
-> **Answer:** Reject history outside the prior viewport, behind the camera, across ground/geometry classification, or with inconsistent depth. Then clamp accepted history to current neighboring values.
-
-- **What You Should See:** The reject invalid ambient history before blending shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. When must a previous pixel be rejected even if its screen coordinate is in range? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90dg-reject-invalid-ambient-history-before-blending: Reject invalid ambient history before blending</summary>
-
-Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.
-
-Data flow: reject invalid ambient history before blending.
+> **Check:** *When must a previous pixel be rejected even if its screen coordinate is in range?* — Reject history outside the prior viewport, behind the camera, across ground/geometry classification, or with inconsistent depth. Then clamp accepted history to current neighboring values.
 
 ### 1. `src/ambient.wgsl`
 
 Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let radius = select(ambient.params.y,radius_at(coord),along>0.0);
-    var sum = 0.0;
-    var weights = 0.0;
-    var low = 1.0;
-    var high = 0.0;
-    for (var i=0; i<7; i++) {
-        let q = clamp(coord+axis*(i-3),vec2<i32>(0),vec2<i32>(ambient.extent.yz)-1);
-        let weight = exp(-f32((i-3)*(i-3))*0.12)*weight_at(q,p,n,along>0.0,radius);
-        if weight>0.05 { low=min(low,values[i]); high=max(high,values[i]); }
-        sum += values[i]*weight;
-        weights += weight;
-    }
-    return vec3<f32>(sum/max(weights,1e-6),low,high);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1409,81 +916,44 @@ After that block, type:
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90dg-reject-invalid-ambient-history-before-blending`:** The reject invalid ambient history before blending shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90dg-reject-invalid-ambient-history-before-blending-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90dh-reconstruct-full-resolution-contact-from-low-resolution-samples"></a>
 
 ### Step 13 of 33 · Reconstruct full resolution contact from low resolution samples (`90dh-reconstruct-full-resolution-contact-from-low-resolution-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/33 Visual Trace (90dh-reconstruct-full-resolution-contact-from-low-resolution-samples): Reconstruct full resolution contact from low resolution samples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reconstruct full resolution contact from low resolution samples</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reconstruct full resolu…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reconstruct full resolu…</text>
 </svg>
-</div>
-
-- **Goal:** Use surface-aware weights to combine the four nearby low-resolution values.
-- **Data Flow Trace:** `reconstruct full resolution contact from low resolution samples`
-- **Files You Touch:** `src/ambient.wgsl` (*Use surface-aware weights to combine the four nearby low-resolution values.*)
 
 Locate the four surrounding reduced-resolution samples. Bilinear pixel weights provide spatial interpolation, while the same surface-aware predicate limits unrelated contributions. Normalize by the accepted weight sum. The full-resolution depth and original normal/radius determine the target surface being reconstructed.
 
-> **Self-Check Question:** *Why do upsample weights include surface geometry as well as pixel distance?*  
-> **Answer:** Pixel distance alone cannot tell whether two samples belong to the same surface. Geometry-aware weights preserve contact at object and ground boundaries.
-
-- **What You Should See:** The reconstruct full resolution contact from low resolution samples shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why do upsample weights include surface geometry as well as pixel distance? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90dh-reconstruct-full-resolution-contact-from-low-resolution-samples: Reconstruct full resolution contact from low resolution samples</summary>
-
-Use surface-aware weights to combine the four nearby low-resolution values.
-
-Data flow: reconstruct full resolution contact from low resolution samples.
+> **Check:** *Why do upsample weights include surface geometry as well as pixel distance?* — Pixel distance alone cannot tell whether two samples belong to the same surface. Geometry-aware weights preserve contact at object and ground boundaries.
 
 ### 1. `src/ambient.wgsl`
 
 Use surface-aware weights to combine the four nearby low-resolution values.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let previous = textureSampleLevel(history_ao,linear_sampler,uv,0.0).x;
-    return mix(current.x,clamp(previous,current.y,current.z),0.8);
-}
-@fragment fn fs_history(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
-    let coord = min(vec2<i32>(pixel.xy)*2+1,vec2<i32>(ambient.extent.yz)-1);
-    let along = textureLoad(linear,coord,0).x;
-    if along==0.0 { return 0.0; }
-    let p = position_at(full_pixel(vec2<f32>(coord)+0.5),along);
-    let clip = ambient.mvp*vec4<f32>(p,1.0);
-    return select(-clip.z/clip.w,clip.z/clip.w,along>0.0);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1520,86 +990,46 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90dh-reconstruct-full-resolution-contact-from-low-resolution-samples`:** The reconstruct full resolution contact from low resolution samples shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90dh-reconstruct-full-resolution-contact-from-low-resolution-samples-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90di-collect-bounded-sample-corrections-with-gpu-atomics"></a>
 
 ### Step 14 of 33 · Collect bounded sample corrections with GPU atomics (`90di-collect-bounded-sample-corrections-with-gpu-atomics`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/33 Visual Trace (90di-collect-bounded-sample-corrections-with-gpu-atomics): Collect bounded sample corrections with GPU atomics</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">collect bounded sample corrections with gpu atomics</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">collect bounded sample…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">collect bounded sample…</text>
 </svg>
-</div>
-
-- **Goal:** Pack per-sample corrections and claim each affected tile once for indirect edge draws.
-- **Data Flow Trace:** `collect bounded sample corrections with gpu atomics`
-- **Files You Touch:** `src/ambient.wgsl` (*Pack per-sample corrections and claim each affected tile once for indirect edge draws.*)
 
 The single-sample path returns its first reconstructed value directly.
 
 With sample corrections enabled, reconstruct only differing samples and pack their excess over a shared base. atomicOr claims each affected tile once; atomicAdd reserves four indirect instances for that tile. Buffers are owned and bounded by the later image-allocation lessons.
 
-> **Self-Check Question:** *Which atomic operation prevents the same tile from being appended twice?*  
-> **Answer:** atomicOr returns the old tile flag. Only the invocation seeing its previously unset bit claims an indirect draw slot with atomicAdd.
-
-- **What You Should See:** The collect bounded sample corrections with gpu atomics shader section is written; the ambient pass is not connected yet.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Which atomic operation prevents the same tile from being appended twice? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90di-collect-bounded-sample-corrections-with-gpu-atomics: Collect bounded sample corrections with GPU atomics</summary>
-
-Pack per-sample corrections and claim each affected tile once for indirect edge draws.
-
-Data flow: collect bounded sample corrections with gpu atomics.
+> **Check:** *Which atomic operation prevents the same tile from being appended twice?* — atomicOr returns the old tile flag. Only the invocation seeing its previously unset bit claims an indirect draw slot with atomicAdd.
 
 ### 1. `src/ambient.wgsl`
 
 Pack per-sample corrections and claim each affected tile once for indirect edge draws.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let origin = full_pixel(vec2<f32>(base)+0.5);
-    let blend = (at-origin)/(full_pixel(vec2<f32>(base)+1.5)-origin);
-    var sum = 0.0;
-    var weights = 0.0;
-    for (var i=0; i<4; i++) {
-        let offset = vec2<i32>(i%2,i/2);
-        let q = clamp(base+offset,vec2<i32>(0),vec2<i32>(ambient.extent.yz)-1);
-        let spatial = mix(1.0-blend,blend,vec2<f32>(offset));
-        let w = spatial.x*spatial.y*weight_at(q,p.xyz,n,geometry,radius);
-        sum += values[i]*w;
-        weights += w;
-    }
-    return sum/max(weights,1e-6);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1643,60 +1073,42 @@ After that block, type:
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `90di-collect-bounded-sample-corrections-with-gpu-atomics`:** The collect bounded sample corrections with gpu atomics shader section is written; the ambient pass is not connected yet.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90di-collect-bounded-sample-corrections-with-gpu-atomics-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90dj-composite-contact-as-black-alpha-over-the-original-scene"></a>
 
 ### Step 15 of 33 · Composite contact as black alpha over the original scene (`90dj-composite-contact-as-black-alpha-over-the-original-scene`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/33 Visual Trace (90dj-composite-contact-as-black-alpha-over-the-original-scene): Composite contact as black alpha over the original scene</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_composite.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">composite contact as black alpha over the original scene</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_composite.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">composite contact as bl…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">composite contact as bl…</text>
 </svg>
-</div>
-
-- **Goal:** Load the current contact amount and use per-sample masks for corrected edge draws.
-- **Data Flow Trace:** `composite contact as black alpha over the original scene`
-- **Files You Touch:** `src/ambient_composite.wgsl` (*Load the current contact amount and use per-sample masks for corrected edge draws.*)
 
 The ordinary fullscreen composite loads occlusion and returns black with that alpha.
 
 With standard alpha blending, the original color is multiplied by one minus contact. The optional edge pass reads packed corrections and emits a sample mask, so each correction affects only its own raster sample. Original color and geometry remain source inputs.
 
-> **Self-Check Question:** *Which color and alpha preserve the original scene hue while darkening contact?*  
-> **Answer:** Output black RGB with the contact amount as alpha. Alpha blending scales the existing scene color; sample masks restrict edge corrections to their own samples.
-
-- **What You Should See:** Both ambient shader modules are assembled for validation and the following pipeline connection.
-- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Which color and alpha preserve the original scene hue while darkening contact? Predict the resource values before the ambient pipeline connection.
-
-<details>
-<summary>Implementation 90dj-composite-contact-as-black-alpha-over-the-original-scene: Composite contact as black alpha over the original scene</summary>
-
-Load the current contact amount and use per-sample masks for corrected edge draws.
-
-Data flow: composite contact as black alpha over the original scene.
+> **Check:** *Which color and alpha preserve the original scene hue while darkening contact?* — Output black RGB with the contact amount as alpha. Alpha blending scales the existing scene color; sample masks restrict edge corrections to their own samples.
 
 ### 1. `src/ambient_composite.wgsl`
 
@@ -1708,62 +1120,42 @@ Create the file and type:
 --8<-- "journey/code/90dj-composite-contact-as-black-alpha-over-the-original-scene-01.wgsl"
 ```
 
-</details>
+**Result after `90dj-composite-contact-as-black-alpha-over-the-original-scene`:** Both ambient shader modules are assembled for validation and the following pipeline connection.
+
+---
 
 <a id="checkpoint-90e-bind-real-original-normals-and-radii"></a>
 
 ### Step 16 of 33 · Validate the assembled original ambient shader contracts (`90e-bind-real-original-normals-and-radii`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/33 Visual Trace (90e-bind-real-original-normals-and-radii): Validate the assembled original ambient shader contracts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_shader_contract.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">assembled WGSL</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Naga parse</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">type/entry validation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">later pipeline creation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_shader_contra…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">type/entry validation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later pipeline creation</text>
 </svg>
-</div>
-
-- **Goal:** Read optional shader-interface validation before runtime pipeline creation.
-- **Data Flow Trace:** `assembled WGSL → Naga parse → type/entry validation → later pipeline creation`
-- **Files You Touch:** `src/ambient_shader_contract.rs` (*Validate the actual shader types and public entry points.*) · `src/lib.rs` (*Compile the shader contract at the completed owner boundary.*)
 
 The original-property adapter is already assembled in the [preceding shader lessons](../../90dj-composite-contact-as-black-alpha-over-the-original-scene.md). This checkpoint supplies an optional native validation case using the Naga version reexported by wgpu; it adds no viewer implementation.
 
-> **Self-Check Question:** *Does compiling Rust prove that a shader has a valid GPU interface?*  
-> **Answer:** No. Parse the assembled WGSL, validate its types and entry points, then create its real pipelines at the connection boundary.
+> **Check:** *Does compiling Rust prove that a shader has a valid GPU interface?* — No. Parse the assembled WGSL, validate its types and entry points, then create its real pipelines at the connection boundary.
 
-- **What You Should See:** The supplied fixture checks both assembled shader interfaces. The browser drawing remains unchanged at this boundary.
-- **Hands-On Lab Experiment:** Read the optional fixture and locate vs_main and fs_main in both assembled modules. Identify a type mismatch that validation would reject, while keeping the declared shader intact for the following pipeline lessons. Native execution is optional.
-
-<details>
-<summary>Implementation 90e-bind-real-original-normals-and-radii: Validate the assembled original ambient shader contracts</summary>
-
-Read optional shader-interface validation before runtime pipeline creation.
-
-Data flow: assembled WGSL → Naga parse → type/entry validation → later pipeline creation.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1777,10 +1169,7 @@ Copy this supplied file:
 --8<-- "journey/code/90e-bind-real-original-normals-and-radii-validate.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1788,71 +1177,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Compile the shader contract at the completed owner boundary.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub mod ambient_rows;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/90e-bind-real-original-normals-and-radii-register.rs" skip=22
 ```
 
-</details>
+**Result after `90e-bind-real-original-normals-and-radii`:** The supplied fixture checks both assembled shader interfaces. The browser drawing remains unchanged at this boundary.
 
-</details>
+---
 
 <a id="checkpoint-90f-write-original-surface-contact-properties"></a>
 
 ### Step 17 of 33 · Write original surface contact properties (`90f-write-original-surface-contact-properties`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/33 Visual Trace (90f-write-original-surface-contact-properties): Write original surface contact properties</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_sources.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_sources.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Write original surface contact properties.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_sources.wgsl` (*Derive original ambient properties without changing color or source geometry.*)
 
 Write original surface contact properties.
 
-> **Self-Check Question:** *Can selected color change a contact radius?*  
-> **Answer:** No. A separate depth-equal pass writes original normals and world radius while preserving opaque color, depth and source coordinates.
-
-- **Hands-On Lab Experiment:** Compare authored/smooth normals, derivative face normals, clipping and octahedral encoding.
-
-<details>
-<summary>Implementation 90f-write-original-surface-contact-properties: Write original surface contact properties</summary>
-
-Write original surface contact properties.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Can selected color change a contact radius?* — No. A separate depth-equal pass writes original normals and world radius while preserving opaque color, depth and source coordinates.
 
 ### 1. `src/ambient_sources.wgsl`
 
@@ -1864,68 +1228,42 @@ Create the file and type:
 --8<-- "journey/code/90f-write-original-surface-contact-properties-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-90g-build-the-depth-equal-original-property-pass"></a>
 
 ### Step 18 of 33 · Build the depth-equal original property pass (`90g-build-the-depth-equal-original-property-pass`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/33 Visual Trace (90g-build-the-depth-equal-original-property-pass): Build the depth-equal original property pass</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/depth.rs, src/ambient_source_pipeline.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/depth.rs, src/ambient…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Build the depth-equal original property pass.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/depth.rs` (*Add an explicit depth-equal read-only property state.*) · `src/ambient_source_pipeline.rs` (*Build the compatible original property pass.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Build the depth-equal original property pass.
 
-> **Self-Check Question:** *Should the property pass move the visible surface?*  
-> **Answer:** No. Require the existing opaque depth and disable writes. Its compatible source/model/clip/radius layouts fit four groups.
-
-- **Hands-On Lab Experiment:** Inspect matching source vertex/normal streams and R32Float/RG8Unorm outputs.
-
-<details>
-<summary>Implementation 90g-build-the-depth-equal-original-property-pass: Build the depth-equal original property pass</summary>
-
-Build the depth-equal original property pass.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Should the property pass move the visible surface?* — No. Require the existing opaque depth and disable writes. Its compatible source/model/clip/radius layouts fit four groups.
 
 ### 1. `src/depth.rs`
 
 Add an explicit depth-equal read-only property state.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        stencil: Default::default(), bias: Default::default() }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1947,70 +1285,44 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_rows;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90g-build-the-depth-equal-original-property-pass-03.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-90h-cache-original-radius-buffers-and-draw-properties"></a>
 
 ### Step 19 of 33 · Cache original radius buffers and draw properties (`90h-cache-original-radius-buffers-and-draw-properties`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/33 Visual Trace (90h-cache-original-radius-buffers-and-draw-properties): Cache original radius buffers and draw properties</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_source_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_source_gpu.rs…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Cache original radius buffers and draw properties.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_source_gpu.rs` (*Own original property uniforms and compatible metadata draws.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Cache original radius buffers and draw properties.
 
-> **Self-Check Question:** *Does changing selection reupload original vertices?*  
-> **Answer:** No. Retain source geometry; update only changed radius data and draw eligible original rows through the property pass.
-
-- **Hands-On Lab Experiment:** Compare ID-keyed16-byte radius uniforms, checked live-owner pruning and actual metadata draw counts.
-
-<details>
-<summary>Implementation 90h-cache-original-radius-buffers-and-draw-properties: Cache original radius buffers and draw properties</summary>
-
-Cache original radius buffers and draw properties.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Does changing selection reupload original vertices?* — No. Retain source geometry; update only changed radius data and draw eligible original rows through the property pass.
 
 ### 1. `src/ambient_source_gpu.rs`
 
@@ -2026,70 +1338,44 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_source_pipeline;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90h-cache-original-radius-buffers-and-draw-properties-02.rs" skip=34
 ```
 
-</details>
+---
 
 <a id="checkpoint-90i-own-actual-ambient-image-allocation"></a>
 
 ### Step 20 of 33 · Own actual ambient image allocation (`90i-own-actual-ambient-image-allocation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/33 Visual Trace (90i-own-actual-ambient-image-allocation): Own actual ambient image allocation</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_image.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_image.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Own actual ambient image allocation.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_image.rs` (*Own actual single-level ambient images.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Own actual ambient image allocation.
 
-> **Self-Check Question:** *What does an image counter measure?*  
-> **Answer:** Its real dimensions and format bytes. It excludes unobservable driver storage for compiled pipelines.
-
-- **Hands-On Lab Experiment:** Calculate float radius, encoded normals, R8 ambient images and copy/readback usage.
-
-<details>
-<summary>Implementation 90i-own-actual-ambient-image-allocation: Own actual ambient image allocation</summary>
-
-Own actual ambient image allocation.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *What does an image counter measure?* — Its real dimensions and format bytes. It excludes unobservable driver storage for compiled pipelines.
 
 ### 1. `src/ambient_image.rs`
 
@@ -2105,70 +1391,44 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_source_gpu;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90i-own-actual-ambient-image-allocation-02.rs" skip=29
 ```
 
-</details>
+---
 
 <a id="checkpoint-90j-prepare-reduced-and-full-ambient-targets"></a>
 
 ### Step 21 of 33 · Prepare reduced and full ambient targets (`90j-prepare-reduced-and-full-ambient-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/33 Visual Trace (90j-prepare-reduced-and-full-ambient-targets): Prepare reduced and full ambient targets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_images.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_images.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Prepare reduced and full ambient targets.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_images.rs` (*Own compatible current ambient targets and exact allocation.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Prepare reduced and full ambient targets.
 
-> **Self-Check Question:** *Can a filter write the texture it currently samples?*  
-> **Answer:** Use separate targets and alternate completed passes. Original properties stay full-sized while ambient estimation uses the maintained reduced resolution.
-
-- **Hands-On Lab Experiment:** Compare six depth/radius mips, reduced normals, ground/occupancy, alternating filters and full-size output.
-
-<details>
-<summary>Implementation 90j-prepare-reduced-and-full-ambient-targets: Prepare reduced and full ambient targets</summary>
-
-Prepare reduced and full ambient targets.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Can a filter write the texture it currently samples?* — Use separate targets and alternate completed passes. Original properties stay full-sized while ambient estimation uses the maintained reduced resolution.
 
 ### 1. `src/ambient_images.rs`
 
@@ -2184,70 +1444,44 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_image;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90j-prepare-reduced-and-full-ambient-targets-02.rs" skip=24
 ```
 
-</details>
+---
 
 <a id="checkpoint-90k-build-explicit-ambient-fullscreen-pipelines"></a>
 
 ### Step 22 of 33 · Build explicit ambient fullscreen pipelines (`90k-build-explicit-ambient-fullscreen-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/33 Visual Trace (90k-build-explicit-ambient-fullscreen-pipelines): Build explicit ambient fullscreen pipelines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_pipeline.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_pipeline.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Build explicit ambient fullscreen pipelines.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_pipeline.rs` (*Build compatible fullscreen ambient pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Build explicit ambient fullscreen pipelines.
 
-> **Self-Check Question:** *Are all ambient stages interchangeable?*  
-> **Answer:** They have distinct entry points and targets. A small builder keeps layout, formats and alpha composition explicit.
-
-- **Hands-On Lab Experiment:** Inspect two/three-target preparation and R8 estimation versus RGBA black-alpha composition.
-
-<details>
-<summary>Implementation 90k-build-explicit-ambient-fullscreen-pipelines: Build explicit ambient fullscreen pipelines</summary>
-
-Build explicit ambient fullscreen pipelines.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Are all ambient stages interchangeable?* — They have distinct entry points and targets. A small builder keeps layout, formats and alpha composition explicit.
 
 ### 1. `src/ambient_pipeline.rs`
 
@@ -2263,86 +1497,48 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_images;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90k-build-explicit-ambient-fullscreen-pipelines-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-90l-match-current-ambient-sampling-layouts"></a>
 
 ### Step 23 of 33 · Match current ambient sampling layouts (`90l-match-current-ambient-sampling-layouts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/33 Visual Trace (90l-match-current-ambient-sampling-layouts): Match current ambient sampling layouts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_pipeline.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_pipeline.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Match current ambient sampling layouts.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_pipeline.rs` (*Build each compatible current ambient stage.*)
 
 Match current ambient sampling layouts.
 
-> **Self-Check Question:** *Can an R8 history image use a nonfilterable layout with a filtering sampler?*  
-> **Answer:** No. Match filter capability explicitly. Preparation borrows only group0; estimation and filtering use compatible four-group layouts.
-
-- **Hands-On Lab Experiment:** Trace original depth/camera/property bindings, reduced integer radius, filterable samples and inactive history bindings.
-
-<details>
-<summary>Implementation 90l-match-current-ambient-sampling-layouts: Match current ambient sampling layouts</summary>
-
-Match current ambient sampling layouts.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Can an R8 history image use a nonfilterable layout with a filtering sampler?* — No. Match filter capability explicitly. Preparation borrows only group0; estimation and filtering use compatible four-group layouts.
 
 ### 1. `src/ambient_pipeline.rs`
 
 Build each compatible current ambient stage.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-impl Pipelines{
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2350,54 +1546,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/90l-match-current-ambient-sampling-layouts-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-90m-cache-reduced-levels-and-filtered-samples"></a>
 
 ### Step 24 of 33 · Cache reduced levels and filtered samples (`90m-cache-reduced-levels-and-filtered-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/33 Visual Trace (90m-cache-reduced-levels-and-filtered-samples): Cache reduced levels and filtered samples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_groups.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_groups.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Cache reduced levels and filtered samples.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_groups.rs` (*Cache actual reduced-level and sample bindings.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Cache reduced levels and filtered samples.
 
-> **Self-Check Question:** *Does a content update replace every bind group?*  
-> **Answer:** No. Groups retain actual image views. Rebuild them only when image allocation changes.
-
-- **Hands-On Lab Experiment:** Inspect six level views, current ground/occupancy samples, alternating ambient images and separate inactive history resources.
-
-<details>
-<summary>Implementation 90m-cache-reduced-levels-and-filtered-samples: Cache reduced levels and filtered samples</summary>
-
-Cache reduced levels and filtered samples.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Does a content update replace every bind group?* — No. Groups retain actual image views. Rebuild them only when image allocation changes.
 
 ### 1. `src/ambient_groups.rs`
 
@@ -2413,86 +1593,48 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_pipeline;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90m-cache-reduced-levels-and-filtered-samples-02.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-90n-bind-exact-current-ambient-source-images"></a>
 
 ### Step 25 of 33 · Bind exact current ambient source images (`90n-bind-exact-current-ambient-source-images`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/33 Visual Trace (90n-bind-exact-current-ambient-source-images): Bind exact current ambient source images</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_groups.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_groups.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Bind exact current ambient source images.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_groups.rs` (*Bind exact current original inputs and camera resources.*)
 
 Bind exact current ambient source images.
 
-> **Self-Check Question:** *Can resizing keep the previous depth view?*  
-> **Answer:** No. Bind current original depth, property images, section data and the shared clipping uniform together.
-
-- **Hands-On Lab Experiment:** Compare changed depth/section view identity and the stable320-byte camera buffer.
-
-<details>
-<summary>Implementation 90n-bind-exact-current-ambient-source-images: Bind exact current ambient source images</summary>
-
-Bind exact current ambient source images.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Can resizing keep the previous depth view?* — No. Bind current original depth, property images, section data and the shared clipping uniform together.
 
 ### 1. `src/ambient_groups.rs`
 
 Bind exact current original inputs and camera resources.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let buffers=std::array::from_fn(|_|device.create_buffer(&wgpu::BufferDescriptor{label:Some("ambient reserved single-sample work"),size:16,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}));let mut entries=buffers.iter().enumerate().map(|(i,b)|wgpu::BindGroupEntry{binding:i as u32,resource:b.as_entire_binding()}).collect::<Vec<_>>();entries.push(wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&images.history.view)});entries.push(wgpu::BindGroupEntry{binding:5,resource:wgpu::BindingResource::TextureView(&images.history_depth.view)});let history=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient inactive single-sample history"),layout:&pipes.history,entries:&entries});Self{levels,occupancy,ground,ao,history,buffers}
- }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2500,54 +1642,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/90n-bind-exact-current-ambient-source-images-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-90o-record-explicit-ambient-passes"></a>
 
 ### Step 26 of 33 · Record explicit ambient passes (`90o-record-explicit-ambient-passes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/33 Visual Trace (90o-record-explicit-ambient-passes): Record explicit ambient passes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_pass.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_pass.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Record explicit ambient passes.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_pass.rs` (*Record one compatible ambient stage.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Record explicit ambient passes.
 
-> **Self-Check Question:** *Why complete each pass before sampling its output?*  
-> **Answer:** The GPU then transitions that image from render attachment to sampled input without a read/write conflict.
-
-- **Hands-On Lab Experiment:** Trace clear/load choices, explicit group indices and the fullscreen triangle.
-
-<details>
-<summary>Implementation 90o-record-explicit-ambient-passes: Record explicit ambient passes</summary>
-
-Record explicit ambient passes.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Why complete each pass before sampling its output?* — The GPU then transitions that image from render attachment to sampled input without a read/write conflict.
 
 ### 1. `src/ambient_pass.rs`
 
@@ -2563,70 +1689,44 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_groups;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90o-record-explicit-ambient-passes-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-90p-own-cached-ambient-pipelines-and-release-images"></a>
 
 ### Step 27 of 33 · Own cached ambient pipelines and release images (`90p-own-cached-ambient-pipelines-and-release-images`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/33 Visual Trace (90p-own-cached-ambient-pipelines-and-release-images): Own cached ambient pipelines and release images</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_gpu.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Own cached ambient pipelines and release images.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_gpu.rs` (*Own lazy ambient state and cached pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Own cached ambient pipelines and release images.
 
-> **Self-Check Question:** *Should Arctic Off discard compiled pipelines?*  
-> **Answer:** No. Release derived images and radius rows while retaining compiled pipelines and their320-byte camera buffer.
-
-- **Hands-On Lab Experiment:** Compare disabled allocation with retained pipeline ownership and explicit cache reset.
-
-<details>
-<summary>Implementation 90p-own-cached-ambient-pipelines-and-release-images: Own cached ambient pipelines and release images</summary>
-
-Own cached ambient pipelines and release images.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Should Arctic Off discard compiled pipelines?* — No. Release derived images and radius rows while retaining compiled pipelines and their320-byte camera buffer.
 
 ### 1. `src/ambient_gpu.rs`
 
@@ -2642,84 +1742,48 @@ Create the file and type:
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod ambient_pass;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/90p-own-cached-ambient-pipelines-and-release-images-02.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-90q-prepare-changed-ambient-framebuffer-inputs"></a>
 
 ### Step 28 of 33 · Prepare changed ambient framebuffer inputs (`90q-prepare-changed-ambient-framebuffer-inputs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/33 Visual Trace (90q-prepare-changed-ambient-framebuffer-inputs): Prepare changed ambient framebuffer inputs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Prepare changed ambient framebuffer inputs.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_gpu.rs` (*Prepare exact current ambient images and source bindings.*)
 
 Prepare changed ambient framebuffer inputs.
 
-> **Self-Check Question:** *Does a density change always need new images?*  
-> **Answer:** Reallocate only when the maintained reduced size or full framebuffer changes. A new depth/section view invalidates cached input bindings.
-
-- **Hands-On Lab Experiment:** Compare physical and reduced extents, input-view witnesses and actual preparation counts.
-
-<details>
-<summary>Implementation 90q-prepare-changed-ambient-framebuffer-inputs: Prepare changed ambient framebuffer inputs</summary>
-
-Prepare changed ambient framebuffer inputs.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Does a density change always need new images?* — Reallocate only when the maintained reduced size or full framebuffer changes. A new depth/section view invalidates cached input bindings.
 
 ### 1. `src/ambient_gpu.rs`
 
 Prepare exact current ambient images and source bindings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self,device:&wgpu::Device,queue:&wgpu::Queue){self.state=None;self.cached=None;self.sources.set(device,queue,&[]);self.error=None;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2727,71 +1791,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/90q-prepare-changed-ambient-framebuffer-inputs-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-90r-render-a-complete-ambient-result-in-one-frame"></a>
 
 ### Step 29 of 33 · Render a complete ambient result in one frame (`90r-render-a-complete-ambient-result-in-one-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/33 Visual Trace (90r-render-a-complete-ambient-result-in-one-frame): Render a complete ambient result in one frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Render a complete ambient result in one frame.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_gpu.rs` (*Render complete current single-sample ambient recipes with cached inputs.*)
 
 Render a complete ambient result in one frame.
 
-> **Self-Check Question:** *Must a static view settle over multiple frames?*  
-> **Answer:** This stage computes all current single-sample horizons and filters in one changed frame. Resting views reuse the final image and only composite it.
-
-- **Hands-On Lab Experiment:** Trace original properties, six depth levels, ground, GTAO, two filters, upsampling and final black-alpha composition.
-
-<details>
-<summary>Implementation 90r-render-a-complete-ambient-result-in-one-frame: Render a complete ambient result in one frame</summary>
-
-Render a complete ambient result in one frame.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Must a static view settle over multiple frames?* — This stage computes all current single-sample horizons and filters in one changed frame. Resting views reuse the final image and only composite it.
 
 ### 1. `src/ambient_gpu.rs`
 
 Render complete current single-sample ambient recipes with cached inputs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
-
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2799,70 +1834,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/90r-render-a-complete-ambient-result-in-one-frame-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-90s-count-actual-ambient-resources-and-work"></a>
 
 ### Step 30 of 33 · Count actual ambient resources and work (`90s-count-actual-ambient-resources-and-work`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/33 Visual Trace (90s-count-actual-ambient-resources-and-work): Count actual ambient resources and work</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Count actual ambient resources and work.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_gpu.rs` (*Expose exact allocation and explicit ambient work counters.*)
 
 Count actual ambient resources and work.
 
-> **Self-Check Question:** *Does a pipeline-set counter measure its driver memory?*  
-> **Answer:** No. Count visible image/buffer allocation separately from construction, preparation, uniform writes and render passes.
-
-- **Hands-On Lab Experiment:** Compare a resting view, disabled320-byte owner and image recreation with retained pipelines.
-
-<details>
-<summary>Implementation 90s-count-actual-ambient-resources-and-work: Count actual ambient resources and work</summary>
-
-Count actual ambient resources and work.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Does a pipeline-set counter measure its driver memory?* — No. Count visible image/buffer allocation separately from construction, preparation, uniform writes and render passes.
 
 ### 1. `src/ambient_gpu.rs`
 
 Expose exact allocation and explicit ambient work counters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  draw(encoder,&self.pipes.composite,&[color],&[(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2870,54 +1877,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/90s-count-actual-ambient-resources-and-work-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-90t-route-original-scene-properties-into-ambient-shading"></a>
 
 ### Step 31 of 33 · Route original scene properties into ambient shading (`90t-route-original-scene-properties-into-ambient-shading`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/33 Visual Trace (90t-route-original-scene-properties-into-ambient-shading): Route original scene properties into ambient shading</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Route original scene properties into ambient shading.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/renderer.rs` (*Connect current original properties and cached ambient rendering.*)
 
 Route original scene properties into ambient shading.
 
-> **Self-Check Question:** *Can ambient data outlive its original scene?*  
-> **Answer:** It keeps derived radius rows and weak display bounds. Empty originals release full images; source and clipping revisions invalidate shading independently of camera motion.
-
-- **Hands-On Lab Experiment:** Compare scene replacement, original placements, lazy activation, current section normals and unchanged geometry uploads.
-
-<details>
-<summary>Implementation 90t-route-original-scene-properties-into-ambient-shading: Route original scene properties into ambient shading</summary>
-
-Route original scene properties into ambient shading.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Can ambient data outlive its original scene?* — It keeps derived radius rows and weak display bounds. Empty originals release full images; source and clipping revisions invalidate shading independently of camera motion.
 
 ### 1. `src/renderer.rs`
 
@@ -2925,8 +1916,7 @@ Connect current original properties and cached ambient rendering.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
@@ -2936,8 +1926,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);tiles.map_report();
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2951,8 +1939,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     #[cfg(test)]
@@ -2962,8 +1949,6 @@ Replace it with:
     pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
     pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2979,8 +1964,7 @@ Replace it with:
     pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2990,8 +1974,6 @@ Replace it with:
         self.clipping.borrow_mut().set(scene);
         if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3005,8 +1987,7 @@ Replace it with:
         if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -3017,8 +1998,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3032,8 +2011,7 @@ Replace it with:
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3043,8 +2021,6 @@ pub struct Renderer {
     pyramid_revision:u64,
     caps:std::cell::RefCell<crate::caps_gpu::Caps>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3060,8 +2036,7 @@ pub struct Renderer {
     caps:std::cell::RefCell<crate::caps_gpu::Caps>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3581,83 +2556,38 @@ impl Renderer {
 mod pyramid_gpu_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90t-route-original-scene-properties-into-ambient-shading-01.rs"
-```
-
-```text
---8<-- "journey/code/90t-route-original-scene-properties-into-ambient-shading-02.rs"
-```
-
-```text
---8<-- "journey/code/90t-route-original-scene-properties-into-ambient-shading-03.rs"
-```
-
-```text
---8<-- "journey/code/90t-route-original-scene-properties-into-ambient-shading-04.rs"
-```
-
-```text
---8<-- "journey/code/90t-route-original-scene-properties-into-ambient-shading-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90u-enable-arctic-as-a-presentation-change"></a>
 
 ### Step 32 of 33 · Enable Arctic as a presentation change (`90u-enable-arctic-as-a-presentation-change`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/33 Visual Trace (90u-enable-arctic-as-a-presentation-change): Enable Arctic as a presentation change</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Enable Arctic as a presentation change.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/editor.rs` (*Connect current Arctic activation and truthful browser diagnostics.*) · `src/commands.rs` (*Connect current Arctic activation and truthful browser diagnostics.*) · `src/browser.rs` (*Connect current Arctic activation and truthful browser diagnostics.*)
 
 Enable Arctic as a presentation change.
 
-> **Self-Check Question:** *Should Arctic discard a pending point or Redo?*  
-> **Answer:** No. Strict On/Off or toggle changes presentation before tool, annotation and captured-source cleanup. Document history stays unchanged.
-
-- **Hands-On Lab Experiment:** Try On/Off, mixed case and invalid arguments while a line awaits its second point.
-
-<details>
-<summary>Implementation 90u-enable-arctic-as-a-presentation-change: Enable Arctic as a presentation change</summary>
-
-Enable Arctic as a presentation change.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
+> **Check:** *Should Arctic discard a pending point or Redo?* — No. Strict On/Off or toggle changes presentation before tool, annotation and captured-source cleanup. Document history stays unchanged.
 
 ### 1. `src/editor.rs`
 
@@ -3665,8 +2595,7 @@ Connect current Arctic activation and truthful browser diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
@@ -3676,8 +2605,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
             Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -3691,8 +2618,7 @@ Replace it with:
             Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3702,8 +2628,6 @@ Replace it with:
         if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else{self.apply(Action::Picked(None))}}
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel){self.mark=None;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3717,8 +2641,7 @@ Replace it with:
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel){self.mark=None;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -3729,8 +2652,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3744,8 +2665,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -3755,8 +2675,6 @@ pub struct Editor {
     pub interaction_epoch:u64,
     pub lasso:Option<crate::lasso::Lasso>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3770,8 +2688,7 @@ pub struct Editor {
     pub lasso:Option<crate::lasso::Lasso>,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3781,8 +2698,6 @@ pub enum Action {
     SelectLasso,LassoPress{at:[f64;2],size:[f64;2],density:f64,pointer:i32},LassoMove{at:[f64;2],pointer:i32},LassoRelease{at:[f64;2],pointer:i32,add:bool,remove:bool},LassoCancel,
     AddGroup(String),AddEdge,
 ```
-
-</details>
 
 Replace it with:
 
@@ -3796,8 +2711,7 @@ pub enum Action {
     AddGroup(String),AddEdge,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4961,43 +3875,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-01.rs"
-```
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-02.rs"
-```
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-03.rs"
-```
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-04.rs"
-```
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-05.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Connect current Arctic activation and truthful browser diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
@@ -5007,8 +3891,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
     if matches!(name,"Arrow"|"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5022,8 +3904,7 @@ Replace it with:
     if matches!(name,"Arrow"|"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5033,8 +3914,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
     ("Add Group",||Action::AddGroup(String::new())),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5048,8 +3927,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Add Group",||Action::AddGroup(String::new())),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -5263,31 +4141,13 @@ fn command_alias(line:&str)->String{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-06.rs"
-```
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-07.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Connect current Arctic activation and truthful browser diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
@@ -5298,8 +4158,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5313,8 +4171,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
@@ -5324,8 +4181,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5339,8 +4194,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -6208,75 +5062,40 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-08.rs"
-```
-
-```text
---8<-- "journey/code/90u-enable-arctic-as-a-presentation-change-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-90v-exercise-actual-contacts-cache-and-source-ownership"></a>
 
 ### Step 33 of 33 · Exercise actual contacts cache and source ownership (`90v-exercise-actual-contacts-cache-and-source-ownership`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/33 Visual Trace (90v-exercise-actual-contacts-cache-and-source-ownership): Exercise actual contacts cache and source ownership</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu_tests.rs, src/renderer.rs, src/arctic_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original properties</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached ambient recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shaded contact</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_gpu_tests.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached ambient recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shaded contact</text>
 </svg>
-</div>
-
-- **Goal:** Exercise actual contacts cache and source ownership.
-- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
-- **Files You Touch:** `src/ambient_gpu_tests.rs` (*Copy supplied actual contact/frame/cache/release fixtures.*) · `src/renderer.rs` (*Register actual renderer-local ambient fixtures.*) · `src/arctic_tests.rs` (*Copy supplied current presentation and original-history fixtures.*) · `src/lib.rs` (*Register the completed section component.*)
 
 Exercise actual contacts cache and source ownership.
 
-> **Self-Check Question:** *What proves the contact chapter works?*  
-> **Answer:** Compare rendered isometric contact pixels and virtual-ground shadows, then check complete first/resting frames, pipeline reuse, release and unchanged originals.
+> **Check:** *What proves the contact chapter works?* — Compare rendered isometric contact pixels and virtual-ground shadows, then check complete first/resting frames, pipeline reuse, release and unchanged originals.
 
-- **What You Should See:** The original solid casts soft contact shading on the virtual ground while its source and black ink remain unchanged.
-- **Hands-On Lab Experiment:** Show Example CAD, use View Isometric and Fit, then compare Arctic On and Off. Orbit to inspect the virtual ground shadow. Start a Line with one point, toggle Arctic and confirm the draft survives before cancelling it. Exact contact pixels and cache counters are separate supplied validation.
-
-<details>
-<summary>Implementation 90v-exercise-actual-contacts-cache-and-source-ownership: Exercise actual contacts cache and source ownership</summary>
-
-Exercise actual contacts cache and source ownership.
-
-Data flow: original properties → cached ambient recipes → shaded contact.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6290,10 +5109,7 @@ Copy this supplied file:
 --8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6301,26 +5117,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register actual renderer-local ambient fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[path="pyramid_gpu_tests.rs"]
-mod pyramid_gpu_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-02.rs" skip=54
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6334,10 +5137,7 @@ Copy this supplied file:
 --8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6345,47 +5145,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod ambient_gpu;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-04.rs" skip=22
 ```
 
-</details>
-
-</details>
+**Result after `90v-exercise-actual-contacts-cache-and-source-ownership`:** The original solid casts soft contact shading on the virtual ground while its source and black ink remain unchanged.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 90v-exercise-actual-contacts-cache-and-source-ownership
-npm --prefix ../session_tests run course -- check 90v-exercise-actual-contacts-cache-and-source-ownership
-npm --prefix ../session_tests run course -- save 90v-exercise-actual-contacts-cache-and-source-ownership
+npm --prefix ../session_tests run course -- dependencies 18.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 18.2
+npm --prefix ../session_tests run course -- save 18.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The original solid casts soft contact shading on the virtual ground while its source and black ink remain unchanged.
-
-- **Final Lesson Experiment:** Show Example CAD, use View Isometric and Fit, then compare Arctic On and Off. Orbit to inspect the virtual ground shadow. Start a Line with one point, toggle Arctic and confirm the draft survives before cancelling it. Exact contact pixels and cache counters are separate supplied validation.
-
-Continue with [Section-aware outlines and one presentation composite](../../consolidation/91-include-visible-section-coverage.md).
+Continue with [18.3 · Section-aware outlines and one presentation composite](../../consolidation/91-include-visible-section-coverage.md).

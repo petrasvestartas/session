@@ -1,211 +1,96 @@
 # 19.3 · Original owners across selection, copying and display
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.3** (Redraft `10.3`) · **8 checkpoints (`96s-resolve-feature-rows-to-original-element-owners` → `96z-preserve-source-feature-visibility-and-pixel-styles`)** · **Study time: 4–8 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96s-resolve-feature-rows-to-original-element-owners` → `96z-preserve-source-feature-visibility-and-pixel-styles` (8 steps) · **Production source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [app/deform.rs](../../../../src/app/deform.rs) · [app/walk/mod.rs](../../../../src/app/walk/mod.rs)
 
-> **What You Will Learn & Build:** Trace each derived feature back to the nearest original Element without crossing an independent child Element. By the final checkpoint (`96z-preserve-source-feature-visibility-and-pixel-styles`), you will project only visible original features, with two-pixel lines and twelve-pixel point discs.
+> **Goal:** Project only visible original features, with two-pixel lines and twelve-pixel point discs.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 19.3 Pipeline Schematic: Original owners across selection, copying and display</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 96s-resolve-feature-rows-to-original-element-owners → 96z-preserve-source-feature-visibility-and-pixel-styles)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">feature row</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest original</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">Element</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">editing selection</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and derived</text>
-    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">highlight</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">source feature</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">visibility</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">coincident-point</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">classification</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 19.3:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/feature_owner.rs  ·  src/lib.rs  ·  src/tree_panel.rs  ·  src/editor.rs  ·  src/feature_owner_tests.rs  ·  src/camera.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 96s-resolve-feature-rows-to-original-element-owners → 96z-preserve-source-feature-visibility-and-pixel-styles — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96s-resolve-feature-rows-to-original-element-owners`](#checkpoint-96s-resolve-feature-rows-to-original-element-owners) | Trace each derived feature back to the nearest original Element without crossing an independent child Element. | `src/feature_owner.rs`, `src/lib.rs` | `feature row → nearest original Element → editing selection and derived highlight` |
-| **2** | [`96t-select-and-highlight-original-feature-owners`](#checkpoint-96t-select-and-highlight-original-feature-owners) | Connect feature-row clicks to original-owner selection and the existing editing/history path. | `src/tree_panel.rs`, `src/editor.rs`, `src/feature_owner_tests.rs`, `src/lib.rs` | `feature row → nearest original Element → editing selection and derived highlight` |
-| **3** | [`96u-fit-original-box-corners-to-the-free-canvas`](#checkpoint-96u-fit-original-box-corners-to-the-free-canvas) | Replace sphere fitting with the current projected-corner constraint and five-percent margin. | `src/camera.rs`, `src/projected_fit_tests.rs`, `src/lib.rs` | `original bounds → camera-axis offsets → free-rectangle constraints → distance` |
-| **4** | [`96v-project-definition-and-per-instance-features`](#checkpoint-96v-project-definition-and-per-instance-features) | Reuse feature projection while keeping shared definitions and separate instance ownership. | `src/instance_features.rs`, `src/lib.rs`, `src/scene_document.rs`, `src/feature_owner.rs` | `shared definition features + per-instance features → display-only projection → instance placement once → original instance selection` |
-| **5** | [`96w-detach-copied-original-source-identity`](#checkpoint-96w-detach-copied-original-source-identity) | Detach copied original source identity | `src/scene.rs` | `original source → fresh copy identity → original placement → regenerated display` |
-| **6** | [`96x-regenerate-display-for-copied-feature-owners`](#checkpoint-96x-regenerate-display-for-copied-feature-owners) | Regenerate display for copied feature owners | `src/layer_edit.rs`, `src/copy_feature_tests.rs`, `src/lib.rs` | `original source → fresh copy identity → original placement → regenerated display` |
-| **7** | [`96y-address-feature-pixels-to-original-cad-owners`](#checkpoint-96y-address-feature-pixels-to-original-cad-owners) | Address feature pixels to original CAD owners | `src/feature_owner.rs`, `src/pick_sources.rs`, `src/feature_pick_tests.rs`, `src/lib.rs` | `original source → fresh copy identity → original placement → regenerated display` |
-| **8** | [`96z-preserve-source-feature-visibility-and-pixel-styles`](#checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles) | Project only visible original features, with two-pixel lines and twelve-pixel point discs. | `src/feature_display.rs`, `src/feature_style_tests.rs`, `src/lib.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96s-resolve-feature-rows-to-original-element-owners"></a>
 
 ### Step 1 of 8 · Resolve feature rows to original Element owners (`96s-resolve-feature-rows-to-original-element-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (96s-resolve-feature-rows-to-original-element-owners): Resolve feature rows to original Element owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/feature_owner.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">feature row</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">nearest original Element</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">editing selection and derived</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">highlight</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/feature_owner.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">nearest original Element</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">editing selection and d…</text>
 </svg>
-</div>
-
-- **Goal:** Trace each derived feature back to the nearest original Element without crossing an independent child Element.
-- **Data Flow Trace:** `feature row → nearest original Element → editing selection and derived highlight`
-- **Files You Touch:** `src/feature_owner.rs` (*Resolve ownership through bounded hierarchy parent links and collect visible display highlights.*) · `src/lib.rs` (*Compile the owner resolver alongside the existing scene and hierarchy.*)
 
 The import now has read-only display pieces, but the maintained panel can select their owner.
 
 Walk parent links from the clicked row and stop at the first original Element. Check that owner through the ordinary editable-object predicate. A hidden or locked owner therefore cannot be reached through its feature rows.
 
-Use the same walk to collect visible derived paths for highlighting. Stop at an independent child Element, so selecting the host does not highlight that child’s own feature. Selection still contains only editable originals; the wider list is consumed only by the renderer.
-
-> **Self-Check Question:** *Does clicking a projected feature make the display path editable?*  
-> **Answer:** No. Resolve the original Element that owns the feature. Selection, camera Fit and editing target that owner; generated paths only contribute visible highlight.
-
-- **What You Should See:** Keep the imported specimen and select feature rows through their original Element owner.
-- **Hands-On Lab Experiment:** Trace a host feature and an independent child through the ownership helper. Stop at the nearest original Element. This preparation retains the previous browser selection behavior until the [input connection](../../96t-select-and-highlight-original-feature-owners.md).
-
-<details>
-<summary>Implementation 96s-resolve-feature-rows-to-original-element-owners: Resolve feature rows to original Element owners</summary>
-
-Trace each derived feature back to the nearest original Element without crossing an independent child Element.
-
-Data flow: feature row → nearest original Element → editing selection and derived highlight.
+> **Check:** *Does clicking a projected feature make the display path editable?* — No. Resolve the original Element that owns the feature. Selection, camera Fit and editing target that owner; generated paths only contribute visible highlight.
 
 ### 1. `src/feature_owner.rs`
 
@@ -221,75 +106,48 @@ Create the file and type:
 
 Compile the owner resolver alongside the existing scene and hierarchy.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod command_vocabulary;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/96s-resolve-feature-rows-to-original-element-owners-02.rs" skip=24
 ```
 
-</details>
+**Result after `96s-resolve-feature-rows-to-original-element-owners`:** Keep the imported specimen and select feature rows through their original Element owner.
+
+---
 
 <a id="checkpoint-96t-select-and-highlight-original-feature-owners"></a>
 
 ### Step 2 of 8 · Select and highlight original feature owners (`96t-select-and-highlight-original-feature-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (96t-select-and-highlight-original-feature-owners): Select and highlight original feature owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tree_panel.rs, src/editor.rs, src/feature_owner_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">feature row</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">nearest original Element</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">editing selection and derived</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">highlight</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tree_panel.rs, src/ed…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">nearest original Element</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">editing selection and d…</text>
 </svg>
-</div>
-
-- **Goal:** Connect feature-row clicks to original-owner selection and the existing editing/history path.
-- **Data Flow Trace:** `feature row → nearest original Element → editing selection and derived highlight`
-- **Files You Touch:** `src/tree_panel.rs` (*Resolve an eligible original owner independently of the displayed feature IDs.*) · `src/editor.rs` (*Extend only renderer highlighting; retain the original editing selection.*) · `src/feature_owner_tests.rs` (*Supply original-owner, child-boundary, hidden/locked and Delete/Undo ownership regressions.*) · `src/lib.rs` (*Run the supplied regressions in the native suite.*)
 
 Keep row IDs for visibility lamps: those IDs still describe the displayed pieces. Give the panel a separate resolved owner for selection. Its selection button and selected state use that owner; clicking a regular child Element continues to use the child’s editable ID.
 
 The editor’s renderer highlight list includes visible derived paths owned by selected Elements, while selected_objects remains unchanged. Delete and Move therefore edit original owners and their descendants once. Undo restores their original identities, and Save continues to omit the generated paths.
 
-Report a preview change after selection and Fit. The browser then refreshes the original-owner selection and generated highlight buffers without recording a source edit. A view-only result would leave the newly selected owner’s GPU highlight stale.
-
-> **Self-Check Question:** *Which original does a connected feature-row click select?*  
-> **Answer:** The nearest owning Element from the [resolution helper](../../96s-resolve-feature-rows-to-original-element-owners.md). The existing selection and editing path then handles that original.
-
-- **What You Should See:** Feature-row selection highlights its original owner and uses the same editing/history path.
-- **Hands-On Lab Experiment:** Open sample.pb, enable Attributes, expand Layers, and compare clicks on a host feature and on the independent child Element. Hidden and locked owners must not become selected through a feature row.
-
-<details>
-<summary>Implementation 96t-select-and-highlight-original-feature-owners: Select and highlight original feature owners</summary>
-
-Connect feature-row clicks to original-owner selection and the existing editing/history path.
-
-Data flow: feature row → nearest original Element → editing selection and derived highlight.
+> **Check:** *Which original does a connected feature-row click select?* — The nearest owning Element from the [resolution helper](../../96s-resolve-feature-rows-to-original-element-owners.md). The existing selection and editing path then handles that original.
 
 ### 1. `src/tree_panel.rs`
 
@@ -297,8 +155,7 @@ Resolve an eligible original owner independently of the displayed feature IDs. C
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -309,8 +166,6 @@ struct RowState {hidden:bool,locked:bool,selectable:bool,current:bool,has_faces:
 #[cfg(any(test,target_arch="wasm32"))]
 fn properties(ui:&mut egui::Ui,key:&str,state:RowState,action:&mut Option<(String,crate::layer_properties::Property)>,menus:&mut Vec<egui::Rect>,controls:&mut Option<Vec<Control>>) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -324,8 +179,7 @@ struct RowState {owner:Option<ObjectId>,hidden:bool,locked:bool,selectable:bool,
 fn properties(ui:&mut egui::Ui,key:&str,state:RowState,action:&mut Option<(String,crate::layer_properties::Property)>,menus:&mut Vec<egui::Rect>,controls:&mut Option<Vec<Control>>) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     let row=model.rows[index].clone();let state=model.states.get(&row.key).copied().unwrap_or_default();ui.push_id(&row.key,|ui|ui.horizontal(|ui| {
@@ -341,8 +195,6 @@ fn properties(ui:&mut egui::Ui,key:&str,state:RowState,action:&mut Option<(Strin
                             use crate::layer_edit::Edit;
                             for (name,edit,enabled) in [("Set current",Some(Edit::Current),true),("New layer",Some(Edit::New {sublayer:false}),true),("New sublayer",Some(Edit::New {sublayer:true}),true),("Duplicate layer",Some(Edit::Duplicate),!state.root),("Change object layer",Some(Edit::Move(model.selected.clone())),!model.selected.is_empty()),("Copy object layer",Some(Edit::Copy(model.selected.clone())),!model.selected.is_empty()),("Rename",None,!state.root),("Delete",Some(Edit::Delete),!state.root&&!state.holds_current)] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -361,8 +213,7 @@ Replace it with:
                             for (name,edit,enabled) in [("Set current",Some(Edit::Current),true),("New layer",Some(Edit::New {sublayer:false}),true),("New sublayer",Some(Edit::New {sublayer:true}),true),("Duplicate layer",Some(Edit::Duplicate),!state.root),("Change object layer",Some(Edit::Move(model.selected.clone())),!model.selected.is_empty()),("Copy object layer",Some(Edit::Copy(model.selected.clone())),!model.selected.is_empty()),("Rename",None,!state.root),("Delete",Some(Edit::Delete),!state.root&&!state.holds_current)] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.witness=None;
@@ -373,8 +224,6 @@ Replace it with:
     pub fn rename_result(&mut self,error:Option<&str>) {if let Some(error)=error {self.rename_error=error.into();self.rename_focus=true;} else {self.rename=None;self.rename_error.clear();}}
     pub fn all(&mut self) {self.open=true;self.expanded.extend(self.rows.iter().enumerate().filter(|(index,r)|r.end>*index+1).map(|(_,r)|r.key.clone()));self.page=0;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -388,8 +237,7 @@ Replace it with:
     pub fn all(&mut self) {self.open=true;self.expanded.extend(self.rows.iter().enumerate().filter(|(index,r)|r.end>*index+1).map(|(_,r)|r.key.clone()));self.page=0;}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{hierarchy::Row,scene::ObjectId};
@@ -503,47 +351,9 @@ fn dialogs(ui:&mut egui::Ui,model:&mut TreePanel,controls:&mut Option<Vec<Contro
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-01.rs"
-```
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-02.rs"
-```
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-03.rs"
-```
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-04.rs"
-```
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-05.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Extend only renderer highlighting; retain the original editing selection.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn highlighted_objects(&self)->Vec<ObjectId>{if let Some(e)=&self.element{return e.ids()}if let Some(trim)=&self.trim{return if trim.phase==crate::trim_draft::Phase::Parts{Vec::new()}else if trim.phase==crate::trim_draft::Phase::Targets{trim.targets.iter().map(|o|o.id).collect()}else{trim.cutters.iter().map(|o|o.id).collect()}}if let Some(split)=&self.split{return std::iter::once(split.target.id).chain(split.cutters.iter().map(|o|o.id)).collect()}if let Some(extend)=self.draft.as_ref().and_then(|d|d.extend.as_ref()){return extend.boundaries.iter().map(|o|o.id).collect()}self.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||self.selected_objects(),|g|{g.progress.picked().iter().filter_map(|row|g.curves.iter().find(|(id,_)|id.value()==*row).map(|(id,_)|*id)).collect()})}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -551,19 +361,7 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn highlighted_objects(&self)->Vec<ObjectId>{if let Some(e)=&self.element{return e.ids()}if let Some(trim)=&self.trim{return if trim.phase==crate::trim_draft::Phase::Parts{Vec::new()}else if trim.phase==crate::trim_draft::Phase::Targets{trim.targets.iter().map(|o|o.id).collect()}else{trim.cutters.iter().map(|o|o.id).collect()}}if let Some(split)=&self.split{return std::iter::once(split.target.id).chain(split.cutters.iter().map(|o|o.id)).collect()}if let Some(extend)=self.draft.as_ref().and_then(|d|d.extend.as_ref()){return extend.boundaries.iter().map(|o|o.id).collect()}self.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||crate::feature_owner::highlighted(&self.scene,&self.selected_objects()),|g|{g.progress.picked().iter().filter_map(|row|g.curves.iter().find(|(id,_)|id.value()==*row).map(|(id,_)|*id)).collect()})}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-06.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -577,20 +375,9 @@ Copy this supplied file:
 --8<-- "journey/code/96t-select-and-highlight-original-feature-owners-07.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Run the supplied regressions in the native suite.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod feature_owner;
-```
-
-</details>
 
 After that block, type:
 
@@ -602,113 +389,52 @@ After that block, type:
 
 Selection and Fit must invalidate the renderer highlight even though original source data did not change.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Action::TreePick {ids,additive}=>{if self.trimming_picks(){for id in ids{self.apply_action(Action::TrimPick(Some(id)))?;}return Ok(Change::View)}if self.trimming_parts(){return Err("Trim now needs a part click")}if self.split.is_some(){for id in ids{self.split_pick(Some(id))?;}return Ok(Change::View)}let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
             Action::TreePick {ids,additive}=>{if self.trimming_picks(){for id in ids{self.apply_action(Action::TrimPick(Some(id)))?;}return Ok(Change::View)}if self.trimming_parts(){return Err("Trim now needs a part click")}if self.split.is_some(){for id in ids{self.split_pick(Some(id))?;}return Ok(Change::View)}let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);self.apply(Action::FitSelected)?;return Ok(Change::Preview);},
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96t-select-and-highlight-original-feature-owners`:** Feature-row selection highlights its original owner and uses the same editing/history path.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96t-select-and-highlight-original-feature-owners-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96u-fit-original-box-corners-to-the-free-canvas"></a>
 
 ### Step 3 of 8 · Fit original box corners to the free canvas (`96u-fit-original-box-corners-to-the-free-canvas`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (96u-fit-original-box-corners-to-the-free-canvas): Fit original box corners to the free canvas</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/projected_fit_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original bounds</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera-axis offsets</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">free-rectangle constraints</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">distance</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/camera.rs, src/projec…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">free-rectangle constrai…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">distance</text>
 </svg>
-</div>
-
-- **Goal:** Replace sphere fitting with the current projected-corner constraint and five-percent margin.
-- **Data Flow Trace:** `original bounds → camera-axis offsets → free-rectangle constraints → distance`
-- **Files You Touch:** `src/camera.rs` (*Solve the current projected box-corner distance in the existing camera.*) · `src/projected_fit_tests.rs` (*Supply independent visible-rectangle and thin-part regression witnesses.*) · `src/lib.rs` (*Run the supplied fit witnesses with the cumulative source.*)
 
 Reuse the existing camera orientation, panel rectangle and original bounds.
 
 Project each of the eight corner offsets onto right, up and forward. With forward pointing from the eye toward the target, a corner needs distance at least |x|/tx − z and |y|/ty − z. Every centered box corner has an opposite corner, so the maximum over all eight corners is unchanged when using +z. That symmetric form, followed by a five-percent margin, is the maintained Fit rule.
 
-This upgrades the earlier sphere approximation in place. It introduces no second camera and changes no source geometry. Keep radius as the depth/zoom extent. A point box can move the target without inventing a nonzero extent; invalid bounds leave the pose unchanged. Current unit conversion, reversed depth and GPU rebasing remain separate connected changes.
-
-> **Self-Check Question:** *Why can a bounding sphere leave a thin CAD part unnecessarily small?*  
-> **Answer:** Its radius fits every direction, although the current view needs only the projected box corners. Solve the horizontal and vertical corner constraints in the camera basis, including depth, and use the largest required distance.
-
-- **What You Should See:** Thin parts fill the available canvas; all box corners remain inside the rectangle left by the panels.
-- **Hands-On Lab Experiment:** Open the imported specimen, enable Layers and select a feature row. Fit its original owner, then compare Front, Top and Isometric with a thin Box. Switch projection and Fit again; preserve original dimensions and selection.
-
-<details>
-<summary>Implementation 96u-fit-original-box-corners-to-the-free-canvas: Fit original box corners to the free canvas</summary>
-
-Replace sphere fitting with the current projected-corner constraint and five-percent margin.
-
-Data flow: original bounds → camera-axis offsets → free-rectangle constraints → distance.
+> **Check:** *Why can a bounding sphere leave a thin CAD part unnecessarily small?* — Its radius fits every direction, although the current view needs only the projected box corners. Solve the horizontal and vertical corner constraints in the camera basis, including depth, and use the largest required distance.
 
 ### 1. `src/camera.rs`
 
 Solve the current projected box-corner distance in the existing camera.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn fit(&mut self, bounds: &crate::bounds::Bounds) {
-        let half_y = (HALF_FOV.tan()*(self.frame[3]-self.frame[1])).atan();
-        let half_x = (self.aspect * HALF_FOV.tan()*(self.frame[2]-self.frame[0])).atan();
-        let radius = bounds.radius();
-        self.radius = if radius > 0.0 { radius } else { 1.0 };
-        self.target = bounds.centre();
-        let opening = match self.projection {
-            Projection::Perspective => half_x.min(half_y).sin(),
-            Projection::Orthographic => half_y.tan().min(half_x.tan()),
-        };
-        self.distance = self.radius * 1.1 / opening;
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -716,8 +442,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/96u-fit-original-box-corners-to-the-free-canvas-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -731,20 +456,9 @@ Copy this supplied file:
 --8<-- "journey/code/96u-fit-original-box-corners-to-the-free-canvas-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Run the supplied fit witnesses with the cumulative source.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod feature_owner_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -752,67 +466,42 @@ After that block, type:
 --8<-- "journey/code/96u-fit-original-box-corners-to-the-free-canvas-03.rs" skip=25
 ```
 
-</details>
+**Result after `96u-fit-original-box-corners-to-the-free-canvas`:** Thin parts fill the available canvas; all box corners remain inside the rectangle left by the panels.
+
+---
 
 <a id="checkpoint-96v-project-definition-and-per-instance-features"></a>
 
 ### Step 4 of 8 · Project definition and per-instance features (`96v-project-definition-and-per-instance-features`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (96v-project-definition-and-per-instance-features): Project definition and per-instance features</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_features.rs, src/lib.rs, src/scene_document.rs, src/feature_owner.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared definition features</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">+…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display-only projection</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">instance placement once</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original instance</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">selection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/instance_features.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">instance placement once</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original instance selec…</text>
 </svg>
-</div>
-
-- **Goal:** Reuse feature projection while keeping shared definitions and separate instance ownership.
-- **Data Flow Trace:** `shared definition features + per-instance features → display-only projection → instance placement once → original instance selection`
-- **Files You Touch:** `src/instance_features.rs` (*Combine feature data in a temporary projection object; reuse the existing path and tree owner.*) · `src/lib.rs` (*Connect the instance adapter to the existing Session ownership types.*) · `src/scene_document.rs` (*Stop inherited feature read-only classification at each original instance.*) · `src/feature_owner.rs` (*Resolve generated paths to the original instance, using the same visible/unlocked pick guard.*) · `src/instance_feature_tests.rs` (*Supply original Session input and independent ownership/archive regression witnesses.*)
 
 A definition owns reusable geometry and its own features.
 
 Each InstanceRef may add features in that definition frame. Build a temporary feature-only Element with the instance GUID, append definition features first and instance features second, and pass it to the projection owner already written at96m. Do not duplicate the mesh or add another GPU display implementation.
 
-Connect this projection after the original instance rows and hierarchy exist. The existing host placement transforms every generated path once. Treat instances as independent ownership boundaries: selecting a generated feature targets the original instance, and its visibility and locking still govern editing. The temporary Element is never inserted or saved; the Session definition and InstanceRef remain the archive sources.
-
-Install the supplied binary specimen using the dependency command below, then open assets/pb/course-instance-features.pb from the learner project in the browser. It contains two placements of one Element definition, a shared axis and a distinct cut per instance. The second instance is locked. These are original Session data, not implementation code.
-
-> **Self-Check Question:** *Why must per-instance features be projected after selecting the instance placement?*  
-> **Answer:** They are authored in the definition frame but belong to one InstanceRef. Reusing the projection code places them once under that instance and preserves both shared geometry and independent original ownership.
-
-- **What You Should See:** Both instances show their interaction outlines; enabling attributes reveals the shared definition axis at each placement.
-- **Hands-On Lab Experiment:** Open the supplied instance specimen and Fit. Toggle Element Attributes and Element Interactions separately. Select the first instance’s cut row, Delete and Undo; the second placement remains. The locked second instance’s feature row must not become an editable selection. Save and reopen: each outline appears once.
-
-<details>
-<summary>Implementation 96v-project-definition-and-per-instance-features: Project definition and per-instance features</summary>
-
-Reuse feature projection while keeping shared definitions and separate instance ownership.
-
-Data flow: shared definition features + per-instance features → display-only projection → instance placement once → original instance selection.
+> **Check:** *Why must per-instance features be projected after selecting the instance placement?* — They are authored in the definition frame but belong to one InstanceRef. Reusing the projection code places them once under that instance and preserves both shared geometry and independent original ownership.
 
 ### 1. `src/instance_features.rs`
 
@@ -828,31 +517,11 @@ Create the file and type:
 
 Connect the instance adapter to the existing Session ownership types.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod instance_plan;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 mod instance_features;
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96v-project-definition-and-per-instance-features-02.rs"
-```
-
-</details>
 
 ### 3. `src/scene_document.rs`
 
@@ -860,8 +529,7 @@ Stop inherited feature read-only classification at each original instance. Appen
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 .map_err(str::to_owned)?;
@@ -871,8 +539,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     scene.restore(candidate);Ok(key)
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -890,8 +556,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     candidate.forest.original_placements(key,&source.document,place,&source.world);
@@ -902,8 +567,6 @@ Replace it with:
     candidate.forest.classify_elements(key, &elements);
     for (guid, id, _) in &owners {
 ```
-
-</details>
 
 Replace it with:
 
@@ -918,8 +581,7 @@ Replace it with:
     for (guid, id, _) in &owners {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::scene::Scene;
@@ -1022,35 +684,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96v-project-definition-and-per-instance-features-03.rs"
-```
-
-```text
---8<-- "journey/code/96v-project-definition-and-per-instance-features-04.rs"
-```
-
-</details>
-
 ### 4. `src/feature_owner.rs`
 
 Resolve generated paths to the original instance, using the same visible/unlocked pick guard.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if scene.objects().iter().any(|row| row.id == id
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1058,19 +694,7 @@ Edit the existing block to match this code; keep unchanged lines:
             if scene.instances.contains_key(&id) || scene.objects().iter().any(|row| row.id == id
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96v-project-definition-and-per-instance-features-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1084,20 +708,9 @@ Copy this supplied file:
 --8<-- "journey/code/96v-project-definition-and-per-instance-features-06.rs"
 ```
 
-</details>
-
 ### 6. `src/lib.rs`
 
 Register the supplied regression fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod projected_fit_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -1106,72 +719,42 @@ After that block, type:
 mod instance_feature_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96v-project-definition-and-per-instance-features`:** Both instances show their interaction outlines; enabling attributes reveals the shared definition axis at each placement.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96v-project-definition-and-per-instance-features-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96w-detach-copied-original-source-identity"></a>
 
 ### Step 5 of 8 · Detach copied original source identity (`96w-detach-copied-original-source-identity`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (96w-detach-copied-original-source-identity): Detach copied original source identity</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh copy identity</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original placement</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">regenerated display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original placement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">regenerated display</text>
 </svg>
-</div>
-
-- **Goal:** Detach copied original source identity
-- **Data Flow Trace:** `original source → fresh copy identity → original placement → regenerated display`
-- **Files You Touch:** `src/scene.rs` (*Detach copied original ownership without exposing mutable scene storage.*)
 
 The row copier already assigns a new display identity. An original Element and an InstanceRef also carry Session GUIDs. Detach only that copied source with Rc::make_mut, then give it the new row GUID. Keep an instance definition shared: changing its GUID would affect every placement.
 
 Keep this helper private inside Scene, beside copy_row. Call it after cloning the InstanceRef owner, while the new row exists. Update source metadata with the same GUID. The old source remains unchanged for Undo and archive comparison. This is a copy-on-write ownership lesson; it adds no new renderer or mesh upload.
 
-> **Self-Check Question:** *Which identity must stay shared when an InstanceRef is copied?*  
-> **Answer:** Its definition identity and geometry stay shared. The new InstanceRef and its row have a fresh identity, so saving does not merge two placements into one original.
-
-- **What You Should See:** The browser continues to display original CAD objects and their projected features.
-- **Hands-On Lab Experiment:** Copy the first instance in the supplied specimen. Save and reopen: the definition remains shared, and the two original references have different GUIDs. Predict which Rc is detached before checking the supplied fixture.
-
-<details>
-<summary>Implementation 96w-detach-copied-original-source-identity: Detach copied original source identity</summary>
-
-Detach copied original source identity
-
-Data flow: original source → fresh copy identity → original placement → regenerated display.
+> **Check:** *Which identity must stay shared when an InstanceRef is copied?* — Its definition identity and geometry stay shared. The new InstanceRef and its row have a fresh identity, so saving does not merge two placements into one original.
 
 ### 1. `src/scene.rs`
 
@@ -1179,8 +762,7 @@ Detach copied original ownership without exposing mutable scene storage. Assign 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.sheets.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.sheets.push(row);}
@@ -1190,8 +772,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
         for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1205,8 +785,7 @@ Replace it with:
         for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
@@ -1216,8 +795,6 @@ Replace it with:
         if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
         if !self.contains(id) {return Err("Object is gone");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1247,8 +824,7 @@ Replace it with:
         if !self.contains(id) {return Err("Object is gone");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -1356,7 +932,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2070,81 +1645,42 @@ impl Scene {
 mod cap_pick_tests;
 ```
 
-</details>
+**Result after `96w-detach-copied-original-source-identity`:** The browser continues to display original CAD objects and their projected features.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96w-detach-copied-original-source-identity-01.rs"
-```
-
-```text
---8<-- "journey/code/96w-detach-copied-original-source-identity-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96x-regenerate-display-for-copied-feature-owners"></a>
 
 ### Step 6 of 8 · Regenerate display for copied feature owners (`96x-regenerate-display-for-copied-feature-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (96x-regenerate-display-for-copied-feature-owners): Regenerate display for copied feature owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/layer_edit.rs, src/copy_feature_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh copy identity</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original placement</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">regenerated display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/layer_edit.rs, src/co…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original placement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">regenerated display</text>
 </svg>
-</div>
-
-- **Goal:** Regenerate display for copied feature owners
-- **Data Flow Trace:** `original source → fresh copy identity → original placement → regenerated display`
-- **Files You Touch:** `src/layer_edit.rs` (*Select direct original attributes and reuse existing projection owners.*) · `src/copy_feature_tests.rs` (*Supply independent original-source, placement and archive witnesses.*) · `src/lib.rs` (*Register the supplied copy fixtures.*)
 
 A copied Element keeps its original feature data.
 
 Its derived paths are display objects, so copying those paths would create stale ownership and archive duplicates. Keep only direct original Geometry children in the source attributes group, matching the current viewer. Remove those children’s old tree descendants; their own original feature data remains intact. InstanceRef and Sheet attributes are outside that Geometry lookup.
 
-Copy and place the original rows using the existing tree copier, then attach the new tree. Collect its original owners before appending any generated rows. Reuse feature_display for Elements and instance_features for instances, once per owner. A fresh Element GUID has no existing relationship edges in the source document; the planner therefore labels unlinked interaction features as orphans.
-
-No second projection algorithm is introduced. Presentation defaults and current contact rendering are separate bridges; this stage checks original identities, placement and regeneration.
-
-> **Self-Check Question:** *Why collect copied owners before appending their generated display?*  
-> **Answer:** Appending changes the tree. A fixed list of original owners prevents newly generated paths from entering the traversal or being projected again.
-
-- **Hands-On Lab Experiment:** Copy the host in the imported interaction specimen, then Save and reopen three times. Its direct original child comes with it, each owner projects once, and no derived path is serialized. Compare GUID-to-world-matrix maps to detect a transform applied twice.
-
-<details>
-<summary>Implementation 96x-regenerate-display-for-copied-feature-owners: Regenerate display for copied feature owners</summary>
-
-Regenerate display for copied feature owners
-
-Data flow: original source → fresh copy identity → original placement → regenerated display.
+> **Check:** *Why collect copied owners before appending their generated display?* — Appending changes the tree. A fixed list of original owners prevents newly generated paths from entering the traversal or being projected again.
 
 ### 1. `src/layer_edit.rs`
 
@@ -2152,8 +1688,7 @@ Select direct original attributes and reuse existing projection owners. Exclude 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2176,8 +1711,6 @@ pub(crate) fn copy_objects(scene:&mut Scene,ids:&[crate::scene::ObjectId],delta:
 
 pub fn group(scene:&mut Scene,ids:&[crate::scene::ObjectId],name:&str)->Result<String,&'static str>{
 ```
-
-</details>
 
 Replace it with:
 
@@ -2231,8 +1764,7 @@ pub(crate) fn copy_objects(scene:&mut Scene,ids:&[crate::scene::ObjectId],delta:
 pub fn group(scene:&mut Scene,ids:&[crate::scene::ObjectId],name:&str)->Result<String,&'static str>{
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{hierarchy::{Document,Node},scene::Scene};
@@ -2506,29 +2038,7 @@ pub fn attach_features(scene: &mut Scene, id: crate::scene::ObjectId, groups: Ve
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96x-regenerate-display-for-copied-feature-owners-01.rs"
-```
-
-```text
---8<-- "journey/code/96x-regenerate-display-for-copied-feature-owners-02.rs"
-```
-
-```text
---8<-- "journey/code/96x-regenerate-display-for-copied-feature-owners-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2542,20 +2052,9 @@ Copy this supplied file:
 --8<-- "journey/code/96x-regenerate-display-for-copied-feature-owners-04.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the supplied copy fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod instance_feature_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -2564,90 +2063,44 @@ After that block, type:
 mod copy_feature_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96x-regenerate-display-for-copied-feature-owners-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96y-address-feature-pixels-to-original-cad-owners"></a>
 
 ### Step 7 of 8 · Address feature pixels to original CAD owners (`96y-address-feature-pixels-to-original-cad-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (96y-address-feature-pixels-to-original-cad-owners): Address feature pixels to original CAD owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/feature_owner.rs, src/pick_sources.rs, src/feature_pick_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh copy identity</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original placement</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">regenerated display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/feature_owner.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original placement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">regenerated display</text>
 </svg>
-</div>
-
-- **Goal:** Address feature pixels to original CAD owners
-- **Data Flow Trace:** `original source → fresh copy identity → original placement → regenerated display`
-- **Files You Touch:** `src/feature_owner.rs` (*Reuse the existing original-owner traversal for a displayed GPU primitive.*) · `src/pick_sources.rs` (*Write an original editing ID and suppress invented subpart tags for derived ink.*) · `src/feature_pick_tests.rs` (*Supply independent original-owner address and guard witnesses.*) · `src/lib.rs` (*Register the supplied original-owner address fixture.*) · `src/pick_gpu_tests.rs` (*Supply a real integer GPU feature-pixel readback witness.*)
 
 The integer picking pass must write original editing identities.
 
 A derived feature path is visible geometry, but it is not an editable Session object. Resolve its nearest original Element or InstanceRef with the ownership traversal already taught for tree rows. Original paths keep their existing IDs.
 
-Use this resolver when building the GPU ink-ID arrays. A generated feature gets its owner ID and a zero subpart tag: its tessellated segments are display data, not original PathEdge indices. Object mode therefore selects the original CAD owner; edge and control modes cannot invent a source subpart. Hidden and locked original owners still fail the existing eligibility guard.
-
-This change reuses the integer target, readback and stale-result handling already developed. It adds no second picking pass. The supplied GPU witness clicks a feature line away from its Element mesh and verifies the returned owner ID, then locks the original and repeats the click.
-
-The dependency command also supplies assets/pb/course-feature-pick.pb: two original Elements with feature lines away from their meshes, with the second Element locked. Open it in the browser and use object selection to check the original-owner address directly.
-
-> **Self-Check Question:** *Why is the subpart tag zero for a generated feature outline?*  
-> **Answer:** A tessellated display segment has no editable original PathEdge index. Zero identifies only the original object; it prevents the edge-mode resolver from treating generated geometry as a kernel source part.
-
-- **Hands-On Lab Experiment:** Click a visible interaction outline in object mode and Delete, then Undo. The original Element and its features disappear and return together. Try edge mode: it must not expose a generated outline segment as an original editable edge. Lock the owner and repeat.
-
-<details>
-<summary>Implementation 96y-address-feature-pixels-to-original-cad-owners: Address feature pixels to original CAD owners</summary>
-
-Address feature pixels to original CAD owners
-
-Data flow: original source → fresh copy identity → original placement → regenerated display.
+> **Check:** *Why is the subpart tag zero for a generated feature outline?* — A tessellated display segment has no editable original PathEdge index. Zero identifies only the original object; it prevents the edge-mode resolver from treating generated geometry as a kernel source part.
 
 ### 1. `src/feature_owner.rs`
 
 Reuse the existing original-owner traversal for a displayed GPU primitive.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn row_owner(scene: &Scene, key: &str) -> Option<ObjectId> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2665,29 +2118,9 @@ pub fn display_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
 pub fn row_owner(scene: &Scene, key: &str) -> Option<ObjectId> {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96y-address-feature-pixels-to-original-cad-owners-01.rs"
-```
-
-</details>
-
 ### 2. `src/pick_sources.rs`
 
 Write an original editing ID and suppress invented subpart tags for derived ink.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let id = |owner: ObjectId, tag| [scene.pick_id(owner.value()).map_or(0, ObjectId::value), tag];
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2696,19 +2129,7 @@ Edit the existing block to match this code; keep unchanged lines:
             if scene.forest.derived(owner) { 0 } else { tag }];
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96y-address-feature-pixels-to-original-cad-owners-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2722,20 +2143,9 @@ Copy this supplied file:
 --8<-- "journey/code/96y-address-feature-pixels-to-original-cad-owners-03.rs"
 ```
 
-</details>
-
 ### 4. `src/lib.rs`
 
 Register the supplied original-owner address fixture.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod copy_feature_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -2744,19 +2154,7 @@ After that block, type:
 mod feature_pick_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96y-address-feature-pixels-to-original-cad-owners-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2764,146 +2162,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply a real integer GPU feature-pixel readback witness.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[test]
-fn actual_integer_pick_preserves_high_ids_depth_and_locked_occlusion()
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96y-address-feature-pixels-to-original-cad-owners-05.rs"
 ```
 
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles"></a>
 
 ### Step 8 of 8 · Preserve source feature visibility and pixel styles (`96z-preserve-source-feature-visibility-and-pixel-styles`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (96z-preserve-source-feature-visibility-and-pixel-styles): Preserve source feature visibility and pixel styles</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/feature_display.rs, src/feature_style_tests.rs, src/lib.rs, src/pick_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source feature visibility</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coincident-point</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">classification</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing marker/path</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/feature_display.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing marker/path di…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
 </svg>
-</div>
-
-- **Goal:** Project only visible original features, with two-pixel lines and twelve-pixel point discs.
-- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
-- **Files You Touch:** `src/feature_display.rs` (*Respect original feature visibility before generating a display.*) · `src/feature_style_tests.rs` (*Supply original-data style, visibility, placement and ownership witnesses.*) · `src/lib.rs` (*Register the independent source-style fixture.*) · `src/pick_gpu_tests.rs` (*Supply a real GPU marker ownership and CSS-diameter witness at DPR one and two.*)
 
 A feature has source visibility as well as the owner’s Attributes or Interactions switch. Skip invisible features during projection. A global presentation switch cannot revive a source feature marked invisible. Its original Session payload remains available for saving and later regeneration.
 
 Use the existing marker pipeline for an outline whose coordinates coincide after conversion to the renderer’s f32 format. Preserve the original outline color and set a twelve-pixel diameter on the temporary display point. Other outlines use two-pixel strokes without arrowheads. Clone only display inputs: original widths, colors, arrowheads and visibility remain unchanged.
 
-Both paths and markers already resolve to their original owner through the integer picking table. Reuse that route; do not add another shader or readback. Contact polygon fills are developed separately.
-
-A feature outline is display input, not a separately editable original. Its standalone visible and locked flags do not override the feature flag or the original owner. Set those flags only on the temporary display clone; preserve them unchanged in the original payload.
-
-> **Self-Check Question:** *Why must a coincident outline become a marker before path preparation?*  
-> **Answer:** The kernel permits coincident feature endpoints to describe a point. Path preparation removes duplicate vertices and requires a segment; the existing marker pipeline represents this source point with a stable screen diameter.
-
-- **What You Should See:** Visible ordinary feature outlines retain their source colors and use the current screen-size conventions without altering original Session data.
-- **Hands-On Lab Experiment:** Import an Element with a colored axis, an invisible cut and coincident drill endpoints. Enable Attributes: the axis appears with a two-pixel stroke, the drill remains a twelve-pixel disc, and the invisible cut stays absent. Change zoom and pixel density; predict which dimensions remain fixed in CSS pixels. Save and inspect the original feature widths and arrowheads.
-
-<details>
-<summary>Implementation 96z-preserve-source-feature-visibility-and-pixel-styles: Preserve source feature visibility and pixel styles</summary>
-
-Project only visible original features, with two-pixel lines and twelve-pixel point discs.
-
-Data flow: source feature visibility → coincident-point classification → existing marker/path display → original owner.
+> **Check:** *Why must a coincident outline become a marker before path preparation?* — The kernel permits coincident feature endpoints to describe a point. Path preparation removes duplicate vertices and requires a segment; the existing marker pipeline represents this source point with a stable screen diameter.
 
 ### 1. `src/feature_display.rs`
 
 Respect original feature visibility before generating a display. Reuse marker and path preparation with source colors and current ordinary feature sizes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{scene::{Scene, ObjectId}, layer_edit::FeatureTree};
-use session_rust::{Element, Session};
-use std::rc::Rc;
-
-pub fn append(scene: &mut Scene, id: ObjectId, session: &Session, element: &Element) -> Result<(), &'static str> {
-    let model = scene.placement(id).ok_or("Element placement is missing")?;
-    let forest = std::mem::take(&mut scene.forest);
-    let created = scene.created.take();
-    let current = Rc::make_mut(&mut scene.view).current.take();
-    let prepared = (|| {
-        let mut groups = Vec::new();
-        let mut pieces = |indices: &[usize]| -> Result<Vec<FeatureTree>, &'static str> {
-            let mut rows = Vec::new();
-            for &index in indices {
-                let feature = &element.features[index];
-                let mut outlines = Vec::new();
-                for (part, outline) in feature.outlines.iter().enumerate() {
-                    let mut source = outline.clone();
-                    source.set_guid(uuid::Uuid::new_v4().to_string());
-                    source.name = format!("piece {}", part + 1);
-                    source.linecolor = session_rust::Color::black();
-                    let piece = scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(source))?)?;
-                    scene.place_following(piece, model.clone())?;
-                    if !crate::feature_plan::interaction(feature) {
-                        Rc::make_mut(&mut scene.view).hide(&[piece], true);
-                    }
-                    outlines.push(FeatureTree::Piece(format!("piece {}", part + 1), piece));
-                }
-                if !outlines.is_empty() {
-                    rows.push(FeatureTree::Group(crate::feature_plan::label(feature), outlines));
-                }
-            }
-            Ok(rows)
-        };
-        let own = pieces(&crate::feature_plan::own(element))?;
-        if !own.is_empty() { groups.push(FeatureTree::Group("attributes".into(), own)); }
-        let mut hosted = Vec::new();
-        for relation in crate::feature_plan::hosted(session, element) {
-            let children = pieces(&relation.features)?;
-            if !children.is_empty() { hosted.push(FeatureTree::Group(relation.label, children)); }
-        }
-        if !hosted.is_empty() { groups.push(FeatureTree::Group("interactions".into(), hosted)); }
-        Ok(groups)
-    })();
-    scene.forest = forest;
-    scene.created = created;
-    Rc::make_mut(&mut scene.view).current = current;
-    crate::layer_edit::attach_features(scene, id, prepared?)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2978,23 +2280,7 @@ pub fn append(scene: &mut Scene, id: ObjectId, session: &Session, element: &Elem
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96z-preserve-source-feature-visibility-and-pixel-styles-01.rs"
-```
-
-```text
---8<-- "journey/code/96z-preserve-source-feature-visibility-and-pixel-styles-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3008,20 +2294,9 @@ Copy this supplied file:
 --8<-- "journey/code/96z-preserve-source-feature-visibility-and-pixel-styles-03.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the independent source-style fixture.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod feature_pick_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -3030,19 +2305,7 @@ After that block, type:
 mod feature_style_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96z-preserve-source-feature-visibility-and-pixel-styles-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3050,47 +2313,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply a real GPU marker ownership and CSS-diameter witness at DPR one and two.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-#[test]
-fn actual_integer_pick_preserves_high_ids_depth_and_locked_occlusion()
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96z-preserve-source-feature-visibility-and-pixel-styles-05.rs"
 ```
 
-</details>
-
-</details>
+**Result after `96z-preserve-source-feature-visibility-and-pixel-styles`:** Visible ordinary feature outlines retain their source colors and use the current screen-size conventions without altering original Session data.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96z-preserve-source-feature-visibility-and-pixel-styles
-npm --prefix ../session_tests run course -- check 96z-preserve-source-feature-visibility-and-pixel-styles
-npm --prefix ../session_tests run course -- save 96z-preserve-source-feature-visibility-and-pixel-styles
+npm --prefix ../session_tests run course -- dependencies 19.3
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 19.3
+npm --prefix ../session_tests run course -- save 19.3
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Visible ordinary feature outlines retain their source colors and use the current screen-size conventions without altering original Session data.
-
-- **Final Lesson Experiment:** Import an Element with a colored axis, an invisible cut and coincident drill endpoints. Enable Attributes: the axis appears with a two-pixel stroke, the drill remains a twelve-pixel disc, and the invisible cut stays absent. Change zoom and pixel density; predict which dimensions remain fixed in CSS pixels. Save and inspect the original feature widths and arrowheads.
-
-Continue with [Family-aware original controls and source previews](../../consolidation/96za-address-original-controls-with-family-keys.md).
+Continue with [19.4 · Family-aware original controls and source previews](../../consolidation/96za-address-original-controls-with-family-keys.md).

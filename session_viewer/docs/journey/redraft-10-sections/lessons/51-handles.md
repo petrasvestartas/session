@@ -1,253 +1,98 @@
 # 7.6 · Handles, numeric edits and source-part deformation
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.6** (Redraft `5.6`) · **34 checkpoints (`51-handles` → `51zf-handles`)** · **Study time: 17–34 h**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Checkpoints:** `51-handles` → `51zf-handles` (34 steps) · **Production source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs) · [app/gizmo.rs](../../../../src/app/gizmo.rs) · [engine/gpu/widget.rs](../../../../src/engine/gpu/widget.rs) · [app/deform.rs](../../../../src/app/deform.rs)
 
-> **What You Will Learn & Build:** Name move, rotation and scale handles. By the final checkpoint (`51zf-handles`), you will verify complete handle editing and input.
+> **Goal:** Verify complete handle editing and input.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 7 Visual Explanation: Construction-Plane Ray Intersection, Snap Priority & 3D Gumball Gizmo</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Intersecting cursor ray with construction plane (P0, N). Center: Snap priority radius. Right: Perspective-scaled 3D Gumball.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Construction Plane Ray Hit -->
-    <rect x="18" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="150" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Ray–Plane Hit (Construction Grid)</text>
-    <!-- Tilted 3D plane parallelogram -->
-    <polygon points="40,165 180,125 260,155 120,195" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="75" y1="155" x2="155" y2="185" stroke="#111111" stroke-width="0.75" stroke-dasharray="2,2"/>
-    <line x1="110" y1="145" x2="190" y2="175" stroke="#111111" stroke-width="0.75" stroke-dasharray="2,2"/>
-    <line x1="145" y1="135" x2="225" y2="165" stroke="#111111" stroke-width="0.75" stroke-dasharray="2,2"/>
-    <!-- Plane normal N -->
-    <line x1="150" y1="160" x2="150" y2="104" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="164" y="112" font-size="9.5" font-weight="700" fill="#111111">N</text>
-    <!-- Ray from top-left hitting plane at (150, 160) -->
-    <line x1="55" y1="96" x2="146" y2="157" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <circle cx="150" cy="160" r="4.5" fill="#111111"/>
-    <text x="90" y="112" font-size="9.5" font-weight="700" fill="#111111">Ray O+t·D</text>
-    <text x="150" y="214" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="150" y="229" text-anchor="middle" font-size="9" fill="#111111">Preview rubber-band updates before commit</text>
-
-    <line x1="283" y1="154" x2="305" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: Snap Priority Radius -->
-    <rect x="307" y="64" width="240" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="427" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Snap Priority Within Radius</text>
-    <!-- Snap radius circle -->
-    <circle cx="427" cy="144" r="44" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
-    <!-- Geometry segment passing through snap circle -->
-    <line x1="365" y1="168" x2="465" y2="120" stroke="#111111" stroke-width="2"/>
-    <!-- Endpoint square (winner #1) -->
-    <rect x="459" y="114" width="12" height="12" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Midpoint triangle (#2) -->
-    <polygon points="415,137 409,149 421,149" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="480" y="123" font-size="9" font-weight="700" fill="#111111">1. End</text>
-    <text x="382" y="146" font-size="9" font-weight="700" fill="#111111">2. Mid</text>
-    <text x="427" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Priority: Endpoint &gt; Midpoint</text>
-    <text x="427" y="223" text-anchor="middle" font-size="9" fill="#111111">&gt; Curve Nearest &gt; Grid Step</text>
-
-    <line x1="547" y1="154" x2="569" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: 3D Gumball Gizmo (widget.wgsl) -->
-    <rect x="571" y="64" width="251" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="696" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 3D Gumball Gizmo (widget.wgsl)</text>
-    <!-- Center origin at (685, 160) -->
-    <circle cx="685" cy="160" r="4.5" fill="#111111"/>
-    <!-- Z Axis (Up) -->
-    <line x1="685" y1="160" x2="685" y2="98" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="685" y="92" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z</text>
-    <!-- X Axis (Down-Right) + Scale Box -->
-    <line x1="685" y1="160" x2="758" y2="182" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="730" y="170" width="8" height="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="770" y="186" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <!-- Y Axis (Up-Right) -->
-    <line x1="685" y1="160" x2="742" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="752" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <!-- Rotation Arc between Z and X -->
-    <path d="M 685 122 A 38 38 0 0 1 722 171" fill="none" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,2"/>
-    <text x="696" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Scaled by clip.w for constant pixel size</text>
-    <text x="696" y="225" text-anchor="middle" font-size="9" fill="#111111">Arrows=Move · Arcs=Rotate · Boxes=Scale</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 7.6 Pipeline Schematic: Handles, numeric edits and source-part deformation</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (34 Checkpoints: 51-handles → 51zf-handles)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">handle and axis</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">title and units</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">validated numeric</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">answer</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">selection and</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">current camera</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">handle or numeric</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">input</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 7.6:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/gizmo.rs  ·  src/lib.rs  ·  src/gizmo_tests.rs  ·  src/widget_mesh.rs  ·  src/widget_layout.rs  ·  src/widget.wgsl</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">34 Checkpoints: 51-handles → 51zf-handles — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. C-Plane Ray Hit</text>
+  <polygon points="44,132 104,78 224,78 164,132" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="68" y1="54" x2="132" y2="104" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="135" cy="106" r="4.5" fill="#111111"/>
+  <circle cx="135" cy="106" r="8" fill="none" stroke="#111111" stroke-width="1.25"/>
+  <text x="168" y="110" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Snap Pt</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Ray ∩ Plane</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Preview vs Commit</text>
+  <line x1="336" y1="90" x2="496" y2="66" stroke="#111111" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="419" y="64" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Rubber-band Preview</text>
+  <line x1="336" y1="132" x2="496" y2="132" stroke="#111111" stroke-width="3"/>
+  <circle cx="336" cy="132" r="4" fill="#111111"/>
+  <circle cx="496" cy="132" r="4" fill="#111111"/>
+  <text x="419" y="152" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Committed + Undo</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Atomic Edit</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. 3D Gumball</text>
+  <circle cx="688" cy="132" r="4.5" fill="#111111"/>
+  <line x1="688" y1="132" x2="688" y2="62" stroke="#111111" stroke-width="2.25" marker-end="url(#arr)"/>
+  <text x="674" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Z</text>
+  <line x1="688" y1="132" x2="764" y2="132" stroke="#111111" stroke-width="2.25" marker-end="url(#arr)"/>
+  <text x="772" y="136" font-family="monospace" font-size="10" font-weight="700" fill="#111111">X</text>
+  <line x1="688" y1="132" x2="636" y2="162" stroke="#111111" stroke-width="2.25" marker-end="url(#arr)"/>
+  <text x="622" y="168" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Y</text>
+  <path d="M 688 94 A 38 38 0 0 1 726 132" fill="none" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Move · Rotate · Scale</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
-| **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
-| **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
+| **Rust (CAD Math)** | Ray ∩ Construction Plane | Projects mouse ray onto active C-Plane with `End > Mid > Grid` snaps. |
+| **Rust (Editor)** | Rubber-Band Preview vs. Commit | Live preview on `pointermove`; single atomic Undo entry on commit. |
+| **WGSL (`widget.wgsl`)** | 3D Gumball (`Move / Rotate / Scale`) | Depth-scaled axis arrows, arcs, and scale boxes stay constant pixel size. |
 
-**Authoritative production source (`session_viewer/src`):** [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/command/tool.rs](../../../../src/app/command/tool.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/snap.rs](../../../../src/app/snap.rs), [app/gizmo.rs](../../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../../src/app/deform.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`51-handles`](#checkpoint-51-handles) | Name move, rotation and scale handles. | `src/gizmo.rs`, `src/lib.rs` | `handle and axis → title and units → validated numeric answer` |
-| **2** | [`51a-rays`](#checkpoint-51a-rays) | Measure handle rays in original world coordinates. | `src/gizmo.rs` | `current world ray → axis or pivot plane → finite grab point and angle` |
-| **3** | [`51b-pivot`](#checkpoint-51b-pivot) | Keep handle state at one original-world pivot. | `src/gizmo.rs` | `selected world pivot → CSS arm length → per-handle anchor → transient grab state` |
-| **4** | [`51c-hit`](#checkpoint-51c-hit) | Pick handles in a stable priority order. | `src/gizmo.rs` | `world ray and CSS scale → hub → balls → arms → negative-quadrant arcs` |
-| **5** | [`51d-grab`](#checkpoint-51d-grab) | Capture the handle’s original grab. | `src/gizmo.rs` | `chosen handle → valid original grab → angle or reach → retained drag` |
-| **6** | [`51e-transform`](#checkpoint-51e-transform) | Derive handle transforms and quarter-turn snapping. | `src/gizmo.rs`, `src/gizmo_tests.rs`, `src/lib.rs` | `original grab and current ray → world transform about pivot → free or Shift-snapped result` |
-| **7** | [`51ez-pack-and-sample-local-handle-vertices`](#checkpoint-51ez-pack-and-sample-local-handle-vertices) | Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler. | `src/widget_mesh.rs`, `src/lib.rs` | `parametric widget parts → twenty-byte vertices → static GPU mesh` |
-| **8** | [`51f-mesh`](#checkpoint-51f-mesh) | Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub. | `src/widget_mesh.rs` | `parametric widget parts → twenty-byte vertices → static GPU mesh` |
-| **9** | [`51g-layout`](#checkpoint-51g-layout) | Keep handles constant in CSS pixels. | `src/widget_layout.rs`, `src/lib.rs` | `pivot clip depth and CSS height → world-per-pixel → projected screen rectangle → bounded tile` |
-| **10** | [`51h-shader`](#checkpoint-51h-shader) | Draw a local handle tile and its canvas rectangle. | `src/widget.wgsl` | `20-byte vertices and96-byte uniform → flat handle color → resolved tile → canvas alpha composite` |
-| **11** | [`51i-image`](#checkpoint-51i-image) | Bind the widget’s own sampled image. | `src/widget_pipelines.rs`, `src/lib.rs` | `resolved RGBA texture → filterable binding → linear sampler → composite group` |
-| **12** | [`51j-pipelines`](#checkpoint-51j-pipelines) | Separate handle depth from scene depth. | `src/widget_pipelines.rs` | `explicit uniform layouts →4x mesh pipeline and own depth → blended canvas pipeline` |
-| **13** | [`51k-tile`](#checkpoint-51k-tile) | Own color, depth and resolve textures together. | `src/widget.rs`, `src/lib.rs` | `bounded extent →4x color and depth →1x resolve → sampled image owner` |
-| **14** | [`51l-upload`](#checkpoint-51l-upload) | Upload handle geometry once. | `src/widget.rs` | `one packed mesh → persistent vertex buffer and uniform → current tile ledger → release` |
-| **15** | [`51m-prepare`](#checkpoint-51m-prepare) | Write only current handle placement. | `src/widget.rs` | `current valid layout → same or replacement tile →96-byte uniform write → visible widget` |
-| **16** | [`51n-draw`](#checkpoint-51n-draw) | Composite handles after source geometry. | `src/widget.rs` | `handle mesh pass and own depth → resolved coverage → loaded canvas → two overlay draws` |
-| **17** | [`51o-renderer`](#checkpoint-51o-renderer) | Register the widget outside source picking. | `src/renderer.rs`, `src/widget_tests.rs`, `src/lib.rs` | `renderer-owned widget → current camera placement → source canvas → independent overlay` |
-| **18** | [`51p-part-points`](#checkpoint-51p-part-points) | Locate original mesh parts and curve controls. | `src/part_preview.rs`, `src/lib.rs` | `selected source part → deduplicated original keys → precise placed points → average world pivot` |
-| **19** | [`51q-deform`](#checkpoint-51q-deform) | Deform selected original points through their placement. | `src/scene.rs` | `world delta → inverse owner placement → selected original points → rebuilt derived display` |
-| **20** | [`51r-part-preview`](#checkpoint-51r-part-preview) | Keep part deformation outside saved geometry. | `src/part_preview.rs`, `src/edit_preview.rs` | `captured original source → temporary cloned deformation → stale validation → one commit or release` |
-| **21** | [`51s-edit-owner`](#checkpoint-51s-edit-owner) | Share one handle interface across whole and part edits. | `src/gizmo_edit.rs`, `src/lib.rs` | `whole owners or one source part → common temporary scene → common transform → one history boundary` |
-| **22** | [`51t-capture`](#checkpoint-51t-capture) | Keep pointer ownership through click or drag. | `src/gizmo_edit.rs` | `captured pointer ID and start → drag threshold → temporary transform or numeric request` |
-| **23** | [`51u-selection`](#checkpoint-51u-selection) | Place handles on the current editable selection. | `src/editor.rs` | `editable whole selection or source part → world pivot → camera ray hit → temporary presentation` |
-| **24** | [`51v-press`](#checkpoint-51v-press) | Capture a valid handle without editing the document. | `src/editor.rs` | `unmodified press → current handle hit → eligible source capture → transient edit owner` |
-| **25** | [`51w-release`](#checkpoint-51w-release) | Preview captured motion and commit one release. | `src/editor.rs` | `owned motion → baseline-derived transform → current release modifiers → click prompt or one commit` |
-| **26** | [`51x-number-model`](#checkpoint-51x-number-model) | Own one handle’s number-field state. | `src/number_box.rs`, `src/lib.rs` | `clicked handle prompt → owned text and error → submitted value or cancellation` |
-| **27** | [`51y-number-field`](#checkpoint-51y-number-field) | Draw the number field beside its handle. | `src/number_box.rs` | `projected handle anchor → foreground field and units → owned keyboard answer` |
-| **28** | [`51z-number-submit`](#checkpoint-51z-number-submit) | Apply precise typed handle values once. | `src/editor.rs` | `handle number request → precise validated answer → pivot transform → one commit or no change` |
-| **29** | [`51za-panel`](#checkpoint-51za-panel) | Route field input through the shared canvas panel. | `src/panel.rs` | `shared canvas events → number rectangle and focus → number answer or ordinary command` |
-| **30** | [`51zb-presentation`](#checkpoint-51zb-presentation) | Update selected handles with the actual camera. | `src/browser.rs` | `current viewport and camera → selected world pivot → bounded widget placement → visible handle overlay` |
-| **31** | [`51zc-pointer`](#checkpoint-51zc-pointer) | Capture actual browser handle drags. | `src/browser.rs` | `canvas press → handle hit and pointer capture → owned move/release → one source edit` |
-| **32** | [`51zd-interruption`](#checkpoint-51zd-interruption) | Restore previews when input ownership ends. | `src/browser.rs`, `src/editor.rs` | `captured or numeric edit → cancel/blur/lost capture → saved presentation → released transient resources` |
-| **33** | [`51ze-ledger`](#checkpoint-51ze-ledger) | Count temporary source owners without saving them. | `src/editor.rs` | `saved/history scenes plus preview owners → deduplicated allocation ledger → cancel or edit → released derived sources` |
-| **34** | [`51zf-handles`](#checkpoint-51zf-handles) | Verify complete handle editing and input. | `src/gizmo_edit_tests.rs`, `src/number_box_tests.rs`, `src/lib.rs` | `selection and current camera → handle or numeric input → original-source preview → one commit or cancellation` |
+![Recorded visual output for Lesson 7.6 (51zf-handles)](../../../screenshots/journey/51zf-handles.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-51-handles"></a>
 
 ### Step 1 of 34 · Name move, rotation and scale handles (`51-handles`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/34 Visual Trace (51-handles): Name move, rotation and scale handles</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">handle and axis</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">title and units</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">validated numeric answer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">title and units</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated numeric answer</text>
 </svg>
-</div>
-
-- **Goal:** Name move, rotation and scale handles.
-- **Data Flow Trace:** `handle and axis → title and units → validated numeric answer`
-- **Files You Touch:** `src/gizmo.rs` (*Define world-axis handles, labels and finite operation-specific numeric answers.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
 
 Each handle names an operation and world axis. Typed movement uses millimeters, rotation uses degrees and scaling uses a positive factor; neutral values create no edit.
 
-> **Self-Check Question:** *Can a scale factor of zero be accepted?*  
-> **Answer:** No. It collapses geometry. Empty input or factor1 makes no change; negative and nonfinite factors fail.
-
-- **What You Should See:** Continue the previous two-box Move exercise. Handle input connects after these drawing and editing preparations.
-- **Hands-On Lab Experiment:** Compare Translate X and Scale X. Their visible positions, units and neutral values must remain distinct.
-
-<details>
-<summary>Implementation 51-handles: Name move, rotation and scale handles</summary>
-
-Name move, rotation and scale handles.
-
-Data flow: handle and axis → title and units → validated numeric answer.
+> **Check:** *Can a scale factor of zero be accepted?* — No. It collapses geometry. Empty input or factor1 makes no change; negative and nonfinite factors fail.
 
 ### 1. `src/gizmo.rs`
 
@@ -263,88 +108,50 @@ Create the file and type:
 
 Register the handle component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod edit_preview_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51-handles-02.rs" skip=38
 ```
 
-</details>
+**Result after `51-handles`:** Continue the previous two-box Move exercise. Handle input connects after these drawing and editing preparations.
+
+---
 
 <a id="checkpoint-51a-rays"></a>
 
 ### Step 2 of 34 · Measure handle rays in original world coordinates (`51a-rays`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/34 Visual Trace (51a-rays): Measure handle rays in original world coordinates</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current world ray</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">axis or pivot plane</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">finite grab point and angle</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">axis or pivot plane</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite grab point and a…</text>
 </svg>
-</div>
-
-- **Goal:** Measure handle rays in original world coordinates.
-- **Data Flow Trace:** `current world ray → axis or pivot plane → finite grab point and angle`
-- **Files You Touch:** `src/gizmo.rs` (*Resolve checked world-ray intersections, pivot transforms and positive drag scaling.*)
 
 A handle drag intersects its world axis or a plane through its pivot. Reject parallel or behind-eye intersections; positive scaling is softened without mirroring.
 
-> **Self-Check Question:** *Why reject a parallel axis drag?*  
-> **Answer:** It has no unique closest grab position. Inventing an intersection would make a tiny camera change produce a large movement.
-
-- **Hands-On Lab Experiment:** Compare plane and axis intersections. Only a valid point in front of the ray can start a drag.
-
-<details>
-<summary>Implementation 51a-rays: Measure handle rays in original world coordinates</summary>
-
-Measure handle rays in original world coordinates.
-
-Data flow: current world ray → axis or pivot plane → finite grab point and angle.
+> **Check:** *Why reject a parallel axis drag?* — It has no unique closest grab position. Inventing an intersection would make a tiny camera change produce a large movement.
 
 ### 1. `src/gizmo.rs`
 
 Resolve checked world-ray intersections, pivot transforms and positive drag scaling.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-        Handle::Scale(_) | Handle::ScaleUniform => Ok((value != 1.0).then_some(value)),
-        Handle::Translate(_) | Handle::Rotate(_) => Ok((value != 0.0).then_some(value)),
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -352,76 +159,42 @@ After that block, type:
 --8<-- "journey/code/51a-rays-01.rs" skip=196
 ```
 
-</details>
+---
 
 <a id="checkpoint-51b-pivot"></a>
 
 ### Step 3 of 34 · Keep handle state at one original-world pivot (`51b-pivot`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/34 Visual Trace (51b-pivot): Keep handle state at one original-world pivot</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected world pivot</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS arm length</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">per-handle anchor</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">transient grab state</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">per-handle anchor</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">transient grab state</text>
 </svg>
-</div>
-
-- **Goal:** Keep handle state at one original-world pivot.
-- **Data Flow Trace:** `selected world pivot → CSS arm length → per-handle anchor → transient grab state`
-- **Files You Touch:** `src/gizmo.rs` (*Own transient handle state and compute each handle’s projected anchor.*)
 
 The pivot stores the selected geometry’s world position. Handle anchors use CSS size converted to world length; moving the pivot clears an older drag or number request.
 
-> **Self-Check Question:** *Why does the number field use a different anchor for every handle?*  
-> **Answer:** It belongs beside the operation that opened it. Pinning all fields to the pivot hides which axis or scale ball the value changes.
-
-- **Hands-On Lab Experiment:** Inspect the arrow, ball, arc and hub anchors. Rotation arcs occupy the quadrant opposite the positive arms.
-
-<details>
-<summary>Implementation 51b-pivot: Keep handle state at one original-world pivot</summary>
-
-Keep handle state at one original-world pivot.
-
-Data flow: selected world pivot → CSS arm length → per-handle anchor → transient grab state.
+> **Check:** *Why does the number field use a different anchor for every handle?* — It belongs beside the operation that opened it. Pinning all fields to the pivot hides which axis or scale ball the value changes.
 
 ### 1. `src/gizmo.rs`
 
 Own transient handle state and compute each handle’s projected anchor.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-
-fn typed_factor(value: f64) -> f64 {
-    if value <= 0.0 {
-        return MIN_SCALE;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -429,82 +202,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51b-pivot-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51c-hit"></a>
 
 ### Step 4 of 34 · Pick handles in a stable priority order (`51c-hit`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/34 Visual Trace (51c-hit): Pick handles in a stable priority order</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world ray and CSS</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scale</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">hub</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">balls</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">arms</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">negative-quadrant</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">arcs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">balls</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">negative-quadrant arcs</text>
 </svg>
-</div>
-
-- **Goal:** Pick handles in a stable priority order.
-- **Data Flow Trace:** `world ray and CSS scale → hub → balls → arms → negative-quadrant arcs`
-- **Files You Touch:** `src/gizmo.rs` (*Resolve stable handle priority and the same CSS aperture used by drawing.*)
 
 Test the hub, scale balls, arms and rotation arcs through the current world ray. Keep a CSS grab aperture and reject axes pointing almost straight at the eye.
 
-> **Self-Check Question:** *Why test scale balls before the arms beneath them?*  
-> **Answer:** A ball lies on its arm. Without priority the arm captures the click, so the learner cannot start the scale operation.
-
-- **Hands-On Lab Experiment:** Query a ray through a ball and then one through the arrow tip. They must return different handle operations at every zoom.
-
-<details>
-<summary>Implementation 51c-hit: Pick handles in a stable priority order</summary>
-
-Pick handles in a stable priority order.
-
-Data flow: world ray and CSS scale → hub → balls → arms → negative-quadrant arcs.
+> **Check:** *Why test scale balls before the arms beneath them?* — A ball lies on its arm. Without priority the arm captures the click, so the learner cannot start the scale operation.
 
 ### 1. `src/gizmo.rs`
 
 Resolve stable handle priority and the same CSS aperture used by drawing.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    }
-
-}
-
-fn typed_factor(value: f64) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -512,76 +245,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51c-hit-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51d-grab"></a>
 
 ### Step 5 of 34 · Capture the handle’s original grab (`51d-grab`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/34 Visual Trace (51d-grab): Capture the handle’s original grab</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen handle</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">valid original grab</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">angle or reach</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained drag</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">angle or reach</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained drag</text>
 </svg>
-</div>
-
-- **Goal:** Capture the handle’s original grab.
-- **Data Flow Trace:** `chosen handle → valid original grab → angle or reach → retained drag`
-- **Files You Touch:** `src/gizmo.rs` (*Capture original world grab measurements before producing a transform.*)
 
 Record the original grab point, rotation angle or scale reach. Every update will compare the current ray against that fixed start, without accumulating pointer deltas.
 
-> **Self-Check Question:** *Should a camera-facing axis invent a grab when its intersection is undefined?*  
-> **Answer:** No. A refused grab leaves the document and gesture state unchanged. Another visible handle can still be used.
-
-- **Hands-On Lab Experiment:** Compare the initial scale reach with its later value. The scale begins at1 even when the grab is distant from the pivot.
-
-<details>
-<summary>Implementation 51d-grab: Capture the handle’s original grab</summary>
-
-Capture the handle’s original grab.
-
-Data flow: chosen handle → valid original grab → angle or reach → retained drag.
+> **Check:** *Should a camera-facing axis invent a grab when its intersection is undefined?* — No. A refused grab leaves the document and gesture state unchanged. Another visible handle can still be used.
 
 ### 1. `src/gizmo.rs`
 
 Capture original world grab measurements before producing a transform.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        None
-    }
-
-}
-
-fn typed_factor(value: f64) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -589,72 +288,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51d-grab-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51e-transform"></a>
 
 ### Step 6 of 34 · Derive handle transforms and quarter-turn snapping (`51e-transform`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/34 Visual Trace (51e-transform): Derive handle transforms and quarter-turn snapping</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo.rs, src/gizmo_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original grab and current ray</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world transform about pivot</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">free or Shift-snapped result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo.rs, src/gizmo_t…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world transform about p…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">free or Shift-snapped r…</text>
 </svg>
-</div>
-
-- **Goal:** Derive handle transforms and quarter-turn snapping.
-- **Data Flow Trace:** `original grab and current ray → world transform about pivot → free or Shift-snapped result`
-- **Files You Touch:** `src/gizmo.rs` (*Derive world transforms from original grabs and implement current90-degree Shift rotation snapping.*) · `src/gizmo_tests.rs` (*Copy fourteen maintained handle-math regression checks.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
 
 Movement follows one world axis. Rotation and scale act about the captured pivot; Shift rounds rotation to90-degree steps. Explicit typed scale remains precise below the drag minimum.
 
-> **Self-Check Question:** *Does Shift snap a rotation relative to the last pointer event?*  
-> **Answer:** No. It rounds the total angle swept from the original grab. Repeating the same cursor position produces the same transform.
-
-- **Hands-On Lab Experiment:** Compare a60-degree free rotation with its90-degree Shift result. The pivot must remain fixed under rotation and scale.
-
-<details>
-<summary>Implementation 51e-transform: Derive handle transforms and quarter-turn snapping</summary>
-
-Derive handle transforms and quarter-turn snapping.
-
-Data flow: original grab and current ray → world transform about pivot → free or Shift-snapped result.
+> **Check:** *Does Shift snap a rotation relative to the last pointer event?* — No. It rounds the total angle swept from the original grab. Repeating the same cursor position produces the same transform.
 
 ### 1. `src/gizmo.rs`
 
 Derive world transforms from original grabs and implement current90-degree Shift rotation snapping.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Some(drag)
-    }
-
-}
-
-fn typed_factor(value: f64) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -662,8 +331,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51e-transform-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -677,22 +345,9 @@ Copy this supplied file:
 --8<-- "journey/code/51e-transform-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the handle component and supplied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod edit_preview_tests;
-
-pub mod gizmo;
-```
-
-</details>
 
 After that block, type:
 
@@ -700,55 +355,38 @@ After that block, type:
 --8<-- "journey/code/51e-transform-03.rs" skip=40
 ```
 
-</details>
+---
 
 <a id="checkpoint-51ez-pack-and-sample-local-handle-vertices"></a>
 
 ### Step 7 of 34 · Pack and sample local handle vertices (`51ez-pack-and-sample-local-handle-vertices`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/34 Visual Trace (51ez-pack-and-sample-local-handle-vertices): Pack and sample local handle vertices</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget_mesh.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parametric widget parts</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">twenty-byte vertices</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">static GPU mesh</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget_mesh.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">twenty-byte vertices</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">static GPU mesh</text>
 </svg>
-</div>
-
-- **Goal:** Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler.
-- **Data Flow Trace:** `parametric widget parts → twenty-byte vertices → static GPU mesh`
-- **Files You Touch:** `src/widget_mesh.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the local widget mesh helpers.*)
 
 Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler. Orient local coordinates onto each widget axis.
 
-> **Self-Check Question:** *Why are handle numbers separate from scene object IDs?*  
-> **Answer:** They identify widget parts for highlighting. The widget stays outside document geometry, source picking and Save.
-
-- **What You Should See:** Local handle vertex packing and sampling are prepared; the earlier Move drawing remains visible.
-- **Hands-On Lab Experiment:** Inspect the twelve position bytes, four color bytes and four handle bytes. Trace the two triangles emitted for one sampled rectangle.
-
-<details>
-<summary>Implementation 51ez-pack-and-sample-local-handle-vertices: Pack and sample local handle vertices</summary>
-
-Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler.
-
-Data flow: parametric widget parts → twenty-byte vertices → static GPU mesh.
+> **Check:** *Why are handle numbers separate from scene object IDs?* — They identify widget parts for highlighting. The widget stays outside document geometry, source picking and Save.
 
 ### 1. `src/widget_mesh.rs`
 
@@ -764,90 +402,50 @@ Create the file and type:
 
 Register the local widget mesh helpers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod gizmo_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51ez-pack-and-sample-local-handle-vertices-2.rs" skip=31
 ```
 
-</details>
+**Result after `51ez-pack-and-sample-local-handle-vertices`:** Local handle vertex packing and sampling are prepared; the earlier Move drawing remains visible.
+
+---
 
 <a id="checkpoint-51f-mesh"></a>
 
 ### Step 8 of 34 · Build local arrows balls and rotation arcs (`51f-mesh`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/34 Visual Trace (51f-mesh): Build local arrows balls and rotation arcs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget_mesh.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parametric widget parts</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">twenty-byte vertices</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">static GPU mesh</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget_mesh.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">twenty-byte vertices</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">static GPU mesh</text>
 </svg>
-</div>
-
-- **Goal:** Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub.
-- **Data Flow Trace:** `parametric widget parts → twenty-byte vertices → static GPU mesh`
-- **Files You Touch:** `src/widget_mesh.rs` (*Extend this original owner with today’s complete helper.*)
 
 Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub. Assign the ten local handle numbers once and return the complete static mesh for its later GPU upload.
 
-> **Self-Check Question:** *Why keep one surface sampler?*  
-> **Answer:** Every parametric widget part needs the same two-triangle rectangle construction. Reuse it while each part supplies its own coordinate map.
-
-- **What You Should See:** The complete static handle mesh compiles. GPU upload and drawing follow in the next lessons.
-- **Hands-On Lab Experiment:** Trace the handle numbers for one axis. Compare its translation arrow, scale ball and rotation arc.
-
-<details>
-<summary>Implementation 51f-mesh: Build local arrows balls and rotation arcs</summary>
-
-Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub.
-
-Data flow: parametric widget parts → twenty-byte vertices → static GPU mesh.
+> **Check:** *Why keep one surface sampler?* — Every parametric widget part needs the same two-triangle rectangle construction. Reuse it while each part supplies its own coordinate map.
 
 ### 1. `src/widget_mesh.rs`
 
 Extend this original owner with today’s complete helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn orient(p: [f32; 3], axis: usize) -> [f32; 3] {
-    match axis {
-        0 => p,
-        1 => [p[2], p[0], p[1]],
-        _ => [p[1], p[2], p[0]],
-    }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -855,59 +453,40 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51f-mesh-1.rs"
 ```
 
-</details>
+**Result after `51f-mesh`:** The complete static handle mesh compiles. GPU upload and drawing follow in the next lessons.
+
+---
 
 <a id="checkpoint-51g-layout"></a>
 
 ### Step 9 of 34 · Keep handles constant in CSS pixels (`51g-layout`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/34 Visual Trace (51g-layout): Keep handles constant in CSS pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget_layout.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pivot clip depth and CSS</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">height</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world-per-pixel</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected screen rectangle</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded tile</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget_layout.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">projected screen rectan…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded tile</text>
 </svg>
-</div>
-
-- **Goal:** Keep handles constant in CSS pixels.
-- **Data Flow Trace:** `pivot clip depth and CSS height → world-per-pixel → projected screen rectangle → bounded tile`
-- **Files You Touch:** `src/widget_layout.rs` (*Convert CSS handle size through the pivot’s current depth and bound its projected tile.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
 
 Measure world length per CSS pixel at the selected pivot. Project a conservative widget cube, clamp its screen rectangle and bound the independent tile to1024pixels per side.
 
-> **Self-Check Question:** *Why measure depth at the pivot rather than at the camera target?*  
-> **Answer:** A selected object can be away from the target. Using its own depth keeps the visible handle and grab aperture the same CSS size.
-
-- **Hands-On Lab Experiment:** Compare zooms, both projections and DPR1/2. The arm remains96CSS pixels while the tile follows physical pixels.
-
-<details>
-<summary>Implementation 51g-layout: Keep handles constant in CSS pixels</summary>
-
-Keep handles constant in CSS pixels.
-
-Data flow: pivot clip depth and CSS height → world-per-pixel → projected screen rectangle → bounded tile.
+> **Check:** *Why measure depth at the pivot rather than at the camera target?* — A selected object can be away from the target. Using its own depth keeps the visible handle and grab aperture the same CSS size.
 
 ### 1. `src/widget_layout.rs`
 
@@ -923,76 +502,44 @@ Create the file and type:
 
 Register the handle component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod gizmo_tests;
-
-pub mod widget_mesh;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51g-layout-02.rs" skip=39
 ```
 
-</details>
+---
 
 <a id="checkpoint-51h-shader"></a>
 
 ### Step 10 of 34 · Draw a local handle tile and its canvas rectangle (`51h-shader`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/34 Visual Trace (51h-shader): Draw a local handle tile and its canvas rectangle</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">20-byte vertices</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and96-byte…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">flat handle color</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">resolved tile</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">canvas alpha composite</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">resolved tile</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">canvas alpha composite</text>
 </svg>
-</div>
-
-- **Goal:** Draw a local handle tile and its canvas rectangle.
-- **Data Flow Trace:** `20-byte vertices and96-byte uniform → flat handle color → resolved tile → canvas alpha composite`
-- **Files You Touch:** `src/widget.wgsl` (*Draw packed handle colors, active orange and the resolved tile composite.*)
 
 The96-byte widget uniform carries a tile matrix, canvas rectangle and active handle. One shader draws the mesh; another samples the resolved tile and blends its alpha over the canvas.
 
-> **Self-Check Question:** *Why divide sampled color by alpha before blending?*  
-> **Answer:** The multisampled clear leaves partially covered edge pixels. Recovering their unpremultiplied color avoids dark borders when ordinary alpha blending composites them.
-
-- **Hands-On Lab Experiment:** Match the shader’s matrix, rectangle and active-handle fields to their exact Rust uniform offsets.
-
-<details>
-<summary>Implementation 51h-shader: Draw a local handle tile and its canvas rectangle</summary>
-
-Draw a local handle tile and its canvas rectangle.
-
-Data flow: 20-byte vertices and96-byte uniform → flat handle color → resolved tile → canvas alpha composite.
+> **Check:** *Why divide sampled color by alpha before blending?* — The multisampled clear leaves partially covered edge pixels. Recovering their unpremultiplied color avoids dark borders when ordinary alpha blending composites them.
 
 ### 1. `src/widget.wgsl`
 
@@ -1004,58 +551,38 @@ Create the file and type:
 --8<-- "journey/code/51h-shader-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51i-image"></a>
 
 ### Step 11 of 34 · Bind the widget’s own sampled image (`51i-image`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/34 Visual Trace (51i-image): Bind the widget’s own sampled image</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget_pipelines.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">resolved RGBA texture</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">filterable binding</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">linear sampler</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">composite group</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget_pipelines.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">linear sampler</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">composite group</text>
 </svg>
-</div>
-
-- **Goal:** Bind the widget’s own sampled image.
-- **Data Flow Trace:** `resolved RGBA texture → filterable binding → linear sampler → composite group`
-- **Files You Touch:** `src/widget_pipelines.rs` (*Declare the explicit sampled tile and filtering sampler bindings.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
 
 The composite reads a resolved RGBA tile through a filterable2D texture and linear sampler. Explicit bindings keep this image independent of scene geometry and pick buffers.
 
-> **Self-Check Question:** *Should the composite sample the4x multisampled texture directly?*  
-> **Answer:** No. Its ordinary2D texture binding reads the single-sample resolve result. The mesh pass resolves coverage before the composite samples it.
-
-- **Hands-On Lab Experiment:** Compare a uniform binding with this texture/sampler layout. Each binding describes the resource type the shader actually reads.
-
-<details>
-<summary>Implementation 51i-image: Bind the widget’s own sampled image</summary>
-
-Bind the widget’s own sampled image.
-
-Data flow: resolved RGBA texture → filterable binding → linear sampler → composite group.
+> **Check:** *Should the composite sample the4x multisampled texture directly?* — No. Its ordinary2D texture binding reads the single-sample resolve result. The mesh pass resolves coverage before the composite samples it.
 
 ### 1. `src/widget_pipelines.rs`
 
@@ -1071,85 +598,48 @@ Create the file and type:
 
 Register the handle component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod widget_mesh;
-
-pub mod widget_layout;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51i-image-02.rs" skip=45
 ```
 
-</details>
+---
 
 <a id="checkpoint-51j-pipelines"></a>
 
 ### Step 12 of 34 · Separate handle depth from scene depth (`51j-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/34 Visual Trace (51j-pipelines): Separate handle depth from scene depth</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget_pipelines.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit uniform layouts</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">4x mesh pipeline and own depth</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">blended canvas pipeline</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget_pipelines.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">4x mesh pipeline and ow…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">blended canvas pipeline</text>
 </svg>
-</div>
-
-- **Goal:** Separate handle depth from scene depth.
-- **Data Flow Trace:** `explicit uniform layouts →4x mesh pipeline and own depth → blended canvas pipeline`
-- **Files You Touch:** `src/widget_pipelines.rs` (*Build separate4x depth-tested mesh and depth-free alpha-composite pipelines.*)
 
 The widget mesh uses its own4xMSAA RGBA/depth tile. The canvas composite has alpha blending and no scene-depth attachment, keeping handles visible over nearer solids.
 
-> **Self-Check Question:** *Why give handles an independent depth buffer?*  
-> **Answer:** Their arrows and balls must occlude each other correctly while staying visible over the source scene. Sharing scene depth would hide them inside selected solids.
-
-- **Hands-On Lab Experiment:** Match the tile’s4x sample count to both color and depth attachments. The canvas composite stays single-sample.
-
-<details>
-<summary>Implementation 51j-pipelines: Separate handle depth from scene depth</summary>
-
-Separate handle depth from scene depth.
-
-Data flow: explicit uniform layouts →4x mesh pipeline and own depth → blended canvas pipeline.
+> **Check:** *Why give handles an independent depth buffer?* — Their arrows and balls must occlude each other correctly while staying visible over the source scene. Sharing scene depth would hide them inside selected solids.
 
 ### 1. `src/widget_pipelines.rs`
 
 Build separate4x depth-tested mesh and depth-free alpha-composite pipelines.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        ] })
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1157,58 +647,38 @@ After that block, type:
 --8<-- "journey/code/51j-pipelines-01.rs" skip=16
 ```
 
-</details>
+---
 
 <a id="checkpoint-51k-tile"></a>
 
 ### Step 13 of 34 · Own color, depth and resolve textures together (`51k-tile`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/34 Visual Trace (51k-tile): Own color, depth and resolve textures together</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded extent</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">4x color and depth</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">1x resolve</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">sampled image owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget.rs, src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">1x resolve</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampled image owner</text>
 </svg>
-</div>
-
-- **Goal:** Own color, depth and resolve textures together.
-- **Data Flow Trace:** `bounded extent →4x color and depth →1x resolve → sampled image owner`
-- **Files You Touch:** `src/widget.rs` (*Own the widget’s three matching texture attachments and sampled image group.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
 
 A tile owns matching4x color/depth views and its single-sample resolve image. The bind group retains the sampled view and sampler; replacing the tile releases the old resources together.
 
-> **Self-Check Question:** *How many bytes per physical tile pixel does the ledger count?*  
-> **Answer:** 36bytes:16for4xRGBA color,16for4x32-bit depth and4for the resolved RGBA image.
-
-- **Hands-On Lab Experiment:** Compare64-pixel tile increments with the1024-pixel cap. Allocation stays bounded independently of the drawing’s object count.
-
-<details>
-<summary>Implementation 51k-tile: Own color, depth and resolve textures together</summary>
-
-Own color, depth and resolve textures together.
-
-Data flow: bounded extent →4x color and depth →1x resolve → sampled image owner.
+> **Check:** *How many bytes per physical tile pixel does the ledger count?* — 36bytes:16for4xRGBA color,16for4x32-bit depth and4for the resolved RGBA image.
 
 ### 1. `src/widget.rs`
 
@@ -1224,91 +694,48 @@ Create the file and type:
 
 Register the handle component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod widget_layout;
-
-pub mod widget_pipelines;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51k-tile-02.rs" skip=50
 ```
 
-</details>
+---
 
 <a id="checkpoint-51l-upload"></a>
 
 ### Step 14 of 34 · Upload handle geometry once (`51l-upload`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/34 Visual Trace (51l-upload): Upload handle geometry once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one packed mesh</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">persistent vertex buffer</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current tile ledger</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current tile ledger</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">release</text>
 </svg>
-</div>
-
-- **Goal:** Upload handle geometry once.
-- **Data Flow Trace:** `one packed mesh → persistent vertex buffer and uniform → current tile ledger → release`
-- **Files You Touch:** `src/widget.rs` (*Upload one static handle mesh, construct pipelines and expose explicit allocation accounting.*)
 
 The widget owns one static vertex buffer and a96-byte placement uniform. Construct its pipelines once, count its buffer/tile allocations and drop tile resources when the selection is hidden.
 
-> **Self-Check Question:** *Should orbiting upload the procedural mesh again?*  
-> **Answer:** No. Geometry remains static. Orbiting changes the widget placement uniform; a changed extent alone may replace the tile.
-
-- **Hands-On Lab Experiment:** Compare persistent buffer bytes with temporary tile bytes. Clearing a selection drops textures while reusable buffers remain owned by the renderer.
-
-<details>
-<summary>Implementation 51l-upload: Upload handle geometry once</summary>
-
-Upload handle geometry once.
-
-Data flow: one packed mesh → persistent vertex buffer and uniform → current tile ledger → release.
+> **Check:** *Should orbiting upload the procedural mesh again?* — No. Geometry remains static. Orbiting changes the widget placement uniform; a changed extent alone may replace the tile.
 
 ### 1. `src/widget.rs`
 
 Upload one static handle mesh, construct pipelines and expose explicit allocation accounting.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-struct Tile { size:[u32;2],color:wgpu::TextureView,depth:wgpu::TextureView,resolved:wgpu::TextureView,group:wgpu::BindGroup }
-
-impl Tile {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1316,76 +743,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51l-upload-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51m-prepare"></a>
 
 ### Step 15 of 34 · Write only current handle placement (`51m-prepare`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/34 Visual Trace (51m-prepare): Write only current handle placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current valid layout</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same or replacement tile</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">96-byte uniform write</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible widget</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">96-byte uniform write</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible widget</text>
 </svg>
-</div>
-
-- **Goal:** Write only current handle placement.
-- **Data Flow Trace:** `current valid layout → same or replacement tile →96-byte uniform write → visible widget`
-- **Files You Touch:** `src/widget.rs` (*Reuse a matching tile, release absent widgets and update the small current-frame uniform.*)
 
 Preparing a frame hides an invalid or absent widget. Reuse a matching tile extent; otherwise replace the tile. Write the bounded matrix/rectangle/active-handle uniform for the current view.
 
-> **Self-Check Question:** *Does hovering require a new texture when the tile extent is unchanged?*  
-> **Answer:** No. Only the active-handle value changes. The existing tile and static vertex buffer remain reusable.
-
-- **Hands-On Lab Experiment:** Prepare the same view repeatedly, then hover an arm. Texture allocations must stay unchanged while uniform writes advance.
-
-<details>
-<summary>Implementation 51m-prepare: Write only current handle placement</summary>
-
-Write only current handle placement.
-
-Data flow: current valid layout → same or replacement tile →96-byte uniform write → visible widget.
+> **Check:** *Does hovering require a new texture when the tile extent is unchanged?* — No. Only the active-handle value changes. The existing tile and static vertex buffer remain reusable.
 
 ### 1. `src/widget.rs`
 
 Reuse a matching tile, release absent widgets and update the small current-frame uniform.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn usage(&self) -> [u64;4] { [self.vertices.size()+self.uniform.size(),self.tile.as_ref().map_or(0,|t|u64::from(t.size[0])*u64::from(t.size[1])*36),self.allocations,self.writes] }
-    pub fn extent(&self) -> Option<[u32;2]> { self.tile.as_ref().map(|t|t.size) }
-
-}
-
-impl Drop for Widget { fn drop(&mut self) {self.vertices.destroy();self.uniform.destroy();} }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1393,77 +786,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51m-prepare-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51n-draw"></a>
 
 ### Step 16 of 34 · Composite handles after source geometry (`51n-draw`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/34 Visual Trace (51n-draw): Composite handles after source geometry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/widget.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">handle mesh pass and own</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">resolved coverage</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">loaded canvas</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">two overlay draws</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/widget.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">loaded canvas</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">two overlay draws</text>
 </svg>
-</div>
-
-- **Goal:** Composite handles after source geometry.
-- **Data Flow Trace:** `handle mesh pass and own depth → resolved coverage → loaded canvas → two overlay draws`
-- **Files You Touch:** `src/widget.rs` (*Render the local4x tile, resolve it and blend its rectangle over the existing canvas.*)
 
 Render the handle mesh into its own cleared tile and resolve coverage. Then load the existing canvas and draw the image rectangle, without writing source depth or pick owners.
 
-> **Self-Check Question:** *Should clearing the widget tile erase the drawing?*  
-> **Answer:** No. Only the independent tile is cleared. The composite loads the already rendered canvas and blends the tile over it.
-
-- **Hands-On Lab Experiment:** Follow the two render passes. The first has widget depth; the second has the canvas color target and no depth attachment.
-
-<details>
-<summary>Implementation 51n-draw: Composite handles after source geometry</summary>
-
-Composite handles after source geometry.
-
-Data flow: handle mesh pass and own depth → resolved coverage → loaded canvas → two overlay draws.
+> **Check:** *Should clearing the widget tile erase the drawing?* — No. Only the independent tile is cleared. The composite loads the already rendered canvas and blends the tile over it.
 
 ### 1. `src/widget.rs`
 
 Render the local4x tile, resolve it and blend its rectangle over the existing canvas.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        queue.write_buffer(&self.uniform,0,&bytes); self.writes+=1; self.visible=true;
-    }
-
-}
-
-impl Drop for Widget { fn drop(&mut self) {self.vertices.destroy();self.uniform.destroy();} }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1471,58 +829,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51n-draw-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51o-renderer"></a>
 
 ### Step 17 of 34 · Register the widget outside source picking (`51o-renderer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/34 Visual Trace (51o-renderer): Register the widget outside source picking</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/widget_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">renderer-owned widget</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current camera placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source canvas</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent overlay</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/widg…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">source canvas</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent overlay</text>
 </svg>
-</div>
-
-- **Goal:** Register the widget outside source picking.
-- **Data Flow Trace:** `renderer-owned widget → current camera placement → source canvas → independent overlay`
-- **Files You Touch:** `src/renderer.rs` (*Own and draw the bounded widget independently of primary source geometry and integer picking.*) · `src/widget_tests.rs` (*Copy real GPU pixels, bounded layout, constant CSS size, hover reuse and texture-release checks.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
 
 The renderer owns and draws the widget after source surfaces, ink and point-tool previews. Camera updates supply current placement; selection-driven visibility connects in the following editor steps.
 
-> **Self-Check Question:** *Does a handle need a scene row or integer source-pick ID?*  
-> **Answer:** No. CPU handle math owns its small hit test. Registering it as source geometry would pollute Save, selection and scene bounds.
-
-- **Hands-On Lab Experiment:** Inspect the supplied real GPU checks. Both projections and DPR1/2 must draw all three colors over nearer geometry without changing primary geometry or pick ownership.
-
-<details>
-<summary>Implementation 51o-renderer: Register the widget outside source picking</summary>
-
-Register the widget outside source picking.
-
-Data flow: renderer-owned widget → current camera placement → source canvas → independent overlay.
+> **Check:** *Does a handle need a scene row or integer source-pick ID?* — No. CPU handle math owns its small hit test. Registering it as source geometry would pollute Save, selection and scene bounds.
 
 ### 1. `src/renderer.rs`
 
@@ -1530,8 +868,7 @@ Own and draw the bounded widget independently of primary source geometry and int
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.markers.draw(&mut pass);
@@ -1541,8 +878,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1556,8 +891,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
@@ -1567,8 +901,6 @@ Replace it with:
 
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1590,8 +922,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
@@ -1602,8 +933,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         renderer.set_scene(scene, None);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1617,8 +946,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let highlight_pipeline = mesh_pipeline(crate::depth::ink());
@@ -1628,8 +956,6 @@ Replace it with:
             label: Some("view transform and normal diagnostic"),
             size: 80,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1643,8 +969,7 @@ Replace it with:
             size: 80,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     highlight_pipeline: wgpu::RenderPipeline,
@@ -1654,8 +979,6 @@ Replace it with:
     geometry: crate::geometry_cache::GeometryCache,
     settings_allocations: usize,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1669,8 +992,7 @@ Replace it with:
     settings_allocations: usize,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2024,37 +1346,7 @@ impl Renderer {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51o-renderer-01.rs"
-```
-
-```text
---8<-- "journey/code/51o-renderer-02.rs"
-```
-
-```text
---8<-- "journey/code/51o-renderer-03.rs"
-```
-
-```text
---8<-- "journey/code/51o-renderer-04.rs"
-```
-
-```text
---8<-- "journey/code/51o-renderer-05.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2068,22 +1360,9 @@ Copy this supplied file:
 --8<-- "journey/code/51o-renderer-06.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the handle component and supplied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod widget_pipelines;
-
-pub mod widget;
-```
-
-</details>
 
 After that block, type:
 
@@ -2091,59 +1370,38 @@ After that block, type:
 --8<-- "journey/code/51o-renderer-07.rs" skip=43
 ```
 
-</details>
+---
 
 <a id="checkpoint-51p-part-points"></a>
 
 ### Step 18 of 34 · Locate original mesh parts and curve controls (`51p-part-points`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/34 Visual Trace (51p-part-points): Locate original mesh parts and curve controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/part_preview.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected source part</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">deduplicated original keys</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">precise placed points</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">average world pivot</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/part_preview.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">precise placed points</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">average world pivot</text>
 </svg>
-</div>
-
-- **Goal:** Locate original mesh parts and curve controls.
-- **Data Flow Trace:** `selected source part → deduplicated original keys → precise placed points → average world pivot`
-- **Files You Touch:** `src/part_preview.rs` (*Resolve original part keys and precise placed source points.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
 
 Resolve original source vertices for a mesh face or edge, including hole rims. A curve control is its original weighted point. Apply the owner’s placement before averaging a world pivot.
 
-> **Self-Check Question:** *Is the pivot the center of a rendered triangle?*  
-> **Answer:** No. One original polygon can produce several display triangles. The pivot belongs to the selected source points, including its hole boundaries.
-
-- **What You Should See:** Continue the previous two-box Move exercise. Selection-driven handle drawing connects at51zb, and actual captured input follows at51zc–51zd.
-- **Hands-On Lab Experiment:** Compare sparse face keys, shared edge endpoints and a weighted curve control. A display-only diagonal must never become an editable source edge.
-
-<details>
-<summary>Implementation 51p-part-points: Locate original mesh parts and curve controls</summary>
-
-Locate original mesh parts and curve controls.
-
-Data flow: selected source part → deduplicated original keys → precise placed points → average world pivot.
+> **Check:** *Is the pivot the center of a rendered triangle?* — No. One original polygon can produce several display triangles. The pivot belongs to the selected source points, including its hole boundaries.
 
 ### 1. `src/part_preview.rs`
 
@@ -2159,90 +1417,50 @@ Create the file and type:
 
 Register the edit component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-#[cfg(test)]
-mod widget_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51p-part-points-02.rs" skip=32
 ```
 
-</details>
+**Result after `51p-part-points`:** Continue the previous two-box Move exercise. Selection-driven handle drawing connects at51zb, and actual captured input follows at51zc–51zd.
+
+---
 
 <a id="checkpoint-51q-deform"></a>
 
 ### Step 19 of 34 · Deform selected original points through their placement (`51q-deform`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/34 Visual Trace (51q-deform): Deform selected original points through their placement</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world delta</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inverse owner placement</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original points</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rebuilt derived display</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">selected original points</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rebuilt derived display</text>
 </svg>
-</div>
-
-- **Goal:** Deform selected original points through their placement.
-- **Data Flow Trace:** `world delta → inverse owner placement → selected original points → rebuilt derived display`
-- **Files You Touch:** `src/scene.rs` (*Transform original selected part points through local placement and preserve homogeneous curve weights.*)
 
 Convert the world delta into the owner’s local frame. Clone only its selected original mesh vertices or curve control; rebuild derived display while preserving topology, attributes and rational weights.
 
-> **Self-Check Question:** *Why preserve a rational control’s weight when moving its point?*  
-> **Answer:** The weight affects the whole curve shape. Resetting it to1 changes more than the intended point movement, even when its final coordinates are correct.
-
-- **Hands-On Lab Experiment:** Move a face on a sheared, scaled owner. Its selected world vertices must follow the delta while other original vertices stay unchanged.
-
-<details>
-<summary>Implementation 51q-deform: Deform selected original points through their placement</summary>
-
-Deform selected original points through their placement.
-
-Data flow: world delta → inverse owner placement → selected original points → rebuilt derived display.
+> **Check:** *Why preserve a rational control’s weight when moving its point?* — The weight affects the whole curve shape. Resetting it to1 changes more than the intended point movement, even when its final coordinates are correct.
 
 ### 1. `src/scene.rs`
 
 Transform original selected part points through local placement and preserve homogeneous curve weights.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(all(test, not(target_arch = "wasm32")))]
-#[path = "pick_gpu_tests.rs"]
-mod pick_gpu_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -2250,73 +1468,42 @@ After that block, type:
 --8<-- "journey/code/51q-deform-01.rs" skip=97
 ```
 
-</details>
+---
 
 <a id="checkpoint-51r-part-preview"></a>
 
 ### Step 20 of 34 · Keep part deformation outside saved geometry (`51r-part-preview`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/34 Visual Trace (51r-part-preview): Keep part deformation outside saved geometry</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/part_preview.rs, src/edit_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">captured original source</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary cloned</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">deformation</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stale validation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one commit or release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/part_preview.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stale validation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one commit or release</text>
 </svg>
-</div>
-
-- **Goal:** Keep part deformation outside saved geometry.
-- **Data Flow Trace:** `captured original source → temporary cloned deformation → stale validation → one commit or release`
-- **Files You Touch:** `src/part_preview.rs` (*Own temporary source deformation and refuse stale part commits.*) · `src/edit_preview.rs` (*Expose both retained placement-preview scenes for later memory accounting.*)
 
 Capture the selected source and original placement. Derive a separate preview scene for every valid delta; commit only if the source and placement still match, using one history transaction.
 
-> **Self-Check Question:** *What happens if the source changes while its handle is grabbed?*  
-> **Answer:** Refuse the stale commit. Its captured keys and placement belong to the earlier source; applying them to the replacement could edit the wrong geometry.
-
-- **Hands-On Lab Experiment:** Compare cancellation with a commit. Cancellation releases derived geometry; Undo after commit restores the original shared source allocation.
-
-<details>
-<summary>Implementation 51r-part-preview: Keep part deformation outside saved geometry</summary>
-
-Keep part deformation outside saved geometry.
-
-Data flow: captured original source → temporary cloned deformation → stale validation → one commit or release.
+> **Check:** *What happens if the source changes while its handle is grabbed?* — Refuse the stale commit. Its captured keys and placement belong to the earlier source; applying them to the replacement could edit the wrong geometry.
 
 ### 1. `src/part_preview.rs`
 
 Own temporary source deformation and refuse stale part commits.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Ok(keys)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2328,79 +1515,44 @@ After that block, type:
 
 Expose both retained placement-preview scenes for later memory accounting.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(Self { base:scene.clone(),scene:scene.clone(),ids,transform:Xform::identity() })
-    }
-    pub fn ids(&self) -> &[ObjectId] { &self.ids }
-    pub fn matrix(&self) -> &[f64; 16] { &self.transform.m }
-    pub fn set(&mut self, transform: Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&transform.m) { return Err("Invalid preview transform"); }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/51r-part-preview-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51s-edit-owner"></a>
 
 ### Step 21 of 34 · Share one handle interface across whole and part edits (`51s-edit-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/34 Visual Trace (51s-edit-owner): Share one handle interface across whole and part edits</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo_edit.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole owners or one source</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">part</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">common temporary scene</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">common transform</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one history boundary</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo_edit.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">common transform</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history boundary</text>
 </svg>
-</div>
-
-- **Goal:** Share one handle interface across whole and part edits.
-- **Data Flow Trace:** `whole owners or one source part → common temporary scene → common transform → one history boundary`
-- **Files You Touch:** `src/gizmo_edit.rs` (*Unify whole-placement and original-part previews without merging their source ownership.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
 
 A whole selection changes shared-source placements; a selected part changes a cloned source. The handle owner exposes the same temporary scene, transform and commit boundary for both paths.
 
-> **Self-Check Question:** *Does rotating a whole object clone its mesh vertices?*  
-> **Answer:** No. Its placement changes while the original geometry remains shared. Only an actual part deformation needs a changed source clone.
-
-- **Hands-On Lab Experiment:** Trace both preview variants to their saved-document commit. Neither path may publish geometry while the cursor is moving.
-
-<details>
-<summary>Implementation 51s-edit-owner: Share one handle interface across whole and part edits</summary>
-
-Share one handle interface across whole and part edits.
-
-Data flow: whole owners or one source part → common temporary scene → common transform → one history boundary.
+> **Check:** *Does rotating a whole object clone its mesh vertices?* — No. Its placement changes while the original geometry remains shared. Only an actual part deformation needs a changed source clone.
 
 ### 1. `src/gizmo_edit.rs`
 
@@ -2416,86 +1568,48 @@ Create the file and type:
 
 Register the edit component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod widget_tests;
-
-pub mod part_preview;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51s-edit-owner-02.rs" skip=41
 ```
 
-</details>
+---
 
 <a id="checkpoint-51t-capture"></a>
 
 ### Step 22 of 34 · Keep pointer ownership through click or drag (`51t-capture`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/34 Visual Trace (51t-capture): Keep pointer ownership through click or drag</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo_edit.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">captured pointer ID and start</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drag threshold</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary transform or numeric</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">request</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo_edit.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">drag threshold</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary transform or…</text>
 </svg>
-</div>
-
-- **Goal:** Keep pointer ownership through click or drag.
-- **Data Flow Trace:** `captured pointer ID and start → drag threshold → temporary transform or numeric request`
-- **Files You Touch:** `src/gizmo_edit.rs` (*Capture one pointer, distinguish clicks from drags and track the displayed active handle.*)
 
 A captured pointer remembers its handle and starting screen position. Crossing4CSS pixels remains a drag even after returning; a click opens number input, and unrelated pointer IDs cannot update it.
 
-> **Self-Check Question:** *Can releasing another pointer commit the active handle?*  
-> **Answer:** No. Only the pointer that grabbed it owns its updates and release. Other touches must leave its preview and history untouched.
-
-- **Hands-On Lab Experiment:** Move beyond the threshold and return to the start. The release remains a zero-distance drag rather than unexpectedly opening a number field.
-
-<details>
-<summary>Implementation 51t-capture: Keep pointer ownership through click or drag</summary>
-
-Keep pointer ownership through click or drag.
-
-Data flow: captured pointer ID and start → drag threshold → temporary transform or numeric request.
+> **Check:** *Can releasing another pointer commit the active handle?* — No. Only the pointer that grabbed it owns its updates and release. Other touches must leave its preview and history untouched.
 
 ### 1. `src/gizmo_edit.rs`
 
 Capture one pointer, distinguish clicks from drags and track the displayed active handle.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn commit(&self,scene:&mut Scene,history:&mut crate::history::History) -> Result<bool,&'static str> {match self {Self::Whole(p)=>p.commit(scene,history),Self::Part(p)=>p.commit(scene,history)}}
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2503,59 +1617,38 @@ After that block, type:
 --8<-- "journey/code/51t-capture-01.rs" skip=205
 ```
 
-</details>
+---
 
 <a id="checkpoint-51u-selection"></a>
 
 ### Step 23 of 34 · Place handles on the current editable selection (`51u-selection`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/34 Visual Trace (51u-selection): Place handles on the current editable selection</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">editable whole selection</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">or…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world pivot</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera ray hit</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary presentation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">camera ray hit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary presentation</text>
 </svg>
-</div>
-
-- **Goal:** Place handles on the current editable selection.
-- **Data Flow Trace:** `editable whole selection or source part → world pivot → camera ray hit → temporary presentation`
-- **Files You Touch:** `src/editor.rs` (*Own a handle preview, derive selection pivots and resolve hits through current camera rays.*)
 
 The editor exposes a union-bounds pivot for whole objects or an original-point average for parts. Hide handles during point tools; present temporary edit geometry while Save keeps the original scene.
 
-> **Self-Check Question:** *Why hide handles while a point tool is asking for a point?*  
-> **Answer:** The same click must belong to one interaction. A creation tool’s point request takes ownership rather than accidentally starting an edit on selected geometry.
-
-- **Hands-On Lab Experiment:** Select two differently placed objects. Their handle belongs to their combined world bounds; selecting one source face uses that face’s original world points.
-
-<details>
-<summary>Implementation 51u-selection: Place handles on the current editable selection</summary>
-
-Place handles on the current editable selection.
-
-Data flow: editable whole selection or source part → world pivot → camera ray hit → temporary presentation.
+> **Check:** *Why hide handles while a point tool is asking for a point?* — The same click must belong to one interaction. A creation tool’s point request takes ownership rather than accidentally starting an edit on selected geometry.
 
 ### 1. `src/editor.rs`
 
@@ -2563,8 +1656,7 @@ Own a handle preview, derive selection pivots and resolve hits through current c
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2576,8 +1668,6 @@ impl Editor {
         let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2613,8 +1703,7 @@ impl Editor {
         let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -2626,8 +1715,6 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2640,8 +1727,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -2651,8 +1737,6 @@ pub struct Editor {
     pub snapping: crate::snap::Settings,
     snap_index: Option<crate::snap_index::Index>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2667,8 +1751,7 @@ pub struct Editor {
     snap_index: Option<crate::snap_index::Index>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3271,79 +2354,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51u-selection-01.rs"
-```
-
-```text
---8<-- "journey/code/51u-selection-02.rs"
-```
-
-```text
---8<-- "journey/code/51u-selection-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51v-press"></a>
 
 ### Step 24 of 34 · Capture a valid handle without editing the document (`51v-press`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/34 Visual Trace (51v-press): Capture a valid handle without editing the document</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unmodified press</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current handle hit</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible source capture</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">transient edit owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">eligible source capture</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">transient edit owner</text>
 </svg>
-</div>
-
-- **Goal:** Capture a valid handle without editing the document.
-- **Data Flow Trace:** `unmodified press → current handle hit → eligible source capture → transient edit owner`
-- **Files You Touch:** `src/editor.rs` (*Capture checked handle presses and cancel older captures only after successful document commands.*)
 
 A primary unmodified press checks the visible handle, original source eligibility and current ray. Capture one preview only after validation; modified presses and active point drafts retain their own input.
 
-> **Self-Check Question:** *Should a rejected handle press cancel an accepted Move base point?*  
-> **Answer:** No. A refused press has made no valid edit. It must preserve the running tool’s accepted input and original document.
-
-- **Hands-On Lab Experiment:** Try a modified press, an invalid viewport and an unloaded mesh. No path may create history or consume an active point draft.
-
-<details>
-<summary>Implementation 51v-press: Capture a valid handle without editing the document</summary>
-
-Capture a valid handle without editing the document.
-
-Data flow: unmodified press → current handle hit → eligible source capture → transient edit owner.
+> **Check:** *Should a rejected handle press cancel an accepted Move base point?* — No. A refused press has made no valid edit. It must preserve the running tool’s accepted input and original document.
 
 ### 1. `src/editor.rs`
 
@@ -3351,8 +2393,7 @@ Capture checked handle presses and cancel older captures only after successful d
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3362,8 +2403,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.tool_status = self.snapping.apply(setting)?;
                 if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3377,8 +2416,7 @@ Replace it with:
                 if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
@@ -3391,8 +2429,6 @@ Replace it with:
         Ok(change)
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -3408,8 +2444,7 @@ Replace it with:
         Ok(change)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.gizmo_hover=if self.gizmo_edit.is_some() {None} else {screen.and_then(|(point,size)|self.gizmo_hit(point,size))};
@@ -3419,8 +2454,6 @@ Replace it with:
         let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3443,8 +2476,7 @@ Replace it with:
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3454,8 +2486,6 @@ pub enum Action {
     ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
     BeginTool(crate::tool::Shape),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3469,8 +2499,7 @@ pub enum Action {
     BeginTool(crate::tool::Shape),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4087,83 +3116,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51v-press-01.rs"
-```
-
-```text
---8<-- "journey/code/51v-press-02.rs"
-```
-
-```text
---8<-- "journey/code/51v-press-03.rs"
-```
-
-```text
---8<-- "journey/code/51v-press-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51w-release"></a>
 
 ### Step 25 of 34 · Preview captured motion and commit one release (`51w-release`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/34 Visual Trace (51w-release): Preview captured motion and commit one release</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned motion</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">baseline-derived transform</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current release modifiers</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">click prompt or one commit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current release modifie…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">click prompt or one com…</text>
 </svg>
-</div>
-
-- **Goal:** Preview captured motion and commit one release.
-- **Data Flow Trace:** `owned motion → baseline-derived transform → current release modifiers → click prompt or one commit`
-- **Files You Touch:** `src/editor.rs` (*Update and release one captured handle, preserve click input and commit the current snapped transform once.*)
 
 Update only the captured pointer from its original grab. A valid drag release commits once using its current Shift state; a click asks for a number, and cancellation restores the saved presentation.
 
-> **Self-Check Question:** *When should Shift rotation snapping be applied?*  
-> **Answer:** During both preview and release, using the current modifier state. A release after pressing Shift must commit the same quarter-turn transform the learner sees.
-
-- **Hands-On Lab Experiment:** Release another pointer, then cancel the real one. Compare a free60-degree preview with a Shift release; only the owned release can create history.
-
-<details>
-<summary>Implementation 51w-release: Preview captured motion and commit one release</summary>
-
-Preview captured motion and commit one release.
-
-Data flow: owned motion → baseline-derived transform → current release modifiers → click prompt or one commit.
+> **Check:** *When should Shift rotation snapping be applied?* — During both preview and release, using the current modifier state. A release after pressing Shift must commit the same quarter-turn transform the learner sees.
 
 ### 1. `src/editor.rs`
 
@@ -4171,8 +3155,7 @@ Update and release one captured handle, preserve click input and commit the curr
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
@@ -4182,8 +3165,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.tool_status = self.snapping.apply(setting)?;
                 if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4199,8 +3180,7 @@ Replace it with:
                 if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
@@ -4212,8 +3192,6 @@ Replace it with:
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4228,8 +3206,7 @@ Replace it with:
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.gizmo_edit=crate::gizmo_edit::Edit::begin(gizmo,handle,&ray,preview,pointer,screen);Ok(Change::View)
@@ -4239,8 +3216,6 @@ Replace it with:
         let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -4269,8 +3244,7 @@ Replace it with:
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -4280,8 +3254,6 @@ pub enum Action {
     ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
     BeginTool(crate::tool::Shape),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4297,8 +3269,7 @@ pub enum Action {
     BeginTool(crate::tool::Shape),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4937,79 +3908,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51w-release-01.rs"
-```
-
-```text
---8<-- "journey/code/51w-release-02.rs"
-```
-
-```text
---8<-- "journey/code/51w-release-03.rs"
-```
-
-```text
---8<-- "journey/code/51w-release-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51x-number-model"></a>
 
 ### Step 26 of 34 · Own one handle’s number-field state (`51x-number-model`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/34 Visual Trace (51x-number-model): Own one handle’s number-field state</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/number_box.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">clicked handle prompt</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned text and error</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">submitted value or cancellation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/number_box.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owned text and error</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">submitted value or canc…</text>
 </svg>
-</div>
-
-- **Goal:** Own one handle’s number-field state.
-- **Data Flow Trace:** `clicked handle prompt → owned text and error → submitted value or cancellation`
-- **Files You Touch:** `src/number_box.rs` (*Own one projected handle-number prompt and its one-time submitted answer.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
 
 The number model retains its handle, projected anchor, text, error and measured rectangle. It delivers a submitted value or cancellation once, separately from ordinary command input.
 
-> **Self-Check Question:** *Should an invalid answer erase the learner’s typed number?*  
-> **Answer:** No. Keep the field and text available for correction while the original document and redo branch remain unchanged.
-
-- **Hands-On Lab Experiment:** Compare reopening another handle with redrawing the same field. A different handle starts empty; the same field retains its answer and error.
-
-<details>
-<summary>Implementation 51x-number-model: Own one handle’s number-field state</summary>
-
-Own one handle’s number-field state.
-
-Data flow: clicked handle prompt → owned text and error → submitted value or cancellation.
+> **Check:** *Should an invalid answer erase the learner’s typed number?* — No. Keep the field and text available for correction while the original document and redo branch remain unchanged.
 
 ### 1. `src/number_box.rs`
 
@@ -5025,85 +3955,48 @@ Create the file and type:
 
 Register the edit component and supplied checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod part_preview;
-
-pub mod gizmo_edit;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/51x-number-model-02.rs" skip=43
 ```
 
-</details>
+---
 
 <a id="checkpoint-51y-number-field"></a>
 
 ### Step 27 of 34 · Draw the number field beside its handle (`51y-number-field`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/34 Visual Trace (51y-number-field): Draw the number field beside its handle</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/number_box.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected handle anchor</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">foreground field and units</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owned keyboard answer</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/number_box.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">foreground field and un…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owned keyboard answer</text>
 </svg>
-</div>
-
-- **Goal:** Draw the number field beside its handle.
-- **Data Flow Trace:** `projected handle anchor → foreground field and units → owned keyboard answer`
-- **Files You Touch:** `src/number_box.rs` (*Draw the foreground handle-number field with measured bounds and exclusive Enter/Escape ownership.*)
 
 The foreground field follows its projected handle anchor. Give it keyboard focus, show the operation’s units and neutral hint, and consume Enter or Escape before the ordinary command dock.
 
-> **Self-Check Question:** *Why must Enter reach the number field before the command dock?*  
-> **Answer:** Both interfaces share the canvas event stream. Without input ownership, one Enter could apply a handle value and also submit an unrelated command.
-
-- **Hands-On Lab Experiment:** Use the supplied UI checks after51zf. Typed decimals must stay in the number field; Enter submits once and Escape closes it.
-
-<details>
-<summary>Implementation 51y-number-field: Draw the number field beside its handle</summary>
-
-Draw the number field beside its handle.
-
-Data flow: projected handle anchor → foreground field and units → owned keyboard answer.
+> **Check:** *Why must Enter reach the number field before the command dock?* — Both interfaces share the canvas event stream. Without input ownership, one Enter could apply a handle value and also submit an unrelated command.
 
 ### 1. `src/number_box.rs`
 
 Draw the foreground handle-number field with measured bounds and exclusive Enter/Escape ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn set(&mut self,prompt:Option<NumberPrompt>) {self.number_prompt=prompt;if self.number_prompt.is_none() {self.number_handle=None;self.number_rect=None;}}
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -5111,60 +4004,40 @@ After that block, type:
 --8<-- "journey/code/51y-number-field-01.rs" skip=166
 ```
 
-</details>
+---
 
 <a id="checkpoint-51z-number-submit"></a>
 
 ### Step 28 of 34 · Apply precise typed handle values once (`51z-number-submit`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/34 Visual Trace (51z-number-submit): Apply precise typed handle values once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">handle number request</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">precise validated answer</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pivot transform</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one commit or no change</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pivot transform</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one commit or no change</text>
 </svg>
-</div>
-
-- **Goal:** Apply precise typed handle values once.
-- **Data Flow Trace:** `handle number request → precise validated answer → pivot transform → one commit or no change`
-- **Files You Touch:** `src/editor.rs` (*Project the current number request and validate precise, neutral or invalid typed answers before committing.*)
 
 Project the requested handle into CSS coordinates. Valid finite answers produce a checked preview transform and one commit; neutral answers close without history, and errors keep the request open.
 
 Escape cancels every active gizmo operation, including a held pointer drag. Check cancellation before restricting numeric answers to the typing state; the subsequent pointer release must not commit a cancelled preview or replace the existing redo branch.
 
-> **Self-Check Question:** *Does a typed scale below the drag minimum get clamped?*  
-> **Answer:** No. Positive explicit values are intentional. The drag minimum prevents accidental collapse while moving the pointer; typed positive factors retain their precision.
-
-- **Hands-On Lab Experiment:** Type an invalid or zero scale, then a valid positive factor. The invalid answer keeps the field open and must preserve geometry and redo. Drag the Move X handle, press Escape while holding the pointer, then release: source placements must remain unchanged and Redo must still replay the earlier edit.
-
-<details>
-<summary>Implementation 51z-number-submit: Apply precise typed handle values once</summary>
-
-Apply precise typed handle values once.
-
-Data flow: handle number request → precise validated answer → pivot transform → one commit or no change.
+> **Check:** *Does a typed scale below the drag minimum get clamped?* — No. Positive explicit values are intentional. The drag minimum prevents accidental collapse while moving the pointer; typed positive factors retain their precision.
 
 ### 1. `src/editor.rs`
 
@@ -5172,8 +4045,7 @@ Project the current number request and validate precise, neutral or invalid type
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
@@ -5183,8 +4055,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 self.tool_status = self.snapping.apply(setting)?;
                 if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5198,8 +4068,7 @@ Replace it with:
                 if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
@@ -5211,8 +4080,6 @@ Replace it with:
         if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5227,8 +4094,7 @@ Replace it with:
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
@@ -5238,8 +4104,6 @@ Replace it with:
         if text.trim().is_empty() || text.eq_ignore_ascii_case("Escape") { return Some(Ok(Action::CancelTool)); }
         text.contains(',').then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
 ```
-
-</details>
 
 Replace it with:
 
@@ -5255,8 +4119,7 @@ Replace it with:
         text.contains(',').then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.tool_status="Handle edit completed.".into();Ok(if changed {Change::Scene} else {Change::Preview})
@@ -5266,8 +4129,6 @@ Replace it with:
         let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -5290,8 +4151,7 @@ Replace it with:
         let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2])).hit(&ray.origin,&ray.direction,scale)
@@ -5301,8 +4161,6 @@ Replace it with:
 
     pub fn hover_gizmo(&mut self,screen:Option<([f32;2],[f64;2])>) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5324,8 +4182,7 @@ Replace it with:
     pub fn hover_gizmo(&mut self,screen:Option<([f32;2],[f64;2])>) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
@@ -5335,8 +4192,6 @@ Replace it with:
     ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
     BeginTool(crate::tool::Shape),
 ```
-
-</details>
 
 Replace it with:
 
@@ -5350,8 +4205,7 @@ Replace it with:
     BeginTool(crate::tool::Shape),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -6014,91 +4868,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51z-number-submit-01.rs"
-```
-
-```text
---8<-- "journey/code/51z-number-submit-02.rs"
-```
-
-```text
---8<-- "journey/code/51z-number-submit-03.rs"
-```
-
-```text
---8<-- "journey/code/51z-number-submit-04.rs"
-```
-
-```text
---8<-- "journey/code/51z-number-submit-05.rs"
-```
-
-```text
---8<-- "journey/code/51z-number-submit-06.rs"
-```
-
-```text
---8<-- "journey/code/51z-number-submit-escape-drag.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51za-panel"></a>
 
 ### Step 29 of 34 · Route field input through the shared canvas panel (`51za-panel`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/34 Visual Trace (51za-panel): Route field input through the shared canvas panel</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared canvas events</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">number rectangle and focus</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">number answer or ordinary command</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/panel.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">number rectangle and fo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">number answer or ordina…</text>
 </svg>
-</div>
-
-- **Goal:** Route field input through the shared canvas panel.
-- **Data Flow Trace:** `shared canvas events → number rectangle and focus → number answer or ordinary command`
-- **Files You Touch:** `src/panel.rs` (*Present and inspect the handle-number model with exclusive pointer, text and keyboard ownership.*)
 
 The panel owns the number model beside the command dock. Its measured rectangle consumes pointer/wheel input; active number input retains text focus and suppresses document keyboard shortcuts.
 
-> **Self-Check Question:** *Should Delete or Ctrl+A act on geometry while the number field has focus?*  
-> **Answer:** No. The focused field owns editing keys. Document shortcuts resume after the number request closes.
-
-- **Hands-On Lab Experiment:** Compare a click inside the number rectangle with one in empty canvas. The field must retain its text and prevent the click from selecting through its panel.
-
-<details>
-<summary>Implementation 51za-panel: Route field input through the shared canvas panel</summary>
-
-Route field input through the shared canvas panel.
-
-Data flow: shared canvas events → number rectangle and focus → number answer or ordinary command.
+> **Check:** *Should Delete or Ctrl+A act on geometry while the number field has focus?* — No. The focused field owns editing keys. Document shortcuts resume after the number request closes.
 
 ### 1. `src/panel.rs`
 
@@ -6106,8 +4907,7 @@ Present and inspect the handle-number model with exclusive pointer, text and key
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.controls = Some(Vec::new());
@@ -6119,8 +4919,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.top = control.rect[1];
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6137,8 +4935,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -6151,8 +4948,6 @@ Replace it with:
         if line == "Escape" { return Ok(None); }
         if line.eq_ignore_ascii_case("Help") {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6170,8 +4965,7 @@ Replace it with:
         if line.eq_ignore_ascii_case("Help") {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -6181,8 +4975,6 @@ Replace it with:
             && let Some(at) = last.find('\n')
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6196,8 +4988,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             unit: match event.delta_mode() { 1 => egui::MouseWheelUnit::Line, 2 => egui::MouseWheelUnit::Page, _ => egui::MouseWheelUnit::Point },
@@ -6214,8 +5005,6 @@ Replace it with:
             "top": self.top, "focused": self.context.egui_wants_keyboard_input(),
             "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y]),
 ```
-
-</details>
 
 Replace it with:
 
@@ -6235,8 +5024,7 @@ Replace it with:
             "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y]),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn pointer(&mut self, event: &web_sys::PointerEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {
@@ -6247,8 +5035,6 @@ Replace it with:
         if event.type_() == "pointerdown" {
             self.pointer_owned = over;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6262,8 +5048,7 @@ Replace it with:
             self.pointer_owned = over;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let text = event.type_() == "keydown" && event.key().chars().count() == 1
@@ -6276,8 +5061,6 @@ Replace it with:
         if !self.context.egui_wants_keyboard_input() { return false; }
         if let Some(key) = egui::Key::from_name(&event.key()) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6294,8 +5077,7 @@ Replace it with:
         if let Some(key) = egui::Key::from_name(&event.key()) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
@@ -6306,8 +5088,6 @@ Replace it with:
             event.alt_key(), event.is_composing(), self.context.egui_wants_keyboard_input(), self.model.command.is_empty())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6321,8 +5101,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -6339,8 +5118,6 @@ Replace it with:
         self.model.drawing_prompt = prompt; self.model.options = options;
         if self.model.options.is_empty() { self.model.options_rect = None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -6366,8 +5143,7 @@ Replace it with:
         if self.model.options.is_empty() { self.model.options_rect = None; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -6377,8 +5153,6 @@ pub struct Panel {
     pub consumed: bool,
     pointer_owned: bool,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6392,8 +5166,7 @@ pub struct Panel {
     pointer_owned: bool,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::command_dock::{self, CommandLine, Commands as _, theme};
@@ -6664,104 +5437,38 @@ impl Panel {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51za-panel-01.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-02.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-03.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-04.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-05.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-06.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-07.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-08.rs"
-```
-
-```text
---8<-- "journey/code/51za-panel-09.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51zb-presentation"></a>
 
 ### Step 30 of 34 · Update selected handles with the actual camera (`51zb-presentation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/34 Visual Trace (51zb-presentation): Update selected handles with the actual camera</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current viewport and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected world pivot</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded widget placement</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible handle overlay</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded widget placement</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible handle overlay</text>
 </svg>
-</div>
-
-- **Goal:** Update selected handles with the actual camera.
-- **Data Flow Trace:** `current viewport and camera → selected world pivot → bounded widget placement → visible handle overlay`
-- **Files You Touch:** `src/browser.rs` (*Prepare the selected widget from the latest resized camera and expose its own presentation ledger.*)
 
 After resizing, prepare the widget from the current camera, selected pivot and active operation. Record its small ledger separately; point-tool drafts hide it while their existing Move presentation remains.
 
-> **Self-Check Question:** *Should changing camera projection rebuild original geometry?*  
-> **Answer:** No. Update the widget placement and existing view uniforms. Original source geometry and the static handle mesh remain reusable.
-
-- **Hands-On Lab Experiment:** Close; Example Box; Select All; Fit. The widget appears at the selected box. Compare zooms and both projections; start Move and confirm its point draft hides handles.
-
-<details>
-<summary>Implementation 51zb-presentation: Update selected handles with the actual camera</summary>
-
-Update selected handles with the actual camera.
-
-Data flow: current viewport and camera → selected world pivot → bounded widget placement → visible handle overlay.
+> **Check:** *Should changing camera projection rebuild original geometry?* — No. Update the widget placement and existing view uniforms. Original source geometry and the static handle mesh remain reusable.
 
 ### 1. `src/browser.rs`
 
@@ -6769,8 +5476,7 @@ Prepare the selected widget from the latest resized camera and expose its own pr
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .get_element_by_id("canvas")
@@ -6780,8 +5486,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -6795,8 +5499,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 report(&format!("Cannot lay out commands: {error:?}"));
@@ -6806,8 +5509,6 @@ Replace it with:
                 &surface,
                 &renderer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6830,8 +5531,7 @@ Replace it with:
                 &renderer,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Err(error) = renderer.set_grid(editor.camera.grid) {
@@ -6846,8 +5546,6 @@ Replace it with:
             &pointer_canvas,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -6859,8 +5557,7 @@ Replace it with:
             &pointer_canvas,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -7523,80 +6220,38 @@ fn present(
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51zb-presentation-01.rs"
-```
-
-```text
---8<-- "journey/code/51zb-presentation-02.rs"
-```
-
-```text
---8<-- "journey/code/51zb-presentation-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51zc-pointer"></a>
 
 ### Step 31 of 34 · Capture actual browser handle drags (`51zc-pointer`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/34 Visual Trace (51zc-pointer): Capture actual browser handle drags</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canvas press</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">handle hit and pointer</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">capture</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owned move/release</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one source edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">owned move/release</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one source edit</text>
 </svg>
-</div>
-
-- **Goal:** Capture actual browser handle drags.
-- **Data Flow Trace:** `canvas press → handle hit and pointer capture → owned move/release → one source edit`
-- **Files You Touch:** `src/browser.rs` (*Capture one actual handle pointer and route its matching motion and release before source picking.*)
 
 Primary unmodified handle presses own pointer capture before asynchronous source picking. Route matching movement and release to the edit owner; field rectangles and modified selection presses keep their priorities.
 
-> **Self-Check Question:** *Why cancel an older asynchronous source pick when a handle is grabbed?*  
-> **Answer:** It belongs to the previous cursor request. Admitting its late answer could replace the selection underneath an active handle edit.
-
-- **Hands-On Lab Experiment:** Grab an arrow and drag, then Undo. Click an arrow instead: it requests a number. Modified presses must remain available to additive selection.
-
-<details>
-<summary>Implementation 51zc-pointer: Capture actual browser handle drags</summary>
-
-Capture actual browser handle drags.
-
-Data flow: canvas press → handle hit and pointer capture → owned move/release → one source edit.
+> **Check:** *Why cancel an older asynchronous source pick when a handle is grabbed?* — It belongs to the previous cursor request. Admitting its late answer could replace the selection underneath an active handle edit.
 
 ### 1. `src/browser.rs`
 
@@ -7604,16 +6259,13 @@ Capture one actual handle pointer and route its matching motion and release befo
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     frame.present();
     Ok(())
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7650,8 +6302,7 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } else {
@@ -7663,8 +6314,6 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
                 Some(Err(error)) => { report(error); None },
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -7680,8 +6329,7 @@ Replace it with:
                 Some(Err(error)) => { report(error); None },
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -8374,76 +7022,38 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51zc-pointer-01.rs"
-```
-
-```text
---8<-- "journey/code/51zc-pointer-02.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51zd-interruption"></a>
 
 ### Step 32 of 34 · Restore previews when input ownership ends (`51zd-interruption`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/34 Visual Trace (51zd-interruption): Restore previews when input ownership ends</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">captured or numeric edit</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancel/blur/lost capture</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">saved presentation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">released transient</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">resources</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs, src/edito…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">saved presentation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">released transient reso…</text>
 </svg>
-</div>
-
-- **Goal:** Restore previews when input ownership ends.
-- **Data Flow Trace:** `captured or numeric edit → cancel/blur/lost capture → saved presentation → released transient resources`
-- **Files You Touch:** `src/browser.rs` (*Synchronize number fields and restore temporary source presentation on real input interruption.*) · `src/editor.rs` (*Expose saved and captured preview scenes before the browser reports their source allocations.*)
 
 Escape, blur, resize and matching lost capture restore the saved presentation. A clicked handle opens its measured number field; stale off-eye fields close, and page hiding releases temporary displayed geometry.
 
-> **Self-Check Question:** *Should lost capture from an unrelated pointer cancel the active edit?*  
-> **Answer:** No. Pointer IDs identify ownership. Blur and resize end the whole gesture; another pointer’s capture loss does not own it.
-
-- **Hands-On Lab Experiment:** Drag, then press Escape or blur the page. No source movement or history may survive. Click a handle, enter an invalid value, then correct or cancel it.
-
-<details>
-<summary>Implementation 51zd-interruption: Restore previews when input ownership ends</summary>
-
-Restore previews when input ownership ends.
-
-Data flow: captured or numeric edit → cancel/blur/lost capture → saved presentation → released transient resources.
+> **Check:** *Should lost capture from an unrelated pointer cancel the active edit?* — No. Pointer IDs identify ownership. Blur and resize end the whole gesture; another pointer’s capture loss does not own it.
 
 ### 1. `src/browser.rs`
 
@@ -8451,8 +7061,7 @@ Synchronize number fields and restore temporary source presentation on real inpu
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
@@ -8463,8 +7072,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
     canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
 ```
-
-</details>
 
 Replace it with:
 
@@ -8478,8 +7085,7 @@ Replace it with:
     canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
@@ -8496,8 +7102,6 @@ Replace it with:
     canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
     canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -8517,8 +7121,7 @@ Replace it with:
     canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -8528,8 +7131,6 @@ Replace it with:
         renderer.set_pick_mode(editor.pick_mode);
         if highlight_changed {
 ```
-
-</details>
 
 Replace it with:
 
@@ -8548,8 +7149,7 @@ Replace it with:
         if highlight_changed {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         } };
@@ -8560,8 +7160,6 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
                 | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8575,8 +7173,7 @@ Replace it with:
                 | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 match reply.complete(&mut editor) {
@@ -8587,8 +7184,6 @@ Replace it with:
                         let message = if command == "Reload Sources" {
                             "Editable sources restored; display retained.".to_owned()
 ```
-
-</details>
 
 Replace it with:
 
@@ -8602,8 +7197,7 @@ Replace it with:
                             "Editable sources restored; display retained.".to_owned()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -8614,8 +7208,6 @@ Replace it with:
             event.prevent_default(); gesture.cancel(); Some("Escape".into())
         } else { line };
 ```
-
-</details>
 
 Replace it with:
 
@@ -8629,8 +7221,7 @@ Replace it with:
         } else { line };
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut editor = shared.borrow_mut();
@@ -8641,8 +7232,6 @@ Replace it with:
             wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
             return;
 ```
-
-</details>
 
 Replace it with:
 
@@ -8657,8 +7246,7 @@ Replace it with:
             return;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -9358,60 +7946,9 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51zd-interruption-01.rs"
-```
-
-```text
---8<-- "journey/code/51zd-interruption-02.rs"
-```
-
-```text
---8<-- "journey/code/51zd-interruption-03.rs"
-```
-
-```text
---8<-- "journey/code/51zd-interruption-04-selection-refresh.rs"
-```
-
-```text
---8<-- "journey/code/51zd-interruption-05.rs"
-```
-
-```text
---8<-- "journey/code/51zd-interruption-06.rs"
-```
-
-```text
---8<-- "journey/code/51zd-interruption-07.rs"
-```
-
-</details>
-
 ### 2. `src/editor.rs`
 
 Expose saved and captured preview scenes before the browser reports their source allocations.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        std::iter::once(&self.scene).chain(self.history.scenes())
-    }
-
-    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
-        let mut seen = std::collections::HashSet::new();
-        self.scene.objects().iter().filter_map(crate::rehydrate::ReloadKey::of)
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9419,60 +7956,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/51zd-interruption-08.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-51ze-ledger"></a>
 
 ### Step 33 of 34 · Count temporary source owners without saving them (`51ze-ledger`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/34 Visual Trace (51ze-ledger): Count temporary source owners without saving them</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">saved/history scenes plus</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preview…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">deduplicated allocation</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ledger</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancel or edit</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">released derived sources</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cancel or edit</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">released derived sources</text>
 </svg>
-</div>
-
-- **Goal:** Count temporary source owners without saving them.
-- **Data Flow Trace:** `saved/history scenes plus preview owners → deduplicated allocation ledger → cancel or edit → released derived sources`
-- **Files You Touch:** `src/editor.rs` (*Count both retained preview scenes and revoke captures after successful direct source mutations.*)
 
 Count the saved document/history and both retained preview scenes. Shared allocations are deduplicated; a part preview adds one derived source. Successful hydration or direct edits revoke captured source ownership.
 
-> **Self-Check Question:** *Does counting a preview make it part of Save?*  
-> **Answer:** No. Reporting follows all retained owners; exporting reads only the saved scene. The original and temporary presentation have different responsibilities.
-
-- **Hands-On Lab Experiment:** Move a selected part without releasing. Its original source remains saved, its derived source appears in the memory count, and cancelling removes that extra allocation.
-
-<details>
-<summary>Implementation 51ze-ledger: Count temporary source owners without saving them</summary>
-
-Count temporary source owners without saving them.
-
-Data flow: saved/history scenes plus preview owners → deduplicated allocation ledger → cancel or edit → released derived sources.
+> **Check:** *Does counting a preview make it part of Save?* — No. Reporting follows all retained owners; exporting reads only the saved scene. The original and temporary presentation have different responsibilities.
 
 ### 1. `src/editor.rs`
 
@@ -9480,8 +7995,7 @@ Count both retained preview scenes and revoke captures after successful direct s
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
@@ -9491,8 +8005,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
         if change==Change::Scene { self.snap_index=None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9506,8 +8018,7 @@ Replace it with:
         if change==Change::Scene { self.snap_index=None; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.edit_preview.take().is_some() { self.draft=None; }
@@ -9518,8 +8029,6 @@ Replace it with:
 
     pub fn selected_objects(&self) -> Vec<ObjectId> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -9533,8 +8042,7 @@ Replace it with:
     pub fn selected_objects(&self) -> Vec<ObjectId> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let model = &shift * &object.model;
@@ -9545,8 +8053,6 @@ Replace it with:
 
     pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -9560,8 +8066,7 @@ Replace it with:
     pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for scene in self.scenes_mut() {
@@ -9572,8 +8077,6 @@ Replace it with:
 
     fn unload_sources(&mut self) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -9587,8 +8090,7 @@ Replace it with:
     fn unload_sources(&mut self) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -10256,87 +8758,40 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/51ze-ledger-02.rs"
-```
-
-```text
---8<-- "journey/code/51ze-ledger-03.rs"
-```
-
-```text
---8<-- "journey/code/51ze-ledger-04.rs"
-```
-
-```text
---8<-- "journey/code/51ze-ledger-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-51zf-handles"></a>
 
 ### Step 34 of 34 · Verify complete handle editing and input (`51zf-handles`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/34 Visual Trace (51zf-handles): Verify complete handle editing and input</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gizmo_edit_tests.rs, src/number_box_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selection and current</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">handle or numeric input</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original-source preview</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one commit or cancellation</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gizmo_edit_tests.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original-source preview</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one commit or cancellat…</text>
 </svg>
-</div>
-
-- **Goal:** Verify complete handle editing and input.
-- **Data Flow Trace:** `selection and current camera → handle or numeric input → original-source preview → one commit or cancellation`
-- **Files You Touch:** `src/gizmo_edit_tests.rs` (*Copy original-source, pointer-ID, stale-edit, rational-weight, one-Undo and preview-ledger regression checks.*) · `src/number_box_tests.rs` (*Copy actual egui field-focus, text, Enter/Escape, rectangle and handle-switch regression checks.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
 
 Whole-object and source-part handles share current ray math, temporary presentation and one commit boundary. Exercise numeric fields, pointer cancellation, Shift release and original-source restoration together.
 
-> **Self-Check Question:** *What proves a handle preview is still temporary?*  
-> **Answer:** Saved source coordinates and placements remain unchanged during motion. Cancellation restores presentation; only a valid completed edit changes one history entry.
+> **Check:** *What proves a handle preview is still temporary?* — Saved source coordinates and placements remain unchanged during motion. Cancellation restores presentation; only a valid completed edit changes one history entry.
 
-- **Hands-On Lab Experiment:** Close; Example Box; Select All; Fit. Drag an arrow, then Undo. Click an arrow and type0.123456789012345. Try a rotation with Shift, a zero scale and Escape; errors or cancellation must preserve original geometry and redo.
-
-<details>
-<summary>Implementation 51zf-handles: Verify complete handle editing and input</summary>
-
-Verify complete handle editing and input.
-
-Data flow: selection and current camera → handle or numeric input → original-source preview → one commit or cancellation.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -10350,10 +8805,7 @@ Copy this supplied file:
 --8<-- "journey/code/51zf-handles-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -10367,22 +8819,9 @@ Copy this supplied file:
 --8<-- "journey/code/51zf-handles-02.rs"
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the edit component and supplied checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod gizmo_edit;
-
-pub mod number_box;
-```
-
-</details>
 
 After that block, type:
 
@@ -10390,8 +8829,7 @@ After that block, type:
 --8<-- "journey/code/51zf-handles-03.rs" skip=41
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -10399,49 +8837,25 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply a regression for Escape during a held pointer drag, its later release and the preserved redo branch.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-;
-    e.hover_gizmo(None);assert_eq!(e.gizmo_active(),-1.);
-    e.hover_gizmo(Some((p,SIZE)));e.apply(Action::Zoom(1.)).unwrap();assert_eq!(e.gizmo_active(),-1.);assert_eq!(models(&e),before);
-    e.apply(Action::BeginTool(crate::tool::Shape::Line)).unwrap();e.hover_gizmo(Some((p,SIZE)));assert_eq!(e.gizmo_active(),-1.);assert!(e.gizmo_edit.is_none());
-    e.apply(Action::CancelTool).unwrap();e.apply(Action::Undo).unwrap();assert!(e.scene.points().is_empty(),"Hover created no history entry");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/51zf-handles-escape-drag-tests.rs" skip=500
 ```
 
-</details>
-
-</details>
-
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 51zf-handles
-npm --prefix ../session_tests run course -- check 51zf-handles
-npm --prefix ../session_tests run course -- save 51zf-handles
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 7.6
+npm --prefix ../session_tests run course -- save 7.6
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 7.6 (51zf-handles)](../../../screenshots/journey/51zf-handles.png)
-
-- **Final Lesson Experiment:** Close; Example Box; Select All; Fit. Drag an arrow, then Undo. Click an arrow and type0.123456789012345. Try a rotation with Shift, a zero scale and Escape; errors or cancellation must preserve original geometry and redo.
+Continue with [8.1 · Nested original sources and exact parent edits](../../consolidation/52-tree.md).

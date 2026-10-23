@@ -1,234 +1,94 @@
 # 9.5 · Oriented CAD solids, original picks and empty bores
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 9.5** (Redraft `6.5`) · **7 checkpoints (`59-orientation` → `59f-cad`)** · **Study time: 3.5–7 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `59-orientation` → `59f-cad` (7 steps) · **Production source:** [app/walk/brep.rs](../../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs)
 
-> **What You Will Learn & Build:** Propagate coherent signs and turn each closed face group outward. By the final checkpoint (`59f-cad`), you will draw the original bore and prove its empty hole.
+> **Goal:** Draw the original bore and prove its empty hole.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
-    <!-- Outer CCW loop square -->
-    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Inner CW hole loop circle (white cutout!) -->
-    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
-    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
-    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
-    <!-- Curved 3D patch shape -->
-    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Elliptical 3D bore hole cutout in white -->
-    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
-    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
-    <!-- Smooth curve on left -->
-    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
-    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
-    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
-    <!-- Sharp crease corner on right -->
-    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
-    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
-    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
-    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
-    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 9.5 Pipeline Schematic: Oriented CAD solids, original picks and empty bores</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (7 Checkpoints: 59-orientation → 59f-cad)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">incident face</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">boundaries</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">opposed walks</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">coherent component</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">outward winding</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Example CAD</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 9.5:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/cad_orient.rs  ·  src/cad_face.rs  ·  src/lib.rs  ·  src/cad_display.rs  ·  src/scene.rs  ·  src/document.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">7 Checkpoints: 59-orientation → 59f-cad — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Trimmed B-Rep (u,v)</text>
+  <rect x="55" y="60" width="160" height="96" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="135" cy="108" r="24" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="112" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Hole</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Outer + Inner Loops</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Crease Split</text>
+  <polyline points="338,144 419,98 500,144" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="419" cy="98" r="4.5" fill="#111111"/>
+  <line x1="419" y1="98" x2="386" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <line x1="419" y1="98" x2="452" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="372" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N1</text>
+  <text x="458" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N2</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Sharp Edge Normals</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Sub-ID Pick</text>
+  <polygon points="650,74 758,74 780,138 628,138" fill="url(#hatch)" stroke="#111111" stroke-width="2.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[brep, face_2]</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Face &amp; Edge IDs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust (`session_rust`)** | `BRep` Faces, Outer/Inner Trim Loops & Edge Adjacency | Validates topological loop closure and manifold edges so trimmed CAD surfaces and analytical boundary curves stay synchronized. |
-| **Rust / WGSL** | Crease-Split Vertex Normals vs. Smooth `G1` Normals | Averages vertex normals across smooth surface patches (`angle < crease_threshold`) and splits vertices along sharp mechanical creases for crisp shading. |
-| **WebGPU (`Rg32Uint`)** | Unified `[brep_owner_id, face_or_edge_sub_id]` Picking | Both shaded B-Rep face triangles and boundary ribbon wires write the same B-Rep owner ID plus sub-element index for whole-solid or sub-face/edge selection. |
+| **Rust (`session_rust`)** | `BRep` Outer & Inner Trim Loops | Validates closed `(u,v)` trim loops and holes on curved CAD faces. |
+| **Rust / WGSL** | Smooth `G1` vs. Crease Normals | Averages smooth normals and splits vertices across sharp creases. |
+| **WebGPU (`Rg32Uint`)** | `[brep_id, face_or_edge_id]` | Unified whole-solid or sub-face/edge selection. |
 
-**Authoritative production source (`session_viewer/src`):** [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs), [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`59-orientation`](#checkpoint-59-orientation) | Propagate coherent signs and turn each closed face group outward. | `src/cad_orient.rs` | `incident face boundaries → opposed walks → coherent component → outward winding` |
-| **2** | [`59a-face-data`](#checkpoint-59a-face-data) | Map each display triangle to its original CAD face. | `src/cad_face.rs`, `src/lib.rs` | `original face mesh → coherent normal and winding → derived display triangles → original face index` |
-| **3** | [`59b-display`](#checkpoint-59b-display) | Retain source UVs and draw only original CAD boundaries. | `src/cad_display.rs`, `src/lib.rs` | `transient mesher faces → display and UV map → original boundaries → released mesher maps` |
-| **4** | [`59c-source-row`](#checkpoint-59c-source-row) | Attach original BRep ownership to existing rows. | `src/scene.rs`, `src/document.rs`, `src/part_preview.rs` | `original BRep → derived display row → existing layer and identity → shared placement history` |
-| **5** | [`59d-identities`](#checkpoint-59d-identities) | Pick and highlight an original CAD border. | `src/pick_sources.rs`, `src/selection.rs`, `src/highlight.rs` | `integer GPU address → scene source table → original face or edge → complete source highlight` |
-| **6** | [`59e-cache`](#checkpoint-59e-cache) | Inspect shared CAD owners and compact cache counts. | `src/memory.rs`, `src/browser.rs` | `live and history rows → shared source owners → compact UV and border counts → diagnostics` |
-| **7** | [`59f-cad`](#checkpoint-59f-cad) | Draw the original bore and prove its empty hole. | `src/editor.rs`, `src/commands.rs`, `src/cad_display_tests.rs`, `src/lib.rs` | `Example CAD → original bore display → empty hole GPU readback → original cap and rim identities` |
+![Recorded visual output for Lesson 9.5 (59f-cad)](../../../screenshots/journey/59f-cad.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-59-orientation"></a>
 
 ### Step 1 of 7 · Orient connected original face groups (`59-orientation`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/7 Visual Trace (59-orientation): Orient connected original face groups</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cad_orient.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">incident face boundaries</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">opposed walks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coherent component</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">outward winding</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cad_orient.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">coherent component</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">outward winding</text>
 </svg>
-</div>
-
-- **Goal:** Propagate coherent signs and turn each closed face group outward.
-- **Data Flow Trace:** `incident face boundaries → opposed walks → coherent component → outward winding`
-- **Files You Touch:** `src/cad_orient.rs` (*Complete the single shared face-orientation algorithm.*)
 
 Reuse the earlier shared-edge comparisons. Propagate consistent signs through each connected face group, then use its signed volume to choose outward normals. Open shells keep their authored orientation. Measurements later reuse this same owner.
 
-> **Self-Check Question:** *Should an open shell be forced to use a closed-solid volume sign?*  
-> **Answer:** No. Open shells retain authored orientation. A closed solid first makes adjacent face winding consistent and then chooses its outward orientation from component volume.
-
-- **What You Should See:** The blue parametric roof remains visible while this preparation connects one CAD component. Draw and inspect the original bore at the final checkpoint of 59.
-- **Hands-On Lab Experiment:** Trace the breadth-first face group. Compare a reversed closed shell with an open shell that keeps authored signs.
-
-<details>
-<summary>Implementation 59-orientation: Orient connected original face groups</summary>
-
-Propagate coherent signs and turn each closed face group outward.
-
-Data flow: incident face boundaries → opposed walks → coherent component → outward winding.
+> **Check:** *Should an open shell be forced to use a closed-solid volume sign?* — No. Open shells retain authored orientation. A closed solid first makes adjacent face winding consistent and then chooses its outward orientation from component volume.
 
 ### 1. `src/cad_orient.rs`
 
 Complete the single shared face-orientation algorithm.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let dir = [pn[0] - ps[0], pn[1] - ps[1], pn[2] - ps[2]];
-    let sb = vertex_at(fb, ps)?;
-    let nb = neighbour_along(fb, sb, dir)?;
-    let away_b = walks(fb, sb, nb)?;
-    Some(away_a != away_b)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -309,70 +169,40 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `59-orientation`:** The blue parametric roof remains visible while this preparation connects one CAD component. Draw and inspect the original bore at the final checkpoint of 59.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/59-orientation-dedup-1.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-59a-face-data"></a>
 
 ### Step 2 of 7 · Map each display triangle to its original CAD face (`59a-face-data`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/7 Visual Trace (59a-face-data): Map each display triangle to its original CAD face</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cad_face.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original face mesh</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coherent normal and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">winding</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived display triangles</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original face index</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cad_face.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived display triangl…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original face index</text>
 </svg>
-</div>
-
-- **Goal:** Map each display triangle to its original CAD face.
-- **Data Flow Trace:** `original face mesh → coherent normal and winding → derived display triangles → original face index`
-- **Files You Touch:** `src/cad_face.rs` (*Prepare coherent face display arrays, original f64 positions, UV addresses and face indices.*) · `src/lib.rs` (*Register the source component.*)
 
 Combine face display data while retaining the original f64 mesh positions, normals, face IDs and source surface UV addresses. Display triangle addresses remain derived from one original face.
 
-> **Self-Check Question:** *Does remeshing change the selected original face key?*  
-> **Answer:** No. It changes derived triangles and compact GPU addresses. Every new triangle still resolves to its original CAD face; source surface and UV addresses remain available for later edits.
-
-- **Hands-On Lab Experiment:** Compare the seven bore face IDs with the larger number of display triangles. Evaluate each cached UV on its original source surface and inspect its display vertex address.
-
-<details>
-<summary>Implementation 59a-face-data: Map each display triangle to its original CAD face</summary>
-
-Map each display triangle to its original CAD face.
-
-Data flow: original face mesh → coherent normal and winding → derived display triangles → original face index.
+> **Check:** *Does remeshing change the selected original face key?* — No. It changes derived triangles and compact GPU addresses. Every new triangle still resolves to its original CAD face; source surface and UV addresses remain available for later edits.
 
 ### 1. `src/cad_face.rs`
 
@@ -388,74 +218,44 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod cad_orient;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/59a-face-data-02.rs" skip=21
 ```
 
-</details>
+---
 
 <a id="checkpoint-59b-display"></a>
 
 ### Step 3 of 7 · Retain source UVs and draw only original CAD boundaries (`59b-display`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/7 Visual Trace (59b-display): Retain source UVs and draw only original CAD boundaries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cad_display.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">transient mesher faces</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">display and UV map</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original boundaries</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">released mesher maps</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cad_display.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original boundaries</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">released mesher maps</text>
 </svg>
-</div>
-
-- **Goal:** Retain source UVs and draw only original CAD boundaries.
-- **Data Flow Trace:** `transient mesher faces → display and UV map → original boundaries → released mesher maps`
-- **Files You Touch:** `src/cad_display.rs` (*Keep original CAD source and compact UV/border caches while discarding transient mesher faces.*) · `src/lib.rs` (*Register the source component.*)
 
 Build the derived display and compact source map, then release transient face-mesher maps. Keep original CAD ownership, UV addresses and original boundary chains without interior tessellation ink.
 
-> **Self-Check Question:** *Does the renderer need to retain every mesher HashMap for a whole-object move?*  
-> **Answer:** No. The move changes placement. Original CAD ownership, compact UV addresses and boundary points remain shared; temporary face-mesher maps can be released after preparing the display.
-
-- **Hands-On Lab Experiment:** Count seven original faces and fifteen original edges. Compare cache ownership before and after a whole-object move, and confirm no internal triangle diagonals enter boundary ink.
-
-<details>
-<summary>Implementation 59b-display: Retain source UVs and draw only original CAD boundaries</summary>
-
-Retain source UVs and draw only original CAD boundaries.
-
-Data flow: transient mesher faces → display and UV map → original boundaries → released mesher maps.
+> **Check:** *Does the renderer need to retain every mesher HashMap for a whole-object move?* — No. The move changes placement. Original CAD ownership, compact UV addresses and boundary points remain shared; temporary face-mesher maps can be released after preparing the display.
 
 ### 1. `src/cad_display.rs`
 
@@ -471,75 +271,44 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod cad_face;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/59b-display-02.rs" skip=19
 ```
 
-</details>
+---
 
 <a id="checkpoint-59c-source-row"></a>
 
 ### Step 4 of 7 · Attach original BRep ownership to existing rows (`59c-source-row`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/7 Visual Trace (59c-source-row): Attach original BRep ownership to existing rows</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/document.rs, src/part_preview.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original BRep</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived display row</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing layer and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">identity</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared placement history</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/documen…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing layer and iden…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared placement history</text>
 </svg>
-</div>
-
-- **Goal:** Attach original BRep ownership to existing rows.
-- **Data Flow Trace:** `original BRep → derived display row → existing layer and identity → shared placement history`
-- **Files You Touch:** `src/scene.rs` (*Attach original CAD ownership and preserve explicit saving and part-edit guards.*) · `src/document.rs` (*Attach original CAD ownership and preserve explicit saving and part-edit guards.*) · `src/part_preview.rs` (*Attach original CAD ownership and preserve explicit saving and part-edit guards.*)
 
 Route an original BRep through the existing scene identity and current layer. Whole-object placements share original CAD data; proxy saving and unsupported direct CAD deformation are explicitly guarded.
 
-> **Self-Check Question:** *May a display proxy replace the BRep when saving?*  
-> **Answer:** No. The original BRep owns its topology and geometry. Mixed saving connects in 66; the temporary display proxy must never silently be serialized as an ordinary mesh.
-
-- **Hands-On Lab Experiment:** Create the bore at the final checkpoint, move it and Undo. Retain display data after Close and confirm the original BRep owner is released.
-
-<details>
-<summary>Implementation 59c-source-row: Attach original BRep ownership to existing rows</summary>
-
-Attach original BRep ownership to existing rows.
-
-Data flow: original BRep → derived display row → existing layer and identity → shared placement history.
+> **Check:** *May a display proxy replace the BRep when saving?* — No. The original BRep owns its topology and geometry. Mixed saving connects in 66; the temporary display proxy must never silently be serialized as an ordinary mesh.
 
 ### 1. `src/scene.rs`
 
@@ -547,8 +316,7 @@ Attach original CAD ownership and preserve explicit saving and part-edit guards.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let model=self.placement(target.owner).ok_or("Part owner is missing")?;
@@ -559,8 +327,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             for key in crate::part_preview::keys(&source,target.part)? {
                 let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
 ```
-
-</details>
 
 Replace it with:
 
@@ -574,8 +340,7 @@ Replace it with:
                 let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let generated=prepared.source.is_none();
@@ -590,8 +355,6 @@ Replace it with:
         let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
         self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
 ```
-
-</details>
 
 Replace it with:
 
@@ -613,8 +376,7 @@ Replace it with:
         self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -624,8 +386,6 @@ pub struct Object {
     pub id: ObjectId,
     pub guid: String,
 ```
-
-</details>
 
 Replace it with:
 
@@ -639,8 +399,7 @@ pub struct Object {
     pub guid: String,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -746,7 +505,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1235,43 +993,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/59c-source-row-01.rs"
-```
-
-```text
---8<-- "journey/code/59c-source-row-02.rs"
-```
-
-```text
---8<-- "journey/code/59c-source-row-03.rs"
-```
-
-</details>
-
 ### 2. `src/document.rs`
 
 Attach original CAD ownership and preserve explicit saving and part-edit guards.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if scene.objects().iter().any(|row|row.surface.is_some()) {return Err("This checkpoint cannot save CAD surface objects yet");}
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1283,77 +1007,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Attach original CAD ownership and preserve explicit saving and part-edit guards.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let model=scene.placement(target.owner).ok_or("Part owner is missing")?;
-    let points=if let Some(row)=scene.objects().iter().find(|r|r.id==target.owner) {
-        if row.surface.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-        let mesh=row.geometry().ok_or("Reload editable sources before editing a part")?;
-        keys(mesh,target.part)?.into_iter().map(|key|mesh.vertex_point(key).ok_or("Missing source vertex")).collect::<Result<Vec<_>,_>>()?
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/59c-source-row-05.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-59d-identities"></a>
 
 ### Step 5 of 7 · Pick and highlight an original CAD border (`59d-identities`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/7 Visual Trace (59d-identities): Pick and highlight an original CAD border</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs, src/selection.rs, src/highlight.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">integer GPU address</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene source table</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original face or edge</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete source highlight</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pick_sources.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original face or edge</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete source highlig…</text>
 </svg>
-</div>
-
-- **Goal:** Pick and highlight an original CAD border.
-- **Data Flow Trace:** `integer GPU address → scene source table → original face or edge → complete source highlight`
-- **Files You Touch:** `src/pick_sources.rs` (*Resolve original BRep edge identities and highlight complete original borders.*) · `src/selection.rs` (*Resolve original BRep edge identities and highlight complete original borders.*) · `src/highlight.rs` (*Resolve original BRep edge identities and highlight complete original borders.*)
 
 Resolve every display border segment to its original BRep edge. A selected edge highlights its complete chain; each shaded triangle resolves to the original face index.
 
-> **Self-Check Question:** *Should each segment of a circular rim become a separate CAD edge?*  
-> **Answer:** No. Many display segments approximate one original rim. They all resolve to one original edge identity, and highlighting follows the complete sampled border.
-
-- **Hands-On Lab Experiment:** At the final checkpoint, pick several positions on the hole rim. Confirm they report the same original edge, while the shaded cap resolves to one original face.
-
-<details>
-<summary>Implementation 59d-identities: Pick and highlight an original CAD border</summary>
-
-Pick and highlight an original CAD border.
-
-Data flow: integer GPU address → scene source table → original face or edge → complete source highlight.
+> **Check:** *Should each segment of a circular rim become a separate CAD edge?* — No. Many display segments approximate one original rim. They all resolve to one original edge identity, and highlighting follows the complete sampled border.
 
 ### 1. `src/pick_sources.rs`
 
@@ -1361,8 +1052,7 @@ Resolve original BRep edge identities and highlight complete original borders.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         for row in scene.objects().iter().filter(|row| scene.visible(row.id)) {
@@ -1375,8 +1065,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 let ends = ends.map(|p| row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2])).to_f32());
                 sources.mesh_ink.push(crate::stroke::Stroke { start: ends[0], end: ends[1], colour: scene.view.edges.get(&row.id).map_or([0.,0.,0.,1.],|rgb|[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]), width: 1. });
 ```
-
-</details>
 
 Replace it with:
 
@@ -1393,8 +1081,7 @@ Replace it with:
                 sources.mesh_ink.push(crate::stroke::Stroke { start: ends[0], end: ends[1], colour: scene.view.edges.get(&row.id).map_or([0.,0.,0.,1.],|rgb|[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]), width: 1. });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -1405,8 +1092,6 @@ pub enum Part { Object, Face(usize), SurfaceEdge(usize), MeshEdge(usize, usize),
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Target { pub owner: ObjectId, pub part: Part }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1420,8 +1105,7 @@ pub enum Part { Object, Face(usize), SurfaceEdge(usize), BRepEdge(usize), MeshEd
 pub struct Target { pub owner: ObjectId, pub part: Part }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
@@ -1512,64 +1196,9 @@ impl Sources {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/59d-identities-01.rs"
-```
-
-```text
---8<-- "journey/code/59d-identities-02.rs"
-```
-
-</details>
-
 ### 2. `src/selection.rs`
 
 Resolve original BRep edge identities and highlight complete original borders.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{pick_sources::{Part, Target}, scene::Scene};
-
-impl Target {
-    pub fn valid(self, scene: &Scene) -> bool {
-        if scene.pick_id(self.owner.value()).is_none() { return false; }
-        match self.part {
-            Part::Object => true,
-            Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
-            Part::SurfaceEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.surface.as_ref().is_some_and(|s|s.grid.boundaries.iter().any(|b|b.edge==edge))),
-            Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
-            Part::PathEdge(index) => scene.paths().iter().any(|r| r.id == self.owner && matches!(&r.prepared.source,
-                crate::chain::Source::Polyline(line) if line.get_points().windows(2).nth(index).is_some_and(|pair| pair[0].to_f32() != pair[1].to_f32()))),
-            Part::Curve => scene.lines().iter().any(|r| r.id == self.owner) || scene.paths().iter().any(|r| r.id == self.owner && !matches!(r.prepared.source, crate::chain::Source::Polyline(_))),
-            Part::Control(index) => scene.paths().iter().any(|r| r.id == self.owner && r.controls_visible && matches!(&r.prepared.source,
-                crate::chain::Source::Curve(curve, _) if crate::controls::Control::new(std::rc::Rc::clone(curve), index).is_ok())),
-        }
-    }
-
-    pub fn describe(self) -> String {
-        match self.part {
-            Part::Object => format!("Object {}", self.owner.value()),
-            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
-            Part::SurfaceEdge(edge)=>format!("Object {} · surface domain edge {edge}",self.owner.value()),
-            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),
-            Part::PathEdge(index) => format!("Object {} · source segment {index}", self.owner.value()),
-            Part::Curve => format!("Object {} · original curve", self.owner.value()),
-            Part::Control(index) => format!("Object {} · original control {index}", self.owner.value()),
-        }
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1608,36 +1237,9 @@ impl Target {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/59d-identities-03.rs"
-```
-
-```text
---8<-- "journey/code/59d-identities-04.rs"
-```
-
-</details>
-
 ### 3. `src/highlight.rs`
 
 Resolve original BRep edge identities and highlight complete original borders.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                let mut object = row.clone(); object.mesh = Rc::new(display);
-                self.mesh = Some(GpuMesh::upload(device, layout, &object, true));
-            }
-            Part::SurfaceEdge(edge)=>{
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1645,73 +1247,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/59d-identities-05.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-59e-cache"></a>
 
 ### Step 6 of 7 · Inspect shared CAD owners and compact cache counts (`59e-cache`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/7 Visual Trace (59e-cache): Inspect shared CAD owners and compact cache counts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">live and history rows</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source owners</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">compact UV and border</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">counts</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">diagnostics</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/memory.rs, src/browse…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">compact UV and border c…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">diagnostics</text>
 </svg>
-</div>
-
-- **Goal:** Inspect shared CAD owners and compact cache counts.
-- **Data Flow Trace:** `live and history rows → shared source owners → compact UV and border counts → diagnostics`
-- **Files You Touch:** `src/memory.rs` (*Expose unique CAD owners and original identity/UV-cache counts for acceptance.*) · `src/browser.rs` (*Expose unique CAD owners and original identity/UV-cache counts for acceptance.*)
 
 Deduplicate original CAD and preparation owners across live and history scenes. Expose face, edge and UV-cache counts without mistaking sample counts for bytes or new topology.
 
-> **Self-Check Question:** *Does Undo require another complete original BRep and UV cache?*  
-> **Answer:** No. Unchanged history scenes share both owners. Row counts can increase across snapshots while unique source and preparation counts stay at one.
-
-- **Hands-On Lab Experiment:** Compare diagnostic cache counts before Move, after Move and after Undo. Close and confirm source/preparation counts return to zero while separately retained display data remains valid.
-
-<details>
-<summary>Implementation 59e-cache: Inspect shared CAD owners and compact cache counts</summary>
-
-Inspect shared CAD owners and compact cache counts.
-
-Data flow: live and history rows → shared source owners → compact UV and border counts → diagnostics.
+> **Check:** *Does Undo require another complete original BRep and UV cache?* — No. Unchanged history scenes share both owners. Row counts can increase across snapshots while unique source and preparation counts stay at one.
 
 ### 1. `src/memory.rs`
 
 Expose unique CAD owners and original identity/UV-cache counts for acceptance.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    usage[1]=sources.len();usage[2]=prepared.len();usage
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -1723,78 +1294,44 @@ After that block, type:
 
 Expose unique CAD owners and original identity/UV-cache counts for acceptance.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-surface-cpu",&serde_json::to_string(&crate::memory::surfaces(editor.presentation_scenes())).unwrap())?;
-    let surfaces=editor.scene.objects().iter().filter_map(|row|row.surface.as_ref().map(|s|serde_json::json!({"id":row.id.value(),"source":s.source.guid(),"controls":s.source.m_cv_count,"steps":s.grid.steps,"samples":s.grid.samples.len(),"faces":row.mesh.parts.faces,"edges":s.grid.boundaries.iter().map(|b|b.edge).collect::<Vec<_>>()}))).collect::<Vec<_>>();
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/59e-cache-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-59f-cad"></a>
 
 ### Step 7 of 7 · Draw the original bore and prove its empty hole (`59f-cad`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/7 Visual Trace (59f-cad): Draw the original bore and prove its empty hole</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/cad_display_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Example CAD</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original bore display</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">empty hole GPU readback</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original cap and rim</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">identities</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">empty hole GPU readback</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original cap and rim id…</text>
 </svg>
-</div>
-
-- **Goal:** Draw the original bore and prove its empty hole.
-- **Data Flow Trace:** `Example CAD → original bore display → empty hole GPU readback → original cap and rim identities`
-- **Files You Touch:** `src/editor.rs` (*Create the original CAD bore through one checked document transaction.*) · `src/commands.rs` (*Create the original CAD bore through one checked document transaction.*) · `src/cad_display_tests.rs` (*Copy original face/edge identity, precise shared placement, source Close and outward-normal regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual empty-hole, original cap face and five visible border edge GPU readbacks with source/GPU reuse assertions.*)
 
 Connect Example CAD and copy all original-source, placement, orientation and actual GPU checks. A rendered hole has no shaded face target; its five visible cap boundaries retain original edge IDs.
 
-> **Self-Check Question:** *What proves a visible hole is absent from face picking too?*  
-> **Answer:** Actual integer GPU readback through the hole returns no face target. A point on the cap resolves to its original face, and every visible cap border resolves to its original CAD edge.
-
-- **What You Should See:** Type Close, Example CAD, Fit and View Isometric. Inspect the open hole, blue faces and black original borders. Select All, Move 0.123456789012345 0 0, then Undo once. Use Select Face and Select Edge to inspect original CAD identities; return to Select Object for whole-placement editing.
-- **Hands-On Lab Experiment:** Type Close, Example CAD, Fit and View Isometric. Inspect the open hole and black original borders. Select Object, Select All, Move 0.123456789012345 0 0, then Undo once. Try Select Face and Select Edge and inspect their original identities.
-
-<details>
-<summary>Implementation 59f-cad: Draw the original bore and prove its empty hole</summary>
-
-Draw the original bore and prove its empty hole.
-
-Data flow: Example CAD → original bore display → empty hole GPU readback → original cap and rim identities.
+> **Check:** *What proves a visible hole is absent from face picking too?* — Actual integer GPU readback through the hole returns no face target. A point on the cap resolves to its original face, and every visible cap border resolves to its original CAD edge.
 
 ### 1. `src/editor.rs`
 
@@ -1802,8 +1339,7 @@ Create the original CAD bore through one checked document transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.clear();
@@ -1813,8 +1349,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
             Action::Replace(bytes) => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1828,8 +1362,7 @@ Replace it with:
             Action::Replace(bytes) => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Show,
@@ -1839,8 +1372,6 @@ Replace it with:
     AddLine,
     AddPoint,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1854,8 +1385,7 @@ Replace it with:
     AddPoint,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -2593,38 +2123,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/59f-cad-01.rs"
-```
-
-```text
---8<-- "journey/code/59f-cad-02.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Create the original CAD bore through one checked document transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Show",||Action::Show),
-    ("Example Box", || Action::AddBox),
-    ("Example Surface",||Action::AddSurface),
-    ("Example Nested",||Action::AddNested),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2632,8 +2133,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/59f-cad-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2647,10 +2147,7 @@ Copy this supplied file:
 --8<-- "journey/code/59f-cad-04.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2658,26 +2155,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod cad_display;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/59f-cad-05.rs" skip=22
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -2685,47 +2169,27 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual empty-hole, original cap face and five visible border edge GPU readbacks with source/GPU reuse assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert_eq!(renderer.stats(),gpu);assert_eq!(source.to_proto(),before);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/59f-cad-06.rs" skip=77
 ```
 
-</details>
-
-</details>
+**Result after `59f-cad`:** Type Close, Example CAD, Fit and View Isometric. Inspect the open hole, blue faces and black original borders. Select All, Move 0.123456789012345 0 0, then Undo once. Use Select Face and Select Edge to inspect original CAD identities; return to Select Object for whole-placement editing.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 59f-cad
-npm --prefix ../session_tests run course -- check 59f-cad
-npm --prefix ../session_tests run course -- save 59f-cad
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 9.5
+npm --prefix ../session_tests run course -- save 9.5
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 9.5 (59f-cad)](../../../screenshots/journey/59f-cad.png)
-
-Type Close, Example CAD, Fit and View Isometric. Inspect the open hole, blue faces and black original borders. Select All, Move 0.123456789012345 0 0, then Undo once. Use Select Face and Select Edge to inspect original CAD identities; return to Select Object for whole-placement editing.
-
-- **Final Lesson Experiment:** Type Close, Example CAD, Fit and View Isometric. Inspect the open hole and black original borders. Select Object, Select All, Move 0.123456789012345 0 0, then Undo once. Try Select Face and Select Edge and inspect their original identities.
+Continue with [10.1 · Explicit fonts and source label placement](../../consolidation/60-fonts.md).

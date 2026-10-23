@@ -1,226 +1,96 @@
 # 22.5 · Coherent multisampling and frame-resource ownership
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.5** (Redraft `10.20`) · **19 checkpoints (`96zzzzzzu-keep-depth-and-address-samples-separate` → `96zzzzzzzl-choose-bounded-frame-quality`)** · **Study time: 19–38 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzzzzzu-keep-depth-and-address-samples-separate` → `96zzzzzzzl-choose-bounded-frame-quality` (19 steps) · **Production source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs)
 
-> **What You Will Learn & Build:** Define matching frame attachments without averaging depth or physical primitive addresses. By the final checkpoint (`96zzzzzzzl-choose-bounded-frame-quality`), you will choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
+> **Goal:** Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 22.5 Pipeline Schematic: Coherent multisampling and frame-resource ownership</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">One sample count</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">matching depth and</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">primitive images</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">direct sample reads</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">colour-only resolve</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Active original</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry + physical</text>
-    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">pixels/density…</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 22.5:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/frame_targets.rs  ·  src/primitive_image.rs  ·  src/lib.rs  ·  src/frame_target_tests.rs  ·  src/renderer.rs  ·  src/global_outline_tests.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzzzzzu-keep-depth-and-address-samples-separate`](#checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate) | Define matching frame attachments without averaging depth or physical primitive addresses. | `src/frame_targets.rs`, `src/primitive_image.rs`, `src/lib.rs`, `src/frame_target_tests.rs` | `One sample count → matching depth and primitive images → direct sample reads → colour-only resolve` |
-| **2** | [`96zzzzzzv-reuse-coherent-frame-targets`](#checkpoint-96zzzzzzv-reuse-coherent-frame-targets) | Retain frame attachments at equal extent and replace them coherently during real resizing. | `src/renderer.rs`, `src/lib.rs`, `src/global_outline_tests.rs`, `src/contact_feature_tests.rs` | `Existing renderer → one target owner → unchanged extent retains views → real resize replaces matching attachments` |
-| **3** | [`96zzzzzzw-match-resolve-base-and-view-formats`](#checkpoint-96zzzzzzw-match-resolve-base-and-view-formats) | Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve. | `src/frame_targets.rs`, `src/renderer.rs`, `src/browser.rs`, `src/frame_target_tests.rs` | `Actual canvas base format → explicit colour view format → matching frame attachments → colour-only resolve` |
-| **4** | [`96zzzzzzx-reuse-count-specific-surface-pipelines`](#checkpoint-96zzzzzzx-reuse-count-specific-surface-pipelines) | Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants. | `src/sample_pipelines.rs`, `src/surface_pipelines.rs`, `src/renderer.rs`, `src/instance_gpu.rs` | `Existing surface descriptor → count-specific shader inputs → lazy pipeline pair → unchanged original geometry and records` |
-| **5** | [`96zzzzzzy-generate-ink-for-physical-samples`](#checkpoint-96zzzzzzy-generate-ink-for-physical-samples) | Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count. | `src/ink_plane.wgsl`, `src/finite_visibility.wgsl`, `src/finite_stroke.wgsl`, `src/finite_chain.wgsl` | `Explicit sample argument → matching depth and original primitive reads → sample-qualified pixel coordinates → count-specific shader and pipeline descriptor` |
-| **6** | [`96zzzzzzz-cache-ink-pipelines-with-independent-queries`](#checkpoint-96zzzzzzz-cache-ink-pipelines-with-independent-queries) | Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants. | `src/stroke_gpu.rs`, `src/finite_ink.rs`, `src/finite_sample_tests.rs`, `src/ink_pixels_tests.rs` | `Shared static vertex attributes → matching colour pipeline/layout pair → cached count switch → fresh independent query bindings` |
-| **7** | [`96zzzzzzza-retarget-existing-overlay-lanes`](#checkpoint-96zzzzzzza-retarget-existing-overlay-lanes) | Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes. | `src/stroke_gpu.rs`, `src/highlight.rs`, `src/tool_preview.rs`, `src/measure_gpu.rs` | `Requested count → lazy nonempty lane adoption → matching colour recipe → retained vertices and IDs → existing overlay owners` |
-| **8** | [`96zzzzzzzb-read-section-crossings-at-each-sample`](#checkpoint-96zzzzzzzb-read-section-crossings-at-each-sample) | Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries. | `src/cap_pipeline.rs`, `src/cap_color.wgsl`, `src/cap_pick_pipeline.rs`, `src/caps_gpu.rs` | `Original closed solid → physical-sample crossings → matching cap colour and plane depth → original cap owner query` |
-| **9** | [`96zzzzzzzc-compose-cloud-depth-with-physical-addresses`](#checkpoint-96zzzzzzzc-compose-cloud-depth-with-physical-addresses) | Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind. | `src/cloud_gpu.rs`, `src/cloud_resolve.wgsl`, `src/renderer.rs`, `src/sheet_gpu.rs` | `Original cloud points → coherent opaque colour/depth/zero surface address → actual ink occlusion → fresh original-owner query` |
-| **10** | [`96zzzzzzzca-cache-cloud-and-sheet-samples`](#checkpoint-96zzzzzzzca-cache-cloud-and-sheet-samples) | Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries. | `src/cloud_gpu.rs`, `src/renderer.rs`, `src/sheet_gpu.rs`, `src/sheet_pipeline.rs` | `Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners` |
-| **11** | [`96zzzzzzzd-retarget-cached-text`](#checkpoint-96zzzzzzzd-retarget-cached-text) | Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries. | `src/text_plate.rs`, `src/text_plane.rs`, `src/scene_text_gpu.rs`, `src/renderer.rs` | `Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries` |
-| **12** | [`96zzzzzzze-cache-outline-section-recipes`](#checkpoint-96zzzzzzze-cache-outline-section-recipes) | Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend. | `src/outline_caps.rs`, `src/outline_composite.rs`, `src/outline_gpu.rs` | `Original section address → matching physical coverage sample → retained outline search → one cached final blend` |
-| **13** | [`96zzzzzzzf-resolve-float-outline-coverage`](#checkpoint-96zzzzzzzf-resolve-float-outline-coverage) | Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth. | `src/outline_gpu.rs`, `src/outline_caps.rs`, `src/renderer.rs`, `src/sample_surface_tests.rs` | `Original physical face/section coverage → float-only resolve → retained search images → one matching final blend` |
-| **14** | [`96zzzzzzzg-retarget-original-ambient-properties`](#checkpoint-96zzzzzzzg-retarget-original-ambient-properties) | Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images. | `src/ambient_source_pipeline.rs`, `src/ambient_source_gpu.rs`, `src/ambient_image.rs`, `src/ambient_images.rs` | `Original face radii/normals → matching physical source recipes/images → retained one-sample ambient hierarchy` |
-| **15** | [`96zzzzzzzh-share-ambient-shader-recipes`](#checkpoint-96zzzzzzzh-share-ambient-shader-recipes) | Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections. | `src/ambient_pipeline.rs`, `src/ambient_groups.rs`, `src/ambient_gpu.rs` | `Three distinct shader sources → shared modules → explicit vertex/fragment/count recipes → retained composition inputs` |
-| **16** | [`96zzzzzzzi-correct-ambient-at-physical-samples`](#checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples) | Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes. | `src/ambient_gpu.rs`, `src/ambient_groups.rs`, `src/renderer.rs`, `src/ambient_sample_inspect.rs` | `Matching original physical inputs → representative coarse shading → changed-sample corrections → unique bounded tiles → indirect colour draw` |
-| **17** | [`96zzzzzzzj-cache-physical-depth-pyramid-inputs`](#checkpoint-96zzzzzzzj-cache-physical-depth-pyramid-inputs) | Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses. | `src/pyramid_pipeline.rs`, `src/pyramid_gpu.rs`, `src/pyramid_gpu_tests.rs` | `Matching physical depth → cached source recipe → representative sample zero → six retained single-sample levels` |
-| **18** | [`96zzzzzzzk-retarget-the-complete-colour-frame`](#checkpoint-96zzzzzzzk-retarget-the-complete-colour-frame) | Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries. | `src/renderer.rs`, `src/browser.rs`, `src/cloud_address_tests.rs`, `src/sample_surface_tests.rs` | `One count owner → compatible cached colour consumers → matching attachments; independent original-owner queries retained` |
-| **19** | [`96zzzzzzzl-choose-bounded-frame-quality`](#checkpoint-96zzzzzzzl-choose-bounded-frame-quality) | Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries. | `src/sample_quality.rs`, `src/lib.rs`, `src/renderer.rs`, `src/browser.rs` | `Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate"></a>
 
 ### Step 1 of 19 · Keep depth and address samples separate (`96zzzzzzu-keep-depth-and-address-samples-separate`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/19 Visual Trace (96zzzzzzu-keep-depth-and-address-samples-separate): Keep depth and address samples separate</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/frame_targets.rs, src/primitive_image.rs, src/lib.rs, src/frame_target_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">One sample count</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching depth and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">primitive…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">direct sample reads</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour-only resolve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/frame_targets.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">direct sample reads</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour-only resolve</text>
 </svg>
-</div>
-
-- **Goal:** Define matching frame attachments without averaging depth or physical primitive addresses.
-- **Data Flow Trace:** `One sample count → matching depth and primitive images → direct sample reads → colour-only resolve`
-- **Files You Touch:** `src/frame_targets.rs` (*Own matching depth and primitive samples; keep the optional colour image as the only resolve source.*) · `src/primitive_image.rs` (*Keep request-owned queries single-sample. Four-sample integer images are sampled directly and never copied or resolved.*) · `src/lib.rs` (*Register the attachment owner. The main renderer remains single-sample.*) · `src/frame_target_tests.rs` (*Read every actual depth/ID sample, resolve only colour and retain readable old bound views across replacement.*)
 
 Create matching depth and integer-address images for one or four samples. Resolve only the colour image. Keep the current browser renderer at one sample until every consuming pass supports the same count.
 
 One multisampled pixel can contain different surfaces. Averaging physical primitive addresses would manufacture an address that never existed. Original-owner queries use their separate ID image. Keep each depth and integer address available by sample index; only colour becomes a single displayed pixel.
 
-The supplied GPU fixture writes distinct depth and both integer halves for every actual sample. It reads them with a compute pass, verifies the resolved colour separately, then replaces the owner and checks that existing bound views still read the original values. It never assumes fixed sample positions.
-
-The browser image intentionally retains the existing single-sample scene. Defining these resources does not enable four-sample rendering. The next checkpoint connects their owner to the renderer; coherent shaders, quality selection and full feature validation still follow.
-
-> **Self-Check Question:** *Why must a multisampled physical primitive address remain per sample?*  
-> **Answer:** Different samples can belong to different physical primitives. Averaging their integer values would invent an address. Read the matching sample’s depth and primitive address directly; original-owner queries retain their separate ID image.
-
-- **What You Should See:** The browser retains its existing single-sample picture. The real GPU resource fixture verifies independent depth and integer samples at one and four samples, colour-only resolve, and readable old bound views after replacing the target owner.
-- **Hands-On Lab Experiment:** Compare every actual sample’s depth and two integer halves, then read the resolved colour. Confirm that the1x integer image allows copy readback and the four-sample image is read through a shader instead.
-
-<details>
-<summary>Implementation 96zzzzzzu-keep-depth-and-address-samples-separate: Keep depth and address samples separate</summary>
-
-Define matching frame attachments without averaging depth or physical primitive addresses.
-
-Data flow: One sample count → matching depth and primitive images → direct sample reads → colour-only resolve.
+> **Check:** *Why must a multisampled physical primitive address remain per sample?* — Different samples can belong to different physical primitives. Averaging their integer values would invent an address. Read the matching sample’s depth and primitive address directly; original-owner queries retain their separate ID image.
 
 ### 1. `src/frame_targets.rs`
 
@@ -236,32 +106,6 @@ Create the file and type:
 
 Keep request-owned queries single-sample. Four-sample integer images are sampled directly and never copied or resolved.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) const CAP_START:u32=0xfffffff0;
-pub(crate) const FORMAT:wgpu::TextureFormat=wgpu::TextureFormat::Rg16Uint;
-pub(crate) struct Image{pub texture:wgpu::Texture,pub view:wgpu::TextureView}
-impl Image{
-    pub fn new(device:&wgpu::Device,size:[u32;2])->Self{
-        let texture=device.create_texture(&wgpu::TextureDescriptor{
-            label:Some("physical triangle addresses"),
-            size:wgpu::Extent3d{width:size[0].max(1),height:size[1].max(1),depth_or_array_layers:1},
-            mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:FORMAT,
-            usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_SRC,
-            view_formats:&[],
-        });
-        let view=texture.create_view(&Default::default());Self{texture,view}
-    }
-}
-pub(crate) fn target(write:bool)->wgpu::ColorTargetState{
-    wgpu::ColorTargetState{format:FORMAT,blend:None,write_mask:if write{wgpu::ColorWrites::ALL}else{wgpu::ColorWrites::empty()}}
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -272,34 +116,13 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Register the attachment owner. The main renderer remains single-sample.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod primitive_image;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 mod frame_targets;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzu-keep-depth-and-address-samples-separate-03.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -313,10 +136,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzu-keep-depth-and-address-samples-separate-04.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -324,84 +144,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the supplied real-GPU sample fixture.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod frame_targets;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzu-keep-depth-and-address-samples-separate-05.rs" skip=18
 ```
 
-</details>
+**Result after `96zzzzzzu-keep-depth-and-address-samples-separate`:** The browser retains its existing single-sample picture. The real GPU resource fixture verifies independent depth and integer samples at one and four samples, colour-only resolve, and readable old bound views after replacing the target owner.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzv-reuse-coherent-frame-targets"></a>
 
 ### Step 2 of 19 · Reuse coherent frame targets (`96zzzzzzv-reuse-coherent-frame-targets`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/19 Visual Trace (96zzzzzzv-reuse-coherent-frame-targets): Reuse coherent frame targets</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/lib.rs, src/global_outline_tests.rs, src/contact_feature_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing renderer</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one target owner</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unchanged extent retains</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">views</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">real resize replaces</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matching…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/lib.…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged extent retain…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">real resize replaces ma…</text>
 </svg>
-</div>
-
-- **Goal:** Retain frame attachments at equal extent and replace them coherently during real resizing.
-- **Data Flow Trace:** `Existing renderer → one target owner → unchanged extent retains views → real resize replaces matching attachments`
-- **Files You Touch:** `src/renderer.rs` (*Move every existing depth field reference under the target owner; preserve longer names.*) · `src/lib.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/global_outline_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/contact_feature_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/ambient_input_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/ambient_contact_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/frame_target_tests.rs` (*Append the actual unchanged-extent, coherent-resize, nonblank pixels, full sources, geometry identity and release witness.*)
 
 Connect the frame-target owner to the existing renderer. Keep its depth and primitive images when the viewport is unchanged; replace them together when its size changes. Geometry, original sources, and the existing single-sample picture remain intact.
 
 Rename the two whole-field references with your editor’s Replace All, then wire the constructor, resize and draw paths below. Keep the existing algorithms and every source owner. The optional Native updates preserve existing assertions and add the resource-lifetime witness.
 
-Renderer keeps its existing size and format once. The owner holds matching attachments and their sample count. Render into its colour view, resolve colour before the independent widget, and keep request-owned query images separate. The current renderer still chooses one sample.
-
-The preceding Native renderer replaced two targets even at the same extent, despite identical nonblank pixels and unchanged geometry uploads. The browser already avoids calling resize at unchanged extent, so this API improvement is not a browser frame-rate claim. Read actual GPU identities and passive texture descriptors, not only a visually unchanged screenshot.
-
-> **Self-Check Question:** *Why does an unchanged screenshot fail to prove that frame resources were reused?*  
-> **Answer:** New attachments can produce identical pixels. Check the actual retained views and GPU texture creation, together with unchanged source/geometry ownership and exact pixels. Real extent changes must replace a matching pair.
-
-- **What You Should See:** The real renderer reuses equal-extent targets and replaces actual extent changes coherently. Source and geometry owners stay intact; one-sample pixels restore exactly. Four-sample full-viewer consumers and quality selection still follow.
-- **Hands-On Lab Experiment:** Compare actual old-parent and current view identities; resize at both browser densities, pick the original face after each change, compare full source archives and restore every scene pixel. Inspect every separate depth/integer sample and colour-only resolve in the supplied Native fixture.
-
-<details>
-<summary>Implementation 96zzzzzzv-reuse-coherent-frame-targets: Reuse coherent frame targets</summary>
-
-Retain frame attachments at equal extent and replace them coherently during real resizing.
-
-Data flow: Existing renderer → one target owner → unchanged extent retains views → real resize replaces matching attachments.
+> **Check:** *Why does an unchanged screenshot fail to prove that frame resources were reused?* — New attachments can produce identical pixels. Check the actual retained views and GPU texture creation, together with unchanged source/geometry ownership and exact pixels. Real extent changes must replace a matching pair.
 
 ### 1. `src/renderer.rs`
 
@@ -445,8 +229,7 @@ Wire the existing renderer to its persistent, coherent target owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
@@ -457,8 +240,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.submit([encoder.finish()]);tiles.map_report();
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -473,8 +254,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
@@ -484,8 +264,6 @@ Replace it with:
         self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
         self.prepare_clouds(*transform);
 ```
-
-</details>
 
 Replace it with:
 
@@ -499,8 +277,7 @@ Replace it with:
         self.prepare_clouds(*transform);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -530,8 +307,6 @@ Replace it with:
     pub fn set_density(&mut self, density: f32) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -548,8 +323,7 @@ Replace it with:
     pub fn set_density(&mut self, density: f32) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
@@ -560,8 +334,6 @@ Replace it with:
         for lane in [&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format,false);}
         renderer.highlight.enable_finite(&renderer.device,format);
 ```
-
-</details>
 
 Replace it with:
 
@@ -575,8 +347,7 @@ Replace it with:
         renderer.highlight.enable_finite(&renderer.device,format);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 resource: uniform.as_entire_binding(),
@@ -588,8 +359,6 @@ Replace it with:
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
 ```
-
-</details>
 
 Replace it with:
 
@@ -603,8 +372,7 @@ Replace it with:
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     settings_bytes: usize,
@@ -616,8 +384,6 @@ Replace it with:
     paths: crate::stroke_gpu::Lane,
     markers: crate::stroke_gpu::Lane,
 ```
-
-</details>
 
 Replace it with:
 
@@ -631,8 +397,7 @@ Replace it with:
     markers: crate::stroke_gpu::Lane,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1279,41 +1044,7 @@ mod ambient_order_tests;
 mod ambient_contact_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-wiring-1.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-wiring-2.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-wiring-3.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-wiring-4.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-wiring-5.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-wiring-6.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1321,28 +1052,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-gets;
-#[cfg(all(test,not(target_arch="wasm32")))]
-mod frame_target_tests;
-pub mo
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1350,25 +1066,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ct_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-02.rs" skip=10
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1376,29 +1080,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-nk(){
- use crate::pick_sources::{Part,Target};let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();scene.translate(owner,[2000.,0.,0.]).unwrap();let original=scene.objects()[0].geometry().unwrap().to_proto();let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();let target=Some(Target{owner,part:Part::Face(key)});let mut gpu=renderer(&scene);let mut old=matrix();old[12]=-2000.;gpu.set_highlight(&scene,target).unwrap();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,old);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);let geometry=gpu.highlight.geometry_for_test().unwrap().clone();let uploads=gpu.stats()[0];gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[2000.,0.,0.]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_source_ink(&scene);assert!(gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));assert!(Rc::ptr_eq(gpu.highlight.geometry_for_test().unwrap(),&geometry));let actual=crate::cap_gpu_tests::pixels_at(&gpu,matrix());assert!(actual==baseline,"Rebased original face and ink pixels must match exactly");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);assert!(gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));assert!(Rc::ptr_eq(gpu.highlight.geometry_for_test().unwrap(),&geometry));assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);drop(geometry);gpu.set_highlight(&scene,None).unwrap();assert!(gpu.highlight.geometry_for_test().is_none());assert!(!gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[t
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-73.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1406,29 +1094,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-orm);
- gpu.mesh_ink.set(&gpu.device,crate::pick_sources::Sources::anchored(&far,anchor).unwrap().mesh_ink).unwrap();for(target,expected)in targets.into_iter().zip(pixels){assert!(target.valid(&far));gpu.set_highlight(&far,Some(target)).unwrap();let actual=crate::cap_gpu_tests::pixels_at(&gpu,local);assert!(actual==expected,"Distant original highlight pixels must match exactly: {target:?}; differing bytes: {}",actual.iter().zip(&expected).filter(|(a,b)|a!=b).count());assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);}gpu.set_highlight(&far,None).unwrap();gpu.select_objects(&far,&[line,path,point]).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),objects);gpu.select_objects(&far,&[]).unwrap();gpu.set_highlight(&far,None).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[t
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-74.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1436,27 +1108,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ng(){
- use crate::pick_sources::{Part,Target};let mut scene=Scene::empty();let mesh=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let line=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(-0.4,0.5,-0.5,0.4,0.5,-0.5))).unwrap()).unwrap();let path=scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(session_rust::Polyline::new(vec![session_rust::Point::new(-0.4,-0.5,-0.5),session_rust::Point::new(0.,-0.3,-0.5),session_rust::Point::new(0.4,-0.5,-0.5)]))).unwrap()).unwrap();let point=scene.insert_point(crate::marker::PreparedPoint::new(Rc::new(session_rust::Point::new(0.75,0.,-0.5))).unwrap()).unwrap();let mut proto=session_rust::PointCloud::from_coords(vec![-0.75,0.,-0.5],vec![],vec![]).to_proto();proto.point_ids=vec![u32::MAX];let cloud=scene.insert_cloud(crate::cloud::Prepared::new(Rc::new(session_rust::PointCloud::from_proto(proto))).unwrap()).unwrap();scene.owner_controls(path).unwrap();scene.cloud_controls(Some(cloud));let curve=scene.insert_path(crate::chain::PreparedChain::curve(Rc::new(crate::freeform_curve::curve(&[session_rust::Point::new(-0.4,0.8,-0.5),session_rust::Point::new(0.,0.65,-0.5),session_rust::Point::new(0.4,0.8,-0.5)]))).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();let edge=scene.objects()[0].mesh.parts.edges[0];let control=scene.control_markers().into_iter().find(|c|c.parent==path).unwrap().part;let targets=[Target{owner:mesh,part:Part::Face(key)},Target{owner:mesh,part:Part::MeshEdge(edge.0,edge.1)},Target{owner:line,part:Part::Curve},Target{owner:curve,part:Part::Curve},Target{owner:path,part:Part::PathEdge(0)},Target{owner:path,part:control},Target{owner:cloud,part:Part::CloudPoint(u32::MAX)}];let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=3.;camera.aspect=4./3.;gpu.cloud_camera(&camera);let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let uploads=gpu.stats()[0];let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);let mut pixels=Vec::new();for target in targets{assert!(target.valid(&scene));gpu.set_highlight(&scene,Some(target)).unwrap();let selected=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(selected!=baseline,"A valid original highlight must change actual pixels: {target:?}");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);pixels.push(selected);}gpu.set_highlight(&scene,None).unwrap();gpu.select_objects(&scene,&[line,path,point]).unwrap();let objects=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert_ne!(objects,baseline);gpu.select_objects(&scene,&[]).unwrap();gpu.set_highlight(&scene,None).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,transform),baseline);
- let a
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-75.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1464,27 +1122,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-)[0];
- for opacity in [0.,0.5,0.95] {gpu.set_opacity(opacity);gpu.set_scene(&scene,None);let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored,"Exact transparent placements at {opacity}");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);gpu.select_objects(&scene,&[copy]).unwrap();if opacity>0. {assert_ne!(pixels(&gpu),stored);}gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),stored);assert_eq!(gpu.stats()[0],uploads);}
- asser
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-76.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1492,28 +1136,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ted);
- let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);gpu.select_objects(&scene,&[a]).unwrap();assert_ne!(pixels(&gpu),stored);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),stored);gpu.set_opacity(0.5);pixels(&gpu);gpu.set_opacity(1.);assert_eq!(pixels(&gpu),stored);
- for opacity in [0.,0.5,0.95,1.] {gpu.set_opacity(opacity);gpu.set_scene(&scene,None);let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored,"Exact ordinary blend at {opacity}");assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);}
- let c
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-77.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1521,28 +1150,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-eue);
- assert_eq!(gpu.instances.ordinary.len(),1);assert_eq!(crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),crate::object_record::BYTES as u64),gpu.meshes[0].packed());let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);
- gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),1);
- let b
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-78.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1550,27 +1164,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-].id;
- for opacity in [1.,0.5]{gpu.set_opacity(opacity);let plain=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.primitive.texture);let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();gpu.set_highlight(&scene,Some(crate::pick_sources::Target{owner,part:crate::pick_sources::Part::Face(key)})).unwrap();assert_ne!(pixels(&gpu),plain);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),addresses);gpu.set_highlight(&scene,None).unwrap();assert_eq!(pixels(&gpu),plain);}
- asser
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-79.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1578,30 +1178,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-T-2]{
-  gpu.meshes[0].set_primitive_base(&gpu.queue,base).unwrap();pixels(&gpu);let plain=primitive_pixels(&gpu,&gpu.primitive.texture);assert_eq!(plain[120*320+160],base+1);
-  gpu.select_objects(&scene,&[owner]).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),plain);assert_eq!(u32::from_ne_bytes(gpu.meshes[0].packed()[64..68].try_into().unwrap()),1);
-  gpu.select_objects(&scene,&[]).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),plain);let before=gpu.meshes[0].packed();for invalid in [crate::primitive_image::CAP_START-1,crate::primitive_image::CAP_START,u32::MAX]{assert!(gpu.meshes[0].set_primitive_base(&gpu.queue,invalid).is_err());assert_eq!(gpu.meshes[0].packed(),before);}
- }
- as
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-80.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1609,27 +1192,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ty});
-  assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|word|*word==0));
-  gpu.
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-81.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1637,30 +1206,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-);
- }
- gpu.set_scene(&Scene::empty(),None);cap_primitive_frame(&gpu);assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|word|*word==0));
-}
-
-#[t
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-82.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1668,27 +1220,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-],0);
-  gpu.select_objects(&scene,&[owner]).unwrap();cap_primitive_frame(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture)[at],0xfffffff1);
-  gpu.
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-83.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1696,27 +1234,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-gpu);
-  let words=primitive_pixels(&gpu,&gpu.primitive.texture);let at=(96*density*320*density+208*density)as usize;
-  asse
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-84.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1724,27 +1248,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ene);
-    assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|word|*word==0));
-    fo
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-85.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1752,30 +1262,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }
-    let mut instances=Scene::empty();crate::scene_document::import(&mut instances,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).unwrap();gpu.set_scene(&instances,None);pixels(&gpu);let placed=primitive_pixels(&gpu,&gpu.primitive.texture);let ids=gpu.meshes.iter().map(|mesh|mesh.primitive_base()+1).collect::<Vec<_>>();assert_eq!(ids.len(),2);assert_ne!(ids[0],ids[1]);assert!(ids.iter().all(|id|*id>0&&*id<crate::primitive_image::CAP_START));assert_eq!(placed[120*320+64],ids[0]);assert_eq!(placed[120*320+256],ids[1]);
-    gpu.resize(crate::viewport::Viewport{width:640,height:480});assert_eq!([gpu.primitive.texture.width(),gpu.primitive.texture.height()],[640,480]);gpu.resize(crate::viewport::Viewport{width:320,height:240});gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert!(primitive_pixels(&gpu,&gpu.primitive.texture).iter().all(|id|*id==0));
-}
-
-#[t
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-86.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1783,27 +1276,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ene);
-    for density in [1.,2.]{gpu.set_density(density);pixels(&gpu);let before=primitive_pixels(&gpu,&gpu.primitive.texture);assert_eq!(before[0],0);assert_eq!(before[120*320+80],2);assert_eq!(before[120*320+240],3);assert_eq!(gpu.primitive.texture.format(),crate::primitive_image::FORMAT);
-        let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();gpu.set_highlight(&scene,Some(crate::pick_sources::Target{owner:a,part:crate::pick_sources::Part::Face(key)})).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),before,"A derived selected-face mesh must retain original triangle addresses");
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-87.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1811,27 +1290,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-se});
-    let group=r.device.create_bind_group(&wgpu::BindGroupDescriptor{label:None,layout:&pipeline.get_bind_group_layout(0),entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(&r.depth)},wgpu::BindGroupEntry{binding:1,resource:output.as_entire_binding()}]});
-    le
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-88.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1839,26 +1304,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-t()),
-        &g.depth,
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-89.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1866,26 +1318,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the existing validation assertions while using the new target owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-t()),
-        &g.depth,
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-90.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1893,383 +1332,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Append the actual unchanged-extent, coherent-resize, nonblank pixels, full sources, geometry identity and release witness.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::frame_targets::Targets;
-
-fn read(device: &wgpu::Device, buffer: &wgpu::Buffer) -> Vec<u8> {
-    let (tx, rx) = std::sync::mpsc::channel();
-    buffer
-        .slice(..)
-        .map_async(wgpu::MapMode::Read, move |v| tx.send(v).unwrap());
-    device
-        .poll(wgpu::PollType::Wait {
-            submission_index: None,
-            timeout: Some(std::time::Duration::from_secs(5)),
-        })
-        .unwrap();
-    rx.recv().unwrap().unwrap();
-    let data = buffer.slice(..).get_mapped_range().to_vec();
-    buffer.unmap();
-    data
-}
-
-#[test]
-fn actual_samples_keep_depth_and_integer_addresses_and_resolve_only_colour() {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::VULKAN,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let adapter = pollster::block_on(instance.request_adapter(&Default::default())).unwrap();
-    let (device, queue) = pollster::block_on(adapter.request_device(&Default::default())).unwrap();
-    device.on_uncaptured_error(std::sync::Arc::new(|e| panic!("actual frame targets: {e}")));
-    for samples in [1, 4] {
-        let mut targets = Targets::new(&device, [8, 8], wgpu::TextureFormat::Rgba8Unorm, samples);
-        assert_eq!(targets.primitive.texture.sample_count(), samples);
-        assert_eq!(
-            targets.primitive.texture.format(),
-            crate::primitive_image::FORMAT
-        );
-        assert_eq!(
-            targets
-                .primitive
-                .texture
-                .usage()
-                .contains(wgpu::TextureUsages::COPY_SRC),
-            samples == 1
-        );
-        let output = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("resolved float colour"),
-            size: wgpu::Extent3d {
-                width: 8,
-                height: 8,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8Unorm,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
-            view_formats: &[],
-        });
-        let single = output.create_view(&Default::default());
-        assert_eq!(targets.color(&single) == &single, samples == 1);
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("actual distinct samples"),
-            source: wgpu::ShaderSource::Wgsl(r#"
-@vertex fn vertex(@builtin(vertex_index) i:u32)->@builtin(position) vec4f {
- let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[i],0.5,1);
-}
-struct Hit { @location(0) color:vec4f, @location(1) primitive:vec2u, @builtin(frag_depth) depth:f32 }
-@fragment fn fragment(@builtin(sample_index) sample:u32)->Hit {
- return Hit(vec4f(f32(sample&1u),f32((sample>>1u)&1u),0,1),vec2u(sample+1u,50000u+sample),f32(sample+1u)*0.125);
-}"#.into()),
-        });
-        let pipe = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("per-sample colour, integer and depth"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[
-                    Some(wgpu::ColorTargetState {
-                        format: wgpu::TextureFormat::Rgba8Unorm,
-                        blend: None,
-                        write_mask: wgpu::ColorWrites::ALL,
-                    }),
-                    Some(crate::primitive_image::target(true)),
-                ],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: crate::depth::FORMAT,
-                depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Always),
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multisample: wgpu::MultisampleState {
-                count: samples,
-                ..Default::default()
-            },
-            multiview_mask: None,
-            cache: None,
-        });
-        let storage = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: 64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-            mapped_at_creation: false,
-        });
-        let mut source = format!(
-            r#"
-@group(0) @binding(0) var depth:texture_depth_2d;
-@group(0) @binding(1) var physical:texture_2d<u32>;
-@group(0) @binding(2) var<storage,read_write> values:array<vec4u>;
-@compute @workgroup_size(4) fn read_samples(@builtin(global_invocation_id) id:vec3u) {{
- if(id.x>={samples}u){{return;}}
- let primitive=textureLoad(physical,vec2i(2),SAMPLE).xy;
- values[id.x]=vec4u(bitcast<u32>(textureLoad(depth,vec2i(2),SAMPLE)),primitive,id.x);
-}}
-"#
-        );
-        if samples == 4 {
-            source = source
-                .replace("texture_depth_2d", "texture_depth_multisampled_2d")
-                .replace("texture_2d<u32>", "texture_multisampled_2d<u32>");
-        }
-        source = source.replace("SAMPLE", if samples == 4 { "i32(id.x)" } else { "0" });
-        let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("actual sample readback"),
-            source: wgpu::ShaderSource::Wgsl(source.into()),
-        });
-        let compute = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-            label: None,
-            layout: None,
-            module: &module,
-            entry_point: Some("read_samples"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-        let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout: &compute.get_bind_group_layout(0),
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&targets.depth),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::TextureView(&targets.primitive.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 2,
-                    resource: storage.as_entire_binding(),
-                },
-            ],
-        });
-        let result = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: 64,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let pixels = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: 256 * 8,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("actual matching sample attachments"),
-                color_attachments: &[
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: targets.color(&single),
-                        resolve_target: None,
-                        depth_slice: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                            store: wgpu::StoreOp::Store,
-                        },
-                    }),
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: &targets.primitive.view,
-                        resolve_target: None,
-                        depth_slice: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: wgpu::StoreOp::Store,
-                        },
-                    }),
-                ],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &targets.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0.),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                ..Default::default()
-            });
-            pass.set_pipeline(&pipe);
-            pass.draw(0..3, 0..1);
-        }
-        targets.resolve(&mut encoder, &single);
-        {
-            let mut pass = encoder.begin_compute_pass(&Default::default());
-            pass.set_pipeline(&compute);
-            pass.set_bind_group(0, &group, &[]);
-            pass.dispatch_workgroups(1, 1, 1);
-        }
-        encoder.copy_buffer_to_buffer(&storage, 0, &result, 0, 64);
-        encoder.copy_texture_to_buffer(
-            output.as_image_copy(),
-            wgpu::TexelCopyBufferInfo {
-                buffer: &pixels,
-                layout: wgpu::TexelCopyBufferLayout {
-                    offset: 0,
-                    bytes_per_row: Some(256),
-                    rows_per_image: Some(8),
-                },
-            },
-            output.size(),
-        );
-        queue.submit([encoder.finish()]);
-        let actual = read(&device, &result);
-        for sample in 0..samples as usize {
-            let words = actual[sample * 16..sample * 16 + 16]
-                .chunks_exact(4)
-                .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
-                .collect::<Vec<_>>();
-            assert_eq!(f32::from_bits(words[0]), (sample + 1) as f32 * 0.125);
-            assert_eq!(
-                &words[1..],
-                &[sample as u32 + 1, 50000 + sample as u32, sample as u32]
-            );
-        }
-        let actual = read(&device, &pixels);
-        let expected = if samples == 4 {
-            [128u8, 128, 0, 255]
-        } else {
-            [0, 0, 0, 255]
-        };
-        assert!(actual[2 * 256 + 2 * 4..2 * 256 + 2 * 4 + 4]
-            .iter()
-            .zip(expected)
-            .all(|(&a, b)| a.abs_diff(b) <= 1));
-        let depth = targets.depth.clone();
-        let primitive = targets.primitive.texture.clone();
-        let other = if samples == 1 { 4 } else { 1 };
-        targets = Targets::new(&device, [17, 13], wgpu::TextureFormat::Rgba8Unorm, other);
-        assert_eq!(targets.primitive.texture.sample_count(), other);
-        assert_eq!(
-            [
-                targets.primitive.texture.width(),
-                targets.primitive.texture.height()
-            ],
-            [17, 13]
-        );
-        assert_ne!(targets.depth, depth);
-        assert_ne!(targets.primitive.texture, primitive);
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_compute_pass(&Default::default());
-            pass.set_pipeline(&compute);
-            pass.set_bind_group(0, &group, &[]);
-            pass.dispatch_workgroups(1, 1, 1);
-        }
-        encoder.copy_buffer_to_buffer(&storage, 0, &result, 0, 64);
-        queue.submit([encoder.finish()]);
-        let retained = read(&device, &result);
-        for sample in 0..samples as usize {
-            let at = sample * 16;
-            assert_eq!(
-                f32::from_bits(u32::from_ne_bytes(retained[at..at + 4].try_into().unwrap())),
-                (sample + 1) as f32 * 0.125
-            );
-            assert_eq!(
-                u32::from_ne_bytes(retained[at + 4..at + 8].try_into().unwrap()),
-                sample as u32 + 1
-            );
-            assert_eq!(
-                u32::from_ne_bytes(retained[at + 8..at + 12].try_into().unwrap()),
-                50000 + sample as u32
-            );
-        }
-        targets = Targets::new(&device, [8, 8], wgpu::TextureFormat::Rgba8Unorm, samples);
-        assert_eq!(targets.primitive.texture.sample_count(), samples);
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzv-reuse-coherent-frame-targets-91.rs" skip=12497
 ```
 
-</details>
+**Result after `96zzzzzzv-reuse-coherent-frame-targets`:** The real renderer reuses equal-extent targets and replaces actual extent changes coherently. Source and geometry owners stay intact; one-sample pixels restore exactly. Four-sample full-viewer consumers and quality selection still follow.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzw-match-resolve-base-and-view-formats"></a>
 
 ### Step 3 of 19 · Keep resolved colours in the canvas format (`96zzzzzzw-match-resolve-base-and-view-formats`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/19 Visual Trace (96zzzzzzw-match-resolve-base-and-view-formats): Keep resolved colours in the canvas format</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/frame_targets.rs, src/renderer.rs, src/browser.rs, src/frame_target_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Actual canvas base format</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit colour view</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">format</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching frame attachments</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour-only resolve</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/frame_targets.rs, src…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching frame attachme…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour-only resolve</text>
 </svg>
-</div>
-
-- **Goal:** Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
-- **Data Flow Trace:** `Actual canvas base format → explicit colour view format → matching frame attachments → colour-only resolve`
-- **Files You Touch:** `src/frame_targets.rs` (*Retain identical-format callers and accept an explicit compatible base/view pair.*) · `src/renderer.rs` (*Keep the output base format beside the existing colour view format.*) · `src/browser.rs` (*Pass the actual canvas base and rendering view formats separately.*) · `src/frame_target_tests.rs` (*Extend the existing actual GPU fixture across matching base/view pairs while retaining every depth/address, resize and release assertion.*)
 
 Keep flat colours stable when adding multisampling. The canvas texture’s base format and the format of its rendering view are separate values; matching both ends of the resolve prevents large colour shifts.
 
 The browser supplies its configured base format and its existing sRGB view format. Renderer keeps both values, and the frame owner allocates its optional multisampled colour texture with the output base format and the requested rendering view. Depth and primitive formats keep their existing roles.
 
-Retain the existing constructor for Native callers whose texture and view formats are identical. Resize carries the same pair into replacement attachments. This checkpoint keeps the main renderer at one sample; subsequent work connects the other consumers before enabling four samples.
-
-The supplied Native fixture renders all six combinations of three valid base/view pairs and two sample counts. It reads every original depth and integer address independently, checks that only colour resolves, and checks the linear average encoded through an sRGB view. A separate actual Chrome probe reproduced a large interior colour shift when base formats differed even though the views matched. No additional colour image, fullscreen conversion pass or approximate gamma function is needed.
-
-The [WebGPU render-pass rules](https://gpuweb.github.io/gpuweb/#dom-gpurenderpasscolorattachment-resolvetarget) require matching texture base formats as well as matching rendering view formats.
-
-> **Self-Check Question:** *Why can matching the two view formats still leave a resolve incorrect?*  
-> **Answer:** A view can reinterpret a texture’s format. The underlying multisample and output textures must also have matching base formats, so supply the actual canvas base separately from the rendering view.
-
-- **What You Should See:** Frame attachments retain the output base format and the colour view format through construction and resizing. Flat source colours keep their intended encoding; depth and integer addresses remain unaveraged. The main browser renderer remains at one sample at this checkpoint.
-- **Hands-On Lab Experiment:** Run the supplied fixture with unorm/unorm, unorm/sRGB-view and sRGB/sRGB-view at one and four samples. The linear half-intensity colour resolves near128 in unorm or188 through sRGB. Compare physical sample depth and primitive words independently of the colour result.
-
-<details>
-<summary>Implementation 96zzzzzzw-match-resolve-base-and-view-formats: Keep resolved colours in the canvas format</summary>
-
-Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
-
-Data flow: Actual canvas base format → explicit colour view format → matching frame attachments → colour-only resolve.
+> **Check:** *Why can matching the two view formats still leave a resolve incorrect?* — A view can reinterpret a texture’s format. The underlying multisample and output textures must also have matching base formats, so supply the actual canvas base separately from the rendering view.
 
 ### 1. `src/frame_targets.rs`
 
@@ -2277,8 +1381,7 @@ Retain identical-format callers and accept an explicit compatible base/view pair
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                     mip_level_count: 1,
@@ -2299,8 +1402,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -2327,8 +1428,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         format: wgpu::TextureFormat,
@@ -2340,8 +1440,6 @@ Replace it with:
                 .create_texture(&wgpu::TextureDescriptor {
                     label: Some(label),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2367,8 +1465,7 @@ Replace it with:
                     label: Some(label),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub(crate) struct Targets {
@@ -2452,51 +1549,13 @@ impl Targets {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-07.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Keep the output base format beside the existing colour view format. Retain the existing constructor and accept explicit base/view formats at the browser boundary. Use the same base format as the eventual resolve output. Store the supplied output format once. Keep matching base/view formats during real resizing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.size == [size.width, size.height] { return; }
@@ -2507,8 +1566,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn set_density(&mut self, density: f32) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2522,8 +1579,7 @@ Replace it with:
     pub fn set_density(&mut self, density: f32) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -2534,8 +1590,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, targets, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
         renderer.mesh_ink.enable_finite(&renderer.device,format,true);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2549,8 +1603,7 @@ Replace it with:
         renderer.mesh_ink.enable_finite(&renderer.device,format,true);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 resource: uniform.as_entire_binding(),
@@ -2561,8 +1614,6 @@ Replace it with:
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
 ```
-
-</details>
 
 Replace it with:
 
@@ -2576,8 +1627,7 @@ Replace it with:
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         format: wgpu::TextureFormat,
@@ -2587,8 +1637,6 @@ Replace it with:
         crate::shader_check::check(&device, include_str!("cloud_resolve.wgsl").into(), "Cloud resolve");
         crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
 ```
-
-</details>
 
 Replace it with:
 
@@ -2611,8 +1659,7 @@ Replace it with:
         crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
@@ -2622,8 +1669,6 @@ Replace it with:
     pub queue: wgpu::Queue,
     instances:crate::instance_gpu::Lane,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2637,8 +1682,7 @@ Replace it with:
     instances:crate::instance_gpu::Lane,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -3300,50 +2344,9 @@ mod ambient_contact_tests;
 mod frame_target_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-12.rs"
-```
-
-</details>
-
 ### 3. `src/browser.rs`
 
 Pass the actual canvas base and rendering view formats separately.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -3355,19 +2358,7 @@ Edit the existing block to match this code; keep unchanged lines:
         config.format.add_srgb_suffix(),
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-13.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -3375,490 +2366,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend the existing actual GPU fixture across matching base/view pairs while retaining every depth/address, resize and release assertion.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::frame_targets::Targets;
-
-fn read(device: &wgpu::Device, buffer: &wgpu::Buffer) -> Vec<u8> {
-    let (tx, rx) = std::sync::mpsc::channel();
-    buffer
-        .slice(..)
-        .map_async(wgpu::MapMode::Read, move |v| tx.send(v).unwrap());
-    device
-        .poll(wgpu::PollType::Wait {
-            submission_index: None,
-            timeout: Some(std::time::Duration::from_secs(5)),
-        })
-        .unwrap();
-    rx.recv().unwrap().unwrap();
-    let data = buffer.slice(..).get_mapped_range().to_vec();
-    buffer.unmap();
-    data
-}
-
-#[test]
-fn actual_samples_keep_depth_and_integer_addresses_and_resolve_only_colour() {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::VULKAN,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let adapter = pollster::block_on(instance.request_adapter(&Default::default())).unwrap();
-    let (device, queue) = pollster::block_on(adapter.request_device(&Default::default())).unwrap();
-    device.on_uncaptured_error(std::sync::Arc::new(|e| panic!("actual frame targets: {e}")));
-    for samples in [1, 4] {
-        let mut targets = Targets::new(&device, [8, 8], wgpu::TextureFormat::Rgba8Unorm, samples);
-        assert_eq!(targets.primitive.texture.sample_count(), samples);
-        assert_eq!(
-            targets.primitive.texture.format(),
-            crate::primitive_image::FORMAT
-        );
-        assert_eq!(
-            targets
-                .primitive
-                .texture
-                .usage()
-                .contains(wgpu::TextureUsages::COPY_SRC),
-            samples == 1
-        );
-        let output = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("resolved float colour"),
-            size: wgpu::Extent3d {
-                width: 8,
-                height: 8,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8Unorm,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
-            view_formats: &[],
-        });
-        let single = output.create_view(&Default::default());
-        assert_eq!(targets.color(&single) == &single, samples == 1);
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("actual distinct samples"),
-            source: wgpu::ShaderSource::Wgsl(r#"
-@vertex fn vertex(@builtin(vertex_index) i:u32)->@builtin(position) vec4f {
- let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[i],0.5,1);
-}
-struct Hit { @location(0) color:vec4f, @location(1) primitive:vec2u, @builtin(frag_depth) depth:f32 }
-@fragment fn fragment(@builtin(sample_index) sample:u32)->Hit {
- return Hit(vec4f(f32(sample&1u),f32((sample>>1u)&1u),0,1),vec2u(sample+1u,50000u+sample),f32(sample+1u)*0.125);
-}"#.into()),
-        });
-        let pipe = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("per-sample colour, integer and depth"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[
-                    Some(wgpu::ColorTargetState {
-                        format: wgpu::TextureFormat::Rgba8Unorm,
-                        blend: None,
-                        write_mask: wgpu::ColorWrites::ALL,
-                    }),
-                    Some(crate::primitive_image::target(true)),
-                ],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: crate::depth::FORMAT,
-                depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Always),
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multisample: wgpu::MultisampleState {
-                count: samples,
-                ..Default::default()
-            },
-            multiview_mask: None,
-            cache: None,
-        });
-        let storage = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: 64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-            mapped_at_creation: false,
-        });
-        let mut source = format!(
-            r#"
-@group(0) @binding(0) var depth:texture_depth_2d;
-@group(0) @binding(1) var physical:texture_2d<u32>;
-@group(0) @binding(2) var<storage,read_write> values:array<vec4u>;
-@compute @workgroup_size(4) fn read_samples(@builtin(global_invocation_id) id:vec3u) {{
- if(id.x>={samples}u){{return;}}
- let primitive=textureLoad(physical,vec2i(2),SAMPLE).xy;
- values[id.x]=vec4u(bitcast<u32>(textureLoad(depth,vec2i(2),SAMPLE)),primitive,id.x);
-}}
-"#
-        );
-        if samples == 4 {
-            source = source
-                .replace("texture_depth_2d", "texture_depth_multisampled_2d")
-                .replace("texture_2d<u32>", "texture_multisampled_2d<u32>");
-        }
-        source = source.replace("SAMPLE", if samples == 4 { "i32(id.x)" } else { "0" });
-        let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("actual sample readback"),
-            source: wgpu::ShaderSource::Wgsl(source.into()),
-        });
-        let compute = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-            label: None,
-            layout: None,
-            module: &module,
-            entry_point: Some("read_samples"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-        let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout: &compute.get_bind_group_layout(0),
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&targets.depth),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::TextureView(&targets.primitive.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 2,
-                    resource: storage.as_entire_binding(),
-                },
-            ],
-        });
-        let result = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: 64,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let pixels = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: 256 * 8,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("actual matching sample attachments"),
-                color_attachments: &[
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: targets.color(&single),
-                        resolve_target: None,
-                        depth_slice: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                            store: wgpu::StoreOp::Store,
-                        },
-                    }),
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: &targets.primitive.view,
-                        resolve_target: None,
-                        depth_slice: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: wgpu::StoreOp::Store,
-                        },
-                    }),
-                ],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &targets.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0.),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                ..Default::default()
-            });
-            pass.set_pipeline(&pipe);
-            pass.draw(0..3, 0..1);
-        }
-        targets.resolve(&mut encoder, &single);
-        {
-            let mut pass = encoder.begin_compute_pass(&Default::default());
-            pass.set_pipeline(&compute);
-            pass.set_bind_group(0, &group, &[]);
-            pass.dispatch_workgroups(1, 1, 1);
-        }
-        encoder.copy_buffer_to_buffer(&storage, 0, &result, 0, 64);
-        encoder.copy_texture_to_buffer(
-            output.as_image_copy(),
-            wgpu::TexelCopyBufferInfo {
-                buffer: &pixels,
-                layout: wgpu::TexelCopyBufferLayout {
-                    offset: 0,
-                    bytes_per_row: Some(256),
-                    rows_per_image: Some(8),
-                },
-            },
-            output.size(),
-        );
-        queue.submit([encoder.finish()]);
-        let actual = read(&device, &result);
-        for sample in 0..samples as usize {
-            let words = actual[sample * 16..sample * 16 + 16]
-                .chunks_exact(4)
-                .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
-                .collect::<Vec<_>>();
-            assert_eq!(f32::from_bits(words[0]), (sample + 1) as f32 * 0.125);
-            assert_eq!(
-                &words[1..],
-                &[sample as u32 + 1, 50000 + sample as u32, sample as u32]
-            );
-        }
-        let actual = read(&device, &pixels);
-        let expected = if samples == 4 {
-            [128u8, 128, 0, 255]
-        } else {
-            [0, 0, 0, 255]
-        };
-        assert!(actual[2 * 256 + 2 * 4..2 * 256 + 2 * 4 + 4]
-            .iter()
-            .zip(expected)
-            .all(|(&a, b)| a.abs_diff(b) <= 1));
-        let depth = targets.depth.clone();
-        let primitive = targets.primitive.texture.clone();
-        let other = if samples == 1 { 4 } else { 1 };
-        targets = Targets::new(&device, [17, 13], wgpu::TextureFormat::Rgba8Unorm, other);
-        assert_eq!(targets.primitive.texture.sample_count(), other);
-        assert_eq!(
-            [
-                targets.primitive.texture.width(),
-                targets.primitive.texture.height()
-            ],
-            [17, 13]
-        );
-        assert_ne!(targets.depth, depth);
-        assert_ne!(targets.primitive.texture, primitive);
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_compute_pass(&Default::default());
-            pass.set_pipeline(&compute);
-            pass.set_bind_group(0, &group, &[]);
-            pass.dispatch_workgroups(1, 1, 1);
-        }
-        encoder.copy_buffer_to_buffer(&storage, 0, &result, 0, 64);
-        queue.submit([encoder.finish()]);
-        let retained = read(&device, &result);
-        for sample in 0..samples as usize {
-            let at = sample * 16;
-            assert_eq!(
-                f32::from_bits(u32::from_ne_bytes(retained[at..at + 4].try_into().unwrap())),
-                (sample + 1) as f32 * 0.125
-            );
-            assert_eq!(
-                u32::from_ne_bytes(retained[at + 4..at + 8].try_into().unwrap()),
-                sample as u32 + 1
-            );
-            assert_eq!(
-                u32::from_ne_bytes(retained[at + 8..at + 12].try_into().unwrap()),
-                50000 + sample as u32
-            );
-        }
-        targets = Targets::new(&device, [8, 8], wgpu::TextureFormat::Rgba8Unorm, samples);
-        assert_eq!(targets.primitive.texture.sample_count(), samples);
-    }
-}
-
-#[test]
-fn identical_resize_retains_targets_geometry_sources_and_exact_single_sample_pixels() {
-    use crate::{
-        editor::{Action, Editor},
-        viewport::Viewport,
-    };
-    let mut editor = Editor::default();
-    editor
-        .apply(Action::Replace(crate::specimen::bytes()))
-        .unwrap();
-    let source = editor.scene.objects()[0].geometry().unwrap().clone();
-    let weak = std::rc::Rc::downgrade(&source);
-    let original =
-        crate::archive::Bundle::decode(&crate::scene_archive::save(&editor.scene).unwrap())
-            .unwrap();
-    let documents = |b: &crate::archive::Bundle| {
-        use prost::Message;
-        b.documents
-            .iter()
-            .map(|d| session_rust::proto::Session::decode(d.as_slice()).unwrap())
-            .collect::<Vec<_>>()
-    };
-    let before = documents(&original);
-    let metadata = serde_json::to_value(&original.metadata).unwrap();
-    let mut renderer = crate::cap_gpu_tests::renderer(&editor.scene);
-    let geometry = renderer.geometry_owners().cloned().collect::<Vec<_>>();
-    assert_eq!(geometry.len(), editor.scene.objects().len());
-    assert!(!geometry.is_empty());
-    let mut camera = crate::camera::Camera::default();
-    camera.aspect = 4. / 3.;
-    camera.fit(&editor.scene.bounds().unwrap());
-    let transform = renderer.camera_matrix(&camera);
-    let baseline = crate::cap_gpu_tests::pixels_at(&renderer, transform);
-    assert!(
-        baseline
-            .chunks_exact(4)
-            .filter(|p| p[..3] != [255, 255, 255])
-            .count()
-            > 1000
-    );
-    export("original-frame-before", &baseline);
-    let primitive = renderer.targets.primitive.texture.clone();
-    let depth = renderer.targets.depth.clone();
-    let stats = renderer.stats();
-    let uploads = renderer.uploaded_bytes();
-    for _ in 0..4 {
-        renderer.resize(Viewport {
-            width: 320,
-            height: 240,
-        });
-    }
-    assert_eq!(renderer.targets.depth, depth);
-    assert_eq!(renderer.targets.primitive.texture, primitive);
-    assert_eq!(renderer.targets.samples, 1);
-    assert!(crate::cap_gpu_tests::pixels_at(&renderer, transform) == baseline);
-    renderer.resize(Viewport {
-        width: 640,
-        height: 480,
-    });
-    assert_ne!(renderer.targets.depth, depth);
-    assert_ne!(renderer.targets.primitive.texture, primitive);
-    renderer.resize(Viewport {
-        width: 320,
-        height: 240,
-    });
-    assert!(crate::cap_gpu_tests::pixels_at(&renderer, transform) == baseline);
-    export(
-        "original-frame-after",
-        &crate::cap_gpu_tests::pixels_at(&renderer, transform),
-    );
-    assert_eq!(renderer.geometry_owners().count(), geometry.len());
-    assert_eq!(renderer.stats(), stats);
-    assert_eq!(renderer.uploaded_bytes(), uploads);
-    assert!(renderer
-        .geometry_owners()
-        .zip(&geometry)
-        .all(|(a, b)| std::rc::Rc::ptr_eq(a, b)));
-    let after = crate::archive::Bundle::decode(&crate::scene_archive::save(&editor.scene).unwrap())
-        .unwrap();
-    assert!(documents(&after) == before);
-    assert_eq!(serde_json::to_value(after.metadata).unwrap(), metadata);
-    drop(source);
-    drop(geometry);
-    drop(renderer);
-    drop(editor);
-    assert!(weak.upgrade().is_none());
-}
-
-fn export(name: &str, image: &[u8]) {
-    if let Some(root) = std::env::var_os("VIEWER_FRAME_TARGET_PROOF_DIR") {
-        use std::io::Write;
-        std::fs::create_dir_all(&root).unwrap();
-        let mut file =
-            std::fs::File::create(std::path::Path::new(&root).join(format!("{name}.ppm"))).unwrap();
-        write!(file, "P6\n320 240\n255\n").unwrap();
-        for p in image.chunks_exact(4) {
-            file.write_all(&p[..3]).unwrap();
-        }
-    }
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzw-match-resolve-base-and-view-formats-14.rs"
 ```
 
-</details>
+**Result after `96zzzzzzw-match-resolve-base-and-view-formats`:** Frame attachments retain the output base format and the colour view format through construction and resizing. Flat source colours keep their intended encoding; depth and integer addresses remain unaveraged. The main browser renderer remains at one sample at this checkpoint.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzx-reuse-count-specific-surface-pipelines"></a>
 
 ### Step 4 of 19 · Reuse surface pipelines for each sample count (`96zzzzzzx-reuse-count-specific-surface-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/19 Visual Trace (96zzzzzzx-reuse-count-specific-surface-pipelines): Reuse surface pipelines for each sample count</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sample_pipelines.rs, src/surface_pipelines.rs, src/renderer.rs, src/instance_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing surface</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">descriptor</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">count-specific shader</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inputs</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy pipeline pair</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged original</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sample_pipelines.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">lazy pipeline pair</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged original geom…</text>
 </svg>
-</div>
-
-- **Goal:** Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
-- **Data Flow Trace:** `Existing surface descriptor → count-specific shader inputs → lazy pipeline pair → unchanged original geometry and records`
-- **Files You Touch:** `src/sample_pipelines.rs` (*Retain only active and alternate pipeline/layout recipes for counts1 and4; never retain inactive frame images.*) · `src/surface_pipelines.rs` (*Declare the existing surface descriptor factory interface and pair return.*) · `src/renderer.rs` (*Remove the shader constructor after moving its exact bytes into the surface factory.*) · `src/instance_gpu.rs` (*Extract the existing shared-surface descriptor behind the same count-specific factory interface.*) · `src/global_outline_tests.rs` (*Keep existing assertions on the same active ordinary pipeline.*) · `src/lib.rs` (*Register the two small pipeline recipe modules.*) · `src/sample_surface_tests.rs` (*Render actual ordinary and shared surfaces at both counts, inspect every physical depth/address, require exact return and cached pipeline identity, preserve original records and GPU geometry, then freshly query both original shared owners.*) · `src/sample_test_proof.rs` (*Export actual Native diagnostic pixels only when the caller opts into a proof directory; run all assertions without filesystem output by default.*)
 
 Reuse the existing surface drawing code at one and four samples. Move each descriptor into a factory, make its count explicit, and retain the alternate compiled recipe so switching back does not compile it again.
 
 A small generic owner keeps the active pipeline pair, an optional alternate pair and their current count. Repeating the same count returns immediately; the first change creates the other recipe and later changes swap the two. It retains pipelines and their layouts, not inactive colour, depth or address images.
 
-Move the exact existing ordinary surface shader constructor and descriptor closure before changing their inputs. The shared-instance factory follows the same pattern. Both factories use the requested multisample count. Only the four-sample shader qualifies interpolated colour, world position and normal at the actual sample; the single-sample source remains unchanged.
-
-Ordinary and shared placements continue using the original GPU geometry, object records, slots and source owners. No tessellation or record upload is needed to change a pipeline recipe. The main renderer stays at one sample here: ink, caps, drawing sheets, text and other consumers must be connected before a complete four-sample frame is safe.
-
-> **Self-Check Question:** *Why retain alternate pipelines but release inactive frame images?*  
-> **Answer:** Pipeline recipes can be reused across many frames and extents. Full-sized colour, depth and address images scale with the viewport; only the currently active coherent image set is required.
-
-- **What You Should See:** Ordinary and shared surface pipelines have matching one- and four-sample recipes with cached return switches. Source geometry, records, uploads and independent single-sample original-owner queries keep their existing roles. The public main frame still uses one sample.
-
-These actual GPU pictures show only the surface pass: two shared blue triangles and one ordinary green triangle. The left triangle reaches the viewport boundary. Compare silhouette coverage at one and four samples; the complete browser frame remains at one sample here.
-
-**One sample — actual Native surface pass.**
-
-**Four samples — actual Native surface pass.**
-- **Hands-On Lab Experiment:** Run the supplied isolated surface witness. Compare ordinary uniform drawing with the same original shared records at four samples, inspect physical depth and integer addresses, and switch4→1→4. The returned pipeline identities and every returned colour pixel must match without rebuilding geometry.
-
-<details>
-<summary>Implementation 96zzzzzzx-reuse-count-specific-surface-pipelines: Reuse surface pipelines for each sample count</summary>
-
-Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
-
-Data flow: Existing surface descriptor → count-specific shader inputs → lazy pipeline pair → unchanged original geometry and records.
+> **Check:** *Why retain alternate pipelines but release inactive frame images?* — Pipeline recipes can be reused across many frames and extents. Full-sized colour, depth and address images scale with the viewport; only the currently active coherent image set is required.
 
 ### 1. `src/sample_pipelines.rs`
 
@@ -3886,19 +2435,9 @@ Move the exact previously typed shader constructor.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// shader
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -3906,27 +2445,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-03.rs"
 ```
 
-</details>
-
 ### 4. `src/surface_pipelines.rs`
 
 Move the exact previously typed layout and descriptor closure.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// layout
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -3934,50 +2461,9 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-04.rs"
 ```
 
-</details>
-
 ### 5. `src/surface_pipelines.rs`
 
 Assemble the count-specific surface inputs from one original shader. Borrow the existing caller-owned layouts. Use the existing device reference. Use the same shared geometry layout. Apply one explicit colour sample count. Use sample-qualified colour/world/normal inputs only for4x.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn pipelines(device:&wgpu::Device,format:wgpu::TextureFormat,view_layout:&wgpu::BindGroupLayout,model_layout:&wgpu::BindGroupLayout,samples:u32)->(wgpu::RenderPipeline,wgpu::RenderPipeline) {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0).into()),
-        });
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
-        let mesh_pipeline = |depth,primitive_write| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[crate::draw_slots::layout()],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState{format,blend:Some(wgpu::BlendState::ALPHA_BLENDING),write_mask:wgpu::ColorWrites::ALL}),Some(crate::primitive_image::target(primitive_write))],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        (mesh_pipeline(crate::depth::surface(),true),mesh_pipeline(crate::depth::ink(),false))
-
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -4022,45 +2508,13 @@ pub fn sampled(source:String,samples:u32)->String {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-10.rs"
-```
-
-</details>
-
 ### 6. `src/renderer.rs`
 
 Remove the shader constructor after moving its exact bytes into the surface factory. Remove the descriptor closure after moving its exact bytes into the surface factory. Keep the existing ordinary and highlight surface recipes in the shared sample-count cache.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             });
@@ -4076,8 +2530,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.highlight.mesh(&mut pass);
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4096,8 +2548,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
@@ -4108,8 +2559,6 @@ Replace it with:
 
     pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4123,8 +2572,7 @@ Replace it with:
     pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
@@ -4137,8 +2585,6 @@ Replace it with:
         for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
             let matching = old.iter().position(|row| row.id == object.id
 ```
-
-</details>
 
 Replace it with:
 
@@ -4154,8 +2600,7 @@ Replace it with:
             let matching = old.iter().position(|row| row.id == object.id
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -4166,8 +2611,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, targets, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
         renderer.mesh_ink.enable_finite(&renderer.device,format,true);
 ```
-
-</details>
 
 Replace it with:
 
@@ -4181,8 +2624,7 @@ Replace it with:
         renderer.mesh_ink.enable_finite(&renderer.device,format,true);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         });
@@ -4193,8 +2635,6 @@ Replace it with:
                 binding: 0,
                 resource: uniform.as_entire_binding(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -4208,8 +2648,7 @@ Replace it with:
                 resource: uniform.as_entire_binding(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
@@ -4253,8 +2692,6 @@ Replace it with:
         let widget = crate::widget::Widget::new(&device, format);
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4271,8 +2708,7 @@ Replace it with:
         let widget = crate::widget::Widget::new(&device, format);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub queue: wgpu::Queue,
@@ -4284,8 +2720,6 @@ Replace it with:
     preview: crate::tool_preview::Preview,
     widget: crate::widget::Widget,
 ```
-
-</details>
 
 Replace it with:
 
@@ -4299,8 +2733,7 @@ Replace it with:
     widget: crate::widget::Widget,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4933,67 +3366,9 @@ mod ambient_contact_tests;
 mod frame_target_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-23.rs"
-```
-
-</details>
-
 ### 7. `src/instance_gpu.rs`
 
 Extract the existing shared-surface descriptor behind the same count-specific factory interface.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Lane {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -5006,36 +3381,15 @@ fn pipelines(device:&wgpu::Device,format:wgpu::TextureFormat,view:&wgpu::BindGro
 impl Lane {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-24.rs"
-```
-
-</details>
-
 ### 8. `src/instance_gpu.rs`
 
 Move the exact previously typed shared shader and pipeline descriptor.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// descriptors
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -5043,16 +3397,13 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-25.rs"
 ```
 
-</details>
-
 ### 9. `src/instance_gpu.rs`
 
 Remove the original descriptor copy after moving it. Reuse the shared pipeline pair without rebuilding source geometry, records or slots. Borrow the existing shared record layout in the extracted factory. Match the shared surface pipeline to its actual sample count.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -5063,8 +3414,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         for batch in self.batches.values() {self.slots.bind(pass,0,batch.first_slot);batch.geometry.draw_pulled(pass,batch.count);}
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5078,8 +3427,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.slots.written_bytes>0{self.writes+=1;self.written_bytes+=self.slots.written_bytes;}
@@ -5090,8 +3438,6 @@ Replace it with:
         if !self.bind_record(pass,mesh){return false;}pass.set_pipeline(pipeline);mesh.geometry.draw_pulled(pass,1);true
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5105,8 +3451,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
  crate::clipping_gpu::source(&crate::object_rows::source(include_str!("triangle.wgsl")),2,0)
@@ -5133,8 +3478,6 @@ impl Lane {
     pub fn set(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,meshes:&mut[GpuMesh],instances:&std::collections::HashSet<crate::scene::ObjectId>,geometry_changed:bool)->Result<(),&'static str> {
         let compatible=geometry_changed||self.space.as_ref().is_some_and(|space|meshes.iter().all(|mesh|self.ordinary.get(&mesh.id).is_some_and(|(slot,row)|*slot>0&&*slot<space.end()&&space.local_slot(*slot)==[*row,mesh.primitive_base()])));
 ```
-
-</details>
 
 Replace it with:
 
@@ -5163,8 +3506,7 @@ impl Lane {
         let compatible=geometry_changed||self.space.as_ref().is_some_and(|space|meshes.iter().all(|mesh|self.ordinary.get(&mesh.id).is_some_and(|(slot,row)|*slot>0&&*slot<space.end()&&space.local_slot(*slot)==[*row,mesh.primitive_base()])));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::object_record::{BYTES, Record};
@@ -5175,8 +3517,6 @@ pub(crate) fn batch_rows(rows:impl IntoIterator<Item=(crate::scene::ObjectId,usi
  let rows=rows.into_iter().collect::<Vec<_>>();let mut uses=std::collections::HashMap::new();
  for &(_,key,_)in &rows {*uses.entry(key).or_insert(0usize)+=1;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -5190,8 +3530,7 @@ pub(crate) fn batch_rows(rows:impl IntoIterator<Item=(crate::scene::ObjectId,usi
  for &(_,key,_)in &rows {*uses.entry(key).or_insert(0usize)+=1;}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry,gpu_mesh::GpuMesh};
@@ -5307,53 +3646,7 @@ mod stable_row_tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-30.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-34.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5361,35 +3654,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep existing assertions on the same active ordinary pipeline.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-r.pipeline
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-35.rs"
 ```
 
-</details>
-
 ### 11. `src/lib.rs`
 
 Register the two small pipeline recipe modules.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod camera_navigation_tests;
-```
-
-</details>
 
 After that block, type:
 
@@ -5399,19 +3672,7 @@ mod sample_pipelines;
 mod surface_pipelines;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-36.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5419,371 +3680,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain all unchanged outline and arena assertions after the ordinary surface owner moves.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::{scene::Scene,prepared::PreparedMesh,cap_gpu_tests::{renderer,pixels,matrix,wait}};
-use std::rc::Rc;
-fn width_pixels(r:&super::Renderer){let texture=r.device.create_texture(&wgpu::TextureDescriptor{label:Some("global CSS width"),size:wgpu::Extent3d{width:320,height:240,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});r.draw(&texture.create_view(&Default::default()),&Default::default(),&session_rust::Xform::identity().m.map(|v|v as f32));wait(r);}
-#[test]
-fn actual_global_curved_and_flat_silhouettes_keep_the_same_css_width_at_two_densities() {
-    let mut widths=Vec::new();
-    for curved in [false,true] {
-        let mut scene=Scene::demo();scene.clear();let id=if curved {scene.insert_cad(Rc::new(session_rust::BRep::create_cylinder(0.4,0.8))).unwrap()} else {let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.8,0.8,0.2)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,0.5);scene.insert(prepared).unwrap()};let mut renderer=renderer(&scene);renderer.set_outlines(true);assert!(!renderer.meshes.iter().any(crate::gpu_mesh::GpuMesh::selected));let _=id;let geometry=renderer.stats();let mut css=Vec::new();
-        for density in [1.,2.] {renderer.set_density(density);width_pixels(&renderer);let alpha=renderer.global_outline_alpha();assert!(alpha.iter().any(|v|*v==255));let row=&alpha[120*320..121*320];let width=row[160..].iter().map(|v|*v as f64/255.).sum::<f64>()/density as f64;assert!((0.7..1.7).contains(&width),"Actual outer silhouette CSS coverage remains bounded: {width}");css.push(width);assert_eq!(&renderer.stats()[..2],&geometry[..2]);}
-        assert!((css[0]-css[1]).abs()<0.5,"DPI keeps the outline in CSS units: {css:?}");widths.push(css);
-    }
-    for i in 0..2 {assert!((widths[0][i]-widths[1][i]).abs()<0.25,"A smooth cylinder and flat box use one coverage width: {widths:?}");}
-}
-
-#[test]
-fn actual_global_and_selected_outlines_share_alpha_and_one_black_blend(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();
- let original=scene.objects()[0].geometry().unwrap().to_proto();let mut r=renderer(&scene);let plain=pixels(&r);let uploads=r.stats()[0];r.set_outlines(true);let global=pixels(&r);let alpha=r.global_outline_alpha();assert!(alpha.iter().filter(|v|**v>0).count()>300);let usage=r.global_outline_usage();assert_eq!(pixels(&r),global);assert_eq!(r.global_outline_usage()[1],usage[1]);assert!(r.global_outline_usage()[2]>usage[2]);
- r.select_objects(&scene,&[owner]).unwrap();let both=pixels(&r);assert_eq!(r.outline_alpha(),r.global_outline_alpha(),"same source and CSS width yield identical masks");
- let mut boundary=0;for(i,(&coverage,(a,b)))in alpha.iter().zip(global.chunks_exact(4).zip(both.chunks_exact(4))).enumerate(){if coverage>0&&plain[i*4..i*4+3]==[255,255,255]{boundary+=1;assert_eq!(a,b,"selected plus global uses max alpha in one blend");}}
- assert!(boundary>200);assert_eq!(r.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);
- r.request_pick([0.,0.],matrix()).unwrap();wait(&r);let hit=r.take_pick(matrix()).expect("mapped original pick").unwrap();assert_eq!(hit.unwrap()[0],owner.value());
- r.select_objects(&scene,&[]).unwrap();r.set_outlines(false);assert_eq!(r.global_outline_usage(),[0;4]);assert_eq!(pixels(&r),plain);
- scene.clear();r.set_scene(&scene,None);r.set_outlines(true);pixels(&r);assert_eq!(r.global_outline_usage(),[0;4]);
-}
-#[test]
-fn actual_visible_cap_coverage_keeps_selected_and_global_masks_equal(){
- let(mut scene,owner)=crate::cap_gpu_tests::scene(false);let mut r=renderer(&scene);r.set_outlines(true);let global=pixels(&r);let alpha=r.global_outline_alpha();assert!(alpha.iter().any(|v|*v==255));
- r.select_objects(&scene,&[owner]).unwrap();let selected=pixels(&r);assert_eq!(r.outline_alpha(),r.global_outline_alpha(),"selected visible cap marker joins original coverage");
- for(i,v)in alpha.iter().enumerate(){if *v==255{assert!(global[i*4..i*4+3].iter().all(|v|*v<12));assert!(selected[i*4..i*4+3].iter().all(|v|*v<12));}}
- r.set_clipping(false,true);pixels(&r);assert_eq!(r.global_outline_alpha(),alpha,"horizontal cut and uncut original share the same outer XY silhouette");assert_eq!(r.cap_usage()[0],16);
- let side=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Yz,&[[0.,0.,0.]],0.9).unwrap();crate::plane_original::insert(&mut scene,Rc::new(side)).unwrap();r.set_scene(&scene,Some(owner));r.set_clipping(true,true);pixels(&r);assert_ne!(r.global_outline_alpha(),alpha,"changed section inputs cannot reuse stale coverage");
-}
-#[test]
-fn actual_global_outline_includes_locked_and_releases_hidden_originals(){
- let mut scene=Scene::empty();let mut source=crate::cap_gpu_tests::source(false);source.is_locked=true;let owner=scene.insert(PreparedMesh::new(source).unwrap()).unwrap();let mut r=renderer(&scene);r.set_outlines(true);pixels(&r);assert!(r.global_outline_alpha().iter().any(|v|*v==255));assert_eq!(scene.pick_id(owner.value()),None);
- Rc::make_mut(&mut scene.view).hidden.insert(owner);r.set_scene(&scene,None);pixels(&r);assert!(r.global_outline_alpha().is_empty());assert_eq!(r.global_outline_usage(),[0;4]);
-}
-
-#[test]
-fn actual_triangle_ranges_keep_selection_updates_visibility_and_original_owners(){
-    let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle([[-0.2,-0.4,-0.4],[0.2,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let b=scene.copy_row(a,false).unwrap();scene.translate(a,[-0.5,0.,0.]).unwrap();scene.translate(b,[0.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);
-    let bases=|gpu:&super::Renderer|gpu.meshes.iter().map(|row|u32::from_ne_bytes(row.packed()[crate::object_record::RANGE+4..crate::object_record::RANGE+8].try_into().unwrap())).collect::<Vec<_>>();assert_eq!(bases(&gpu),vec![1,2]);assert!(gpu.meshes.iter().all(|row|!row.selected()));let baseline=pixels(&gpu);
-    gpu.select_objects(&scene,&[b]).unwrap();assert_eq!(bases(&gpu),vec![1,2]);assert_eq!(gpu.meshes.iter().map(|row|row.selected()).collect::<Vec<_>>(),vec![false,true]);let selected=pixels(&gpu);assert_ne!(selected,baseline);
-    scene.translate(b,[0.,0.1,0.]).unwrap();gpu.set_scene(&scene,Some(b));assert_eq!(bases(&gpu),vec![1,2]);assert!(gpu.meshes[1].selected());for(position,owner)in[([-0.5,-0.1],a),([0.5,0.],b)]{gpu.request_pick(position,matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());}
-    let before=gpu.meshes[1].packed();assert!(gpu.meshes[1].set_primitive_base(&gpu.queue,crate::primitive_image::CAP_START).is_err());assert_eq!(gpu.meshes[1].packed(),before);
-    Rc::make_mut(&mut scene.view).hide(&[a],true);gpu.set_scene(&scene,Some(b));assert_eq!(bases(&gpu),vec![1]);assert_eq!(gpu.meshes[0].id,b);assert!(gpu.meshes[0].selected());pixels(&gpu);
-}
-
-fn primitive_pixels(gpu:&super::Renderer,texture:&wgpu::Texture)->Vec<u32>{
-        let width=texture.width();let height=texture.height();let pitch=(width*4+255)/256*256;
-        let read=gpu.device.create_buffer(&wgpu::BufferDescriptor{label:Some("actual primitive addresses"),size:u64::from(pitch)*u64::from(height),usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let mut encoder=gpu.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo{buffer:&read,layout:wgpu::TexelCopyBufferLayout{offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},texture.size());gpu.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();read.slice(..).map_async(wgpu::MapMode::Read,move|result|tx.send(result).unwrap());wait(gpu);rx.recv().unwrap().unwrap();let bytes=read.slice(..).get_mapped_range();let values=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..width as usize*4].chunks_exact(4).map(|v|u32::from_le_bytes(v.try_into().unwrap()))).collect();drop(bytes);read.unmap();values
-    }
-#[test]
-fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses(){
-
-    let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle([[-0.2,-0.4,-0.4],[0.2,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let b=scene.copy_row(a,false).unwrap();scene.translate(a,[-0.5,0.,0.]).unwrap();scene.translate(b,[0.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);
-    for density in [1.,2.]{gpu.set_density(density);pixels(&gpu);let before=primitive_pixels(&gpu,&gpu.targets.primitive.texture);assert_eq!(before[0],0);assert_eq!(before[120*320+80],2);assert_eq!(before[120*320+240],3);assert_eq!(gpu.targets.primitive.texture.format(),crate::primitive_image::FORMAT);
-        let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();gpu.set_highlight(&scene,Some(crate::pick_sources::Target{owner:a,part:crate::pick_sources::Part::Face(key)})).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),before,"A derived selected-face mesh must retain original triangle addresses");
-        gpu.set_highlight(&scene,None).unwrap();
-    }
-    let mut instances=Scene::empty();crate::scene_document::import(&mut instances,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).unwrap();gpu.set_scene(&instances,None);pixels(&gpu);let placed=primitive_pixels(&gpu,&gpu.targets.primitive.texture);let ids=gpu.meshes.iter().map(|mesh|mesh.primitive_base()+1).collect::<Vec<_>>();assert_eq!(ids.len(),2);assert_ne!(ids[0],ids[1]);assert!(ids.iter().all(|id|*id>0&&*id<crate::primitive_image::CAP_START));assert_eq!(placed[120*320+64],ids[0]);assert_eq!(placed[120*320+256],ids[1]);
-    gpu.resize(crate::viewport::Viewport{width:640,height:480});assert_eq!([gpu.targets.primitive.texture.width(),gpu.targets.primitive.texture.height()],[640,480]);gpu.resize(crate::viewport::Viewport{width:320,height:240});gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert!(primitive_pixels(&gpu,&gpu.targets.primitive.texture).iter().all(|id|*id==0));
-}
-
-#[test]
-fn actual_first_pick_primitives_match_current_cropped_owners_before_color(){
-    let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle([[-0.2,-0.4,-0.4],[0.2,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let b=scene.copy_row(a,false).unwrap();scene.translate(a,[-0.5,0.,0.]).unwrap();scene.translate(b,[0.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);
-    assert!(primitive_pixels(&gpu,&gpu.targets.primitive.texture).iter().all(|word|*word==0));
-    for density in [1u32,2]{gpu.set_density(density as f32);gpu.resize(crate::viewport::Viewport{width:320*density,height:240*density});
-        for(position,owner,primitive)in[([-0.5,0.],a,2u32),([0.5,0.],b,3)]{gpu.request_pick(position,matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());let(texture,window)=gpu.picker.primitive_for_tests().unwrap();assert_eq!([texture.width(),texture.height()],window.draw[2..]);assert!(texture.width()<window.full[0]&&texture.height()<window.full[1]);let pixels=primitive_pixels(&gpu,&texture);let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];assert_eq!(pixels[(y*texture.width()+x)as usize],primitive);}
-    }
-    Rc::make_mut(&mut scene.view).hide(&[a],true);gpu.set_scene(&scene,None);gpu.request_pick([0.5,0.],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],b.value());let(texture,window)=gpu.picker.primitive_for_tests().unwrap();let pixels=primitive_pixels(&gpu,&texture);let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];assert_eq!(pixels[(y*texture.width()+x)as usize],2,"Visible survivor uses its current retained run without a color frame");
-}
-
-fn cap_primitive_frame(gpu:&super::Renderer){
- let texture=gpu.device.create_texture(&wgpu::TextureDescriptor{label:Some("cap primitive fixture"),size:wgpu::Extent3d{width:gpu.size[0],height:gpu.size[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});
- gpu.draw(&texture.create_view(&Default::default()),&Default::default(),&matrix());wait(gpu);
-}
-#[test]
-fn actual_cap_color_primitives_keep_plane_selection_and_empty_pixels(){
- let(scene,owner)=crate::cap_gpu_tests::scene(false);let mut gpu=renderer(&scene);
- for density in [1u32,2]{gpu.set_density(density as f32);gpu.resize(crate::viewport::Viewport{width:320*density,height:240*density});cap_primitive_frame(&gpu);
-  let words=primitive_pixels(&gpu,&gpu.targets.primitive.texture);let at=(96*density*320*density+208*density)as usize;
-  assert_eq!(words[at],0xfffffff0);assert_eq!(words[0],0);
-  gpu.select_objects(&scene,&[owner]).unwrap();cap_primitive_frame(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture)[at],0xfffffff1);
-  gpu.select_objects(&scene,&[]).unwrap();
- }
- gpu.set_scene(&Scene::empty(),None);cap_primitive_frame(&gpu);assert!(primitive_pixels(&gpu,&gpu.targets.primitive.texture).iter().all(|word|*word==0));
-}
-
-#[test]
-fn actual_first_cap_pick_has_reserved_primitive_and_exact_original_owner(){
- let(scene,owner)=crate::cap_gpu_tests::scene(false);let mut gpu=renderer(&scene);
- for density in [1u32,2]{gpu.set_density(density as f32);gpu.resize(crate::viewport::Viewport{width:320*density,height:240*density});
-  assert!(primitive_pixels(&gpu,&gpu.targets.primitive.texture).iter().all(|word|*word==0));
-  gpu.request_pick([0.3,0.2],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());
-  let(texture,window)=gpu.picker.primitive_for_tests().unwrap();let words=primitive_pixels(&gpu,&texture);
-  let x=window.copy[0]+window.cursor[0]-window.draw[0];let y=window.copy[1]+window.cursor[1]-window.draw[1];
-  assert_eq!(words[(y*texture.width()+x)as usize],0xfffffff0);
-  assert!(texture.width()<window.full[0]&&texture.height()<window.full[1]);
- }
-}
-
-#[test]
-fn actual_compact_surface_upload_uses_twenty_bytes_per_vertex_and_releases(){
- let scene=Scene::demo();let mut gpu=renderer(&scene);let source=scene.objects()[0].mesh.clone();let original=source.vertices().to_vec();
- let buffers=gpu.meshes[0].geometry.buffers();
- assert_eq!(gpu.meshes[0].geometry.allocated_bytes(),0);
- assert_eq!(gpu.usage()[1],buffers.0.size()+buffers.1.size(),"One arena owner accounts for the actual shared buffers");
- let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let mut cache=crate::geometry_cache::GeometryCache::default();let uploaded=cache.get(&ctx,&source);
- assert_eq!(uploaded.buffers().0.size(),source.vertices().len()as u64*20);
- assert_eq!(cache.uploaded_bytes,cache.allocated_bytes(),"The first nonempty compact upload matches actual GPU allocation");
- let written=cache.uploaded_bytes;cache.get(&ctx,&source);assert_eq!(cache.uploads,1);assert_eq!(cache.uploaded_bytes,written);
- let empty=crate::gpu_geometry::GpuGeometry::upload(&gpu.device,std::rc::Rc::new(crate::mesh::Mesh::new(vec![],vec![]).unwrap()));assert_eq!(empty.allocated_bytes(),24);
- pixels(&gpu);assert_eq!(source.vertices(),original);let uploads=gpu.stats();pixels(&gpu);assert_eq!(gpu.stats(),uploads);
- gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);assert_eq!(gpu.arena_cpu_bytes(),0);
-}
-#[test]
-fn actual_nonzero_shared_ranges_keep_surface_face_picks_projection_outlines_and_caps() {
-    use std::cell::RefCell;
-    use crate::{gpu_geometry::GpuGeometry,gpu_mesh::GpuMesh,text_gpu_support::GpuCtx};
-    for clipped in [false,true] {
-        let scene=if clipped {crate::cap_gpu_tests::scene(false).0} else {
-            let mut scene=Scene::empty();scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();scene
-        };
-        let mut r=renderer(&scene);r.set_outlines(true);
-        let expected=pixels(&r);
-        let mut hits=Vec::new();
-        for mode in [crate::pick_sources::Mode::Object,crate::pick_sources::Mode::Face] {
-            r.set_pick_mode(mode);r.request_pick([0.,0.],matrix()).unwrap();wait(&r);
-            hits.push(r.take_pick(matrix()).unwrap().unwrap());
-        }
-        assert!(hits.iter().all(Option::is_some));
-        if !clipped {assert_ne!(hits[1].unwrap()[1],0,"The uncut source returns an original face address");}
-        let ctx=GpuCtx::new(&r.device,&r.queue);
-        let arena=Rc::new(RefCell::new(crate::mesh_arena::Arena::new(&ctx)));
-        let decoy=Rc::new(crate::mesh::Mesh::new(vec![[0.7,0.7,-0.6,0.,1.,0.],[0.9,0.7,-0.6,0.,1.,0.],[0.8,0.9,-0.6,0.,1.,0.]],vec![0,1,2]).unwrap());
-        arena.borrow_mut().upload(&ctx,&decoy).unwrap();
-        let layout=r.surfaces.active.0.get_bind_group_layout(1);
-        for mesh in &mut r.meshes {
-            let object=scene.objects().iter().find(|object|object.id==mesh.id).unwrap();
-            let geometry=Rc::new(GpuGeometry::shared(&ctx,object.mesh.clone(),arena.clone()).unwrap());
-            assert!(geometry.index_start>=3);
-            *mesh=GpuMesh::with_geometry(&r.device,&layout,object,super::style(&scene,object.id,false),geometry);
-        }
-        r.caps.borrow_mut().set_scene(&r.queue,&scene,&mut r.meshes,&r.clipping.borrow().rows);
-        let mut base=0;for mesh in &mut r.meshes {mesh.set_primitive_base(&r.queue,base).unwrap();base+=mesh.geometry.index_count/3;}
-        r.tiles.borrow_mut().set(&r.device,&r.meshes);r.faces.clear();
-        if let Some(outline)=r.global_outline.borrow_mut().as_mut(){outline.invalidate();}
-        assert_eq!(pixels(&r),expected,"Nonzero shared ranges preserve actual color, clipping and outline pixels");
-        for (mode,expected) in [crate::pick_sources::Mode::Object,crate::pick_sources::Mode::Face].into_iter().zip(hits) {
-            r.set_pick_mode(mode);r.request_pick([0.,0.],matrix()).unwrap();wait(&r);
-            assert_eq!(r.take_pick(matrix()).unwrap().unwrap(),expected,"Shared source addressing preserves original picks");
-        }
-        assert!(r.tiles.borrow().usage()[3]>0);
-        if clipped {assert_eq!(r.cap_usage()[1],1);}
-    }
-}
-
-#[test]
-fn actual_contact_marker_is_opaque_unlit_selected_and_keeps_original_ownership(){
- let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap();let original=prepared.geometry.to_proto();
- let vertices=prepared.display.vertices().len();prepared.display=prepared.display.with_alphas(vec![1./255.;vertices]).unwrap();let owner=scene.insert(prepared).unwrap();let mut gpu=renderer(&scene);
- let source=scene.objects()[0].mesh.clone();let color=source.vertices()[0][3..6].to_vec();let expected=color.iter().map(|v|(v.clamp(0.,1.)*255.).round()as u8).collect::<Vec<_>>();
- let uploads=gpu.stats()[0];for opacity in [1.,0.5,0.] {gpu.set_opacity(opacity);let image=pixels(&gpu);assert_eq!(&crate::cap_gpu_tests::at(&image,160,90)[..3],expected.as_slice());gpu.request_pick([0.,0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());}
- gpu.select_objects(&scene,&[owner]).unwrap();let image=pixels(&gpu);assert_eq!(&crate::cap_gpu_tests::at(&image,160,90)[..3],&[255,255,0]);
- assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);assert_eq!(gpu.stats()[0],uploads);assert_eq!(source.alphas(),vec![1./255.;vertices]);
- scene.clear();gpu.set_scene(&scene,None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn current_palette_is_shared_by_surface_shader_and_preserves_original_picks_and_color(){
- use wgpu::naga;
- let rgba=crate::colour::selection();assert_eq!(rgba,session_rust::Color::yellow().to_unified_array());assert_eq!(rgba,[1.,1.,0.,1.]);
- let shader=crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0);assert!(shader.contains(&crate::colour::selection_shader()));naga::valid::Validator::new(naga::valid::ValidationFlags::all(),naga::valid::Capabilities::all()).validate(&naga::front::wgsl::parse_str(&shader).unwrap()).unwrap();
- let mut scene=Scene::empty();let prepared=PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap();let original=prepared.geometry.to_proto();let owner=scene.insert(prepared).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);let plain=pixels(&gpu);let uploads=gpu.stats()[0];
- gpu.select_objects(&scene,&[owner]).unwrap();let selected=pixels(&gpu);assert!(selected.chunks_exact(4).any(|p|p[0]>10&&p[0]==p[1]&&p[2]==0));assert_ne!(plain,selected);gpu.request_pick([0.,0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());
- gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),plain);assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);scene.clear();gpu.set_scene(&scene,None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn full_primitive_base_survives_surface_selection_and_reserved_range_checks(){
- assert!(include_str!("clip.wgsl").contains(&format!("const CAP_PRIMITIVE: u32 = 0x{:08x}u;",crate::primitive_image::CAP_START)));
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.4,-0.4,-0.4],[0.4,-0.4,-0.4],[0.,0.4,-0.4]],[0.8,0.2,0.1]).unwrap()).unwrap();let mut gpu=renderer(&scene);let original=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- for base in [0x8000_0000,crate::primitive_image::CAP_START-2]{
-  gpu.meshes[0].set_primitive_base(&gpu.queue,base).unwrap();pixels(&gpu);let plain=primitive_pixels(&gpu,&gpu.targets.primitive.texture);assert_eq!(plain[120*320+160],base+1);
-  gpu.select_objects(&scene,&[owner]).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),plain);assert_eq!(u32::from_ne_bytes(gpu.meshes[0].packed()[64..68].try_into().unwrap()),1);
-  gpu.select_objects(&scene,&[]).unwrap();pixels(&gpu);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),plain);let before=gpu.meshes[0].packed();for invalid in [crate::primitive_image::CAP_START-1,crate::primitive_image::CAP_START,u32::MAX]{assert!(gpu.meshes[0].set_primitive_base(&gpu.queue,invalid).is_err());assert_eq!(gpu.meshes[0].packed(),before);}
- }
- assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);
-}
-
-#[test]
-fn actual_ordinary_surfaces_keep_one_own_row_slot_through_instances_highlights_and_release(){
- let mut scene=Scene::empty();crate::scene_document::import(&mut scene,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).unwrap();let mut gpu=renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let bytes=[crate::draw_slots::OWN_ROW,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>();assert!(gpu.instances.slots.allocated_bytes()>=8);assert_eq!(crate::growing_buffer_tests::read(&ctx,&gpu.instances.slots.buffer.buf,8),bytes);let originals=scene.objects().iter().map(|o|o.geometry().unwrap().to_proto()).collect::<Vec<_>>();let owner=scene.objects()[0].id;
- for opacity in [1.,0.5]{gpu.set_opacity(opacity);let plain=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();gpu.set_highlight(&scene,Some(crate::pick_sources::Target{owner,part:crate::pick_sources::Part::Face(key)})).unwrap();assert_ne!(pixels(&gpu),plain);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);gpu.set_highlight(&scene,None).unwrap();assert_eq!(pixels(&gpu),plain);}
- assert_eq!(scene.objects().iter().map(|o|o.geometry().unwrap().to_proto()).collect::<Vec<_>>(),originals);gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert_eq!(gpu.usage(),[0;4]);assert_eq!(gpu.instances.slots.allocated_bytes(),8);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);assert_eq!(crate::growing_buffer_tests::read(&ctx,&gpu.instances.slots.buffer.buf,8),bytes);
-}
-
-#[test]
-fn actual_surface_batches_share_one_slot_owner_and_restore_ordinary_drawing(){
- use prost::Message;let mut source=crate::instance_specimen::message();let mut second=source.definitions.as_ref().unwrap().meshes[0].clone();second.guid="other-definition".into();source.definitions.as_mut().unwrap().meshes.push(second);source.objects.as_mut().unwrap().instances[1].definition_guid="other-definition".into();source.objects.as_mut().unwrap().instances[0].xform=None;source.objects.as_mut().unwrap().instances[1].flags=0;source.xforms=vec![session_rust::proto::XformEntry {guid:"first".into(),xform:Some(session_rust::Xform::translation(-0.6,0.,0.).to_proto())},session_rust::proto::XformEntry {guid:"second".into(),xform:Some(session_rust::Xform::translation(0.6,0.,0.).to_proto())}];
- let mut scene=crate::scene::Scene::empty();crate::scene_document::import(&mut scene,&source.encode_to_vec(),"",&session_rust::Xform::identity(),0.).unwrap();let mut gpu=crate::cap_gpu_tests::renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);
- assert_eq!(&gpu.instance_usage()[..3],&[2,2,16760]);assert_eq!(gpu.instance_allocations(),[352,24,16384]);assert_eq!(gpu.instances.slots.instances(),2);let slots=crate::growing_buffer_tests::read(&ctx,&gpu.instances.slots.buffer.buf,24);assert_eq!(&slots[..8],&[u32::MAX,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>());assert_eq!(u32::from_ne_bytes(slots[8..12].try_into().unwrap()),0);assert_eq!(u32::from_ne_bytes(slots[16..20].try_into().unwrap()),1);
- let records=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),2*crate::object_record::BYTES as u64);
- let mut actual=records.chunks_exact(crate::object_record::BYTES).map(|r|r.to_vec()).collect::<Vec<_>>();actual.sort_unstable();let mut expected=gpu.meshes.iter().map(|m|m.packed().to_vec()).collect::<Vec<_>>();expected.sort_unstable();assert_eq!(actual,expected,"global records retain both original placements, IDs and ranges");
- let baseline=crate::cap_gpu_tests::pixels(&gpu);
- for half in 0..2 {let blue=baseline.chunks_exact(4).enumerate().filter(|(i,p)|(*i%320)/160==half&&p[2]>p[0].saturating_add(50)&&p[2]>p[1].saturating_add(30)).count();assert!(blue>100,"placed original blue triangles in half {half}: {blue}");}
- let uploads=gpu.stats()[0];let owner=scene.objects()[0].id;gpu.select_objects(&scene,&[owner]).unwrap();assert_ne!(crate::cap_gpu_tests::pixels(&gpu),baseline);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(crate::cap_gpu_tests::pixels(&gpu),baseline);assert_eq!(gpu.stats()[0],uploads);
- gpu.set_opacity(0.5);crate::cap_gpu_tests::pixels(&gpu);gpu.set_opacity(1.);assert_eq!(crate::cap_gpu_tests::pixels(&gpu),baseline);gpu.set_scene(&crate::scene::Scene::empty(),None);assert_eq!(&gpu.instance_usage()[..3],&[0,0,0]);assert_eq!(gpu.instances.slots.allocated_bytes(),8);
-}
-
-#[test]
-fn actual_projected_records_follow_physical_gaps_clear_old_ranges_and_bound_fallback(){
- let mut scene=Scene::empty();scene.insert(PreparedMesh::triangle([[-0.4,-0.4,0.],[0.4,-0.4,0.],[0.,0.4,0.]],[0.2,0.4,0.8]).unwrap()).unwrap();let mut gpu=renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);gpu.meshes[0].set_primitive_base(&gpu.queue,0).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);let baseline=pixels(&gpu);let triangles=gpu.meshes[0].geometry.index_count/3;assert_eq!(gpu.meshes.len(),1);let initial=crate::growing_buffer_tests::read(&ctx,&gpu.tile_buffers()[0],u64::from(triangles)*96);let uploads=gpu.stats()[0];
- gpu.meshes[0].set_primitive_base(&gpu.queue,7).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.tile_usage()[3],u64::from(triangles+7));let projected=gpu.tile_buffers()[0].clone();let data=crate::growing_buffer_tests::read(&ctx,&projected,u64::from(triangles+7)*96);assert!(data[..7*96].iter().all(|v|*v==0));assert_eq!(&data[7*96..],initial);let projections=gpu.tile_usage()[5];pixels(&gpu);assert_eq!(gpu.tile_usage()[5],projections);
- gpu.meshes[0].set_primitive_base(&gpu.queue,3).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.tile_usage()[3],u64::from(triangles+3));assert_eq!(gpu.tile_buffers()[0],projected);let data=crate::growing_buffer_tests::read(&ctx,&gpu.tile_buffers()[0],projected.size());assert!(data[..3*96].iter().all(|v|*v==0));assert_eq!(&data[3*96..(triangles as usize+3)*96],initial);assert!(data[(triangles as usize+3)*96..].iter().all(|v|*v==0));
- gpu.meshes[0].set_primitive_base(&gpu.queue,0).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.tile_usage()[3],u64::from(triangles));let current=gpu.tile_buffers()[0].clone();assert_eq!(current.size(),initial.len()as u64);assert_eq!(crate::growing_buffer_tests::read(&ctx,&current,current.size()),initial);assert_eq!(gpu.stats()[0],uploads);
- gpu.meshes[0].set_primitive_base(&gpu.queue,0x80000000).unwrap();gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);pixels(&gpu);assert!(gpu.tiles.borrow().fallback);assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);
- gpu.set_scene(&Scene::empty(),None);pixels(&gpu);assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);
-}
-
-#[test]
-fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_growth_selection_and_release() {
- let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);
- assert_eq!(gpu.instances.ordinary.len(),1);assert_eq!(crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),crate::object_record::BYTES as u64),gpu.meshes[0].packed());let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);
- gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),1);
- let b=scene.insert(PreparedMesh::triangle([[-0.2,-0.2,-0.4],[0.2,-0.2,-0.4],[0.,0.2,-0.4]],[0.1,0.4,0.9]).unwrap()).unwrap();scene.translate(b,[0.6,0.,0.]).unwrap();gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),2);let wanted=gpu.meshes.iter().flat_map(|m|m.packed()).collect::<Vec<_>>();assert_eq!(crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),wanted.len()as u64),wanted);
- let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored);assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);gpu.set_scene(&scene,None);gpu.select_objects(&scene,&[a]).unwrap();assert_ne!(pixels(&gpu),stored);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),stored);gpu.set_opacity(0.5);pixels(&gpu);gpu.set_opacity(1.);assert_eq!(pixels(&gpu),stored);
- for opacity in [0.,0.5,0.95,1.] {gpu.set_opacity(opacity);gpu.set_scene(&scene,None);let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored,"Exact ordinary blend at {opacity}");assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);gpu.set_scene(&scene,None);}
- let copy=scene.copy_row(b,false).unwrap();scene.translate(copy,[0.3,0.1,0.]).unwrap();let source=scene.objects().iter().find(|o|o.id==b).unwrap().geometry().unwrap().to_proto();gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary.len(),3);let uploads=gpu.stats()[0];
- for opacity in [0.,0.5,0.95] {gpu.set_opacity(opacity);gpu.set_scene(&scene,None);let stored=pixels(&gpu);let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);gpu.instances.ordinary.clear();assert_eq!(pixels(&gpu),stored,"Exact transparent placements at {opacity}");assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);gpu.set_scene(&scene,None);gpu.select_objects(&scene,&[copy]).unwrap();if opacity>0. {assert_ne!(pixels(&gpu),stored);}gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),stored);assert_eq!(gpu.stats()[0],uploads);}
- assert_eq!(scene.objects().iter().find(|o|o.id==b).unwrap().geometry().unwrap().to_proto(),source);gpu.set_opacity(1.);gpu.set_scene(&scene,None);pixels(&gpu);
- let location=|gpu:&super::Renderer,id:crate::scene::ObjectId|{let space=gpu.instances.space.as_ref().unwrap();let row=gpu.instances.ordinary[&id].1;space.draws().into_iter().flat_map(|draw|draw.slots).find(|slot|space.local_slot(*slot)[0]==row).unwrap()};let first_slot=location(&gpu,a);
- let retained=gpu.instances.ordinary.clone();assert!(scene.remove(b));gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary[&a].1,retained[&a].1);assert_eq!(gpu.instances.ordinary[&copy].1,retained[&copy].1);assert_eq!(location(&gpu,a),first_slot);
- let fresh=scene.insert(PreparedMesh::triangle([[0.7,-0.3,-0.4],[0.9,-0.3,-0.4],[0.8,-0.1,-0.4]],[0.1,0.4,0.9]).unwrap()).unwrap();gpu.set_scene(&scene,None);assert_eq!(gpu.instances.ordinary[&fresh].1,retained[&b].1);assert_eq!(gpu.instances.ordinary[&a].1,retained[&a].1);assert_eq!(gpu.instances.ordinary[&copy].1,retained[&copy].1);assert_eq!(location(&gpu,a),first_slot);
- for mesh in &gpu.meshes {let row=gpu.instances.ordinary[&mesh.id].1;let bytes=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),(row as u64+1)*crate::object_record::BYTES as u64);assert_eq!(&bytes[row as usize*crate::object_record::BYTES..],&mesh.packed());}pixels(&gpu);
- let projected=gpu.tiles.borrow().projected.clone();let expected=crate::growing_buffer_tests::read(&ctx,&projected,projected.size());let image=pixels(&gpu);gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert_eq!(pixels(&gpu),image);let uniform=gpu.tiles.borrow().projected.clone();assert_eq!(crate::growing_buffer_tests::read(&ctx,&uniform,uniform.size()),expected);gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),image);let restored=gpu.tiles.borrow().projected.clone();assert_eq!(crate::growing_buffer_tests::read(&ctx,&restored,restored.size()),expected);
- scene.clear();gpu.set_scene(&scene,None);assert!(gpu.instances.ordinary.is_empty());assert!(gpu.instances.space.is_none());assert_eq!(&gpu.instance_usage()[..3],&[0,0,0]);assert_eq!(gpu.instances.slots.allocated_bytes(),8);
-}
-
-#[test]
-fn actual_lookup_projection_groups_reuse_current_inputs_and_replace_output_bindings() {
- let mut scene=Scene::empty();scene.insert(PreparedMesh::triangle([[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]],[0.1,0.4,0.9]).unwrap()).unwrap();let mut gpu=renderer(&scene);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let count=gpu.meshes[0].primitive_base()+1;assert_eq!(count,2);
- let mut state=crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),count).unwrap();assert_eq!(state.bytes(),16);assert_eq!(crate::growing_buffer_tests::read(&ctx,&state.parameters,16),[2u32,1,0,0].into_iter().flat_map(u32::to_ne_bytes).collect::<Vec<_>>());
- let pipes=crate::tile_pipelines::Pipelines::new(&gpu.device,&gpu.pipeline.get_bind_group_layout(0));let output=|size|gpu.device.create_buffer(&wgpu::BufferDescriptor{label:Some("lookup projection output witness"),size,usage:wgpu::BufferUsages::STORAGE,mapped_at_creation:false});let first=output(192);let group=state.group(&gpu.device,&pipes.lookup_project_layout,&first);assert_eq!(state.group(&gpu.device,&pipes.lookup_project_layout,&first),group);let larger=output(384);let next=state.group(&gpu.device,&pipes.lookup_project_layout,&larger);assert_ne!(next,group);assert_eq!(state.group(&gpu.device,&pipes.lookup_project_layout,&larger),next);
- assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,None,count).is_none());assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),0).is_none());gpu.instances.ordinary.clear();assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),count).is_none());scene.clear();gpu.set_scene(&scene,None);assert!(crate::projection_lookup::Bindings::new(&gpu.device,&gpu.meshes,Some(&gpu.instances),0).is_none());
-}
-
-#[test]
-fn actual_lookup_projection_matches_legacy_bytes_keeps_selection_cache_and_releases() {
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap()).unwrap();let other=scene.insert(PreparedMesh::triangle([[0.1,0.1,-0.3],[0.3,0.1,-0.3],[0.2,0.3,-0.3]],[0.1,0.4,0.9]).unwrap()).unwrap();let copy=scene.copy_row(other,false).unwrap();scene.translate(copy,[0.4,0.,0.]).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(0.95);gpu.set_scene(&scene,None);let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);
- let image=pixels(&gpu);assert!(gpu.tiles.borrow().lookup.is_some());let output=gpu.tiles.borrow().projected.clone();let wanted=crate::growing_buffer_tests::read(&ctx,&output,output.size());let uploads=gpu.stats()[0];gpu.tiles.borrow_mut().set(&gpu.device,&gpu.meshes);assert!(gpu.tiles.borrow().lookup.is_none());assert_eq!(pixels(&gpu),image);let output=gpu.tiles.borrow().projected.clone();assert_eq!(crate::growing_buffer_tests::read(&ctx,&output,output.size()),wanted);
- gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),image);assert!(gpu.tiles.borrow().lookup.is_some());let projections=gpu.tile_usage()[5];gpu.select_objects(&scene,&[owner]).unwrap();assert_ne!(pixels(&gpu),image);assert_eq!(gpu.tile_usage()[5],projections);gpu.select_objects(&scene,&[]).unwrap();assert_eq!(pixels(&gpu),image);assert_eq!(gpu.tile_usage()[5],projections);assert_eq!(gpu.stats()[0],uploads);
- scene.clear();gpu.set_scene(&scene,None);pixels(&gpu);assert!(gpu.tiles.borrow().lookup.is_none());assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);
-}
-
-#[test]
-fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_owners(){
- let left=[[-0.8,-0.4,-0.4],[-0.4,-0.4,-0.4],[-0.6,0.4,-0.4]];let right=[[0.4,-0.4,-0.4],[0.8,-0.4,-0.4],[0.6,0.4,-0.4]];let mut scene=Scene::empty();let a=scene.insert(PreparedMesh::triangle(left,[0.9,0.1,0.1]).unwrap()).unwrap();let b=scene.insert(PreparedMesh::triangle(right,[0.1,0.8,0.2]).unwrap()).unwrap();let source=Rc::clone(&scene.objects()[0].mesh);let precise=scene.objects()[0].geometry().unwrap().to_proto();let mut history=crate::history::History::default();let mut gpu=renderer(&scene);gpu.set_opacity(1.);let first=pixels(&gpu);let expired=Rc::downgrade(&gpu.meshes[0].geometry);let survivor=gpu.meshes[1].geometry.index_start;assert_eq!((gpu.geometry.uploads,gpu.geometry.uploaded_bytes),(2,144));
- history.edit(&mut scene,|scene|{assert!(scene.remove(a));});gpu.set_scene(&scene,None);assert!(expired.upgrade().is_none());assert!(history.scenes().any(|saved|saved.contains(a)));assert!(Rc::strong_count(&source)>0);let mut c=None;history.edit(&mut scene,|scene|{c=Some(scene.insert(PreparedMesh::triangle(left,[0.1,0.3,0.9]).unwrap()).unwrap());});let c=c.unwrap();gpu.set_scene(&scene,None);let reused=gpu.meshes.iter().find(|mesh|mesh.id==c).unwrap();assert_eq!(reused.geometry.index_start,0);assert_eq!(gpu.meshes.iter().find(|mesh|mesh.id==b).unwrap().geometry.index_start,survivor);assert_eq!((gpu.geometry.uploads,gpu.geometry.uploaded_bytes),(3,216));let next=pixels(&gpu);let l=(120*320+64)*4;let r=(120*320+256)*4;assert!(next[l+2]>next[l].saturating_add(50));assert_eq!(&next[r..r+4],&first[r..r+4]);for(point,id)in[([-0.6,0.],c),([0.6,0.],b)]{gpu.request_pick(point,matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],id.value());}
- assert!(history.undo(&mut scene));gpu.set_scene(&scene,None);assert!(history.undo(&mut scene));gpu.set_scene(&scene,None);assert!(Rc::ptr_eq(&source,&scene.objects().iter().find(|row|row.id==a).unwrap().mesh));assert_eq!(scene.objects().iter().find(|row|row.id==a).unwrap().geometry().unwrap().to_proto(),precise);assert_eq!(pixels(&gpu),first);assert_eq!((gpu.geometry.uploads,gpu.geometry.uploaded_bytes),(4,288));scene.clear();gpu.set_scene(&scene,None);pixels(&gpu);assert_eq!(gpu.geometry.entries(),0);assert_eq!(gpu.geometry.allocated_bytes(),0);assert_eq!(gpu.usage(),[0;4]);assert_eq!(&gpu.tile_usage()[..5],&[96,16,48,0,0]);assert!(history.scenes().count()>0);
-}
-
-#[test]
-fn actual_precise_object_rebase_matches_local_pixels_records_selection_and_owners(){
- let mut local=Scene::empty();let owner=local.insert(PreparedMesh::triangle([[-0.2,-0.3,-0.4],[0.2,-0.3,-0.4],[0.,0.3,-0.4]],[0.1,0.3,0.9]).unwrap()).unwrap();local.translate(owner,[0.125,-0.25,0.]).unwrap();let mut gpu=renderer(&local);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(baseline.chunks_exact(4).filter(|p|p[2]>p[0].saturating_add(50)).count()>100);let source=local.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e12,-1e12,1e12];let mut far=local.clone();far.translate(owner,anchor).unwrap();gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[1,12]);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.stats()[0],uploads);
- let ctx=crate::text_gpu_support::GpuCtx::new(&gpu.device,&gpu.queue);let bytes=crate::growing_buffer_tests::read(&ctx,gpu.instances.record_buffer(),crate::object_record::BYTES as u64);assert_eq!(&bytes[48..60],&[0.125f32,-0.25,0.].into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());assert_eq!(&bytes[..crate::object_record::BYTES],&gpu.meshes[0].packed());
- gpu.select_objects(&far,&[owner]).unwrap();assert_ne!(pixels(&gpu),baseline);gpu.request_pick([0.125,-0.25],matrix()).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(matrix()).unwrap().unwrap().unwrap()[0],owner.value());gpu.select_objects(&far,&[]).unwrap();assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
- far.translate(owner,[0.001,0.,0.]).unwrap();gpu.set_scene(&far,None);let expected=crate::render_space::relative(far.objects()[0].model.m[12..15].try_into().unwrap(),anchor);assert_eq!(&gpu.meshes[0].packed()[48..60],&expected.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());assert!(expected[0]>0.125);assert_eq!(gpu.stats()[0],uploads);
-}
-
-#[test]
-fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_ground(){
- let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.5,0.5,0.5)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,-0.5);let owner=scene.insert(prepared).unwrap();let plane=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],1.).unwrap();let plane_id=crate::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(crate::cap_gpu_tests::at(&baseline,160,120)[..3].iter().all(|v|(150..=156).contains(v)));let ground=gpu.ambient_rows.ground_at([0.;3]);let source=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [owner,plane_id]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();assert!(gpu.space.update(anchor,1.,0.).unwrap().moved);for mesh in &mut gpu.meshes {mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(gpu.anchor(),anchor);assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);assert_eq!(gpu.ambient_rows.ground[0]-anchor[2],-0.75);let frame=gpu.text_frame(matrix());assert_eq!(frame.origin,anchor);assert!(!frame.cut([anchor[0],anchor[1],anchor[2]-0.75]));assert!(frame.cut([anchor[0],anchor[1],anchor[2]-0.25]));assert_eq!(pixels(&gpu),baseline);let writes=gpu.clipping.borrow().writes;assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.clipping.borrow().writes,writes);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
-}
-
-#[test]
-fn actual_cloud_and_sheet_origins_reuse_uploads_and_invalidate_equal_matrix_views(){
- let mut scene=Scene::empty();let mut source=session_rust::PointCloud::from_coords(vec![-0.5,0.,-0.5],vec![255,0,0,255],vec![]);source.point_size=16.;let source=Rc::new(source);let cloud=scene.insert_cloud(crate::cloud::Prepared::new(source.clone()).unwrap()).unwrap();let sheet=Rc::new(session_rust::proto::Sheet{guid:crate::sheet_example::source().guid,coords:vec![0.25,0.,-0.5,0.75,0.,-0.5],widths:vec![0.0625],colors:vec![0xff00_0000],segment_count:1,entity_count:1,source_ids:vec![0],..Default::default()});let drawing=scene.insert_sheet(Rc::new(crate::sheet_source::Prepared::new(sheet.clone()).unwrap())).unwrap();let original=source.to_proto();let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.distance=2.;camera.aspect=4./3.;camera.projection=crate::camera::Projection::Orthographic;gpu.cloud_camera(&camera);let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(baseline.chunks_exact(4).any(|p|p[0]>200&&p[1]<20&&p[2]<20));assert!(baseline.chunks_exact(4).filter(|p|p[..3].iter().all(|v|*v<20)).count()>20);let uploads=(gpu.cloud_usage()[2],gpu.sheet_usage()[3]);assert_eq!(uploads,(1,1));
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [cloud,drawing]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);assert!(gpu.space.update(anchor,2.,0.).unwrap().moved);let mut far_camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut far_camera,[0.;3]);far_camera.distance=camera.distance;far_camera.aspect=camera.aspect;far_camera.projection=camera.projection;far_camera.target=anchor;controlled_translation_plane(&mut far_camera,anchor);gpu.cloud_camera(&far_camera);gpu.sheets.set_anchored(&gpu.device,&gpu.queue,&far,&[],&gpu.sources.sheet_bases,anchor).unwrap();let local=far_camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!((gpu.cloud_usage()[2],gpu.sheet_usage()[3]),uploads);let prepared=gpu.cloud_usage()[3];assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.cloud_usage()[3],prepared);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];far_camera.target=moved;assert!(gpu.space.update(moved,2.,300.).unwrap().moved);gpu.cloud_camera(&far_camera);gpu.sheets.set_anchored(&gpu.device,&gpu.queue,&far,&[],&gpu.sources.sheet_bases,moved).unwrap();let same_matrix=far_camera.view_projection_anchored(moved).to_f32();assert_eq!(same_matrix,local);let panned=crate::cap_gpu_tests::pixels_at(&gpu,same_matrix);assert!(panned.chunks_exact(4).all(|p|p==&[255;4]));assert!(gpu.cloud_usage()[3]>prepared,"Origin alone invalidates the equal-matrix cloud view");assert_eq!((gpu.cloud_usage()[2],gpu.sheet_usage()[3]),uploads);
- far_camera.target=anchor;controlled_translation_plane(&mut far_camera,anchor);assert!(gpu.space.update(anchor,2.,600.).unwrap().moved);gpu.cloud_camera(&far_camera);gpu.sheets.set_anchored(&gpu.device,&gpu.queue,&far,&[],&gpu.sources.sheet_bases,anchor).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);for(point,id)in[([-0.5,0.,-0.5],cloud),([0.5,0.,-0.5],drawing)]{let point=camera.view_projection().transform_point(&session_rust::Point::new(point[0],point[1],point[2]));gpu.request_pick([point[0]as f32,point[1]as f32],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],id.value());}assert_eq!(source.to_proto(),original);assert!(Rc::ptr_eq(&far.sheets()[0].prepared.original,&sheet));assert_eq!((gpu.cloud_usage()[2],gpu.sheet_usage()[3]),uploads);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.cloud_usage(),[0;5]);assert_eq!(&gpu.sheet_usage()[..2],&[0,0]);
-}
-
-fn temporary_inputs(gpu:&mut super::Renderer,world:[f64;3]){
- let point=|p:[f64;3]|std::array::from_fn(|i|p[i]+world[i]);let mut guides=crate::guide_gpu::Overlay::at(gpu.anchor());guides.wire(&[point([-0.75,0.25,-0.5]),point([0.75,0.25,-0.5])],[210./255.,40./255.,40./255.,1.],true);guides.mark(point([0.5,0.25,-0.5]),6.,[0.,0.,1.,1.]);guides.label=Some((point([0.5,0.25,-0.5]),"guide".into()));gpu.set_guides(&guides).unwrap();let mark=crate::measure_mark::Mark{points:vec![point([-0.5,-0.25,-0.5]),point([0.5,-0.25,-0.5])],label:"distance".into()};gpu.set_measurement(Some(&mark)).unwrap();let mut draft=crate::tool::Draft::new(crate::tool::Shape::Line);draft.submit(point([0.,0.,-0.5])).unwrap();draft.hover(Some(point([0.5,0.,-0.5]))).unwrap();gpu.set_preview(Some(&draft)).unwrap();
-}
-#[test]
-fn actual_temporary_ink_origins_restore_pixels_invalidate_caches_and_release(){
- let scene=Scene::empty();let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();temporary_inputs(&mut gpu,[0.;3]);let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(baseline.chunks_exact(4).any(|p|p[0]>200&&p[1]>200&&p[2]<30));assert!(baseline.chunks_exact(4).any(|p|p[0]>150&&p[1]<80&&p[2]<80));assert!(baseline.chunks_exact(4).filter(|p|p[..3]!=[255;3]).count()>200);let bytes=(gpu.guide_bytes(),gpu.preview_bytes(),gpu.measurement.bytes());assert!(bytes.0>0&&bytes.1>0&&bytes.2>0);assert_eq!(gpu.text_error(),None);
- let anchor=[1e9,-1e9,1e9];assert!(gpu.space.update(anchor,2.,0.).unwrap().moved);camera.target=anchor;controlled_translation_plane(&mut camera,anchor);temporary_inputs(&mut gpu,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!((gpu.guide_bytes(),gpu.preview_bytes(),gpu.measurement.bytes()),bytes);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];camera.target=moved;assert!(gpu.space.update(moved,2.,300.).unwrap().moved);temporary_inputs(&mut gpu,anchor);assert_eq!(camera.view_projection_anchored(moved).to_f32(),local);assert!(crate::cap_gpu_tests::pixels_at(&gpu,local).chunks_exact(4).all(|p|p==&[255;4]));camera.target=anchor;controlled_translation_plane(&mut camera,anchor);assert!(gpu.space.update(anchor,2.,600.).unwrap().moved);temporary_inputs(&mut gpu,anchor);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert!(scene.all_ids().is_empty());gpu.request_pick([0.,0.],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap(),None);
- gpu.set_preview(None).unwrap();gpu.set_measurement(None).unwrap();gpu.set_guides(&crate::guide_gpu::Overlay::at(anchor)).unwrap();crate::cap_gpu_tests::pixels_at(&gpu,local);assert_eq!(gpu.preview_bytes(),0);assert_eq!(gpu.guide_bytes(),0);assert_eq!(gpu.measurement.bytes(),0);assert_eq!(gpu.text_usage()[0],0);
-}
-
-#[test]
-fn actual_source_grid_origin_cache_keeps_surface_pixels_owners_and_release(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();let settings=Some(crate::grid::Settings{spacing:0.1,half_cells:5});let plane=|origin|crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]};gpu.set_grid_on(settings,plane([0.,0.,-0.75])).unwrap();let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let uploads=gpu.stats()[0];let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();far.translate(owner,anchor).unwrap();gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();gpu.space.update(anchor,2.,0.).unwrap();for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let far_plane=plane([anchor[0],anchor[1],anchor[2]-0.75]);gpu.set_grid_on(settings,far_plane).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);let grid_uploads=gpu.grid_usage()[2];gpu.set_grid_on(settings,far_plane).unwrap();assert_eq!(gpu.grid_usage()[2],grid_uploads);
- let moved=[anchor[0]+2000.,anchor[1],anchor[2]];gpu.space.update(moved,2.,300.).unwrap();camera.target=moved;for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,moved);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_grid_on(settings,far_plane).unwrap();assert!(gpu.grid_usage()[2]>grid_uploads);assert_eq!(camera.view_projection_anchored(moved).to_f32(),local);assert!(crate::cap_gpu_tests::pixels_at(&gpu,local).chunks_exact(4).all(|p|p==&[255;4]));gpu.space.update(anchor,2.,600.).unwrap();for mesh in &mut gpu.meshes{mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_grid_on(settings,far_plane).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);gpu.request_pick([0.,0.],local).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],owner.value());assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_grid(None).unwrap();gpu.set_scene(&Scene::empty(),None);assert_eq!(&gpu.grid_usage()[..2],&[0,0]);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_initial_object_records_keep_precise_local_pixels_updates_and_sources(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.2,-0.25,-0.5],[0.3,-0.25,-0.5],[0.1,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();let layout=gpu.pipeline.get_bind_group_layout(1);gpu.meshes[0]=crate::gpu_mesh::GpuMesh::upload(&gpu.device,&layout,&scene.objects()[0],false);gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=2.;camera.aspect=4./3.;let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let original=gpu.meshes[0].packed();let uploads=gpu.stats()[0];let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();far.translate(owner,anchor).unwrap();let layout=gpu.pipeline.get_bind_group_layout(1);gpu.meshes[0]=crate::gpu_mesh::GpuMesh::upload_at(&gpu.device,&layout,&far.objects()[0],false,anchor);assert_eq!(gpu.meshes[0].packed(),original);let geometry=gpu.meshes[0].geometry.clone();let style=crate::gpu_mesh::Style{source_faces:true,selected:false,owner:owner.value(),colour:None};gpu.meshes[0]=crate::gpu_mesh::GpuMesh::with_geometry_at(&gpu.device,&layout,&far.objects()[0],style,geometry.clone(),anchor);assert_eq!(gpu.meshes[0].packed(),original);assert!(Rc::ptr_eq(&gpu.meshes[0].geometry,&geometry));gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.meshes[0].update(&gpu.queue,&far.objects()[0],style),[0,0]);let selected=crate::gpu_mesh::Style{selected:true,..style};assert_eq!(gpu.meshes[0].update(&gpu.queue,&far.objects()[0],selected),[1,16]);assert_eq!(&gpu.meshes[0].packed()[..64],&original[..64]);assert_eq!(gpu.meshes[0].update(&gpu.queue,&far.objects()[0],style),[1,16]);assert_eq!(gpu.meshes[0].packed(),original);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);assert_eq!(gpu.stats()[0],uploads);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_rebasing(){
- use crate::pick_sources::{Part,Target};let mut scene=Scene::empty();let mesh=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let line=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(-0.4,0.5,-0.5,0.4,0.5,-0.5))).unwrap()).unwrap();let path=scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(session_rust::Polyline::new(vec![session_rust::Point::new(-0.4,-0.5,-0.5),session_rust::Point::new(0.,-0.3,-0.5),session_rust::Point::new(0.4,-0.5,-0.5)]))).unwrap()).unwrap();let point=scene.insert_point(crate::marker::PreparedPoint::new(Rc::new(session_rust::Point::new(0.75,0.,-0.5))).unwrap()).unwrap();let mut proto=session_rust::PointCloud::from_coords(vec![-0.75,0.,-0.5],vec![],vec![]).to_proto();proto.point_ids=vec![u32::MAX];let cloud=scene.insert_cloud(crate::cloud::Prepared::new(Rc::new(session_rust::PointCloud::from_proto(proto))).unwrap()).unwrap();scene.owner_controls(path).unwrap();scene.cloud_controls(Some(cloud));let curve=scene.insert_path(crate::chain::PreparedChain::curve(Rc::new(crate::freeform_curve::curve(&[session_rust::Point::new(-0.4,0.8,-0.5),session_rust::Point::new(0.,0.65,-0.5),session_rust::Point::new(0.4,0.8,-0.5)]))).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();let edge=scene.objects()[0].mesh.parts.edges[0];let control=scene.control_markers().into_iter().find(|c|c.parent==path).unwrap().part;let targets=[Target{owner:mesh,part:Part::Face(key)},Target{owner:mesh,part:Part::MeshEdge(edge.0,edge.1)},Target{owner:line,part:Part::Curve},Target{owner:curve,part:Part::Curve},Target{owner:path,part:Part::PathEdge(0)},Target{owner:path,part:control},Target{owner:cloud,part:Part::CloudPoint(u32::MAX)}];let mut gpu=renderer(&scene);let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=3.;camera.aspect=4./3.;gpu.cloud_camera(&camera);let transform=camera.uniform();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);let uploads=gpu.stats()[0];let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);let mut pixels=Vec::new();for target in targets{assert!(target.valid(&scene));gpu.set_highlight(&scene,Some(target)).unwrap();let selected=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(selected!=baseline,"A valid original highlight must change actual pixels: {target:?}");assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);pixels.push(selected);}gpu.set_highlight(&scene,None).unwrap();gpu.select_objects(&scene,&[line,path,point]).unwrap();let objects=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert_ne!(objects,baseline);gpu.select_objects(&scene,&[]).unwrap();gpu.set_highlight(&scene,None).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,transform),baseline);
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [mesh,line,path,point,cloud,curve]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.space.update(anchor,3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_source_ink(&far);gpu.set_clouds(&far,&[]).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);gpu.cloud_camera(&camera);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);
- gpu.mesh_ink.set(&gpu.device,crate::pick_sources::Sources::anchored(&far,anchor).unwrap().mesh_ink).unwrap();for(target,expected)in targets.into_iter().zip(pixels){assert!(target.valid(&far));gpu.set_highlight(&far,Some(target)).unwrap();let actual=crate::cap_gpu_tests::pixels_at(&gpu,local);assert!(actual==expected,"Distant original highlight pixels must match exactly: {target:?}; differing bytes: {}",actual.iter().zip(&expected).filter(|(a,b)|a!=b).count());assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);}gpu.set_highlight(&far,None).unwrap();gpu.select_objects(&far,&[line,path,point]).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),objects);gpu.select_objects(&far,&[]).unwrap();gpu.set_highlight(&far,None).unwrap();assert_eq!(crate::cap_gpu_tests::pixels_at(&gpu,local),baseline);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_distant_widgets_keep_local_pixels_scale_picks_and_tile_release(){
- let scene=Scene::empty();let anchor=[1e12,-1e12,1e12];let pivot=[0.125,0.25,-0.5];let mut renderer=renderer(&scene);for projection in [crate::camera::Projection::Perspective,crate::camera::Projection::Orthographic]{for density in [1u32,2]{let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.isometric();camera.projection=projection;camera.aspect=4./3.;let size=[320*density,240*density];renderer.resize(crate::viewport::Viewport{width:size[0],height:size[1]});renderer.set_density(density as f32);renderer.space.forget();let scale=crate::widget_layout::camera_scale(&camera,pivot,240.).unwrap();renderer.set_gizmo(&camera,Some(pivot),-1.);let usage=renderer.gizmo_usage();let extent=renderer.gizmo_extent();let transform=camera.uniform();let baseline=crate::widget_tests::pixels(&mut renderer,&transform,size);assert!(baseline.chunks_exact(4).any(|p|p[..3]!=[255;3]));renderer.space.update(anchor,3.,0.).unwrap();camera.target=anchor;controlled_translation_plane(&mut camera,anchor);let distant=std::array::from_fn(|i|anchor[i]+pivot[i]);assert_eq!(crate::widget_layout::camera_scale(&camera,distant,240.).unwrap(),scale);renderer.set_gizmo(&camera,Some(distant),-1.);let local=camera.view_projection_anchored(anchor).to_f32();assert_eq!(local,transform);let actual=crate::widget_tests::pixels(&mut renderer,&local,size);assert!(actual==baseline,"Precise distant widget pixels differ at density {density}");assert_eq!(renderer.gizmo_extent(),extent);assert_eq!(renderer.gizmo_usage()[2],usage[2]);renderer.request_pick([0.,0.],local).unwrap();crate::cap_gpu_tests::wait(&renderer);assert!(renderer.take_pick(local).unwrap().unwrap().is_none());renderer.set_gizmo(&camera,None,-1.);assert_eq!(renderer.gizmo_usage()[1],0);assert!(renderer.gizmo_extent().is_none());}}
-}
-
-#[test]
-fn actual_origin_only_pick_views_discard_old_hits_and_restore_owners(){
- let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.4,-0.4,-0.5],[0.4,-0.4,-0.5],[0.,0.4,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let source=scene.objects()[0].geometry().unwrap().to_proto();let mut gpu=renderer(&scene);let transform=matrix();let uploads=gpu.stats()[0];gpu.request_pick([0.,0.],transform).unwrap();wait(&gpu);gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,gpu.space.anchor());}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert!(gpu.take_pick(transform).is_none(),"Identical matrix in a new origin must not accept the old owner");assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert!(gpu.take_pick(transform).unwrap().unwrap().is_none(),"The automatic current-frame retry is empty");gpu.request_pick([0.,0.],transform).unwrap();wait(&gpu);assert!(gpu.take_pick(transform).unwrap().unwrap().is_none());gpu.space.update([0.;3],3.,300.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[0.;3]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.request_pick([0.,0.],transform).unwrap();wait(&gpu);assert_eq!(gpu.take_pick(transform).unwrap().unwrap().unwrap()[0],owner.value());assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),source);gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_rebased_pick_finishes_a_released_drag_without_reuploading_sources(){
- use crate::editor::{Editor,Action,Change};let mut editor=crate::camera_defaults_tests::editor_fixture();editor.scene.clear();let owner=editor.scene.insert(PreparedMesh::triangle([[-0.4,-0.4,-0.5],[0.4,-0.4,-0.5],[0.,0.4,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();editor.scene.translate(owner,[2000.,0.,0.]).unwrap();editor.camera.target=[2000.,0.,0.];let original=editor.scene.placement(owner).unwrap().m;let source=editor.scene.objects()[0].geometry().unwrap().clone();let mut gpu=renderer(&editor.scene);let uploads=gpu.stats()[0];let transform=editor.camera.uniform();let size=[320.,240.];editor.apply(Action::CanvasStart{from:[0.,0.],to:[0.2,0.],size,modified:false,pointer:1}).unwrap();gpu.request_pick([0.,0.],transform).unwrap();editor.apply(Action::CanvasRelease{screen:[0.4,0.],size,add:false,remove:false}).unwrap();assert_eq!(editor.scene.placement(owner).unwrap().m,original);gpu.space.update(editor.camera.target,editor.camera.distance,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,editor.camera.target);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));let local=editor.camera.view_projection_anchored(gpu.anchor()).to_f32();assert_ne!(local,transform);wait(&gpu);assert!(gpu.take_pick(local).is_none());assert_eq!(&gpu.pick_usage()[..2],&[1,0]);assert_eq!(editor.scene.placement(owner).unwrap().m,original);wait(&gpu);let hit=gpu.take_pick(local).unwrap().unwrap().and_then(|pixel|gpu.resolve_pick(&editor.scene,pixel));assert_eq!(hit.unwrap().owner,owner);assert_eq!(editor.apply(Action::CanvasHit(hit.map(|target|target.owner))).unwrap(),Change::Scene);assert_ne!(editor.scene.placement(owner).unwrap().m,original);assert!(Rc::ptr_eq(&source,editor.scene.objects()[0].geometry().unwrap()));gpu.set_scene(&editor.scene,editor.selected);assert_eq!(gpu.stats()[0],uploads);editor.apply(Action::Undo).unwrap();assert_eq!(editor.scene.placement(owner).unwrap().m,original);
-}
-#[test]
-fn actual_rebased_pending_cursor_stays_newest_and_cancellation_never_revives_it(){
- let mut scene=Scene::empty();let make=||PreparedMesh::triangle([[-0.18,-0.18,-0.5],[0.18,-0.18,-0.5],[0.,0.18,-0.5]],[0.2,0.4,0.8]).unwrap();let a=scene.insert(make()).unwrap();let b=scene.insert(make()).unwrap();scene.translate(a,[1999.5,0.,0.]).unwrap();scene.translate(b,[2000.5,0.,0.]).unwrap();let mut gpu=renderer(&scene);let mut old=matrix();old[12]=-2000.;let local=matrix();gpu.request_pick([-0.5,0.],old).unwrap();gpu.request_pick([0.5,0.],old).unwrap();assert_eq!(&gpu.pick_usage()[..2],&[1,1]);gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[2000.,0.,0.]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));wait(&gpu);assert!(gpu.take_pick(local).is_none());assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert_eq!(gpu.take_pick(local).unwrap().unwrap().unwrap()[0],b.value());assert_eq!(gpu.pick_usage()[3],2);assert!(gpu.take_pick(local).is_none());gpu.request_pick([-0.5,0.],local).unwrap();gpu.cancel_pick();gpu.space.update([0.;3],3.,300.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[0.;3]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));wait(&gpu);assert!(gpu.take_pick(old).is_none());assert_eq!(&gpu.pick_usage()[..2],&[0,0]);gpu.request_pick([-0.5,0.],old).unwrap();gpu.set_scene(&Scene::empty(),None);gpu.space.update([2000.,0.,0.],3.,600.).unwrap();wait(&gpu);assert!(gpu.take_pick(local).is_none());assert_eq!(&gpu.pick_usage()[..2],&[0,0]);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_origin_refresh_reuses_selected_face_geometry_and_original_ink(){
- use crate::pick_sources::{Part,Target};let mut scene=Scene::empty();let owner=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();scene.translate(owner,[2000.,0.,0.]).unwrap();let original=scene.objects()[0].geometry().unwrap().to_proto();let key=*scene.objects()[0].geometry().unwrap().face.keys().next().unwrap();let target=Some(Target{owner,part:Part::Face(key)});let mut gpu=renderer(&scene);let mut old=matrix();old[12]=-2000.;gpu.set_highlight(&scene,target).unwrap();let baseline=crate::cap_gpu_tests::pixels_at(&gpu,old);let addresses=primitive_pixels(&gpu,&gpu.targets.primitive.texture);let geometry=gpu.highlight.geometry_for_test().unwrap().clone();let uploads=gpu.stats()[0];gpu.space.update([2000.,0.,0.],3.,0.).unwrap();for row in &mut gpu.meshes{row.rebase(&gpu.queue,[2000.,0.,0.]);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));gpu.set_source_ink(&scene);assert!(gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));assert!(Rc::ptr_eq(gpu.highlight.geometry_for_test().unwrap(),&geometry));let actual=crate::cap_gpu_tests::pixels_at(&gpu,matrix());assert!(actual==baseline,"Rebased original face and ink pixels must match exactly");assert_eq!(primitive_pixels(&gpu,&gpu.targets.primitive.texture),addresses);assert!(gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));assert!(Rc::ptr_eq(gpu.highlight.geometry_for_test().unwrap(),&geometry));assert_eq!(gpu.stats()[0],uploads);assert_eq!(scene.objects()[0].geometry().unwrap().to_proto(),original);drop(geometry);gpu.set_highlight(&scene,None).unwrap();assert!(gpu.highlight.geometry_for_test().is_none());assert!(!gpu.highlight.rebase_face(&gpu.queue,gpu.anchor(),target));gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-#[test]
-fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent(){
- let mut scene=Scene::empty();let mesh=scene.insert(PreparedMesh::triangle([[-0.25,-0.25,-0.5],[0.25,-0.25,-0.5],[0.,0.25,-0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();let line=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(-0.5,0.5,-0.5,0.5,0.5,-0.5))).unwrap()).unwrap();let path=scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(session_rust::Polyline::new(vec![session_rust::Point::new(-0.5,-0.5,-0.5),session_rust::Point::new(0.,-0.25,-0.5),session_rust::Point::new(0.5,-0.5,-0.5)]))).unwrap()).unwrap();let point=scene.insert_point(crate::marker::PreparedPoint::new(Rc::new(session_rust::Point::new(0.75,0.,-0.5))).unwrap()).unwrap();let cloud=scene.insert_cloud(crate::cloud::Prepared::new(Rc::new(session_rust::PointCloud::from_coords(vec![-0.75,0.,-0.5],vec![255,0,0,255],vec![]))).unwrap()).unwrap();let sheet=Rc::new(session_rust::proto::Sheet{guid:crate::sheet_example::source().guid,coords:vec![0.25,0.25,-0.5,0.75,0.25,-0.5],widths:vec![0.0625],colors:vec![0xff00_0000],segment_count:1,entity_count:1,source_ids:vec![0],..Default::default()});let drawing=scene.insert_sheet(Rc::new(crate::sheet_source::Prepared::new(sheet.clone()).unwrap())).unwrap();let text_source=Rc::new(crate::scene_label::example(crate::text::TextPlacement::Anchor{world:[-0.5,0.75,-0.5],offset:[0.;2]}));let text=scene.insert_text(crate::scene_label::Prepared::new(text_source.clone()).unwrap()).unwrap();let ids=[line,path,point,cloud,drawing,text];let original=scene.objects()[0].geometry().unwrap().to_proto();let mut camera=crate::camera_defaults_tests::top_fixture();controlled_translation_plane(&mut camera,[0.;3]);camera.projection=crate::camera::Projection::Orthographic;camera.distance=3.;camera.aspect=4./3.;let mut gpu=renderer(&scene);gpu.select_objects(&scene,&ids).unwrap();let settings=Some(crate::grid::Settings{spacing:0.125,half_cells:4});let plane=|origin|crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]};gpu.set_grid_on(settings,plane([0.,0.,-0.75])).unwrap();assert!(!gpu.prepare_origin(&camera,&scene,None,&ids,0.).unwrap().moved);let transform=gpu.camera_matrix(&camera);let baseline=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(baseline.chunks_exact(4).any(|p|p[..3]!=[255;3]));let ground=gpu.ambient_rows.ground_at([0.;3]);let uploads=gpu.stats()[0];let anchor=[2000.,-2000.,2000.];let mut far=scene.clone();for id in [mesh,line,path,point,cloud,drawing,text]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);camera.target=anchor;controlled_translation_plane(&mut camera,anchor);gpu.set_grid_on(settings,plane([anchor[0],anchor[1],anchor[2]-0.75])).unwrap();let frame=gpu.prepare_origin(&camera,&far,None,&ids,300.).unwrap();assert!(frame.moved&&!frame.pending);assert_eq!(gpu.camera_matrix(&camera),transform);let actual=crate::cap_gpu_tests::pixels_at(&gpu,transform);assert!(actual==baseline,"Shared original lanes must retain exact local/distant pixels");assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);let writes=gpu.stats();assert!(!gpu.prepare_origin(&camera,&far,None,&ids,301.).unwrap().moved);assert_eq!(gpu.stats(),writes);gpu.request_pick([0.,0.],transform).unwrap();camera.target[0]+=2000.;let pending=gpu.prepare_origin(&camera,&far,None,&ids,350.).unwrap();assert!(!pending.moved&&pending.pending);assert_eq!(gpu.rebase_delay(350.),Some(151));assert_eq!(&gpu.pick_usage()[..2],&[1,0]);let moved=gpu.prepare_origin(&camera,&far,None,&ids,501.).unwrap();assert!(moved.moved&&!moved.pending);assert_eq!(gpu.camera_matrix(&camera),transform);assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert!(gpu.take_pick(transform).is_none());assert_eq!(&gpu.pick_usage()[..2],&[1,0]);wait(&gpu);assert!(gpu.take_pick(transform).unwrap().unwrap().is_none());camera.target=anchor;controlled_translation_plane(&mut camera,anchor);assert!(gpu.prepare_origin(&camera,&far,None,&ids,802.).unwrap().moved);let restored=crate::cap_gpu_tests::pixels_at(&gpu,gpu.camera_matrix(&camera));assert!(restored==baseline,"Restored shared origin must restore exact pixels");assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),original);assert!(Rc::ptr_eq(&far.texts()[0].prepared.source,&text_source));assert!(Rc::ptr_eq(&far.sheets()[0].prepared.original,&sheet));gpu.set_scene(&Scene::empty(),None);assert_eq!(gpu.usage(),[0;4]);
-}
-
-fn controlled_translation_plane(camera:&mut crate::camera::Camera,origin:[f64;3]){camera.grid_plane=Some(crate::cplane::CPlane::Frame{origin,x:[1.,0.,0.],y:[0.,1.,0.]});camera.radius=20000.;}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-37.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5797,10 +3700,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-38.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5814,10 +3714,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-39.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5825,30 +3722,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the actual Native surface witness.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-nt_contact_tests.rs"]
-mod ambient_contact_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="frame_target_tests.rs"]
-mod frame_target_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-40.rs" skip=150
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5856,91 +3736,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep optional diagnostic exports Native-only.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ach_tests;
-
-#[cfg(test)]
-mod camera_navigation_tests;
-
-mod sample_pipelines;
-mod surface_pipelines;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzx-reuse-count-specific-surface-pipelines-41.rs" skip=100
 ```
 
-</details>
+**Result after `96zzzzzzx-reuse-count-specific-surface-pipelines`:** Ordinary and shared surface pipelines have matching one- and four-sample recipes with cached return switches. Source geometry, records, uploads and independent single-sample original-owner queries keep their existing roles. The public main frame still uses one sample.
 
-</details>
+These actual GPU pictures show only the surface pass: two shared blue triangles and one ordinary green triangle. The left triangle reaches the viewport boundary. Compare silhouette coverage at one and four samples; the complete browser frame remains at one sample here.
+
+---
 
 <a id="checkpoint-96zzzzzzy-generate-ink-for-physical-samples"></a>
 
 ### Step 5 of 19 · Generate ink shaders for physical samples (`96zzzzzzy-generate-ink-for-physical-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/19 Visual Trace (96zzzzzzy-generate-ink-for-physical-samples): Generate ink shaders for physical samples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl, src/finite_visibility.wgsl, src/finite_stroke.wgsl, src/finite_chain.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Explicit sample argument</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching depth and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sample-qualified pixel</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coordinates</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">count-specific shader and</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pipeline…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ink_plane.wgsl, src/f…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sample-qualified pixel…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">count-specific shader a…</text>
 </svg>
-</div>
-
-- **Goal:** Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
-- **Data Flow Trace:** `Explicit sample argument → matching depth and original primitive reads → sample-qualified pixel coordinates → count-specific shader and pipeline descriptor`
-- **Files You Touch:** `src/ink_plane.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_visibility.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_stroke.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_chain.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_marker.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_stroke_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_chain_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_marker_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_sources.rs` (*Generate only four-sample actual depth/address access and sample-qualified coverage; retain the original one-sample marker position.*) · `src/tile_shader_tests.rs` (*Retain every original compute/colour/query shader recipe and validate both counts across all six finite-ink styles with the same parser and full Naga assertions.*) · `src/finite_ink.rs` (*Carry the requested count from the pipeline descriptor into its shader recipe.*)
 
 Make finite-ink visibility read the same physical sample that produces its colour. Carry an explicit sample argument through the existing functions, generate the four-sample inputs when requested, and keep current colour and query owners at one sample until their layouts are connected.
 
 The visibility functions already use original primitive addresses and analytic source planes. Pass the sample through section, physical-depth, grid, line and disc visibility, including nearby original-address checks. Independent integer queries pass sample zero. No depth or primitive values are averaged.
 
-Keep one original shader source. At four samples, assemble multisampled depth and primitive declarations and read the requested sample. Sample-qualified pixel varyings provide the actual rasterization coordinates for both visibility and coverage. The marker keeps its existing builtin position at one sample and receives the extra pixel varying only in its four-sample form. No fixed sample offsets are inserted.
-
-The pipeline factory receives the same count as its assembled shader. Current owners still pass one because their binding layouts and cached resources are connected in the following work. The unchanged parser and validator assertions now cover21 assembled recipes: three compute modules and six finite-ink styles with one- and four-sample colour plus independent single-sample queries.
-
-> **Self-Check Question:** *Why does a sample index alone fail to establish correct per-sample ink?*  
-> **Answer:** The interpolated coverage coordinates, physical depth and original primitive address must refer to that same sample. A fragment-centre coordinate can disagree with a sample-qualified varying, so use the actual sample interpolation rather than fixed offsets.
-
-- **What You Should See:** Finite-ink functions carry an explicit sample, and generated four-sample shaders use matching actual coordinates, depth and primitive addresses. The pipeline descriptor receives the same count. Current colour owners and independent query owners remain single-sample until the next wiring step.
-- **Hands-On Lab Experiment:** Run the supplied assembled-shader validator across all21 recipes and the original line, chain, point, sloped-face and grid regressions. Compare generated one- and four-sample marker declarations: only the four-sample form adds the sample-qualified pixel varying. Follow the explicit sample from the fragment through every original-address and physical-depth read.
-
-<details>
-<summary>Implementation 96zzzzzzy-generate-ink-for-physical-samples: Generate ink shaders for physical samples</summary>
-
-Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
-
-Data flow: Explicit sample argument → matching depth and original primitive reads → sample-qualified pixel coordinates → count-specific shader and pipeline descriptor.
+> **Check:** *Why does a sample index alone fail to establish correct per-sample ink?* — The interpolated coverage coordinates, physical depth and original primitive address must refer to that same sample. A fragment-centre coordinate can disagree with a sample-qualified varying, so use the actual sample interpolation rather than fixed offsets.
 
 ### 1. `src/ink_plane.wgsl`
 
@@ -5948,8 +3787,7 @@ Carry the explicit physical sample through original finite-ink visibility; singl
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
  let triangle=finite_projected[primitive-1u];let hit=projected_triangle_at(triangle,axis.at);
@@ -5964,8 +3802,6 @@ fn finite_source_hidden(pixel:vec2<f32>,axis:InkAxis)->bool{
  }
  return false;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5983,8 +3819,7 @@ fn finite_source_hidden(pixel:vec2<f32>,axis:InkAxis,sample:u32)->bool{
  return false;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 const DEPTH_REL_TOL:f32=1.9073486e-6;
@@ -6179,116 +4014,9 @@ fn finite_source_hidden(pixel:vec2<f32>,axis:InkAxis,sample:u32)->bool{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-03.rs"
-```
-
-</details>
-
 ### 2. `src/finite_visibility.wgsl`
 
 Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-const FINITE_GRID:bool=false;
-@group(1) @binding(0) var<storage,read> finite_projected:array<ProjectedTriangle>;
-@group(1) @binding(1) var<storage,read> finite_tiles:array<vec4<u32>>;
-@group(1) @binding(2) var finite_depth:texture_depth_2d;
-@group(1) @binding(4) var finite_primitive:texture_2d<u32>;
-#include "ink_plane.wgsl"
-fn finite_section(pixel:vec2<f32>,depth:f32,tolerance:f32)->bool{
- let primitive=ink_primitive(pixel,0u);
- if(!clip_is_cap(primitive)){return true;}
- let plane=clip_cap_plane(primitive);
- if(plane>=clipping.count){return true;}
- let z=clip_plane_depth(plane,clip_ndc(pixel,view.size,0.).xy);
- return select(z<=depth+tolerance,z<depth-tolerance,FINITE_GRID);
-}
-fn finite_physical(pixel:vec2<f32>,depth:f32,tolerance:f32)->bool{let at=finite_depth_pixel(pixel);let size=vec2<i32>(textureDimensions(finite_depth));if(any(at<vec2<i32>(0))||any(at>=size)){return false;}let z=textureLoad(finite_depth,at,0);return select(z<=depth+tolerance,z<depth-tolerance,FINITE_GRID);}
-fn finite_screen(p:vec4<f32>)->vec2<f32>{return(p.xy/p.w*vec2<f32>(0.5,-0.5)+0.5)*view.size;}
-fn finite_axis(a:vec4<f32>,b:vec4<f32>)->vec4<f32>{return vec4<f32>(finite_screen(a),finite_screen(b));}
-fn finite_grid_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32)->bool{
- let delta=axis.zw-axis.xy;let length2=dot(delta,delta);let t=clamp(dot(pixel-axis.xy,delta)/max(length2,1e-20),0.0,1.0);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);let relative=abs(depth)*1.9073486e-6+abs(1.0-depth)*2.3841858e-7;
- if(!finite_section(at,depth,relative)){return false;}
- if(clip_active()&&clip_cut_ink_ndc(flags,clip_ndc(at,view.size,depth))){return false;}
- if(any(at<vec2<f32>(0.0))||any(at>=view.size)){return finite_physical(pixel,depth,relative);}
- if(finite_tiles[0].x==0u){return finite_physical(pixel,depth,relative);}
- let span=f32(visibility_tile_span_of(u32(view.size.x),u32(view.size.y)));let size=vec2<u32>(ceil(view.size/span));let cell=vec2<u32>(at/span);let head=finite_tiles[1u+cell.y*size.x+cell.x];
- if(head.w!=0u||head.z!=head.x){return finite_physical(pixel,depth,relative);}
- for(var i=0u;i<head.x;i++){
-  let offset=head.y+i*2u;let nearest=bitcast<f32>(finite_tiles[(offset+1u)/4u][(offset+1u)%4u]);if(nearest<depth-relative||(!FINITE_GRID&&nearest<=depth+relative)){continue;}
-  let primitive=finite_tiles[offset/4u][offset%4u];if(primitive==0u||primitive>arrayLength(&finite_projected)){continue;}
-  let triangle=finite_projected[primitive-1u];let hit=projected_triangle_at(triangle,at);let tolerance=relative+0.00390625*(abs(triangle.gradient.x)+abs(triangle.gradient.y));
-  if(hit.y>0.5&&!(clip_active()&&clip_cut_ndc(0u,clip_ndc(at,view.size,hit.x)))&&select(hit.x>depth+tolerance,hit.x>=depth-tolerance,FINITE_GRID)){return false;}
- }
- return true;
-}
-
-
-fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,picking:bool,sag:vec2<f32>)->f32{
- let delta=axis.zw-axis.xy;let t=clamp(dot(pixel-axis.xy,delta)/max(dot(delta,delta),1e-20),0.,1.);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);
- if(clip_active()&&clip_cut_ink_ndc(flags,clip_ndc(at,view.size,depth))){return 0.;}
- let hidden=!finite_visible(pixel,axis,depths,flags,sag);return finite_hidden_alpha(hidden,picking);
-}
-
-fn finite_disc_alpha(pixel:vec2<f32>,centre:vec2<f32>,depth:f32,flags:u32,picking:bool)->f32{
- if(clip_active()&&clip_cut_ink_ndc(flags,clip_ndc(centre,view.size,depth))){return 0.;}
- let tolerance=abs(depth)*DEPTH_REL_TOL+abs(1.-depth)*2.3841858e-7;
- let hidden=!finite_section(centre,depth,tolerance)||!ink_disc_visible(pixel,centre,depth,0u);
- return finite_hidden_alpha(hidden,picking);
-}
-
-fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32,sag:vec2<f32>)->bool{
- if(FINITE_GRID){return finite_grid_visible(pixel,ends,depths,flags);}
- var axis=finite_ink_axis(pixel,ends,depths);axis.sag=sag;let tolerance=abs(axis.depth)*DEPTH_REL_TOL+abs(1.-axis.depth)*2.3841858e-7;
- if(!finite_section(axis.at,axis.depth,tolerance)){return false;}
- if(clip_active()&&clip_cut_ink_ndc(flags,clip_ndc(axis.at,view.size,axis.depth))){return false;}
- var fit_at=pixel;let source_at=floor(axis.at)+fract(pixel);
- if(clip_is_cap(ink_primitive(pixel,0u))){fit_at=source_at;}
- let plane_visible=ink_visible_plane(fit_at,axis,0u);
- if(finite_tiles[0].x==0u){return plane_visible;}
- if(finite_source_hidden(fit_at,axis)){return false;}
- if(plane_visible){return true;}
- if(any(axis.at<vec2<f32>(0.))||any(axis.at>=view.size)){return false;}
- let span=f32(visibility_tile_span_of(u32(view.size.x),u32(view.size.y)));let size_px=vec2<u32>(ceil(view.size/span));let cell=vec2<u32>(axis.at/span);let head=finite_tiles[1u+cell.y*size_px.x+cell.x];
- if(head.w!=0u||head.z!=head.x){return false;}
- for(var i=0u;i<head.x;i++){
-  let offset=head.y+i*2u;let nearest=bitcast<f32>(finite_tiles[(offset+1u)/4u][(offset+1u)%4u]);
-  if(nearest<=axis.depth+abs(axis.depth)*DEPTH_REL_TOL){continue;}
-  let primitive=finite_tiles[offset/4u][offset%4u];if(primitive==0u||primitive>arrayLength(&finite_projected)){continue;}
-  let bounds=finite_projected[primitive-1u].bounds;
-  if(any(axis.at<bounds.xy-vec2<f32>(SLOPE_PX))||any(axis.at>bounds.zw+vec2<f32>(SLOPE_PX))){continue;}
-  if(finite_triangle_hides(primitive,axis)){return false;}
- }
- return true;
-}
-
-fn finite_hidden_alpha(hidden:bool,picking:bool)->f32{
- if(picking){return select(1.,0.,hidden);}
- let glass=view.opacity>0.&&view.opacity<1.;
- return select(1.,select(0.,1.-view.opacity,glass),hidden&&view.opacity>0.);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6326,7 +4054,6 @@ fn finite_grid_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32
  }
  return true;
 }
-
 
 fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32,picking:bool,sag:vec2<f32>,sample:u32)->f32{
  let delta=axis.zw-axis.xy;let t=clamp(dot(pixel-axis.xy,delta)/max(dot(delta,delta),1e-20),0.,1.);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);
@@ -6373,143 +4100,9 @@ fn finite_hidden_alpha(hidden:bool,picking:bool)->f32{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-22.rs"
-```
-
-</details>
-
 ### 3. `src/finite_stroke.wgsl`
 
 Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-#include "near_clip.wgsl"
-#include "contact_depth.wgsl"
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32, display:vec4<f32>, eye:vec4<f32> }
-@group(0) @binding(0) var<uniform> view: View;
-#include "stroke_quad.wgsl"
-
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(flat) flat_ends:u32,
-    @location(2) @interpolate(flat) half_width: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-    @location(11) @interpolate(linear) finite_pixel:vec2<f32>,
-    @location(12) @interpolate(flat) rise:f32,
-}
-
-fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32,metadata:InkRecord) -> Output {
-    let words=ink_words(metadata);let flags=words.x;
-    var a = view.transform * vec4<f32>(start, 1.0);
-    var b = view.transform * vec4<f32>(end, 1.0);
-    let z=vec2<f32>(a.z,b.z);let n=oct32_decode(words.y);
-    a=contact_layer(a,start,n,view.transform,view.size,view.eye);
-    b=contact_layer(b,end,n,view.transform,view.size,view.eye);
-    let rise=max(0.,max((a.z-z.x)/max(a.w,1e-20),(b.z-z.y)/max(b.w,1e-20)));
-    let s=stroke_quad(a,b,width,index);
-    return Output(s.position,colour,s.flat_ends,s.radius,flags,s.axis,s.depths,s.pixel,rise);
-}
-
-#include "stroke_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
-    @location(2) colour: vec4<f32>, @location(3) width: f32,
-    @builtin(vertex_index) index: u32,@location(8) metadata:InkRecord) -> Output { return geometry(start, end, colour, width, index,metadata); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(input.rise,0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6553,26 +4146,10 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(input.rise,0.),sample);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-24.rs"
-```
-
-</details>
 
 ### 4. `src/finite_chain.wgsl`
 
@@ -6580,8 +4157,7 @@ Carry the explicit physical sample through original finite-ink visibility; singl
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
@@ -6589,11 +4165,8 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 @fragment
 fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(0.));if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 ```
-
-</details>
 
 Replace it with:
 
@@ -6603,12 +4176,10 @@ Replace it with:
 @fragment
 fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(0.),sample);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 #include "near_clip.wgsl"
@@ -6692,76 +4263,14 @@ fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
 @fragment
 fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec4<f32> {let alpha=finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false,vec2<f32>(0.),sample);if(alpha<=0.){discard;}let c=colour(input);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-26.rs"
-```
-
-</details>
 
 ### 5. `src/finite_marker.wgsl`
 
 Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(2) @interpolate(flat) radius: f32,
-    @location(8) @interpolate(flat) clip_flags:u32,
-    @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
-    @location(10) @interpolate(flat) finite_depths:vec2<f32>,
-}
-#include "marker_radius.wgsl"
-fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32,flags:u32) -> Output {
-    var position = view.transform * vec4<f32>(center, 1.0);
-    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
-        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0,flags,vec4<f32>(0.0),vec2<f32>(0.0));
-    }
-    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
-    let radius = marker_radius(position,diameter);
-    let offset = corners[index] * (radius + 0.70711);
-    let axis=finite_axis(position,position);let depths=vec2<f32>(position.z/position.w);
-    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
-    return Output(position, colour, radius,flags,axis,depths);
-}
-#include "marker_coverage.wgsl"
-
-@vertex
-fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
-    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32,@location(8) flags:u32) -> Output { return geometry(center, diameter, colour, index,flags); }
-@fragment
-fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.position.xy,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false);if(alpha<=0.){discard;}let c=colour(input.colour,input.radius,input.position.xy-input.finite_axis_value.xy);return vec4<f32>(c.rgb,c.a*alpha);}
-
-
-#include "projected_triangle.wgsl"
-#include "finite_visibility.wgsl"
-fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6798,39 +4307,14 @@ fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
 @fragment
 fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec4<f32> {let alpha=finite_disc_alpha(input.position.xy,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,false,sample);if(alpha<=0.){discard;}let c=colour(input.colour,input.radius,input.position.xy-input.finite_axis_value.xy);return vec4<f32>(c.rgb,c.a*alpha);}
 
-
 #include "projected_triangle.wgsl"
 #include "finite_visibility.wgsl"
 fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-28.rs"
-```
-
-</details>
-
 ### 6. `src/finite_stroke_pick.wgsl`
 
 Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(input.rise,0.))<=0.){discard;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6838,29 +4322,9 @@ Edit the existing block to match this code; keep unchanged lines:
     if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(input.rise,0.),0u)<=0.){discard;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-29.rs"
-```
-
-</details>
-
 ### 7. `src/finite_chain_pick.wgsl`
 
 Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(0.))<=0.){discard;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6868,29 +4332,9 @@ Edit the existing block to match this code; keep unchanged lines:
     if(finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,true,vec2<f32>(0.),0u)<=0.){discard;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-30.rs"
-```
-
-</details>
-
 ### 8. `src/finite_marker_pick.wgsl`
 
 Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    if(finite_disc_alpha(pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,true)<=0.){discard;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6898,38 +4342,9 @@ Edit the existing block to match this code; keep unchanged lines:
     if(finite_disc_alpha(pixel,input.finite_axis_value.xy,input.finite_depths.x,input.clip_flags,true,0u)<=0.){discard;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-31.rs"
-```
-
-</details>
-
 ### 9. `src/finite_sources.rs`
 
 Generate only four-sample actual depth/address access and sample-qualified coverage; retain the original one-sample marker position.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn source(stride:u64,pick:bool)->String{source_style(stride,pick,false)}
-pub fn source_style(stride:u64,pick:bool,grid:bool)->String{source_metadata(stride,pick,grid,false)}
-pub fn source_metadata(stride:u64,pick:bool,grid:bool,varying:bool)->String{
- let(base,ids)=match stride{44=>(include_str!("finite_stroke.wgsl"),include_str!("finite_stroke_pick.wgsl")),72=>(include_str!("finite_chain.wgsl"),include_str!("finite_chain_pick.wgsl")),32=>(include_str!("finite_marker.wgsl"),include_str!("finite_marker_pick.wgsl")),_=>panic!("Unsupported finite ink layout")};
- let base=crate::finite_project_source::expand(base).replace("#include \"finite_visibility.wgsl\"",include_str!("finite_visibility.wgsl")).replace("#include \"ink_plane.wgsl\"",include_str!("ink_plane.wgsl"));
- let base=if grid{base.replace("const FINITE_GRID:bool=false;","const FINITE_GRID:bool=true;")}else{base};
- let(ty,words)=if varying{("vec2<u32>","m")}else{("u32","vec2<u32>(m,0x80008000u)")};
- let base=format!("alias InkRecord={ty};\nfn ink_words(m:InkRecord)->vec2<u32>{{return {words};}}\n{base}");
- let source=if pick{format!("{}\n{}\n{ids}",base.replace("@group(1)","@group(2)").replace("return vec2<i32>(pixel);","return vec2<i32>(pixel)-vec2<i32>(i32(crop._a),i32(crop._b));"),include_str!("pick_crop.wgsl"))}else{base};crate::clipping_gpu::source(&source,if pick{3}else{2},0)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6966,27 +4381,7 @@ fn multisampled(mut source:String,stride:u64)->String {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-34.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6994,58 +4389,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain every original compute/colour/query shader recipe and validate both counts across all six finite-ink styles with the same parser and full Naga assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-for stride in [44,72,32]{sources.push(("finite color",crate::finite_sources::source(stride,false)));sources.push(("finite pick",crate::finite_sources::source(stride,true)));}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-35.rs"
 ```
 
-</details>
-
 ### 11. `src/finite_ink.rs`
 
 Carry the requested count from the pipeline descriptor into its shader recipe. Assemble the shader for the same count as the pipeline. Use the explicit count in the finite-ink pipeline descriptor. Keep current colour construction single-sample until the owner is connected. Keep the independent integer query factory single-sample.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,varying:bool,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_metadata(stride,picking,grid,varying);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let clipping=crate::clipping_gpu::layout(device);let groups=if picking{vec![Some(view),Some(crop),Some(layout),Some(&clipping)]}else{vec![Some(view),Some(layout),Some(&clipping)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let flags=[wgpu::VertexAttribute{format:if varying{wgpu::VertexFormat::Uint32x2}else{wgpu::VertexFormat::Uint32},offset:0,shader_location:8}];buffers.push(wgpu::VertexBufferLayout{array_stride:if varying{8}else{0},step_mode:wgpu::VertexStepMode::Instance,attributes:&flags});
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("finite original ink"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(if picking{"pick_vertex"}else{"vertex"}),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(if picking{"pick_fragment"}else{"fragment"}),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:if picking{wgpu::TextureFormat::Rg32Uint}else{format},blend:if picking{None}else{Some(wgpu::BlendState::ALPHA_BLENDING)},write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(depth),multisample:Default::default(),multiview_mask:None,cache:None})
-  }
-use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)>>}
-#[derive(Clone)]
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer,pub primitive:wgpu::TextureView}
-impl Ink{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,varying:bool)->Self{
-  let attributes=match stride{44=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32].to_vec(),72=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Float32x3,5=>Float32x3,6=>Uint32].to_vec(),32=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32,2=>Float32x4].to_vec(),_=>panic!("Unsupported finite ink layout")};
-  let view=crate::surface_view::layout(device);let crop=crate::gpu_layout::uniform(device,80);
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("finite ink coverage"),entries:&[crate::tile_pipelines::entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),wgpu::BindGroupLayoutEntry{binding:2,visibility:wgpu::ShaderStages::FRAGMENT,ty:wgpu::BindingType::Texture{sample_type:wgpu::TextureSampleType::Depth,view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None},crate::text_gpu_support::texture_entry(4,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Uint,false)]});
-let color=pipeline(device,format,stride,grid,false,varying,&view,&crop,&layout,&attributes);let pick=pipeline(device,format,stride,grid,true,varying,&view,&crop,&layout,&attributes);Self{color,pick,layout,bindings:RefCell::new(None)}
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&tables.primitive)}]})}
- pub fn set(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView){let mut bindings=self.bindings.borrow_mut();if bindings.as_ref().is_some_and(|(p,t,d,i,_)|p==&tables.projected&&t==&tables.tiles&&d==depth&&i==&tables.primitive){return}let group=self.group(device,tables,depth);*bindings=Some((tables.projected.clone(),tables.tiles.clone(),depth.clone(),tables.primitive.clone(),group));}
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,vertices:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32)->bool{let bindings=self.bindings.borrow();let Some((_,_,_,_,group))=bindings.as_ref()else{return false};pass.set_pipeline(&self.color);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,flags.slice(..));pass.draw(0..verts,0..count);true}
- pub fn pick(&self,device:&wgpu::Device,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,crop:&wgpu::BindGroup,vertices:&wgpu::Buffer,ids:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32,tables:&Tables,depth:&wgpu::TextureView){let group=self.group(device,tables,depth);pass.set_pipeline(&self.pick);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,crop,&[]);pass.set_bind_group(2,&group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,ids.slice(..));pass.set_vertex_buffer(2,flags.slice(..));pass.draw(0..verts,0..count);}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7076,116 +4428,46 @@ let color=pipeline(device,format,stride,grid,false,varying,1,&view,&crop,&layout
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzzzzzy-generate-ink-for-physical-samples`:** Finite-ink functions carry an explicit sample, and generated four-sample shaders use matching actual coordinates, depth and primitive addresses. The pipeline descriptor receives the same count. Current colour owners and independent query owners remain single-sample until the next wiring step.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzy-generate-ink-for-physical-samples-40.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzzzzzz-cache-ink-pipelines-with-independent-queries"></a>
 
 ### Step 6 of 19 · Cache matching ink pipelines and bindings (`96zzzzzzz-cache-ink-pipelines-with-independent-queries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/19 Visual Trace (96zzzzzzz-cache-ink-pipelines-with-independent-queries): Cache matching ink pipelines and bindings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/finite_ink.rs, src/finite_sample_tests.rs, src/ink_pixels_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Shared static vertex</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching colour</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pipeline/layout…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached count switch</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fresh independent query</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bindings</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/fi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached count switch</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fresh independent query…</text>
 </svg>
-</div>
-
-- **Goal:** Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
-- **Data Flow Trace:** `Shared static vertex attributes → matching colour pipeline/layout pair → cached count switch → fresh independent query bindings`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Declare one shared static vertex-layout recipe; retain the original field offsets and strides.*) · `src/finite_ink.rs` (*Extract the binding recipe behind an explicit count parameter.*) · `src/finite_sample_tests.rs` (*Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.*) · `src/ink_pixels_tests.rs` (*Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.*)
 
 Give finite ink matching colour pipelines and image bindings at one and four samples. Cache the alternate recipe, release old image bindings on a real switch, and keep the independent query pipeline at one sample.
 
 Move the existing vertex-attribute macros into one small static recipe shared by strokes, chains, markers, guides, wide lines and grid drawing. The data layouts and field offsets stay unchanged. Finite ink borrows these slices instead of allocating another attribute vector.
 
-Move the existing finite-ink binding descriptor into a count-specific factory. Its depth and primitive bindings agree with the colour pipeline and shader. Retain a separate single-sample query layout; colour and query resource bindings use their own layouts.
-
-The shared pipeline owner creates a missing alternate pair once, then swaps retained recipes. Repeating the same count preserves current bindings. A real switch releases old depth/primitive bindings so they cannot retain inactive frame images or be used with the wrong layout. Current main-frame lanes still request one sample until the remaining consumers are connected.
-
-> **Self-Check Question:** *Why must the query layout stay separate from the current colour layout?*  
-> **Answer:** A colour pass can read multisampled depth and primitive images while the fresh integer query reads its own single-sample images. A shared current layout would bind the wrong texture kind after a colour count change.
-
-- **What You Should See:** Finite-ink colour pipeline/layout pairs have cached one- and four-sample recipes. Queries keep their independent one-sample pipeline and layout. Shared static attributes preserve original data offsets across all existing line, chain, point, guide and grid constructors. Complete browser rendering remains at one sample at this checkpoint.
-
-These actual isolated GPU pictures show two of four physical samples visible. The six style paths are tested independently; byte-identical pictures share one labelled figure. Complete browser rendering remains at one sample.
-
-**stroke, grid stroke, authored stroke metadata — two of four samples visible.**
-
-**headed chain — two of four samples visible.**
-
-**point, authored point metadata — two of four samples visible.**
-- **Hands-On Lab Experiment:** Run the supplied actual GPU witnesses across six finite-ink styles. Reveal zero through four physical samples, query independently, and switch4→1→4. Require exact return pixels and retained pipeline identity. Repeat the same count and check that current image bindings stay intact; change count and check that stale bindings release.
-
-<details>
-<summary>Implementation 96zzzzzzz-cache-ink-pipelines-with-independent-queries: Cache matching ink pipelines and bindings</summary>
-
-Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
-
-Data flow: Shared static vertex attributes → matching colour pipeline/layout pair → cached count switch → fresh independent query bindings.
+> **Check:** *Why must the query layout stay separate from the current colour layout?* — A colour pass can read multisampled depth and primitive images while the fresh integer query reads its own single-sample images. A shared current layout would bind the wrong texture kind after a colour count change.
 
 ### 1. `src/stroke_gpu.rs`
 
 Declare one shared static vertex-layout recipe; retain the original field offsets and strides.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Lane {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7201,36 +4483,15 @@ pub(crate) fn attributes(stride:u64)->&'static [wgpu::VertexAttribute] {
 pub struct Lane {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-01.rs"
-```
-
-</details>
-
 ### 2. `src/stroke_gpu.rs`
 
 Move the exact previously typed finite-ink vertex attributes.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ATTRIBUTE_0
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -7238,27 +4499,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-02.rs"
 ```
 
-</details>
-
 ### 3. `src/stroke_gpu.rs`
 
 Move the exact previously typed finite-ink vertex attributes.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ATTRIBUTE_1
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -7266,27 +4515,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-03.rs"
 ```
 
-</details>
-
 ### 4. `src/stroke_gpu.rs`
 
 Move the exact previously typed finite-ink vertex attributes.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ATTRIBUTE_2
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -7294,16 +4531,13 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-04.rs"
 ```
 
-</details>
-
 ### 5. `src/stroke_gpu.rs`
 
 Use the shared static layout without changing the original vertex data. Reuse the same static guide, wide-line and grid vertex layout.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         Self::layout_depth(device, format, source, stride, vertices_per_instance, attributes, crate::depth::ink(), true)
@@ -7321,8 +4555,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     fn layout_target(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
-
-</details>
 
 Replace it with:
 
@@ -7343,8 +4575,7 @@ Replace it with:
     fn layout_target(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -7366,8 +4597,6 @@ Replace it with:
 
     fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
-
-</details>
 
 Replace it with:
 
@@ -7391,8 +4620,7 @@ Replace it with:
     fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub(crate) fn attributes(stride:u64)->&'static [wgpu::VertexAttribute] {
@@ -7607,51 +4835,9 @@ impl Lane {
 mod pick_pipeline_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-10.rs"
-```
-
-</details>
-
 ### 6. `src/finite_ink.rs`
 
 Extract the binding recipe behind an explicit count parameter.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Ink{
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7664,36 +4850,15 @@ fn layout(device:&wgpu::Device,samples:u32)->wgpu::BindGroupLayout {
 impl Ink{
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-11.rs"
-```
-
-</details>
-
 ### 7. `src/finite_ink.rs`
 
 Move the exact existing finite-ink binding descriptor.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original layout
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -7701,48 +4866,9 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-12.rs"
 ```
 
-</details>
-
 ### 8. `src/finite_ink.rs`
 
 Remove the original descriptor copy after moving it. Match the depth binding to its physical sample count. Match the primitive-address binding without averaging integer words. Retain only count-specific colour pipeline/layout recipes and one independent query recipe. Retain existing one-sample callers and accept a matching initial colour count. Borrow the shared static attributes instead of allocating a second vector. Build matching colour resources while retaining the single-sample original-owner query. Compile the alternate recipe only once and release stale image bindings on a real switch. Build current-colour and independent query bindings from their own layouts. Use the requested binding layout. Cache only current colour bindings. Draw with the selected colour recipe. Keep original queries on their single-sample layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,varying:bool,samples:u32,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_with_samples(stride,picking,grid,varying,samples);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let clipping=crate::clipping_gpu::layout(device);let groups=if picking{vec![Some(view),Some(crop),Some(layout),Some(&clipping)]}else{vec![Some(view),Some(layout),Some(&clipping)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let flags=[wgpu::VertexAttribute{format:if varying{wgpu::VertexFormat::Uint32x2}else{wgpu::VertexFormat::Uint32},offset:0,shader_location:8}];buffers.push(wgpu::VertexBufferLayout{array_stride:if varying{8}else{0},step_mode:wgpu::VertexStepMode::Instance,attributes:&flags});
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("finite original ink"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(if picking{"pick_vertex"}else{"vertex"}),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(if picking{"pick_fragment"}else{"fragment"}),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:if picking{wgpu::TextureFormat::Rg32Uint}else{format},blend:if picking{None}else{Some(wgpu::BlendState::ALPHA_BLENDING)},write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(depth),multisample:wgpu::MultisampleState{count:samples,..Default::default()},multiview_mask:None,cache:None})
-  }
-use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)>>}
-#[derive(Clone)]
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer,pub primitive:wgpu::TextureView}
-use crate::stroke_gpu::attributes;
-fn layout(device:&wgpu::Device,samples:u32)->wgpu::BindGroupLayout {
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("finite ink coverage"),entries:&[crate::tile_pipelines::entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),wgpu::BindGroupLayoutEntry{binding:2,visibility:wgpu::ShaderStages::FRAGMENT,ty:wgpu::BindingType::Texture{sample_type:wgpu::TextureSampleType::Depth,view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None},crate::text_gpu_support::texture_entry(4,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Uint,false)]});
- layout
-}
-impl Ink{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,varying:bool)->Self{
-  let attributes=match stride{44=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32].to_vec(),72=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Float32x3,5=>Float32x3,6=>Uint32].to_vec(),32=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32,2=>Float32x4].to_vec(),_=>panic!("Unsupported finite ink layout")};
-  let view=crate::surface_view::layout(device);let crop=crate::gpu_layout::uniform(device,80);
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("finite ink coverage"),entries:&[crate::tile_pipelines::entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Storage{read_only:true}),wgpu::BindGroupLayoutEntry{binding:2,visibility:wgpu::ShaderStages::FRAGMENT,ty:wgpu::BindingType::Texture{sample_type:wgpu::TextureSampleType::Depth,view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None},crate::text_gpu_support::texture_entry(4,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Uint,false)]});
-let color=pipeline(device,format,stride,grid,false,varying,1,&view,&crop,&layout,&attributes);let pick=pipeline(device,format,stride,grid,true,varying,1,&view,&crop,&layout,&attributes);Self{color,pick,layout,bindings:RefCell::new(None)}
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&tables.primitive)}]})}
- pub fn set(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView){let mut bindings=self.bindings.borrow_mut();if bindings.as_ref().is_some_and(|(p,t,d,i,_)|p==&tables.projected&&t==&tables.tiles&&d==depth&&i==&tables.primitive){return}let group=self.group(device,tables,depth);*bindings=Some((tables.projected.clone(),tables.tiles.clone(),depth.clone(),tables.primitive.clone(),group));}
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,vertices:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32)->bool{let bindings=self.bindings.borrow();let Some((_,_,_,_,group))=bindings.as_ref()else{return false};pass.set_pipeline(&self.color);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,flags.slice(..));pass.draw(0..verts,0..count);true}
- pub fn pick(&self,device:&wgpu::Device,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup,crop:&wgpu::BindGroup,vertices:&wgpu::Buffer,ids:&wgpu::Buffer,flags:&wgpu::Buffer,count:u32,verts:u32,tables:&Tables,depth:&wgpu::TextureView){let group=self.group(device,tables,depth);pass.set_pipeline(&self.pick);pass.set_bind_group(0,view,&[]);pass.set_bind_group(1,crop,&[]);pass.set_bind_group(2,&group,&[]);pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,ids.slice(..));pass.set_vertex_buffer(2,flags.slice(..));pass.draw(0..verts,0..count);}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -7789,67 +4915,7 @@ let color=pipeline(device,format,stride,grid,false,varying,samples,&view,&crop,&
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-25.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7857,26 +4923,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register actual Native cache, physical-colour and independent-query witnesses.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pass.set_vertex_buffer(0,vertices.slice(..));pass.set_vertex_buffer(1,ids.slice(..));pass.set_vertex_buffer(2,flags.slice(..));pass.draw(0..verts,0..count);}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-26.rs" skip=160
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7890,10 +4943,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-27.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -7907,100 +4957,48 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzz-cache-ink-pipelines-with-independent-queries-28.rs"
 ```
 
-</details>
+**Result after `96zzzzzzz-cache-ink-pipelines-with-independent-queries`:** Finite-ink colour pipeline/layout pairs have cached one- and four-sample recipes. Queries keep their independent one-sample pipeline and layout. Shared static attributes preserve original data offsets across all existing line, chain, point, guide and grid constructors. Complete browser rendering remains at one sample at this checkpoint.
 
-</details>
+These actual isolated GPU pictures show two of four physical samples visible. The six style paths are tested independently; byte-identical pictures share one labelled figure. Complete browser rendering remains at one sample.
+
+---
 
 <a id="checkpoint-96zzzzzzza-retarget-existing-overlay-lanes"></a>
 
 ### Step 7 of 19 · Retarget existing overlay lanes (`96zzzzzzza-retarget-existing-overlay-lanes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/19 Visual Trace (96zzzzzzza-retarget-existing-overlay-lanes): Retarget existing overlay lanes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/highlight.rs, src/tool_preview.rs, src/measure_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Requested count</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy nonempty lane</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">adoption</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching colour</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipe</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained vertices</text>
-    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing overlay</text>
-    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owners</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/stroke_gpu.rs, src/hi…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching colour recipe</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing overlay owners</text>
 </svg>
-</div>
-
-- **Goal:** Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
-- **Data Flow Trace:** `Requested count → lazy nonempty lane adoption → matching colour recipe → retained vertices and IDs → existing overlay owners`
-- **Files You Touch:** `src/stroke_gpu.rs` (*Add only count-specific sample coordinates and the existing colour factory interface.*) · `src/highlight.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/tool_preview.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/measure_gpu.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/guide_gpu.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/stroke_sample_tests.rs` (*Draw six actual overlay families at both counts, preserve vertices/IDs/uploads and query pipelines, delay empty variants, and validate late finite data plus both empty-depth combinations without mismatched bindings.*)
 
 Retarget the existing overlay lanes without rebuilding their source data. Move the current colour descriptor into one factory, cache its alternate recipe, and let empty lanes remember the requested count until vertices arrive.
 
 The colour factory keeps the existing layout, shader and render descriptor. Only the requested sample count and actual sample-qualified coordinates change. Rounded markers gain the necessary pixel varying in their four-sample form; independent query descriptors remain single-sample.
 
-A lane records the requested count. With data present, finite ink delegates to its own matching pipeline/layout owner; other lanes select the cached colour recipe for their existing stride and depth mode. Source vertices, integer ID buffers, upload counts and query pipelines stay intact. A late finite owner adopts the same requested count.
-
-Empty finite lanes release old image bindings and skip frame binding entirely. Otherwise an unused one-sample layout can receive a four-sample image before it has any data, or an old four-sample layout can receive a one-sample image after clearing. The supplied actual GPU test covers both empty combinations, late data adoption and all six real overlay families. Highlight, preview, measurement and guide owners pass the same count to their existing lanes.
-
-> **Self-Check Question:** *Why record the requested count even when an empty lane has no matching pipeline yet?*  
-> **Answer:** The next real vertices must adopt the latest count. Empty lanes need no new colour recipe or image binding; retaining only the requested count avoids unnecessary compilation and invalid texture-layout bindings.
-
-- **What You Should See:** Existing stroke, chain, point, guide, wide-line and grid lanes have lazy cached count-specific colour recipes with unchanged data and independent queries. Highlight, preview, measurement and guide owners delegate the same count. Empty finite lanes release stale bindings and skip mismatched frame images. Complete browser rendering remains one-sample here.
-
-These actual isolated GPU pictures show complete four-sample overlay passes. The six overlay families are tested independently; byte-identical pictures share one labelled figure. Complete browser rendering remains at one sample.
-
-**stroke, wide overlay — actual four-sample overlay pass.**
-
-**headed chain — actual four-sample overlay pass.**
-
-**point — actual four-sample overlay pass.**
-
-**dashed guide — actual four-sample overlay pass.**
-
-**physical grid — actual four-sample overlay pass.**
-- **Hands-On Lab Experiment:** Run the actual six-family overlay witness. Request four samples while empty, add data, switch4→1→4, and require retained vertex/ID buffers, unchanged uploads, cached pipeline identities and exact returned pixels. Repeat with an empty finite lane, then late data, then clearing, using both physical depth counts.
-
-<details>
-<summary>Implementation 96zzzzzzza-retarget-existing-overlay-lanes: Retarget existing overlay lanes</summary>
-
-Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
-
-Data flow: Requested count → lazy nonempty lane adoption → matching colour recipe → retained vertices and IDs → existing overlay owners.
+> **Check:** *Why record the requested count even when an empty lane has no matching pipeline yet?* — The next real vertices must adopt the latest count. Empty lanes need no new colour recipe or image binding; retaining only the requested count avoids unnecessary compilation and invalid texture-layout bindings.
 
 ### 1. `src/stroke_gpu.rs`
 
 Add only count-specific sample coordinates and the existing colour factory interface.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) fn attributes(stride:u64)->&'static [wgpu::VertexAttribute] {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8025,36 +5023,15 @@ fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,source:&str,stride:u
 pub(crate) fn attributes(stride:u64)->&'static [wgpu::VertexAttribute] {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-01.rs"
-```
-
-</details>
-
 ### 2. `src/stroke_gpu.rs`
 
 Move the exact previously typed layout descriptor into the shared colour factory.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// layout
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -8062,27 +5039,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-02.rs"
 ```
 
-</details>
-
 ### 3. `src/stroke_gpu.rs`
 
 Move the exact previously typed shader descriptor into the shared colour factory.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// shader
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -8090,27 +5055,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-03.rs"
 ```
 
-</details>
-
 ### 4. `src/stroke_gpu.rs`
 
 Move the exact previously typed render descriptor into the shared colour factory.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// render
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -8118,16 +5071,13 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-04.rs"
 ```
 
-</details>
-
 ### 5. `src/stroke_gpu.rs`
 
 Remove the constructor descriptor copy after moving its exact bytes. Remove the original shader copy after moving it. Use one cached colour recipe and retain the original query constructor. Match the colour descriptor to its actual sample count. Cache only pipeline recipes and retain the pending count. Adopt the requested count only after actual vertices arrive. Reconcile a late-created finite owner with the pending count. Retain vertices and IDs, delay empty variants, clear stale finite bindings and reuse compiled recipes. Skip empty finite lanes before binding images of a different sample count. Draw the selected colour recipe. Retain the immutable format/depth recipe and initial count.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 targets: &[Some(wgpu::TextureFormat::Rg32Uint.into())] }), primitive: Default::default(),
@@ -8138,8 +5088,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8153,8 +5101,7 @@ Replace it with:
     fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ) -> Self {
@@ -8192,8 +5139,6 @@ Replace it with:
             vertex: wgpu::VertexState { module: &pick_shader, entry_point: Some("pick_vertex"), compilation_options: Default::default(),
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -8212,8 +5157,7 @@ Replace it with:
             vertex: wgpu::VertexState { module: &pick_shader, entry_point: Some("pick_vertex"), compilation_options: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if flags==self.flag_data{return Ok(())}use wgpu::util::DeviceExt;self.flags=if flags.is_empty(){None}else{let bytes=flags.iter().copied().flat_map(u32::to_ne_bytes).collect::<Vec<_>>();Some(device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("original ink clipping flags"),contents:&bytes,usage:wgpu::BufferUsages::VERTEX}))};self.flag_data=flags;Ok(())
@@ -8229,8 +5173,6 @@ Replace it with:
         pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8261,8 +5203,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 label: Some("stroke instances"), contents: &data, usage: wgpu::BufferUsages::VERTEX,
@@ -8273,8 +5214,6 @@ Replace it with:
 
     fn reset_flags(&mut self,device:&wgpu::Device)->Result<(),&'static str>{
 ```
-
-</details>
 
 Replace it with:
 
@@ -8288,8 +5227,7 @@ Replace it with:
     fn reset_flags(&mut self,device:&wgpu::Device)->Result<(),&'static str>{
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     flags:Option<wgpu::Buffer>,flag_data:Vec<u32>,varying:bool,
@@ -8300,8 +5238,6 @@ Replace it with:
     ids: Option<wgpu::Buffer>,
     id_data: Vec<u8>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8316,8 +5252,7 @@ Replace it with:
     id_data: Vec<u8>,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }),
@@ -8328,8 +5263,6 @@ Replace it with:
  pipeline
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -8343,8 +5276,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub(crate) fn sampled(source:&str,stride:u64)->String {
@@ -8587,68 +5519,9 @@ impl Lane {
 mod pick_pipeline_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-15.rs"
-```
-
-</details>
-
 ### 6. `src/highlight.rs`
 
 Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub(crate) fn geometry_for_test(&self)->Option<&Rc<crate::gpu_geometry::GpuGeometry>> {self.mesh.as_ref().map(|m|&m.geometry)}
-    pub fn rebase_face(&mut self,queue:&wgpu::Queue,anchor:[f64;3],target:Option<Target>)->bool {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8658,30 +5531,9 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn rebase_face(&mut self,queue:&wgpu::Queue,anchor:[f64;3],target:Option<Target>)->bool {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-16.rs"
-```
-
-</details>
-
 ### 7. `src/tool_preview.rs`
 
 Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Preview {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8691,30 +5543,9 @@ impl Preview {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-17.rs"
-```
-
-</details>
-
 ### 8. `src/measure_gpu.rs`
 
 Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Measurement {
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8724,29 +5555,9 @@ impl Measurement {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-18.rs"
-```
-
-</details>
-
 ### 9. `src/guide_gpu.rs`
 
 Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Guide{
-```
-
-</details>
 
 After that block, type:
 
@@ -8754,19 +5565,7 @@ After that block, type:
     pub fn set_samples(&mut self,gpu:&wgpu::Device,samples:u32){self.segments.set_samples(gpu,samples);self.marks.set_samples(gpu,samples);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-19.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8774,31 +5573,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the actual Native overlay/cache/empty-lane witness.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-e,attributes,depth,pickable,false)
-    }
-}
-
-#[cfg(test)]
-#[path="grid_pick_pipeline_tests.rs"]
-mod pick_pipeline_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-20.rs" skip=120
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8812,105 +5593,48 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzza-retarget-existing-overlay-lanes-21.rs"
 ```
 
-</details>
+**Result after `96zzzzzzza-retarget-existing-overlay-lanes`:** Existing stroke, chain, point, guide, wide-line and grid lanes have lazy cached count-specific colour recipes with unchanged data and independent queries. Highlight, preview, measurement and guide owners delegate the same count. Empty finite lanes release stale bindings and skip mismatched frame images. Complete browser rendering remains one-sample here.
 
-</details>
+These actual isolated GPU pictures show complete four-sample overlay passes. The six overlay families are tested independently; byte-identical pictures share one labelled figure. Complete browser rendering remains at one sample.
+
+---
 
 <a id="checkpoint-96zzzzzzzb-read-section-crossings-at-each-sample"></a>
 
 ### Step 8 of 19 · Read section crossings at each sample (`96zzzzzzzb-read-section-crossings-at-each-sample`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/19 Visual Trace (96zzzzzzzb-read-section-crossings-at-each-sample): Read section crossings at each sample</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_pipeline.rs, src/cap_color.wgsl, src/cap_pick_pipeline.rs, src/caps_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original closed solid</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical-sample crossings</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching cap colour and</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plane…</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original cap owner query</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cap_pipeline.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching cap colour and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original cap owner query</text>
 </svg>
-</div>
-
-- **Goal:** Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
-- **Data Flow Trace:** `Original closed solid → physical-sample crossings → matching cap colour and plane depth → original cap owner query`
-- **Files You Touch:** `src/cap_pipeline.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/cap_color.wgsl` (*Use the actual physical sample in the same cap fragment calculation at both counts.*) · `src/cap_pick_pipeline.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/caps_gpu.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/cap_image.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/sample_surface_tests.rs` (*Retain the complete existing ordinary/shared surface fixture and add actual solid, hatch, selected cap, original-owner query, geometry/source preservation and exact return checks at both counts.*)
 
 Read a section cap from its matching physical sample. Give crossing images and pipeline descriptors an explicit count, keep one direct fragment calculation for both counts, and retain original cap geometry when the active image changes.
 
 The shared image allocator keeps existing one-sample callers and accepts an explicit count for crossing images. Their R16Float values count entering and leaving original closed-solid triangles; they remain separate at each physical sample. Colour resolves later, while crossing values, depth and integer primitive addresses keep their own roles.
 
-Existing pipeline factories receive the count directly. Cap colour and crossing shaders use matching physical sample coordinates; the cap fragment reads that sample once and writes only its corresponding coverage bit. The same calculation naturally uses sample zero in a one-sample pass. All integer-query callers explicitly request one sample.
-
-The cap owner caches pipeline recipes and keeps only the active crossing image. Replacing that image retains the original cap geometry and plane records; repeating a count reuses the current recipe. The supplied actual GPU witness checks solid grey caps, hatching, selected yellow caps, fresh original cap-owner queries, complete source records, retained geometry and exact return pixels.
-
-> **Self-Check Question:** *Why must crossing counts stay separate even though the final colour can resolve?*  
-> **Answer:** A physical sample can lie inside a solid while a neighbouring sample lies outside or belongs to another selected solid. Averaging crossings, plane depth or original primitive words would destroy those separate geometric decisions.
-
-- **What You Should See:** Section crossing images and cap pipeline recipes support matching one- and four-sample resources. One cap fragment calculation reads its own physical crossing, selection and plane depth; original-owner queries remain independently single-sample. Cap geometry stays retained when images change. Complete browser rendering remains one-sample at this checkpoint.
-
-These actual isolated Native GPU pictures show four-sample section caps from the original closed solid. The grey, hatch and selected states use matching physical crossing images. Complete browser rendering remains at one sample.
-
-**solid grey section — actual four-sample section pass.**
-
-**hatched section — actual four-sample section pass.**
-
-**selected yellow section — actual four-sample section pass.**
-- **Hands-On Lab Experiment:** Run the actual solid/hatch/selection witness at both counts and switch4→1→4. Require exact return pixels, unchanged original sources and GPU geometry, then freshly query the original cap owner through its one-sample lane. Compare every current Native image against the source solid and actual clipping plane.
-
-<details>
-<summary>Implementation 96zzzzzzzb-read-section-crossings-at-each-sample: Read section crossings at each sample</summary>
-
-Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
-
-Data flow: Original closed solid → physical-sample crossings → matching cap colour and plane depth → original cap owner query.
+> **Check:** *Why must crossing counts stay separate even though the final colour can resolve?* — A physical sample can lie inside a solid while a neighbouring sample lies outside or belongs to another selected solid. Averaging crossings, plane depth or original primitive words would destroy those separate geometric decisions.
 
 ### 1. `src/cap_pipeline.rs`
 
 Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub(crate) fn pipeline(device:&wgpu::Device,source:String,groups:&[&wgpu::BindGroupLayout],vertex:&str,fragment:&str,targets:&[wgpu::ColorTargetState],count:bool)->wgpu::RenderPipeline{
- let attributes=wgpu::vertex_attr_array![0=>Float32x3];let buffers=if count{vec![wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}]}else{Vec::new()};
- pipeline_buffers(device,source,groups,vertex,fragment,targets,&buffers,count)
-}
-pub(crate) fn pipeline_buffers(device:&wgpu::Device,source:String,groups:&[&wgpu::BindGroupLayout],vertex:&str,fragment:&str,targets:&[wgpu::ColorTargetState],buffers:&[wgpu::VertexBufferLayout<'_>],count:bool)->wgpu::RenderPipeline{
- let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("original closed-solid sections"),source:wgpu::ShaderSource::Wgsl(source.into())});let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("original closed-solid sections"),bind_group_layouts:&groups.iter().map(|g|Some(*g)).collect::<Vec<_>>(),immediate_size:0});
- device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("original closed-solid sections"),layout:Some(&layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(vertex),compilation_options:Default::default(),buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(fragment),compilation_options:Default::default(),targets:&targets.iter().cloned().map(Some).collect::<Vec<_>>()}),primitive:Default::default(),depth_stencil:if count{None}else{Some(crate::depth::surface())},multisample:Default::default(),multiview_mask:None,cache:None})
-}
-pub struct Pipelines{pub count:wgpu::RenderPipeline,pub record_count:wgpu::RenderPipeline,pub geometry:wgpu::BindGroupLayout,pub color:wgpu::RenderPipeline,pub counts:wgpu::BindGroupLayout,pub frame:wgpu::BindGroupLayout}
-impl Pipelines{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-  let view=crate::surface_view::layout(device);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
-  let add=wgpu::BlendComponent{src_factor:wgpu::BlendFactor::One,dst_factor:wgpu::BlendFactor::One,operation:wgpu::BlendOperation::Add};let target=wgpu::ColorTargetState{format:wgpu::TextureFormat::R16Float,blend:Some(wgpu::BlendState{color:add,alpha:add}),write_mask:wgpu::ColorWrites::RED};let count=pipeline(device,crate::clipping_gpu::source(include_str!("cap_count.wgsl"),2,0),&[&view,&model,&clip],"vs_count","fs_count",&[target.clone()],true);
-  let geometry=crate::cap_geometry::layout(device);let source=crate::object_rows::source(include_str!("cap_count.wgsl"));let record_count=pipeline_buffers(device,crate::clipping_gpu::source(&source,2,0),&[&view,&crate::object_rows::layout(device),&clip,&geometry],"vs_record_count","fs_count",&[target],&[crate::draw_slots::layout()],true);
-  let color=pipeline(device,crate::clipping_gpu::source(include_str!("cap_color.wgsl"),1,0),&[&frame,&clip,&counts],"vs_cap","fs_cap",&[wgpu::ColorTargetState{format,blend:None,write_mask:wgpu::ColorWrites::ALL},crate::primitive_image::target(true)],false);Self{count,record_count,geometry,color,counts,frame}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8950,113 +5674,13 @@ fn colour_source(samples:u32)->String {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-23.rs"
-```
-
-</details>
-
 ### 2. `src/cap_color.wgsl`
 
 Use the actual physical sample in the same cap fragment calculation at both counts. Read one matching crossing and selection word directly, preserving the single-sample calculation without duplicated shader source.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     }
@@ -9077,8 +5701,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if (mask == 0u || !(z >= 0.0 && z <= 1.0)) {
 ```
 
-</details>
-
 Replace it with:
 
 ```wgsl
@@ -9094,8 +5716,7 @@ Replace it with:
     if (mask == 0u || !(z >= 0.0 && z <= 1.0)) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 
@@ -9106,8 +5727,6 @@ fn fs_cap(in: CapVertex) -> CapOut {
     let ndc = clip_ndc(in.pos.xy + cap_frame.origin, cap_frame.size, 0.0).xy;
     let z = clip_plane_depth(i, ndc);
 ```
-
-</details>
 
 Replace it with:
 
@@ -9121,8 +5740,7 @@ fn fs_cap(in:CapVertex,@builtin(sample_index) sample:u32)->CapOut {
     let z = clip_plane_depth(i, ndc);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct CapFrame{size:vec2<f32>,origin:vec2<f32>}
@@ -9175,7 +5793,6 @@ fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
     return box_cdf(hw - d, hi, lo, m, q) + box_cdf(hw + d, hi, lo, m, q) - 1.0;
 }
 
-
 // Coverage of the nearest hatch line; `slope` is the change of `u` per pixel.
 fn hatch_ink(u: f32, slope: vec2<f32>) -> f32 {
     let rate = max(length(slope), 1e-30); // scene units per pixel across the lines
@@ -9216,7 +5833,6 @@ fn section_outline(at: vec2<f32>) -> f32 {
     }
     return edge;
 }
-
 
 @fragment
 // Where the view ray meets a plane inside a closed solid: outlined hatch or solid grey.
@@ -9264,48 +5880,9 @@ fn fs_cap(in:CapVertex,@builtin(sample_index) sample:u32)->CapOut {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-25.rs"
-```
-
-</details>
-
 ### 3. `src/cap_pick_pipeline.rs`
 
 Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Pipelines{pub record_count:wgpu::RenderPipeline,pub record_nearest:wgpu::RenderPipeline,pub record_geometry:wgpu::BindGroupLayout,pub count:wgpu::RenderPipeline,pub nearest:wgpu::RenderPipeline,pub ids:wgpu::RenderPipeline,pub records:wgpu::BindGroupLayout,pub owners:wgpu::BindGroupLayout,pub frame:wgpu::BindGroupLayout}
-impl Pipelines{
- pub fn new(device:&wgpu::Device)->Self{
-  use wgpu::{ShaderStages as S,BufferBindingType as B};
-  let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::surface_view::layout(device);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);
-  let records=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("bounded cap crossings and original crop"),entries:&[crate::tile_pipelines::entry(0,S::FRAGMENT,B::Storage{read_only:false}),crate::tile_pipelines::entry(1,S::VERTEX,B::Uniform),crate::tile_pipelines::entry(2,S::FRAGMENT,B::Uniform)]});
-  let record_geometry=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("shared cap pick crossings"),entries:&[crate::tile_pipelines::entry(0,S::FRAGMENT,B::Storage{read_only:false}),crate::tile_pipelines::entry(1,S::VERTEX,B::Uniform),crate::tile_pipelines::entry(2,S::FRAGMENT,B::Uniform),crate::tile_pipelines::entry(3,S::VERTEX,B::Storage{read_only:true}),crate::tile_pipelines::entry(4,S::VERTEX,B::Uniform),crate::tile_pipelines::entry(5,S::VERTEX,B::Storage{read_only:true})]});
-  let owners=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("cap crossings and original owner table"),entries:&[crate::tile_pipelines::entry(0,S::FRAGMENT,B::Storage{read_only:false}),crate::tile_pipelines::entry(1,S::FRAGMENT,B::Storage{read_only:true})]});
-  let source=crate::clipping_gpu::source(include_str!("cap_count.wgsl"),2,0);let target=wgpu::ColorTargetState{format:wgpu::TextureFormat::R8Unorm,blend:None,write_mask:wgpu::ColorWrites::empty()};let count=crate::cap_pipeline::pipeline(device,source.clone(),&[&view,&model,&clip,&records],"vs_pick_count","fs_pick_count",&[target.clone()],true);let nearest=crate::cap_pipeline::pipeline(device,source,&[&view,&model,&clip,&records],"vs_pick_count","fs_pick_owner",&[target.clone()],true);
-  let shared=crate::object_rows::source(include_str!("cap_count.wgsl"));let source=crate::clipping_gpu::source(&shared,2,0);let layouts=[&view,&crate::object_rows::layout(device),&clip,&record_geometry];let record_count=crate::cap_pipeline::pipeline_buffers(device,source.clone(),&layouts,"vs_record_pick_count","fs_pick_count",&[target.clone()],&[crate::draw_slots::layout()],true);let record_nearest=crate::cap_pipeline::pipeline_buffers(device,source,&layouts,"vs_record_pick_count","fs_pick_owner",&[target],&[crate::draw_slots::layout()],true);
-  let ids=crate::cap_pipeline::pipeline(device,crate::clipping_gpu::source(include_str!("cap_pick.wgsl"),1,0),&[&frame,&clip,&owners],"vs_cap","fs_cap_id",&[wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg32Uint,blend:None,write_mask:wgpu::ColorWrites::ALL},crate::primitive_image::target(true)],false);
-  Self{record_count,record_nearest,record_geometry,count,nearest,ids,records,owners,frame}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9326,80 +5903,9 @@ impl Pipelines{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-30.rs"
-```
-
-</details>
-
 ### 4. `src/caps_gpu.rs`
 
 Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use wgpu::util::DeviceExt;
-use crate::{gpu_mesh::GpuMesh,solid_orientation::CLOSED};
-use crate::cap_image::Image;
-struct Counts{image:Image,group:wgpu::BindGroup,geometry:crate::cap_geometry::Geometry}
-pub struct Caps{pub enabled:bool,planes:u32,pick:Option<crate::cap_pick_gpu::Pick>,pub pick_error:Option<&'static str>,bounds:crate::cap_source_bounds::Bounds,targets:std::collections::HashMap<u32,u32>,pub solids:crate::solid_cache::Solids,pipes:Option<crate::cap_pipeline::Pipelines>,counts:Option<Counts>,frame:wgpu::Buffer,frame_group:Option<wgpu::BindGroup>,pub rows:Vec<[u32;2]>,pub draws:u64,pub passes:u64}
-impl Caps{
- pub fn new(device:&wgpu::Device)->Self{let frame=device.create_buffer_init(&wgpu::util::BufferInitDescriptor{label:Some("section canvas frame"),contents:&[0;16],usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST});Self{enabled:true,planes:0,pick:None,pick_error:None,bounds:Default::default(),targets:Default::default(),solids:Default::default(),pipes:None,counts:None,frame,frame_group:None,rows:Vec::new(),draws:0,passes:0}}
- pub fn set_scene(&mut self,queue:&wgpu::Queue,scene:&crate::scene::Scene,meshes:&mut[GpuMesh],planes:&[crate::clipping_rows::Row]){
-  if let Some(counts)=self.counts.as_mut(){counts.geometry.invalidate();}
-  self.planes=planes.len()as u32;self.rows.clear();self.targets.clear();for(mesh,object)in meshes.iter_mut().zip(scene.objects().iter().filter(|r|scene.visible(r.id))){assert_eq!(mesh.id,object.id);let flags=self.solids.flags(object);let token=if !planes.is_empty()&&flags&CLOSED!=0{self.rows.push([mesh.id.value(),u32::from(mesh.pickable())]);self.rows.len()as u32}else{0};mesh.set_caps(queue,flags,token);if token>0{if let Some(bounds)=self.bounds.placed(&object.mesh,&object.model){let mask=planes.iter().enumerate().fold(0,|mask,(i,row)|mask|if row.plane.crosses(&bounds,[0.;3]){1<<i}else{0});self.targets.insert(mesh.id.value(),mask);}}}
-  self.solids.prune();self.bounds.prune();if self.rows.is_empty(){self.rows.shrink_to_fit();self.targets.shrink_to_fit();}
- }
- pub fn prepare(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,format:wgpu::TextureFormat,size:[u32;2],active:bool){
-  let size=if active&&!self.rows.is_empty(){size}else{[1,1]};
-  if size==[1,1]{self.counts=None;return;}
-  if self.pipes.is_none(){let pipes=crate::cap_pipeline::Pipelines::new(device,format);self.frame_group=Some(crate::gpu_layout::group(device,&pipes.frame,&self.frame));self.pipes=Some(pipes);}
-  let pipes=self.pipes.as_ref().unwrap();if self.counts.as_ref().is_none_or(|c|c.image.size!=size){let image=Image::new(device,size,wgpu::TextureFormat::R16Float,2);let group=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("original section crossings"),layout:&pipes.counts,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(&image.view)}]});self.counts=Some(Counts{image,group,geometry:Default::default()});}
-  self.counts.as_mut().unwrap().geometry.set_planes(device,self.planes).expect("Validated clipping plane count");
-  let bytes=[size[0]as f32,size[1]as f32,0.,0.].into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>();queue.write_buffer(&self.frame,0,&bytes);
- }
- pub fn draw(&mut self,device:&wgpu::Device,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,primitive:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,meshes:&[GpuMesh],planes:u32,records:Option<&crate::instance_gpu::Lane>){
-  let(Some(pipes),Some(counts))=(&self.pipes,&mut self.counts)else{return};
-  for plane in 0..planes{
-   let rows=meshes.iter().filter(|m|m.closed()&&self.targets.get(&m.id.value()).is_some_and(|mask|mask&(1<<plane)!=0)).map(|mesh|{let group=records.and_then(|records|records.current_row(mesh)).map(|_|counts.geometry.group(device,&pipes.geometry,&mesh.geometry,plane).expect("Prepared cap plane"));(mesh,group)}).collect::<Vec<_>>();
-   {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original closed-solid crossings"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&counts.image.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&pipes.count);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clipping,&[]);for(mesh,group)in &rows{if let Some(group)=group.as_ref().filter(|_|records.is_some_and(|records|records.bind_record(&mut pass,mesh))){pass.set_pipeline(&pipes.record_count);pass.set_bind_group(3,group,&[]);pass.draw(0..mesh.geometry.index_count,0..1);}else{pass.set_pipeline(&pipes.count);mesh.bind_model(&mut pass);mesh.geometry.draw_range(&mut pass,plane..plane+1);}self.draws+=1;}}
-   {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original section color and depth"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:color,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment{view:primitive,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&pipes.color);pass.set_bind_group(0,self.frame_group.as_ref().unwrap(),&[]);pass.set_bind_group(1,clipping,&[]);pass.set_bind_group(2,&counts.group,&[]);pass.draw(0..3,plane..plane+1);self.draws+=1;}
-   self.passes+=2;
-  }
- }
- pub fn encode_pick(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,image:&crate::pick_image::Image,window:crate::pick_window::Window,view:&wgpu::BindGroup,crop:&wgpu::Buffer,clipping:&wgpu::BindGroup,meshes:&[GpuMesh],mode:crate::pick_sources::Mode,records:Option<&crate::instance_gpu::Lane>){
-  if !self.enabled||self.planes==0||self.rows.is_empty(){self.pick=None;self.pick_error=None;return;}
-  let pick=self.pick.get_or_insert_with(||crate::cap_pick_gpu::Pick::new(device));if let Err(error)=pick.prepare(device,queue,window,crop,&self.rows,self.planes,mode){self.pick_error=Some(error);self.pick=None;return;}self.pick_error=None;pick.encode(device,encoder,image,window,view,clipping,meshes,&self.targets,self.planes,records);
- }
- pub fn pick_bytes(&self)->u64{self.pick.as_ref().map_or(0,crate::cap_pick_gpu::Pick::bytes)}
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.pick_bytes()+self.counts.as_ref().map_or(0,|c|c.image.bytes+c.geometry.bytes()),self.rows.len()as u64,self.solids.checks,self.draws,self.passes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9444,92 +5950,9 @@ impl Caps{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-40.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-41.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-42.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-43.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-44.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-45.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-46.rs"
-```
-
-</details>
-
 ### 5. `src/cap_image.rs`
 
 Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Image{pub texture:wgpu::Texture,pub view:wgpu::TextureView,pub size:[u32;2],pub bytes:u64}
-impl Image{
- pub fn new(device:&wgpu::Device,size:[u32;2],format:wgpu::TextureFormat,bytes:u64)->Self{let texture=device.create_texture(&wgpu::TextureDescriptor{label:Some("original section data"),size:wgpu::Extent3d{width:size[0],height:size[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format,usage:wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});let view=texture.create_view(&Default::default());Self{texture,view,size,bytes:bytes*u64::from(size[0])*u64::from(size[1])}}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -9541,27 +5964,7 @@ impl Image{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-47.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-48.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-49.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -9569,144 +5972,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain the complete existing ordinary/shared surface fixture and add actual solid, hatch, selected cap, original-owner query, geometry/source preservation and exact return checks at both counts.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use super::*;
-use std::rc::Rc;
-fn surface_frame(r:&Renderer,target:&crate::frame_targets::Targets,shared:bool)->Vec<u8> {
- let output=r.device.create_texture(&wgpu::TextureDescriptor {label:Some("actual multisampled original surfaces"),size:wgpu::Extent3d {width:320,height:240,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:r.format,usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::COPY_SRC,view_formats:&[]});let view=output.create_view(&Default::default());
- let matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));r.queue.write_buffer(&r.uniform,0,&crate::surface_view::bytes(matrix,[0.,1.,0.,0.],[320,240],1.));
- r.clipping.borrow_mut().frame_anchored(&r.queue,matrix,r.anchor(),240,1.);
- let mut encoder=r.device.create_command_encoder(&Default::default());{
-  let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("original and shared surface count witness"),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view:target.color(&view),resolve_target:None,depth_slice:None,ops:wgpu::Operations {load:wgpu::LoadOp::Clear(wgpu::Color::WHITE),store:wgpu::StoreOp::Store}}),Some(wgpu::RenderPassColorAttachment {view:&target.primitive.view,resolve_target:None,depth_slice:None,ops:wgpu::Operations {load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&target.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Clear(0.),store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});
-  pass.set_bind_group(0,&r.view_group,&[]);pass.set_bind_group(2,&r.clipping.borrow().group,&[]);
-  for mesh in r.meshes.iter().filter(|mesh|!shared||!r.instance_rows.contains(&mesh.id)) {pass.set_pipeline(&r.surfaces.active.0);r.instances.bind_own(&mut pass);mesh.draw_pulled(&mut pass);}
-  if shared {r.instances.draw(&mut pass);}
- }
- target.resolve(&mut encoder,&view);
- let buffer=r.device.create_buffer(&wgpu::BufferDescriptor {label:None,size:320*240*4,usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});encoder.copy_texture_to_buffer(output.as_image_copy(),wgpu::TexelCopyBufferInfo {buffer:&buffer,layout:wgpu::TexelCopyBufferLayout {offset:0,bytes_per_row:Some(1280),rows_per_image:Some(240)}},output.size());r.queue.submit([encoder.finish()]);
- let(tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());crate::cap_gpu_tests::wait(r);rx.recv().unwrap().unwrap();let pixels=buffer.slice(..).get_mapped_range().to_vec();buffer.unmap();pixels
-}
-fn actual_physical_samples(r:&Renderer,target:&crate::frame_targets::Targets)->usize {
- let module=r.device.create_shader_module(wgpu::ShaderModuleDescriptor {label:Some("read every physical original sample"),source:wgpu::ShaderSource::Wgsl(r#"
-@group(0) @binding(0) var primitive:texture_multisampled_2d<u32>;
-@group(0) @binding(1) var depth:texture_depth_multisampled_2d;
-@group(0) @binding(2) var<storage,read_write> output:array<vec4u>;
-@compute @workgroup_size(64) fn read_samples(@builtin(global_invocation_id) id:vec3u) {
- if(id.x>=320u*240u*4u){return;}let p=id.x/4u;let at=vec2i(i32(p%320u),i32(p/320u));let sample=id.x%4u;
- output[id.x]=vec4u(textureLoad(primitive,at,i32(sample)).xy,bitcast<u32>(textureLoad(depth,at,i32(sample))),sample);
-}"#.into())});
- let pipeline=r.device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {label:None,layout:None,module:&module,entry_point:Some("read_samples"),compilation_options:Default::default(),cache:None});
- let size=320*240*4*16;let output=r.device.create_buffer(&wgpu::BufferDescriptor {label:None,size,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_SRC,mapped_at_creation:false});let read=r.device.create_buffer(&wgpu::BufferDescriptor {label:None,size,usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});
- let group=r.device.create_bind_group(&wgpu::BindGroupDescriptor {label:None,layout:&pipeline.get_bind_group_layout(0),entries:&[wgpu::BindGroupEntry {binding:0,resource:wgpu::BindingResource::TextureView(&target.primitive.view)},wgpu::BindGroupEntry {binding:1,resource:wgpu::BindingResource::TextureView(&target.depth)},wgpu::BindGroupEntry {binding:2,resource:output.as_entire_binding()}]});let mut encoder=r.device.create_command_encoder(&Default::default());{
-  let mut pass=encoder.begin_compute_pass(&Default::default());pass.set_pipeline(&pipeline);pass.set_bind_group(0,&group,&[]);pass.dispatch_workgroups((320*240*4u32).div_ceil(64),1,1);
- }encoder.copy_buffer_to_buffer(&output,0,&read,0,size);r.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();read.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());crate::cap_gpu_tests::wait(r);rx.recv().unwrap().unwrap();let bytes=read.slice(..).get_mapped_range();let mut mixed=0;
- for pixel in bytes.chunks_exact(64) {let mut addresses=[0;4];for (i,sample) in pixel.chunks_exact(16).enumerate(){let words=std::array::from_fn::<_,4,_>(|j|u32::from_ne_bytes(sample[j*4..j*4+4].try_into().unwrap()));assert_eq!(words[3],i as u32);let address=words[0]|(words[1]<<16);let depth=f32::from_bits(words[2]);assert_eq!(depth,if address==0 {0.}else{1.});addresses[i]=address;}if addresses.iter().any(|a|*a==0)&&addresses.iter().any(|a|*a!=0){mixed+=1;}}
- drop(bytes);read.unmap();assert!(mixed>100,"Actual original silhouettes have mixed covered and uncovered samples");mixed
-}
-#[test]
-fn original_and_shared_meshes_switch_samples_without_source_or_geometry_rebuilds() {
- let mut scene=Scene::empty();crate::scene_document::import(&mut scene,&crate::instance_specimen::display_bytes(),"",&session_rust::Xform::identity(),0.).unwrap();scene.insert(crate::prepared::PreparedMesh::triangle([[-0.3,-0.85,0.],[0.3,-0.85,0.],[0.,-0.3,0.]],[0.1,0.8,0.3]).unwrap()).unwrap();
- let mut r=crate::cap_gpu_tests::renderer(&scene);let geometry=r.meshes.iter().map(|m|Rc::clone(&m.geometry)).collect::<Vec<_>>();let sources=scene.objects().iter().map(|o|o.geometry().unwrap().to_proto()).collect::<Vec<_>>();let stats=r.stats();let usage=r.instance_usage();
- let one=crate::frame_targets::Targets::new(&r.device,[320,240],r.format,1);let four=crate::frame_targets::Targets::new(&r.device,[320,240],r.format,4);let first=surface_frame(&r,&one,true);assert!(first.chunks_exact(4).filter(|p|p[..3]!=[255;3]).count()>5000);let surface1=r.surfaces.active.0.clone();
- r.surfaces.select(4,||crate::surface_pipelines::pipelines(&r.device,r.format,&crate::surface_view::layout(&r.device),&crate::gpu_layout::uniform(&r.device,crate::object_record::BYTES as u64),4));r.instances.set_samples(&r.device,r.format,4);let surface4=r.surfaces.active.0.clone();assert_ne!(surface1,surface4);let shared=surface_frame(&r,&four,true);assert!(surface_frame(&r,&four,false)==shared,"Original uniforms and shared records have identical4x colour");let mixed=actual_physical_samples(&r,&four);assert!(first!=shared,"Actual colour changes on silhouette coverage");
- for count in [4,1,4] {r.surfaces.select(count,||panic!("A retained surface variant must not compile again"));r.instances.set_samples(&r.device,r.format,count);let pixels=surface_frame(&r,if count==1 {&one}else{&four},true);assert!(pixels==if count==1 {first.clone()}else{shared.clone()});assert_eq!(r.surfaces.active.0,if count==1 {surface1.clone()}else{surface4.clone()});}
- let matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));for (i,x) in [-0.6,0.6].into_iter().enumerate(){r.request_pick([x,0.],matrix).unwrap();crate::cap_gpu_tests::wait(&r);let pick=r.take_pick(matrix).unwrap().unwrap().unwrap();assert_eq!(pick[0],scene.objects()[i].id.value(),"Fresh owner queries remain single-sample after surface4x switching");}
- assert_eq!(r.stats(),stats);assert_eq!(r.instance_usage(),usage);for ((gpu,before),source) in r.meshes.iter().zip(&geometry).zip(&sources){assert!(Rc::ptr_eq(&gpu.geometry,before));let row=scene.objects().iter().find(|o|o.id==gpu.id).unwrap();assert_eq!(&row.geometry().unwrap().to_proto(),source);}
- let root=std::path::Path::new("surface-pixels");crate::sample_test_proof::write(root.join("one.rgba"),first).unwrap();crate::sample_test_proof::write(root.join("four.rgba"),shared).unwrap();crate::sample_test_proof::write(root.join("physical.json"),format!("{{\"actualMixedCoveragePixels\":{mixed}}}\n")).unwrap();
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzb-read-section-crossings-at-each-sample-50.rs"
 ```
 
-</details>
+**Result after `96zzzzzzzb-read-section-crossings-at-each-sample`:** Section crossing images and cap pipeline recipes support matching one- and four-sample resources. One cap fragment calculation reads its own physical crossing, selection and plane depth; original-owner queries remain independently single-sample. Cap geometry stays retained when images change. Complete browser rendering remains one-sample at this checkpoint.
 
-</details>
+These actual isolated Native GPU pictures show four-sample section caps from the original closed solid. The grey, hatch and selected states use matching physical crossing images. Complete browser rendering remains at one sample.
+
+---
 
 <a id="checkpoint-96zzzzzzzc-compose-cloud-depth-with-physical-addresses"></a>
 
 ### Step 9 of 19 · Compose cloud colour, depth and queries (`96zzzzzzzc-compose-cloud-depth-with-physical-addresses`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/19 Visual Trace (96zzzzzzzc-compose-cloud-depth-with-physical-addresses): Compose cloud colour, depth and queries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/cloud_resolve.wgsl, src/renderer.rs, src/sheet_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original cloud points</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coherent opaque</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">colour/depth/zero…</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual ink occlusion</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fresh original-owner query</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs, src/clo…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">actual ink occlusion</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fresh original-owner qu…</text>
 </svg>
-</div>
-
-- **Goal:** Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
-- **Data Flow Trace:** `Original cloud points → coherent opaque colour/depth/zero surface address → actual ink occlusion → fresh original-owner query`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.*) · `src/cloud_resolve.wgsl` (*Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.*) · `src/renderer.rs` (*Skip absent cloud lanes before opening their composite pass.*) · `src/sheet_gpu.rs` (*Skip empty sheet lanes before binding their unused colour or query recipe.*) · `src/finite_visibility.wgsl` (*Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.*) · `src/pick_encode.rs` (*Reuse the existing readonly integer overlay query pass.*) · `src/cloud_address_tests.rs` (*Supplied actual one-sample physical cloud face/cap addresses and dense rear/front-line colour/query/source/placement/cache witnesses at both physical densities. Four-sample resources are connected next.*) · `src/cloud_composite_reference.rs` (*Independently render the exact maintained cloud WGSL on the same original cached point inputs; Native-only validation data.*) · `src/cloud_composite_tests.rs` (*Actual one-sample independent RGBA comparison for source alpha0/255, shading0/.25, viewport edges and whole/default output, preserving original sources, owner queries and cached raster.*)
 
 Make the visible cloud and its original-owner queries agree with actual depth. A nearer cloud hides rear source ink, while a genuinely nearer line remains visible and pickable. Preserve full original point records and cached point images.
 
 The physical address image indexes original triangles and section caps. A cloud belongs to neither table, so write zero address words with its nearer colour and depth. Later ink must respect nearer physical depth even when no analytic triangle represents that occluder; a mesh-only fallback must not resurrect a hidden line.
 
-The independent integer query has the same requirement. Establish cloud depth and zero physical words before readonly finite-ink queries, so visible front ink can return its own original owner. Reuse the existing query attachments through a stack-only pass helper; no additional image or heap array is introduced. Empty sheet lanes and absent clouds skip unused bindings.
-
-The existing48bytecloud settings buffer supplies default eye-dome0.25 shading. Four neighboring cached depths darken real steps. Scalar updates retain the point raster, and final cloud pixels remain opaque even when original stored alpha is zero. An independent supplied Native witness renders exact maintained WGSL against the same actual inputs and checks every RGBA channel, both alpha/shading modes, viewport edges and whole/default output.
-
-Actual Native dense-cloud witnesses inspect rear and front source colours and fresh owner queries at both densities. Their cloud covers the complete unchanged cursor neighborhood, and unrelated original boundaries lie outside it; no picker priority or radius is relaxed. Original sources, geometry/uploads, exact placement restoration and repeated-frame cache use remain strict. A wide-fringe control also requires the original line owner when its axis lies outside the small query halo; empty/out-of-window depth is not treated as an occluder. The current application is single-sample; count-specific cloud and sheet recipes follow together.
-
-> **Self-Check Question:** *Why does correct cloud depth alone fail to establish correct ink or picking?*  
-> **Answer:** Analytic triangle fallbacks cannot represent a cloud, and a cloud query drawn after readonly ink can overwrite a genuinely nearer line. Keep physical depth and address words coherent, honor real non-mesh occlusion, and establish cloud query depth before readonly finite ink.
-
-- **What You Should See:** Current cloud colour/depth/physical words and original-owner queries agree. Rear ink is hidden by actual nearer point coverage; genuinely front ink retains its colour and owner. Original alpha/source data and cached point images remain retained. Default opaque output and eye-dome shading match the independent maintained reference. The application remains single-sample until the following count-cache and consumer integration steps.
-
-These actual Native GPU pictures show original cloud/face and section coverage, exact maintained opaque/eye-dome appearance, rear and genuinely front source lines, and a wide visible source fringe whose axis lies outside the small query halo. Actual independent GPU depth/address reads and fresh owner assertions accompany the colour pixels. Complete original records, geometry/uploads, exact placement restoration and repeated-frame caches remain strict. Cursor radius and edge priority are unchanged. This owned application is single-sample; count-specific cloud/sheet/text recipes and complete browser multisampling follow.
-
-**nearer cloud over original face, one sample — actual cloud colour/depth/query check.**
-
-**nearer cloud over original section cap, one sample — actual cloud colour/depth/query check.**
-
-**original source alpha0 retained; opaque output and shading off — actual cloud colour/depth/query check.**
-
-**default eye-dome0.25; exact maintained compositor pixels — actual cloud colour/depth/query check.**
-
-**rear source line hidden by real dense cloud, density2 — actual cloud colour/depth/query check.**
-
-**genuinely front original line retains colour and owner, density2 — actual cloud colour/depth/query check.**
-
-**visible wide source fringe retains original query owner beyond the axis halo, density2 — actual cloud colour/depth/query check.**
-- **Hands-On Lab Experiment:** Run the actual physical face/cap, independent compositor and dense rear/front source witnesses. Inspect the separately labelled Native pictures. Require blue cloud pixels over a rear red line, red pixels and its original owner after moving the line in front, exact placement restoration and unchanged original point/line records. Preserve picker radius and priority by covering the complete test cursor neighborhood with real source points.
-
-<details>
-<summary>Implementation 96zzzzzzzc-compose-cloud-depth-with-physical-addresses: Compose cloud colour, depth and queries</summary>
-
-Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
-
-Data flow: Original cloud points → coherent opaque colour/depth/zero surface address → actual ink occlusion → fresh original-owner query.
+> **Check:** *Why does correct cloud depth alone fail to establish correct ink or picking?* — Analytic triangle fallbacks cannot represent a cloud, and a cloud query drawn after readonly ink can overwrite a genuinely nearer line. Keep physical depth and address words coherent, honor real non-mesh occlusion, and establish cloud query depth before readonly finite ink.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -9714,8 +6023,7 @@ Keep cloud colour, physical depth/addresses and original-owner queries coherent 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     "fs_point",
@@ -9733,8 +6041,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
   [point, resolve, pick]
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -9755,8 +6061,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pass.set_pipeline(&self.resolve);
@@ -9766,8 +6071,6 @@ Replace it with:
   }
   pub fn pick(
 ```
-
-</details>
 
 Replace it with:
 
@@ -9781,8 +6084,7 @@ Replace it with:
   pub fn pick(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     Ok(())
@@ -9793,8 +6095,6 @@ Replace it with:
     let t = self.targets.as_ref().unwrap();
     let mut encoder = ctx.device.create_command_encoder(&Default::default());
 ```
-
-</details>
 
 Replace it with:
 
@@ -9808,8 +6108,7 @@ Replace it with:
     let mut encoder = ctx.device.create_command_encoder(&Default::default());
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       total: 0,
@@ -9819,8 +6118,6 @@ Replace it with:
   pub fn set_scene(
     &mut self,
 ```
-
-</details>
 
 Replace it with:
 
@@ -9837,8 +6134,7 @@ Replace it with:
     &mut self,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       resolve,
@@ -9849,8 +6145,6 @@ Replace it with:
       image_layout: layouts.image,
       window,
 ```
-
-</details>
 
 Replace it with:
 
@@ -9864,8 +6158,7 @@ Replace it with:
       window,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   point: wgpu::RenderPipeline,
@@ -9875,8 +6168,6 @@ Replace it with:
   settings_group: wgpu::BindGroup,
   columns_layout: wgpu::BindGroupLayout,
 ```
-
-</details>
 
 Replace it with:
 
@@ -9890,8 +6181,7 @@ Replace it with:
   columns_layout: wgpu::BindGroupLayout,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -10498,84 +6788,9 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-09.rs"
-```
-
-</details>
-
 ### 2. `src/cloud_resolve.wgsl`
 
 Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@group(0) @binding(0) var sdepth:texture_depth_2d;
-@group(0) @binding(1) var scolor:texture_2d<f32>;
-@group(0) @binding(2) var sids:texture_2d<u32>;
-struct Window {origin:vec2<u32>,mode:u32,padding:u32}
-@group(1) @binding(0) var<uniform> window:Window;
-@vertex fn vertex(@builtin(vertex_index) i:u32)->@builtin(position) vec4<f32> {
-    let xy=vec2<f32>(f32((i<<1u)&2u),f32(i&2u));return vec4<f32>(xy*2.0-1.0,0.0,1.0);
-}
-struct Pixel {@location(0) color:vec4<f32>,@builtin(frag_depth) depth:f32}
-@fragment fn color(@builtin(position) p:vec4<f32>)->Pixel {
-    let q=vec2<i32>(p.xy);let d=textureLoad(sdepth,q,0);if (d<=0.0) {discard;}
-    return Pixel(textureLoad(scolor,q,0),d);
-}
-struct Pick {@location(0) owner:vec2<u32>,@builtin(frag_depth) depth:f32}
-@fragment fn pick(@builtin(position) p:vec4<f32>)->Pick {
-    let q=vec2<i32>(p.xy)+vec2<i32>(window.origin);let d=textureLoad(sdepth,q,0);if (d<=0.0) {discard;}
-    let ids=textureLoad(sids,q,0).xy;
-    var hit=vec2<u32>(0u);
-    if (window.mode==0u) {hit=vec2<u32>(ids.x,0u);}
-    if (window.mode==3u && ids.x!=0u && ids.y!=0u) {hit=vec2<u32>(ids.x,(0x40000000u|(ids.y-1u))+1u);}
-    return Pick(hit,d);
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -10622,49 +6837,13 @@ struct Pick {@location(0) owner:vec2<u32>,@location(1) primitive:vec2<u32>,@buil
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-16.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Skip absent cloud lanes before opening their composite pass. Cloud colour/depth replaces occluded physical surface words with zero in the same pass. Draw the lane already borrowed by the pass guard.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.highlight.mesh(&mut pass);
@@ -10675,8 +6854,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         {
             let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.targets.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
 ```
-
-</details>
 
 Replace it with:
 
@@ -10690,8 +6867,7 @@ Replace it with:
             let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.targets.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -11328,35 +7504,13 @@ mod frame_target_tests;
 mod sample_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-19.rs"
-```
-
-</details>
-
 ### 4. `src/sheet_gpu.rs`
 
 Skip empty sheet lanes before binding their unused colour or query recipe.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -11366,8 +7520,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         pass.set_bind_group(3,clipping,&[]);
         pass.set_bind_group(0, &self.group, &[]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -11381,8 +7533,7 @@ Replace it with:
         pass.set_bind_group(0, &self.group, &[]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         queue.write_buffer(&self.view, 0, &bytes);
@@ -11392,8 +7543,6 @@ Replace it with:
         pass.set_bind_group(0, &self.group, &[]);
         for draw in &self.draws {
 ```
-
-</details>
 
 Replace it with:
 
@@ -11407,8 +7556,7 @@ Replace it with:
         for draw in &self.draws {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -11704,36 +7852,9 @@ fn settings(scene: &Scene, row: &crate::sheet_source::Row, base: u32, selected: 
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-21.rs"
-```
-
-</details>
-
 ### 5. `src/finite_visibility.wgsl`
 
 Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
- var fit_at=pixel;let source_at=floor(axis.at)+fract(pixel);
- if(clip_is_cap(ink_primitive(pixel,sample))){fit_at=source_at;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -11743,69 +7864,9 @@ Edit the existing block to match this code; keep unchanged lines:
  if(clip_is_cap(ink_primitive(pixel,sample))){fit_at=source_at;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-22.rs"
-```
-
-</details>
-
 ### 6. `src/pick_encode.rs`
 
 Reuse the existing readonly integer overlay query pass. Cloud depth is established before readonly original ink queries. Write actual cloud query depth and zero physical words before the finite query reads them. Reuse the existing query pass and attachments through a stack-only helper.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,ctx:&crate::text_gpu_support::GpuCtx,tables:Option<&crate::finite_ink::Tables>,clipping:&wgpu::BindGroup,caps:Option<&mut crate::caps_gpu::Caps>,crop:&wgpu::Buffer,clipping_buffer:&wgpu::Buffer,records:Option<(&crate::instance_gpu::Lane,&wgpu::RenderPipeline)>) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        let mesh_crop=crate::pick_pipeline::crop_clipping_group(device,crop,clipping_buffer);
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } }),Some(wgpu::RenderPassColorAttachment{view:&image.primitive.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(crate::depth::FAR as f32), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, &mesh_crop, &[]);
-            for mesh in meshes {if mode==crate::pick_sources::Mode::Face&&!mesh.source_faces{continue;}if !records.is_some_and(|(rows,shared)|rows.draw_with(&mut pass,mesh,shared)){pass.set_pipeline(pipeline);mesh.draw_pulled(&mut pass);}}
-
-        }
-        if mode==crate::pick_sources::Mode::Face{
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original source-face IDs"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:None,stencil_ops:None}),..Default::default()});
-            faces.draw(&mut pass,meshes,view_group,crop_group,records.map(|(rows,_)|rows));
-        }
-        if let Some(caps)=caps{caps.encode_pick(device,&ctx.queue,&mut encoder,image,window,view_group,crop,clipping,meshes,mode,records.map(|(rows,_)|rows));}
-        let tables=tables.map(|tables|crate::finite_ink::Tables{projected:tables.projected.clone(),tiles:tables.tiles.clone(),primitive:image.primitive.view.clone()});
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite integer ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:None,stencil_ops:None}),..Default::default()});
-            pass.set_bind_group(3,clipping,&[]);
-            for lane in ink {lane.pick_finite(device,&mut pass,view_group,crop_group,tables.as_ref(),&image.depth);}
-        }
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("other original integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});
-            if let Some(clouds)=clouds {clouds.pick(ctx,&mut pass,window,mode);}
-            if let Some(sheets)=sheets {sheets.pick(&mut pass,crop_group,clipping);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -11861,48 +7922,15 @@ fn overlay<'a>(encoder:&'a mut wgpu::CommandEncoder,image:&'a Image,label:&'a st
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-27.rs"
-```
-
-</details>
-
 ### 7. `src/pick_encode.rs`
 
 Reuse the exact previously typed owner attachment in the shared query pass.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original owner attachment
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -11910,27 +7938,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-28.rs"
 ```
 
-</details>
-
 ### 8. `src/pick_encode.rs`
 
 Reuse the exact previously typed primitive attachment in the shared query pass.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original primitive attachment
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -11938,27 +7954,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-29.rs"
 ```
 
-</details>
-
 ### 9. `src/pick_encode.rs`
 
 Reuse the exact previously typed owner pass in the shared query pass.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original owner pass
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -11966,68 +7970,9 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-30.rs"
 ```
 
-</details>
-
 ### 10. `src/pick_encode.rs`
 
 Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,ctx:&crate::text_gpu_support::GpuCtx,tables:Option<&crate::finite_ink::Tables>,clipping:&wgpu::BindGroup,caps:Option<&mut crate::caps_gpu::Caps>,crop:&wgpu::Buffer,clipping_buffer:&wgpu::Buffer,records:Option<(&crate::instance_gpu::Lane,&wgpu::RenderPipeline)>) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        let mesh_crop=crate::pick_pipeline::crop_clipping_group(device,crop,clipping_buffer);
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } }),Some(wgpu::RenderPassColorAttachment{view:&image.primitive.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(crate::depth::FAR as f32), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, &mesh_crop, &[]);
-            for mesh in meshes {if mode==crate::pick_sources::Mode::Face&&!mesh.source_faces{continue;}if !records.is_some_and(|(rows,shared)|rows.draw_with(&mut pass,mesh,shared)){pass.set_pipeline(pipeline);mesh.draw_pulled(&mut pass);}}
-
-        }
-        if mode==crate::pick_sources::Mode::Face{
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original source-face IDs"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:None,stencil_ops:None}),..Default::default()});
-            faces.draw(&mut pass,meshes,view_group,crop_group,records.map(|(rows,_)|rows));
-        }
-        if let Some(caps)=caps{caps.encode_pick(device,&ctx.queue,&mut encoder,image,window,view_group,crop,clipping,meshes,mode,records.map(|(rows,_)|rows));}
-        if let Some(clouds)=clouds{let mut pass=overlay(&mut encoder,image,"original cloud query depth",true);clouds.pick(ctx,&mut pass,window,mode);}
-        let tables=tables.map(|tables|crate::finite_ink::Tables{projected:tables.projected.clone(),tiles:tables.tiles.clone(),primitive:image.primitive.view.clone()});
-        {
-            let mut pass=overlay(&mut encoder,image,"finite integer ink",false);
-            pass.set_bind_group(3,clipping,&[]);
-            for lane in ink {lane.pick_finite(device,&mut pass,view_group,crop_group,tables.as_ref(),&image.depth);}
-        }
-        {
-            let mut pass=overlay(&mut encoder,image,"other original integer owners",false);
-            if let Some(sheets)=sheets {sheets.pick(&mut pass,crop_group,clipping);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-
-fn overlay<'a>(encoder:&'a mut wgpu::CommandEncoder,image:&'a Image,label:&'a str,physical:bool)->wgpu::RenderPass<'a>{
- let colours=[
-  Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}}),
-  Some(wgpu::RenderPassColorAttachment{view:&image.primitive.view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}),
- ];
- encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("other original integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()})
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -12083,51 +8028,7 @@ fn overlay<'a>(encoder:&'a mut wgpu::CommandEncoder,image:&'a Image,label:&'a st
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-39.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12141,10 +8042,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-40.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12158,10 +8056,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-41.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12175,10 +8070,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-42.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12186,25 +8078,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register supplied Native physical-depth/owner and independent shader witnesses.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod sample_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-43.rs" skip=17
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -12212,102 +8092,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the optional Native exact maintained compositor reference.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-_lod::Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
-  crate::cloud_lod::radius_factor(range, px, scale, ortho_h) * if ortho_h > 0. { 1. } else { 1000. }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzc-compose-cloud-depth-with-physical-addresses-44.rs" skip=160
 ```
 
-</details>
+**Result after `96zzzzzzzc-compose-cloud-depth-with-physical-addresses`:** Current cloud colour/depth/physical words and original-owner queries agree. Rear ink is hidden by actual nearer point coverage; genuinely front ink retains its colour and owner. Original alpha/source data and cached point images remain retained. Default opaque output and eye-dome shading match the independent maintained reference. The application remains single-sample until the following count-cache and consumer integration steps.
 
-</details>
+These actual Native GPU pictures show original cloud/face and section coverage, exact maintained opaque/eye-dome appearance, rear and genuinely front source lines, and a wide visible source fringe whose axis lies outside the small query halo. Actual independent GPU depth/address reads and fresh owner assertions accompany the colour pixels. Complete original records, geometry/uploads, exact placement restoration and repeated-frame caches remain strict. Cursor radius and edge priority are unchanged. This owned application is single-sample; count-specific cloud/sheet/text recipes and complete browser multisampling follow.
+
+---
 
 <a id="checkpoint-96zzzzzzzca-cache-cloud-and-sheet-samples"></a>
 
 ### Step 10 of 19 · Cache cloud and sheet sample recipes (`96zzzzzzzca-cache-cloud-and-sheet-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/19 Visual Trace (96zzzzzzzca-cache-cloud-and-sheet-samples): Cache cloud and sheet sample recipes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/renderer.rs, src/sheet_gpu.rs, src/sheet_pipeline.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original cloud/drawing</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sources</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained point/pen</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">resources</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached count-specific</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">colour…</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent original</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owners</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/cloud_gpu.rs, src/ren…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached count-specific c…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent original ow…</text>
 </svg>
-</div>
-
-- **Goal:** Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
-- **Data Flow Trace:** `Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners`
-- **Files You Touch:** `src/cloud_gpu.rs` (*Cache matching cloud colour recipes while retaining source columns, point images/raster, original-owner queries and current appearance.*) · `src/renderer.rs` (*Late-created clouds adopt the current count before preparing source records.*) · `src/sheet_gpu.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/sheet_pipeline.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/cloud_address_tests.rs` (*Extend every existing physical address/rear-front source/cropped-query assertion to both counts and require real exact sample returns with full cached cloud usage retained.*) · `src/cloud_composite_tests.rs` (*Retain existing alpha/shading/viewport-edge/default/full-frame/original-owner parity assertions and extend them to all16settings at both physical counts.*) · `src/sample_surface_tests.rs` (*Retain every prior surface/section assertion and add actual sheet/cloud composition at both counts, complete sources/geometry/cache retention, exact returns and fresh original owners.*)
 
 Cache the cloud and drawing-sheet colour recipes for each physical sample count. Retain original point images, source columns, drawing geometry, placements and IDs. Keep original-owner queries independently single-sample, including the preceding rear/front and wide-fringe corrections.
 
 The cloud owner reuses its existing point and query layouts for the alternate colour recipe. Empty owners defer unused variants until actual point images exist. Late-created clouds adopt the current frame count before preparation. Count-only switches preserve original point columns, cached one-sample raster images and their preparation counts; opaque output, eye-dome shading and query depth order keep their existing meaning.
 
-Reuse the previously typed sheet view/model, clipping, source, shader, layout and descriptor references in a small alternate colour factory. Sample-qualified coverage and original world positions match the active pass. The sheet owner remembers the requested count even when empty and retains its source vertices, independent placements, full original entity IDs and query recipe.
-
-Extend the supplied original cloud witnesses to both counts without dropping any one-sample, source-alpha/shading/edge, physical-address, rear/front or wide-fringe assertion. Add actual sheet/cloud composition, fresh original owners, exact count-return pixels, retained original geometry/uploads and cached point preparation. Current main browser rendering remains one-sample until the remaining consumers and production count API are connected.
-
-> **Self-Check Question:** *Why keep original point images and owner queries single-sample while changing colour recipes?*  
-> **Answer:** They represent retained original point preparation and independent exact owner addresses. The colour recipe must match the physical frame attachment count; selecting it should not rebuild those sources or change the query lane.
-
-- **What You Should See:** Original cloud and drawing-sheet colour recipes support matching physical sample counts through the shared cache. Point images/raster, source columns, drawing geometry, placements and full IDs remain retained. Original-owner queries stay one-sample and preserve coherent front/rear/wide-fringe behavior. Current complete browser rendering remains one-sample pending the remaining consumers.
-
-These actual Native GPU frames show cloud occlusion of original faces/sections, original sheet/cloud composition and coherent rear/front source line pixels at the labelled physical count. Independent physical address/depth and original-owner checks accompany the images. Original records, source/geometry uploads, cached one-sample point raster and exact count-return pixels remain strict. The independent compositor also checks every RGBA channel across all16alpha/shading/edge/count settings. Complete browser rendering remains single-sample until all remaining consumers are connected. In this isolated reversed-depth fixture the sheet lies in front of the blue source face, and the red cloud lies in front of both. Its thin blue pen retains the original colour, which has deliberately low contrast against the blue face.
-
-**cloud occludes original face; four physical samples — actual cached cloud/sheet colour check.**
-
-**cloud occludes original section; four physical samples — actual cached cloud/sheet colour check.**
-
-**original sheet pens with cached cloud; one sample — actual cached cloud/sheet colour check.**
-
-**original sheet pens with cached cloud; four samples — actual cached cloud/sheet colour check.**
-
-**rear original line hidden by cloud; density2/four samples — actual cached cloud/sheet colour check.**
-
-**genuinely front original line keeps colour/owner; density2/four samples — actual cached cloud/sheet colour check.**
-- **Hands-On Lab Experiment:** Run actual cloud face/cap, reference RGBA, rear/front/wide-fringe and sheet/cloud witnesses at both counts. Switch4→1→4 and require exact return pixels, unchanged source uploads/geometry and cached point preparation. Inspect the separate Native physical-address, cloud ink and sheet pictures; they are distinct from the canonical single-sample browser scene.
-
-<details>
-<summary>Implementation 96zzzzzzzca-cache-cloud-and-sheet-samples: Cache cloud and sheet sample recipes</summary>
-
-Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
-
-Data flow: Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners.
+> **Check:** *Why keep original point images and owner queries single-sample while changing colour recipes?* — They represent retained original point preparation and independent exact owner addresses. The colour recipe must match the physical frame attachment count; selecting it should not rebuild those sources or change the query lane.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -12315,8 +8143,7 @@ Cache matching cloud colour recipes while retaining source columns, point images
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     "vertex",
@@ -12328,8 +8155,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 fn record_bytes(
 ```
-
-</details>
 
 Replace it with:
 
@@ -12345,8 +8170,7 @@ Replace it with:
 fn record_bytes(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     "vs_point",
@@ -12358,8 +8182,6 @@ fn record_bytes(
     &ctx.device,
     &resolver,
 ```
-
-</details>
 
 Replace it with:
 
@@ -12375,8 +8197,7 @@ Replace it with:
     &resolver,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   });
@@ -12387,8 +8208,6 @@ fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> [w
     label: Some("current production cloud discs"),
     source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("cloud_points.wgsl"),2,0).into()),
 ```
-
-</details>
 
 Replace it with:
 
@@ -12402,8 +8221,7 @@ fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> ([
     source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("cloud_points.wgsl"),2,0).into()),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       stencil: Default::default(),
@@ -12414,8 +8232,6 @@ fn pipelines(ctx: &GpuCtx, format: wgpu::TextureFormat, layouts: &Layouts) -> ([
     cache: None,
   })
 ```
-
-</details>
 
 Replace it with:
 
@@ -12429,8 +8245,7 @@ Replace it with:
   })
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   vertex: &str,
@@ -12440,8 +8255,6 @@ Replace it with:
   let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     label: Some(fragment),
 ```
-
-</details>
 
 Replace it with:
 
@@ -12455,8 +8268,7 @@ Replace it with:
     label: Some(fragment),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     let Some(t) = &self.targets else {
@@ -12467,8 +8279,6 @@ Replace it with:
     pass.set_bind_group(1, &self.window_group, &[]);
     pass.set_bind_group(2,&self.settings_group,&[]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -12482,8 +8292,7 @@ Replace it with:
     pass.set_bind_group(2,&self.settings_group,&[]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       );
@@ -12493,8 +8302,6 @@ Replace it with:
     self.key = Some(key);
     self.preparations += 1;
 ```
-
-</details>
 
 Replace it with:
 
@@ -12508,8 +8315,7 @@ Replace it with:
     self.preparations += 1;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       total: 0,
@@ -12519,8 +8325,6 @@ Replace it with:
     let value=if value.is_finite(){value.max(0.)}else{0.};if value==self.edl{return;}
     self.edl=value;ctx.queue.write_buffer(&self.settings,12,&value.to_ne_bytes());
 ```
-
-</details>
 
 Replace it with:
 
@@ -12537,8 +8341,7 @@ Replace it with:
     self.edl=value;ctx.queue.write_buffer(&self.settings,12,&value.to_ne_bytes());
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       resource_group(ctx, &layouts.uniform, "cloud frame settings", [(0, settings.as_entire_binding())]);
@@ -12552,8 +8355,6 @@ Replace it with:
       settings,
       settings_group,edl:0.25,
 ```
-
-</details>
 
 Replace it with:
 
@@ -12570,8 +8371,7 @@ Replace it with:
       settings_group,edl:0.25,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Lane {
@@ -12582,8 +8382,6 @@ pub struct Lane {
   edl:f32,
   settings: wgpu::Buffer,
 ```
-
-</details>
 
 Replace it with:
 
@@ -12598,16 +8396,13 @@ pub struct Lane {
   settings: wgpu::Buffer,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{
   cloud::Row,
   cloud_lod::{LodWalk, Projection},
 ```
-
-</details>
 
 Replace it with:
 
@@ -12618,8 +8413,7 @@ use crate::{
   cloud_lod::{LodWalk, Projection},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::sample_pipelines::Variants;
@@ -13240,107 +9034,9 @@ pub fn radius_factor(range: &crate::cloud_lod::Range, px: f32, scale: f64, ortho
 pub(crate) mod composite_reference;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-20.rs"
-```
-
-</details>
-
 ### 2. `src/renderer.rs`
 
 Late-created clouds adopt the current count before preparing source records.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let mut owner=self.clouds.borrow_mut();let lane=owner.get_or_insert_with(||crate::cloud_gpu::Lane::new(&self.text_context(),self.format,&self.clipping.borrow().group));lane.set_scene(&self.text_context(),scene,selected)
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -13350,25 +9046,13 @@ Edit the existing block to match this code; keep unchanged lines:
         lane.set_scene(&self.text_context(),scene,selected)
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-21.rs"
-```
-
-</details>
-
 ### 3. `src/sheet_gpu.rs`
 
 Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .collect::<Vec<_>>();
@@ -13381,8 +9065,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         for draw in &self.draws {
             pass.set_bind_group(1, &draw.group, &[]);
 ```
-
-</details>
 
 Replace it with:
 
@@ -13403,8 +9085,7 @@ Replace it with:
             pass.set_bind_group(1, &draw.group, &[]);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -13414,8 +9095,6 @@ Replace it with:
     }
     pub fn camera(&self, camera: &crate::camera::Camera) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -13429,8 +9108,7 @@ Replace it with:
     pub fn camera(&self, camera: &crate::camera::Camera) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                             });
@@ -13441,8 +9119,6 @@ Replace it with:
                         );
                         Draw {
 ```
-
-</details>
 
 Replace it with:
 
@@ -13456,8 +9132,7 @@ Replace it with:
                         Draw {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let group = crate::gpu_layout::group(device, &pipeline.get_bind_group_layout(0), &view);
@@ -13468,8 +9143,6 @@ Replace it with:
             view,
             group,
 ```
-
-</details>
 
 Replace it with:
 
@@ -13483,8 +9156,7 @@ Replace it with:
             group,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -13495,8 +9167,6 @@ pub struct Lane {
     view: wgpu::Buffer,
     group: wgpu::BindGroup,
 ```
-
-</details>
 
 Replace it with:
 
@@ -13511,8 +9181,7 @@ pub struct Lane {
     group: wgpu::BindGroup,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{
@@ -13815,59 +9484,13 @@ fn settings(scene: &Scene, row: &crate::sheet_source::Row, base: u32, selected: 
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-30.rs"
-```
-
-</details>
-
 ### 4. `src/sheet_pipeline.rs`
 
 Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes. Add only physical-sample source qualification around the previously typed colour recipe.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "pick_fragment",
@@ -13877,8 +9500,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     (pipeline, pick)
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -13904,8 +9525,7 @@ pub fn colour(device:&wgpu::Device,format:wgpu::TextureFormat,samples:u32)->wgpu
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "fragment",
@@ -13915,8 +9535,6 @@ pub fn colour(device:&wgpu::Device,format:wgpu::TextureFormat,samples:u32)->wgpu
     let pick = make(
         device,
 ```
-
-</details>
 
 Replace it with:
 
@@ -13930,8 +9548,7 @@ Replace it with:
         device,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fragment: &str,
@@ -13943,8 +9560,6 @@ Replace it with:
 
 pub fn pipelines(
 ```
-
-</details>
 
 Replace it with:
 
@@ -13960,8 +9575,7 @@ Replace it with:
 pub fn pipelines(
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 pub fn make(
@@ -14048,58 +9662,15 @@ pub fn colour(device:&wgpu::Device,format:wgpu::TextureFormat,samples:u32)->wgpu
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-36.rs"
-```
-
-</details>
-
 ### 5. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet view/model in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original view/model
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14107,27 +9678,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-37.rs"
 ```
 
-</details>
-
 ### 6. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet clipping layout in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original clipping layout
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14135,27 +9694,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-38.rs"
 ```
 
-</details>
-
 ### 7. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet expanded source in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original expanded source
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14163,27 +9710,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-39.rs"
 ```
 
-</details>
-
 ### 8. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet source reference in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original source reference
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14191,27 +9726,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-40.rs"
 ```
 
-</details>
-
 ### 9. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet shader in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original shader
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14219,27 +9742,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-41.rs"
 ```
 
-</details>
-
 ### 10. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet colour layout in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original colour layout
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14247,27 +9758,15 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-42.rs"
 ```
 
-</details>
-
 ### 11. `src/sheet_pipeline.rs`
 
 Reuse exact previously typed sheet render in the alternate colour recipe.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// original render
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -14275,22 +9774,9 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-43.rs"
 ```
 
-</details>
-
 ### 12. `src/sheet_pipeline.rs`
 
 Match the alternate sheet colour descriptor to the actual pass.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Some(wgpu::BlendState::ALPHA_BLENDING),
-    );
- pipeline
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -14301,19 +9787,7 @@ Edit the existing block to match this code; keep unchanged lines:
  pipeline
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-44.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -14321,227 +9795,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend every existing physical address/rear-front source/cropped-query assertion to both counts and require real exact sample returns with full cached cloud usage retained.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use super::*;
-use std::rc::Rc;
-
-pub(super) fn retarget(_r:&mut Renderer,count:u32){assert_eq!(count,1);}
-fn physical(r: &Renderer) -> Vec<[u32; 4]> {
-    let count = r.targets.samples;
-    let mut code = format!(
-        r#"
-@group(0) @binding(0) var ids: texture_2d<u32>;
-@group(0) @binding(1) var depth: texture_depth_2d;
-@group(0) @binding(2) var<storage,read_write> output: array<vec4u>;
-@compute @workgroup_size(4) fn read_samples(@builtin(global_invocation_id) gid: vec3u) {{
- if gid.x >= {count}u {{return;}}
- let at = vec2i(208,96);
- output[gid.x] = vec4u(textureLoad(ids,at,SAMPLE).xy,bitcast<u32>(textureLoad(depth,at,SAMPLE)),gid.x);
-}}
-"#
-    );
-    if count == 4 {
-        code = code
-            .replace("texture_2d<u32>", "texture_multisampled_2d<u32>")
-            .replace("texture_depth_2d", "texture_depth_multisampled_2d");
-    }
-    code = code.replace("SAMPLE", if count == 4 { "i32(gid.x)" } else { "0" });
-    let module = r.device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("actual cloud physical address witness"),
-        source: wgpu::ShaderSource::Wgsl(code.into()),
-    });
-    let pipeline = r
-        .device
-        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-            label: None,
-            layout: None,
-            module: &module,
-            entry_point: Some("read_samples"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-    let output = r.device.create_buffer(&wgpu::BufferDescriptor {
-        label: None,
-        size: 64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    let read = r.device.create_buffer(&wgpu::BufferDescriptor {
-        label: None,
-        size: 64,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
-    let group = r.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: None,
-        layout: &pipeline.get_bind_group_layout(0),
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::TextureView(&r.targets.primitive.view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::TextureView(&r.targets.depth),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: output.as_entire_binding(),
-            },
-        ],
-    });
-    let mut encoder = r.device.create_command_encoder(&Default::default());
-    {
-        let mut pass = encoder.begin_compute_pass(&Default::default());
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &group, &[]);
-        pass.dispatch_workgroups(1, 1, 1);
-    }
-    encoder.copy_buffer_to_buffer(&output, 0, &read, 0, 64);
-    r.queue.submit([encoder.finish()]);
-    let (tx, rx) = std::sync::mpsc::channel();
-    read.slice(..)
-        .map_async(wgpu::MapMode::Read, move |v| tx.send(v).unwrap());
-    crate::cap_gpu_tests::wait(r);
-    rx.recv().unwrap().unwrap();
-    let values = read
-        .slice(..)
-        .get_mapped_range()
-        .chunks_exact(16)
-        .take(count as usize)
-        .map(|b| {
-            std::array::from_fn(|i| u32::from_ne_bytes(b[i * 4..i * 4 + 4].try_into().unwrap()))
-        })
-        .collect();
-    read.unmap();
-    values
-}
-#[test]
-fn opaque_cloud_depth_clears_occluded_physical_triangle_and_cap_addresses() {
-    for clipped in [false, true] {
-        for count in [1] {
-            let (mut scene, _) = crate::cap_gpu_tests::scene(false);
-            if clipped {
-                let plane = crate::clipping_geometry::plane_from(
-                    crate::clipping_geometry::Mode::Points,
-                    &[[0., 0., -0.3], [1., 0., -1.3], [0., 1., -0.3]],
-                    2.,
-                )
-                .unwrap();
-                crate::plane_original::insert(&mut scene, Rc::new(plane)).unwrap();
-            }
-            let mut r = crate::cap_gpu_tests::renderer(&scene);
-            r.set_clipping(clipped, true);
-            retarget(&mut r,count);
-            let matrix = crate::cap_gpu_tests::matrix();
-            let before_pixels = crate::cap_gpu_tests::pixels_at(&r, matrix);
-            let before = physical(&r);
-            for value in &before {
-                let address = value[0] | (value[1] << 16);
-                assert!(address > 0);
-                assert_eq!(address >= crate::primitive_image::CAP_START, clipped);
-            }
-            let coords = if clipped {
-                vec![0.28, 0.2, -0.585]
-            } else {
-                vec![0.3, 0.2, -0.1]
-            };
-            let mut source =
-                session_rust::PointCloud::from_coords(coords, vec![0, 0, 255, 255], vec![]);
-            source.point_size = 28.;
-            let source = Rc::new(source);
-            let _ = source.guid();
-            let original = source.to_proto();
-            let owner = scene
-                .insert_cloud(crate::cloud::Prepared::new(source.clone()).unwrap())
-                .unwrap();
-            r.set_scene(&scene, None);
-            r.set_clipping(clipped, true);
-            let after_pixels = crate::cap_gpu_tests::pixels_at(&r, matrix);
-            let after = physical(&r);
-            crate::sample_test_proof::write(
-                format!("cloud-address-{clipped}-{count}.json"),
-                serde_json::to_vec_pretty(&serde_json::json!({"before": before, "after": after}))
-                    .unwrap(),
-            )
-            .unwrap();
-            crate::sample_test_proof::write(
-                format!("cloud-address-{clipped}-{count}.rgba"),
-                &after_pixels,
-            )
-            .unwrap();
-            assert!(before_pixels != after_pixels);
-            let rgba = crate::cap_gpu_tests::at(&after_pixels, 208, 96);
-            assert!(
-                rgba[2] > 250 && rgba[0] < 5 && rgba[1] < 5,
-                "The actual cloud lies in front of the original face/cap"
-            );
-            for (prior, current) in before.iter().zip(&after) {
-                assert!(
-                    f32::from_bits(current[2]) > f32::from_bits(prior[2]),
-                    "Cloud writes its nearer actual depth"
-                );
-                assert_eq!(
-                    [current[0], current[1]],
-                    [0, 0],
-                    "Cloud depth must not retain an occluded triangle or cap address"
-                );
-            }
-            r.request_pick([0.3, 0.2], matrix).unwrap();
-            crate::cap_gpu_tests::wait(&r);
-            assert_eq!(
-                r.take_pick(matrix).unwrap().unwrap().unwrap()[0],
-                owner.value()
-            );
-            assert_eq!(source.to_proto(), original);
-        }
-    }
-}
-
-#[test]
-fn actual_nearer_cloud_hides_original_ink_without_hiding_front_sources() {
- let mut rows=Vec::new();
- for density in [1.,2.] {for count in [1] {
-  let mut scene=Scene::empty();let face=scene.insert(crate::prepared::PreparedMesh::triangle([[-2.,-2.,0.6],[2.,-2.,0.6],[0.,2.,0.6]],[0.1,0.6,0.1]).unwrap()).unwrap();
-  let mut line=session_rust::Line::new(-0.4,0.2,0.6,0.6,0.2,0.6);line.width=6.;line.linecolor=session_rust::Color::new(1.,0.,0.,1.);let line=Rc::new(line);let _=line.guid();let line_before=line.to_proto();let ink=scene.insert_line(crate::stroke::PreparedLine::new(line.clone()).unwrap()).unwrap();
-  let mut r=crate::cap_gpu_tests::renderer(&scene);r.set_density(density);retarget(&mut r,count);let matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));let before=crate::cap_gpu_tests::pixels_at(&r,matrix);let z_before=physical(&r);let pixel=crate::cap_gpu_tests::at(&before,208,96);assert!(pixel[0]>240&&pixel[1]<10&&pixel[2]<10,"Original front red line exists before cloud: {pixel:?}");
-  let coords=(-3..=3).flat_map(|y|(-3..=3).flat_map(move|x|[0.3+x as f64*0.03,0.2+y as f64*0.03,0.2])).collect();let mut points=session_rust::PointCloud::from_coords(coords,[0,0,255,255].repeat(49),vec![]);points.point_size=96.;let points=Rc::new(points);let _=points.guid();let cloud_before=points.to_proto();let cloud=scene.insert_cloud(crate::cloud::Prepared::new(points.clone()).unwrap()).unwrap();r.set_scene(&scene,None);let actual=crate::cap_gpu_tests::pixels_at(&r,matrix);let z_after=physical(&r);for (prior,current)in z_before.iter().zip(&z_after){assert!(f32::from_bits(current[2])>f32::from_bits(prior[2]));assert_eq!([current[0],current[1]],[0,0]);}
-  let pixel=crate::cap_gpu_tests::at(&actual,208,96);assert!(pixel[2]>240&&pixel[0]<10&&pixel[1]<10,"Nearer opaque blue cloud hides the original red line: {pixel:?}");r.request_pick([0.3,0.2],matrix).unwrap();crate::cap_gpu_tests::wait(&r);let picked=r.take_pick(matrix).unwrap().unwrap();assert_eq!(picked.unwrap()[0],cloud.value());
-  let geometry=r.meshes[0].geometry.clone();let cloud_uploads=r.cloud_usage()[2];
-  scene.translate(ink,[0.,0.,-0.5]).unwrap();r.set_scene(&scene,None);let front=crate::cap_gpu_tests::pixels_at(&r,matrix);let visible=crate::cap_gpu_tests::at(&front,208,96);assert!(visible[0]>240&&visible[1]<10&&visible[2]<10,"A genuinely nearer original line remains visible: {visible:?}");r.request_pick([0.3,0.2],matrix).unwrap();crate::cap_gpu_tests::wait(&r);assert_eq!(r.take_pick(matrix).unwrap().unwrap().unwrap()[0],ink.value());
-  scene.translate(ink,[0.,0.,0.5]).unwrap();r.set_scene(&scene,None);assert!(crate::cap_gpu_tests::pixels_at(&r,matrix)==actual,"Restoring original placement restores exact hidden-ink pixels");
-  assert_eq!(r.cloud_usage()[2],cloud_uploads,"Original cloud source upload is retained through line placement changes");let cached=r.cloud_usage()[..4].to_vec();
-  assert!(crate::cap_gpu_tests::pixels_at(&r,matrix)==actual,"Fresh owner queries retain exact repeated-frame pixels");
-  assert!(Rc::ptr_eq(&r.meshes[0].geometry,&geometry));assert_eq!(r.cloud_usage()[..4],cached);crate::sample_test_proof::write(format!("cloud-ink-front-{density}-{count}.rgba"),&front).unwrap();assert_eq!(line.to_proto(),line_before);assert_eq!(points.to_proto(),cloud_before);
-  crate::sample_test_proof::write(format!("cloud-ink-fixed-{density}-{count}.rgba"),&actual).unwrap();rows.push(serde_json::json!({"density":density,"samples":count,"physicalBefore":z_before,"physicalAfter":z_after,"actualRgba":pixel,"freshOwner":picked,"cloud":cloud.value(),"ink":ink.value(),"face":face.value()}));
- }}
- for density in [1.,2.] {for count in [1] {
-  let mut scene=Scene::empty();scene.insert(crate::prepared::PreparedMesh::triangle([[-2.,-2.,0.6],[2.,-2.,0.6],[0.,2.,0.6]],[0.1,0.6,0.1]).unwrap()).unwrap();
-  let mut source=session_rust::Line::new(-0.4,0.,0.2,0.6,0.,0.2);source.width=60.;source.linecolor=session_rust::Color::new(1.,0.,0.,1.);let owner=scene.insert_line(crate::stroke::PreparedLine::new(Rc::new(source)).unwrap()).unwrap();
-  let mut r=crate::cap_gpu_tests::renderer(&scene);r.set_density(density);retarget(&mut r,count);let matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));let actual=crate::cap_gpu_tests::pixels_at(&r,matrix);let visible=crate::cap_gpu_tests::at(&actual,208,96);assert!(visible[0]>240&&visible[1]<10&&visible[2]<10,"Actual wide source fringe is visible outside its query-axis halo: {visible:?}");
-  r.request_pick([0.3,0.2],matrix).unwrap();crate::cap_gpu_tests::wait(&r);let picked=r.take_pick(matrix).unwrap().unwrap();crate::sample_test_proof::write(format!("cloud-ink-wide-fringe-{density}-{count}.rgba"),&actual).unwrap();crate::sample_test_proof::write(format!("cloud-ink-wide-fringe-{density}-{count}.json"),serde_json::to_vec_pretty(&serde_json::json!({"density":density,"samples":count,"pixel":visible,"freshOwner":picked,"expected":owner.value()})).unwrap()).unwrap();
-  assert_eq!(picked.unwrap()[0],owner.value(),"A visible wide source fringe retains its original owner even when its axis lies outside the query halo");
- }}
-
- crate::sample_test_proof::write("cloud-ink-fixed.json",serde_json::to_vec_pretty(&rows).unwrap()).unwrap();
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-45.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -14549,61 +9809,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain existing alpha/shading/viewport-edge/default/full-frame/original-owner parity assertions and extend them to all16settings at both physical counts.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use super::*;
-use std::rc::Rc;
-#[test]
-fn actual_cloud_composite_matches_current_opaque_and_eye_dome_pixels() {
-    let mut records=Vec::new();let mut alpha_differences=0;let mut shaded_differences=0;
-    for edges in [false,true] {
-    for alpha in [0u8,255] {
-        let mut coords=Vec::new();let mut colors=Vec::new();
-        for y in 0..30 {for x in 0..40 {coords.extend([if edges {-1.05+x as f64*0.055}else{-0.8+x as f64*0.04},if edges {-1.02+y as f64*0.07}else{-0.6+y as f64*0.04},if (x/4+y/4)%2==0 {0.15}else{0.35}]);colors.extend([80,140,220,i32::from(alpha)]);}}
-        let mut cloud=session_rust::PointCloud::from_coords(coords,colors,vec![]);cloud.point_size=10.;let cloud=Rc::new(cloud);let _=cloud.guid();let original=cloud.to_proto();
-        let mut scene=Scene::empty();let owner=scene.insert_cloud(crate::cloud::Prepared::new(cloud.clone()).unwrap()).unwrap();let mut r=crate::cap_gpu_tests::renderer(&scene);let ctx=r.text_context();let matrix=crate::cap_gpu_tests::reversed(session_rust::Xform::identity().m.map(|v|v as f32));
-        for samples in [1] {
-            super::cloud_address_tests::retarget(&mut r,samples);let default_pixels=crate::cap_gpu_tests::pixels_at(&r,matrix);let usage=r.cloud_usage();
-            for edl in [0.,0.25] {
-                r.clouds.borrow_mut().as_mut().unwrap().set_edl(&ctx,edl);
-                let full=crate::cap_gpu_tests::pixels_at(&r,matrix);
-                let lane=r.clouds.borrow();let lane=lane.as_ref().unwrap();
-                let actual=crate::cloud_gpu::composite_reference::pixels(lane,&ctx,samples,false,edl);
-                let reference=crate::cloud_gpu::composite_reference::pixels(lane,&ctx,samples,true,edl);
-                assert_eq!(full,reference,"Whole rendered cloud equals independent maintained compositor at both counts and EDL modes");
-                assert_eq!(actual,reference,"Every RGBA channel matches exact maintained WGSL");
-                let rgba=actual.chunks_exact(4).zip(reference.chunks_exact(4)).filter(|(a,b)|a!=b).count();
-                let rgb=actual.chunks_exact(4).zip(reference.chunks_exact(4)).filter(|(a,b)|a[..3]!=b[..3]).count();
-                let a=actual.chunks_exact(4).zip(reference.chunks_exact(4)).filter(|(a,b)|a[3]!=b[3]).count();
-                if alpha==0 && edl==0. {assert_eq!(a,0);alpha_differences+=a;}
-                if alpha==255 && edl>0. {assert_eq!(rgb,0);shaded_differences+=rgb;}
-                if alpha==255 && edl==0. {assert_eq!(rgba,0);}
-                if edl==0.25 {let default_diff=default_pixels.chunks_exact(4).zip(reference.chunks_exact(4)).filter(|(a,b)|a!=b).count();assert_eq!(default_diff,0,"Default whole viewer uses maintained eye-dome shading and opaque cloud output");}
-                if !edges&&((alpha==0&&edl==0.&&samples==1)||(alpha==255&&edl>0.&&samples==1)) {for(name,bytes)in[("actual",&actual),("reference",&reference)] {crate::sample_test_proof::write(format!("cloud-parity-{alpha}-{samples}-{name}.rgba"),bytes).unwrap();}}
-                records.push(serde_json::json!({"viewportEdges":edges,"sourceAlpha":alpha,"samples":samples,"edl":edl,"rgbaDifferences":rgba,"rgbDifferences":rgb,"alphaDifferences":a}));
-            }
-            assert_eq!(&r.cloud_usage()[..4],&usage[..4]);r.request_pick([0.,0.],matrix).unwrap();crate::cap_gpu_tests::wait(&r);assert_eq!(r.take_pick(matrix).unwrap().unwrap().unwrap()[0],owner.value());assert_eq!(cloud.to_proto(),original);
-        }
-    }
-    }
-    assert_eq!((alpha_differences,shaded_differences),(0,0));crate::sample_test_proof::write("cloud-parity-observed.json",serde_json::to_vec_pretty(&records).unwrap()).unwrap();
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-46.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -14611,92 +9823,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain every prior surface/section assertion and add actual sheet/cloud composition at both counts, complete sources/geometry/cache retention, exact returns and fresh original owners.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-r);assert_eq!(r.take_pick(matrix).unwrap().unwrap().unwrap()[0],owner.value(),"Single-sample closed-cap owner query is independent of4x crossing resources");
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzca-cache-cloud-and-sheet-samples-47.rs" skip=160
 ```
 
-</details>
+**Result after `96zzzzzzzca-cache-cloud-and-sheet-samples`:** Original cloud and drawing-sheet colour recipes support matching physical sample counts through the shared cache. Point images/raster, source columns, drawing geometry, placements and full IDs remain retained. Original-owner queries stay one-sample and preserve coherent front/rear/wide-fringe behavior. Current complete browser rendering remains one-sample pending the remaining consumers.
 
-</details>
+These actual Native GPU frames show cloud occlusion of original faces/sections, original sheet/cloud composition and coherent rear/front source line pixels at the labelled physical count. Independent physical address/depth and original-owner checks accompany the images. Original records, source/geometry uploads, cached one-sample point raster and exact count-return pixels remain strict. The independent compositor also checks every RGBA channel across all16alpha/shading/edge/count settings. Complete browser rendering remains single-sample until all remaining consumers are connected. In this isolated reversed-depth fixture the sheet lies in front of the blue source face, and the red cloud lies in front of both. Its thin blue pen retains the original colour, which has deliberately low contrast against the blue face.
+
+---
 
 <a id="checkpoint-96zzzzzzzd-retarget-cached-text"></a>
 
 ### Step 11 of 19 · Retarget cached text colour (`96zzzzzzzd-retarget-cached-text`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/19 Visual Trace (96zzzzzzzd-retarget-cached-text): Retarget cached text colour</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs, src/text_plane.rs, src/scene_text_gpu.rs, src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original text/shaping</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained font/atlas/world</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">raster</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached matching colour</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent original-owner</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">queries</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plate.rs, src/te…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached matching colour…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent original-ow…</text>
 </svg>
-</div>
-
-- **Goal:** Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
-- **Data Flow Trace:** `Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries`
-- **Files You Touch:** `src/text_plate.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/text_plane.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/scene_text_gpu.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/renderer.rs` (*Late-created text adopts the current renderer count.*) · `src/sample_surface_tests.rs` (*Extend the supplied actual fixture to cached text colour without introducing the complete renderer API before all remaining consumers.*)
 
 Retarget world text, nameplates and screen glyph colour to the frame sample count. Keep original text, shaping, fonts, atlas contents and world-plane raster images retained, and keep original-owner queries independently single-sample.
 
 Nameplate and world-plane colour recipes reuse the shared two-count cache. Their coverage and original world positions use matching physical sample coordinates. Repeating a target does nothing; a format change still rebuilds incompatible resources through the existing path. Late-created text adopts the current frame count.
 
-Glyphon exposes a TextRenderer through its public API. A real count change recreates that small renderer and its initial vertex buffer. Retain the atlas, fonts and cached shaping/raster data around it; this is not a zero-allocation switch.
-
-The supplied actual GPU witness combines world text, nameplates and screen glyphs with an original face. It checks font/shaping/raster/atlas usage, original geometry and sources, fresh original owners and exact return pixels through4→1→4. Current complete browser rendering remains one-sample until the remaining consumers and production API are connected.
-
-> **Self-Check Question:** *Which text resources should a colour sample-count change retain?*  
-> **Answer:** Retain original source text, shaping, fonts, atlas contents and world-plane raster images. Select a compatible cached plate/plane recipe and recreate only the small Glyphon renderer/initial vertex buffer required by its public API. Keep owner queries single-sample.
-
-- **What You Should See:** World text, nameplate and screen glyph colour can match physical frame samples while retaining source/shaping/font/atlas/world-raster resources. Actual count changes recreate the small Glyphon renderer/initial vertex buffer. Late-created text adopts the count and original-owner queries remain independently one-sample. Complete browser multisampling is connected after the remaining consumers.
-
-These actual Native GPU pictures show original world text, nameplates and screen glyphs at the labelled physical sample count. The witness checks unchanged shaping, fonts, atlas contents and cached world-plane rasters, original source/geometry retention, fresh original owners and exact count returns. A genuine count change recreates the small Glyphon TextRenderer/initial vertex buffer through its public API. Complete browser rendering remains single-sample until all remaining consumers are connected.
-
-**world/nameplate/screen text; one sample — actual cached text colour check.**
-
-**world/nameplate/screen text; four samples — actual cached text colour check.**
-- **Hands-On Lab Experiment:** Run the actual text witness at4→1→4 and inspect the labelled world/nameplate/screen frames. Require exact return pixels, fresh original owners, stable source geometry and unchanged shaping/world-raster/atlas usage. Keep Glyphon renderer allocation separate from the retained font/atlas/raster claim.
-
-<details>
-<summary>Implementation 96zzzzzzzd-retarget-cached-text: Retarget cached text colour</summary>
-
-Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
-
-Data flow: Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries.
+> **Check:** *Which text resources should a colour sample-count change retain?* — Retain original source text, shaping, fonts, atlas contents and world-plane raster images. Select a compatible cached plate/plane recipe and recreate only the small Glyphon renderer/initial vertex buffer required by its public API. Keep owner queries single-sample.
 
 ### 1. `src/text_plate.rs`
 
@@ -14704,8 +9874,7 @@ Retain original drawing, raster/font resources and independent owner queries whi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return 0;
@@ -14716,8 +9885,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         pass.draw(range, 0..1);
         1
 ```
-
-</details>
 
 Replace it with:
 
@@ -14731,8 +9898,7 @@ Replace it with:
         1
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
@@ -14750,8 +9916,6 @@ Replace it with:
 
     pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>, overlay: bool) -> u32 {
 ```
-
-</details>
 
 Replace it with:
 
@@ -14773,8 +9937,7 @@ Replace it with:
     pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>, overlay: bool) -> u32 {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     {
@@ -14785,8 +9948,6 @@ Replace it with:
         let id_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("text plate ids"),
 ```
-
-</details>
 
 Replace it with:
 
@@ -14800,8 +9961,7 @@ Replace it with:
             label: Some("text plate ids"),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -14812,8 +9972,6 @@ pub(super) struct Plates {
     physical_vertices: u32,
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -14828,15 +9986,12 @@ pub(super) struct Plates {
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::text_gpu_support::{GpuCtx,GrowBuf,VERTS};
 use crate::text_gpu_support::{Pipeline,Target};
 ```
-
-</details>
 
 Replace it with:
 
@@ -14846,8 +10001,7 @@ use crate::text_gpu_support::{GpuCtx,GrowBuf,VERTS};
 use crate::text_gpu_support::{Pipeline,Target};
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::sample_pipelines::Variants;
@@ -14868,7 +10022,6 @@ pub(super) struct Plates {
     id_pipeline: Pipeline,
     physical_vertices: u32,
 }
-
 
 fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
     let device = ctx.device.clone();
@@ -15053,91 +10206,13 @@ impl Plates {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-17.rs"
-```
-
-</details>
-
 ### 2. `src/text_plane.rs`
 
 Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             return 0;
@@ -15148,8 +10223,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub(super) fn draw_ids(
 ```
-
-</details>
 
 Replace it with:
 
@@ -15163,8 +10236,7 @@ Replace it with:
     pub(super) fn draw_ids(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -15176,8 +10248,6 @@ Replace it with:
 
     pub(super) fn reset(&mut self) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -15193,8 +10263,7 @@ Replace it with:
     pub(super) fn reset(&mut self) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             vertices: GrowBuf::new(ctx, "world text vertices", 64, VERTS),
@@ -15205,8 +10274,6 @@ Replace it with:
             target,
             rasterizations: 0,
 ```
-
-</details>
 
 Replace it with:
 
@@ -15220,8 +10287,7 @@ Replace it with:
             rasterizations: 0,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     {
@@ -15232,8 +10298,6 @@ Replace it with:
         let colour_groups = [Some(&layout)];
         let id_groups = [Some(&layout), Some(&pick)];
 ```
-
-</details>
 
 Replace it with:
 
@@ -15247,8 +10311,7 @@ Replace it with:
         let id_groups = [Some(&layout), Some(&pick)];
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     vertices: GrowBuf,
@@ -15259,8 +10322,6 @@ Replace it with:
     target: Target,
     pub(super) rasterizations: u64,
 ```
-
-</details>
 
 Replace it with:
 
@@ -15274,8 +10335,7 @@ Replace it with:
     pub(super) rasterizations: u64,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use super::TextFrame;
@@ -15339,7 +10399,6 @@ fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
 
     clip
 }
-
 
 fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
     let TextPlacement::WorldPlane {
@@ -15417,7 +10476,6 @@ fn coverage(content: &SwashContent, data: &[u8], source: usize) -> u8 {
         }
     }
 }
-
 
 fn rasterize(
     run: &TextRun,
@@ -15497,7 +10555,6 @@ fn rasterize(
     ))
 }
 
-
 fn upload_plane(
     ctx: &GpuCtx,
     layout: &wgpu::BindGroupLayout,
@@ -15552,7 +10609,6 @@ fn upload_plane(
         bind,
     }
 }
-
 
 fn append_quad(
     vertices: &mut Vec<[f32; 16]>,
@@ -15647,7 +10703,6 @@ fn append_quad(
         ]);
     }
 }
-
 
 fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout, ids: bool) -> Pipeline {
     let device = ctx.device.clone();
@@ -15909,63 +10964,13 @@ impl Planes {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-27.rs"
-```
-
-</details>
-
 ### 3. `src/scene_text_gpu.rs`
 
 Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -15978,8 +10983,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.anchored = renderer(
             ctx,
 ```
-
-</details>
 
 Replace it with:
 
@@ -15998,8 +11001,7 @@ Replace it with:
             ctx,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::text_gpu_support::GpuCtx;
@@ -16021,7 +11023,6 @@ pub struct TextFrame {
     pub ortho_half_height: f32,
     pub clip: [[f64; 4]; 6],
 }
-
 
 impl TextFrame {
     fn canvas(&self) -> TextFrame {
@@ -16751,35 +11752,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-29.rs"
-```
-
-</details>
-
 ### 4. `src/renderer.rs`
 
 Late-created text adopts the current renderer count.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -16787,19 +11762,7 @@ Edit the existing block to match this code; keep unchanged lines:
         let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:self.targets.samples});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-30.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -16807,25 +11770,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend the supplied actual fixture to cached text colour without introducing the complete renderer API before all remaining consumers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
- r.sheets.set_samples(&r.device,count);
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzd-retarget-cached-text-31.rs" skip=40
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -16833,125 +11784,54 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Actual world/nameplate/screen text source/font/shaping/raster/atlas retention, late creation, exact count returns and fresh original-owner queries.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-roto(),cloud_before);assert!(Rc::ptr_eq(&scene.sheets()[0].prepared.original,&sheet));crate::sample_test_proof::write(root.join("four.rgba"),four).unwrap();
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzd-retarget-cached-text-32.rs" skip=160
 ```
 
-</details>
+**Result after `96zzzzzzzd-retarget-cached-text`:** World text, nameplate and screen glyph colour can match physical frame samples while retaining source/shaping/font/atlas/world-raster resources. Actual count changes recreate the small Glyphon renderer/initial vertex buffer. Late-created text adopts the count and original-owner queries remain independently one-sample. Complete browser multisampling is connected after the remaining consumers.
 
-</details>
+These actual Native GPU pictures show original world text, nameplates and screen glyphs at the labelled physical sample count. The witness checks unchanged shaping, fonts, atlas contents and cached world-plane rasters, original source/geometry retention, fresh original owners and exact count returns. A genuine count change recreates the small Glyphon TextRenderer/initial vertex buffer through its public API. Complete browser rendering remains single-sample until all remaining consumers are connected.
+
+---
 
 <a id="checkpoint-96zzzzzzze-cache-outline-section-recipes"></a>
 
 ### Step 12 of 19 · Cache section masks and the final outline blend (`96zzzzzzze-cache-outline-section-recipes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/19 Visual Trace (96zzzzzzze-cache-outline-section-recipes): Cache section masks and the final outline blend</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_caps.rs, src/outline_composite.rs, src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original section address</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching physical coverage</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sample</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained outline search</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one cached final blend</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_caps.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained outline search</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one cached final blend</text>
 </svg>
-</div>
-
-- **Goal:** Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
-- **Data Flow Trace:** `Original section address → matching physical coverage sample → retained outline search → one cached final blend`
-- **Files You Touch:** `src/outline_caps.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_composite.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_gpu.rs` (*Keep this prerequisite independently compilable: its current coverage producer is still one-sample. The next lesson passes the active physical count.*)
 
 Cache the section coverage and final outline blend for their requested sample count. Retain original integer addresses and the existing one-sample search images. This prepares the recipes; the outline coverage owner is connected in the next step.
 
 An empty section owner now waits until first use before creating a recipe. Its bind group refers to the active original-address image, and a real count change invalidates that binding. The four-sample shader reads the matching integer sample and uses actual sample-qualified coordinates to reconstruct the section depth. Integer addresses and depth are never resolved or averaged.
 
-Move the previously typed section and final-blend descriptors into small factories. Reuse those exact descriptors and change only the count-dependent parts. Both owners use the shared two-count recipe cache. The final blend retains its source shader and immutable layout and chooses the cached colour recipe matching the output pass. Its input alpha images remain single-sample.
-
-The current outline coverage producer still uses one sample. Existing actual GPU regressions therefore verify unchanged selected/global masks, section silhouettes, CSS widths and the single black blend here. Actual four-sample outline coverage, resource bounds and original-owner checks follow when the producer is connected.
-
-> **Self-Check Question:** *Which outline inputs can be resolved, and which must remain sample-specific?*  
-> **Answer:** Float coverage may be resolved for the one-sample search. Original integer addresses and depth remain sample-specific; read the matching physical sample when constructing section coverage. Blend the resulting outline only once.
-
-- **What You Should See:** Section coverage and final outline blending have lazy or cached count-specific recipes. Original source addresses and existing one-sample search resources retain their meaning. The current coverage producer and complete browser frame remain single-sample until their next integration step.
-- **Hands-On Lab Experiment:** Run the actual selected/global outline, section-mask and two-density CSS-width regressions. Inspect that default one-sample silhouettes are unchanged. Follow the four-sample section shader from its explicit sample coordinate to its original integer address and reconstructed plane depth; do not mistake this prerequisite for a complete four-sample frame.
-
-<details>
-<summary>Implementation 96zzzzzzze-cache-outline-section-recipes: Cache section masks and the final outline blend</summary>
-
-Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
-
-Data flow: Original section address → matching physical coverage sample → retained outline search → one cached final blend.
+> **Check:** *Which outline inputs can be resolved, and which must remain sample-specific?* — Float coverage may be resolved for the one-sample search. Original integer addresses and depth remain sample-specific; read the matching physical sample when constructing section coverage. Blend the resulting outline only once.
 
 ### 1. `src/outline_caps.rs`
 
 Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Caps{
- pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,
- input:Option<wgpu::TextureView>,group:Option<wgpu::BindGroup>,
-}
-impl Caps{
- pub fn new(device:&wgpu::Device)->Self{
-  use wgpu::{ShaderStages as Stages,TextureSampleType as Sample};
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("visible cap coverage"),entries:&[
-   crate::text_gpu_support::texture_entry(0,Stages::FRAGMENT,Sample::Uint,false),
-   wgpu::BindGroupLayoutEntry{binding:1,visibility:Stages::FRAGMENT,ty:wgpu::BindingType::Buffer{ty:wgpu::BufferBindingType::Uniform,has_dynamic_offset:false,min_binding_size:wgpu::BufferSize::new(16)},count:None},
-  ]});
-  let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("visible cap coverage"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("outline_caps.wgsl"),1,0).into())});
-  let clipping=crate::clipping_gpu::layout(device);
-  let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("visible cap coverage"),bind_group_layouts:&[Some(&layout),Some(&clipping)],immediate_size:0});
-  let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
-   label:Some("visible cap coverage"),layout:Some(&pipeline_layout),
-   vertex:wgpu::VertexState{module:&shader,entry_point:Some("vs_main"),buffers:&[],compilation_options:Default::default()},
-   fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some("fs_main"),targets:&[Some(wgpu::TextureFormat::R8Unorm.into())],compilation_options:Default::default()}),
-   primitive:Default::default(),depth_stencil:Some(wgpu::DepthStencilState{format:crate::depth::FORMAT,depth_write_enabled:Some(false),depth_compare:Some(crate::depth::CLOSER_EQUAL),stencil:Default::default(),bias:Default::default()}),multisample:Default::default(),multiview_mask:None,cache:None,
-  });Self{pipeline,layout,input:None,group:None}
- }
- pub fn prepare(&mut self,device:&wgpu::Device,input:&wgpu::TextureView,radius:&wgpu::Buffer){
-  if self.input.as_ref()==Some(input){return;}
-  self.group=Some(device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("visible cap coverage"),layout:&self.layout,entries:&[
-   wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(input)},wgpu::BindGroupEntry{binding:1,resource:radius.as_entire_binding()},
-  ]}));self.input=Some(input.clone());
- }
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,clipping:&wgpu::BindGroup){if let Some(group)=&self.group{pass.set_pipeline(&self.pipeline);pass.set_bind_group(0,group,&[]);pass.set_bind_group(1,clipping,&[]);pass.draw(0..3,0..1);}}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -16979,36 +11859,15 @@ fn pipelines(device:&wgpu::Device,samples:u32)->(wgpu::RenderPipeline,wgpu::Bind
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-02.rs"
-```
-
-</details>
-
 ### 2. `src/outline_caps.rs`
 
 Reuse the previously typed immutable outline descriptor.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// existing section coverage descriptor
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -17016,53 +11875,9 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-03.rs"
 ```
 
-</details>
-
 ### 3. `src/outline_caps.rs`
 
 Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Caps{
- pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,
- input:Option<wgpu::TextureView>,group:Option<wgpu::BindGroup>,
-}
-impl Caps{
- pub fn new(device:&wgpu::Device)->Self{
-Self{pipeline,layout,input:None,group:None}
- }
- pub fn prepare(&mut self,device:&wgpu::Device,input:&wgpu::TextureView,radius:&wgpu::Buffer){
-  if self.input.as_ref()==Some(input){return;}
-  self.group=Some(device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("visible cap coverage"),layout:&self.layout,entries:&[
-   wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(input)},wgpu::BindGroupEntry{binding:1,resource:radius.as_entire_binding()},
-  ]}));self.input=Some(input.clone());
- }
- pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,clipping:&wgpu::BindGroup){if let Some(group)=&self.group{pass.set_pipeline(&self.pipeline);pass.set_bind_group(0,group,&[]);pass.set_bind_group(1,clipping,&[]);pass.draw(0..3,0..1);}}
-}
-
-fn pipelines(device:&wgpu::Device,samples:u32)->(wgpu::RenderPipeline,wgpu::BindGroupLayout) {
-  use wgpu::{ShaderStages as Stages,TextureSampleType as Sample};
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("visible cap coverage"),entries:&[
-   crate::text_gpu_support::texture_entry(0,Stages::FRAGMENT,Sample::Uint,false),
-   wgpu::BindGroupLayoutEntry{binding:1,visibility:Stages::FRAGMENT,ty:wgpu::BindingType::Buffer{ty:wgpu::BufferBindingType::Uniform,has_dynamic_offset:false,min_binding_size:wgpu::BufferSize::new(16)},count:None},
-  ]});
-  let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("visible cap coverage"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("outline_caps.wgsl"),1,0).into())});
-  let clipping=crate::clipping_gpu::layout(device);
-  let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("visible cap coverage"),bind_group_layouts:&[Some(&layout),Some(&clipping)],immediate_size:0});
-  let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
-   label:Some("visible cap coverage"),layout:Some(&pipeline_layout),
-   vertex:wgpu::VertexState{module:&shader,entry_point:Some("vs_main"),buffers:&[],compilation_options:Default::default()},
-   fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some("fs_main"),targets:&[Some(wgpu::TextureFormat::R8Unorm.into())],compilation_options:Default::default()}),
-   primitive:Default::default(),depth_stencil:Some(wgpu::DepthStencilState{format:crate::depth::FORMAT,depth_write_enabled:Some(false),depth_compare:Some(crate::depth::CLOSER_EQUAL),stencil:Default::default(),bias:Default::default()}),multisample:Default::default(),multiview_mask:None,cache:None,
-  });
-(pipeline,layout)
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -17119,133 +11934,9 @@ fn source(samples:u32)->String {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-27.rs"
-```
-
-</details>
-
 ### 4. `src/outline_composite.rs`
 
 Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Composite{pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,inputs:Option<[wgpu::TextureView;2]>,group:Option<wgpu::BindGroup>}
-impl Composite{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("max outline alpha"),entries:&[0,1].map(|n|crate::text_gpu_support::texture_entry(n,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false))});
-  let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("max outline alpha"),source:wgpu::ShaderSource::Wgsl(include_str!("outline_composite.wgsl").into())});
-  let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("max outline alpha"),bind_group_layouts:&[Some(&layout)],immediate_size:0});
-  let pipeline=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("one black outline blend"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some("vs_main"),buffers:&[],compilation_options:Default::default()},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some("fs_main"),targets:&[Some(wgpu::ColorTargetState{format,blend:Some(wgpu::BlendState::ALPHA_BLENDING),write_mask:wgpu::ColorWrites::ALL})],compilation_options:Default::default()}),primitive:Default::default(),depth_stencil:None,multisample:Default::default(),multiview_mask:None,cache:None});Self{pipeline,layout,inputs:None,group:None}
- }
- pub fn draw(&mut self,device:&wgpu::Device,encoder:&mut wgpu::CommandEncoder,colour:&wgpu::TextureView,global:&wgpu::TextureView,selected:Option<&wgpu::TextureView>){
-  let inputs=[global.clone(),selected.unwrap_or(global).clone()];if self.inputs.as_ref()!=Some(&inputs){self.group=Some(device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("max outline alpha"),layout:&self.layout,entries:&[0,1].map(|n|wgpu::BindGroupEntry{binding:n,resource:wgpu::BindingResource::TextureView(&inputs[n as usize])})}));self.inputs=Some(inputs);}
-  let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("one black outline blend"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&self.pipeline);pass.set_bind_group(0,self.group.as_ref().unwrap(),&[]);pass.draw(0..3,0..1);
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -17269,40 +11960,15 @@ fn pipeline(device:&wgpu::Device,pipeline_layout:&wgpu::PipelineLayout,shader:&w
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-29.rs"
-```
-
-</details>
-
 ### 5. `src/outline_composite.rs`
 
 Reuse the previously typed immutable outline descriptor.
 
 Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
 
-<details>
-<summary>Previously typed code reference</summary>
+**Previously typed code reference:**
 
 Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-// existing outline descriptor
-```
-
-</details>
 
 Reuse the existing code in this destination:
 
@@ -17310,36 +11976,9 @@ Reuse the existing code in this destination:
 --8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-30.rs"
 ```
 
-</details>
-
 ### 6. `src/outline_composite.rs`
 
 Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Composite{pipeline:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,inputs:Option<[wgpu::TextureView;2]>,group:Option<wgpu::BindGroup>}
-impl Composite{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-  let layout=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("max outline alpha"),entries:&[0,1].map(|n|crate::text_gpu_support::texture_entry(n,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false))});
-  let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("max outline alpha"),source:wgpu::ShaderSource::Wgsl(include_str!("outline_composite.wgsl").into())});
-  let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("max outline alpha"),bind_group_layouts:&[Some(&layout)],immediate_size:0});
-  let pipeline=Variants::new(pipeline(device,&pipeline_layout,&shader,format,samples),samples);Self{pipeline,layout,inputs:None,group:None}
- }
- pub fn draw(&mut self,device:&wgpu::Device,encoder:&mut wgpu::CommandEncoder,colour:&wgpu::TextureView,global:&wgpu::TextureView,selected:Option<&wgpu::TextureView>){
-  let inputs=[global.clone(),selected.unwrap_or(global).clone()];if self.inputs.as_ref()!=Some(&inputs){self.group=Some(device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("max outline alpha"),layout:&self.layout,entries:&[0,1].map(|n|wgpu::BindGroupEntry{binding:n,resource:wgpu::BindingResource::TextureView(&inputs[n as usize])})}));self.inputs=Some(inputs);}
-  let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("one black outline blend"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&self.pipeline);pass.set_bind_group(0,self.group.as_ref().unwrap(),&[]);pass.draw(0..3,0..1);
- }
-}
-
-fn pipeline(device:&wgpu::Device,pipeline_layout:&wgpu::PipelineLayout,shader:&wgpu::ShaderModule,format:wgpu::TextureFormat,samples:u32)->wgpu::RenderPipeline {
-device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("one black outline blend"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some("vs_main"),buffers:&[],compilation_options:Default::default()},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some("fs_main"),targets:&[Some(wgpu::ColorTargetState{format,blend:Some(wgpu::BlendState::ALPHA_BLENDING),write_mask:wgpu::ColorWrites::ALL})],compilation_options:Default::default()}),primitive:Default::default(),depth_stencil:None,multisample:Default::default(),multiview_mask:None,cache:None})
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -17366,69 +12005,9 @@ fn pipeline(device:&wgpu::Device,pipeline_layout:&wgpu::PipelineLayout,shader:&w
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-40.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-41.rs"
-```
-
-</details>
-
 ### 7. `src/outline_gpu.rs`
 
 Keep this prerequisite independently compilable: its current coverage producer is still one-sample. The next lesson passes the active physical count.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if let Some(sections)=sections{self.caps.prepare(&ctx.device,sections,&self.radius);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -17436,87 +12015,42 @@ Edit the existing block to match this code; keep unchanged lines:
     if let Some(sections)=sections{self.caps.prepare(&ctx.device,sections,&self.radius,1);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzzzzzze-cache-outline-section-recipes`:** Section coverage and final outline blending have lazy or cached count-specific recipes. Original source addresses and existing one-sample search resources retain their meaning. The current coverage producer and complete browser frame remain single-sample until their next integration step.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzze-cache-outline-section-recipes-42.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzzzzzzf-resolve-float-outline-coverage"></a>
 
 ### Step 13 of 19 · Resolve float outline coverage (`96zzzzzzzf-resolve-float-outline-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/19 Visual Trace (96zzzzzzzf-resolve-float-outline-coverage): Resolve float outline coverage</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs, src/outline_caps.rs, src/renderer.rs, src/sample_surface_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original physical</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face/section…</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">float-only resolve</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained search images</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one matching final blend</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs, src/o…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained search images</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one matching final blend</text>
 </svg>
-</div>
-
-- **Goal:** Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
-- **Data Flow Trace:** `Original physical face/section coverage → float-only resolve → retained search images → one matching final blend`
-- **Files You Touch:** `src/outline_gpu.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_caps.rs` (*An empty section recipe no longer needs a device; allocate only when first used.*) · `src/renderer.rs` (*Late-created outline and final-blend owners adopt the current physical count.*) · `src/sample_surface_tests.rs` (*Extend the supplied actual sample-count fixture to current outline owners; do not introduce the complete production renderer API before its remaining consumers.*)
 
 Render face and section coverage at the frame sample count, then resolve only its float mask for the existing outline search. Keep selected and global outlines coherent, retain the search resources and blend their result once.
 
 The coverage owner uses the shared two-count recipe cache. Only an active four-sample frame owns an extra coverage image. Its one-sample coverage, pooling, dilation and search images stay retained. Real count changes clear the mask key and section input binding; repeating the current count does nothing. The same fullscreen factory now receives an explicit count, with pooling, dilation and search always passing one.
 
-A sample-qualified world position matches face coverage and clipping. Section coverage reads the original physical integer address and reconstructs depth at the matching sample. Resolve the float coverage into the existing search input, and keep the final selected/global alpha combination as a single black blend. Integer addresses and depth remain unaveraged.
-
-Late-created outline and final-blend owners adopt the current frame count. Skip section coverage preparation when no active section contributes. The supplied actual GPU witness compares selected and global masks, checks section and full-solid silhouettes, requires exact return pixels and original-owner queries, and bounds extra memory to the active four-sample coverage image. Complete browser multisampling is connected after the remaining consumers.
-
-> **Self-Check Question:** *Why can the outline search stay single-sample?*  
-> **Answer:** It consumes a resolved float coverage mask, so its pooling and search images do not need physical samples. The face and section producer still uses matching physical coordinates, original integer addresses and depth; those inputs are never averaged.
-
-- **What You Should See:** Physical-sample face and section coverage resolves into retained one-sample search images. Cached colour recipes match the active pass; selected/global masks agree and blend once. Only the active four-sample coverage image adds memory. Complete browser rendering remains one-sample until the remaining consumers are integrated.
-
-These actual Native GPU pictures show original selected/global sections at one and four samples, the four-sample global outline without selection, and the full solid after disabling the section. The witness requires matching alpha masks, a single black blend, original-owner queries, source/geometry retention, exact return pixels and memory bounded to the active four-sample coverage image. Byte-identical pictures share one labelled figure. Complete browser rendering remains single-sample until all remaining consumers are connected. The outer thin frame and short central mark belong to the existing clipping-plane frame/direction marker in this isolated top-view fixture; they are not extra silhouette edges. Full procedural original-plane grid/axis parity remains a separate remaining coverage item.
-
-**selected/global section, one sample — actual outline coverage check.**
-
-**selected/global section, four samples — actual outline coverage check.**
-
-**global section without selection, four samples — actual outline coverage check.**
-
-**full solid without clipping, four samples — actual outline coverage check.**
-- **Hands-On Lab Experiment:** Run the actual outline witness at1→4→1→4. Inspect the original selected/global section boundary, then disable the section and compare its silhouette. Require exact return pixels, fresh original owners, unchanged geometry/uploads and the asserted active-image memory bound. Inspect the separately labelled Native pictures alongside the canonical single-sample browser scene.
-
-<details>
-<summary>Implementation 96zzzzzzzf-resolve-float-outline-coverage: Resolve float outline coverage</summary>
-
-Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
-
-Data flow: Original physical face/section coverage → float-only resolve → retained search images → one matching final blend.
+> **Check:** *Why can the outline search stay single-sample?* — It consumes a resolved float coverage mask, so its pooling and search images do not need physical samples. The face and section producer still uses matching physical coordinates, original integer addresses and depth; those inputs are never averaged.
 
 ### 1. `src/outline_gpu.rs`
 
@@ -17524,8 +12058,7 @@ Match physical face/section coverage and colour recipes while retaining one-samp
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       stencil: Default::default(),
@@ -17536,8 +12069,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     cache: None,
   })
 ```
-
-</details>
 
 Replace it with:
 
@@ -17551,8 +12082,7 @@ Replace it with:
   })
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }),
@@ -17571,8 +12101,6 @@ fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
   let view=crate::surface_view::layout(device);
   let model = crate::gpu_layout::uniform(device, crate::object_record::BYTES as u64);
 ```
-
-</details>
 
 Replace it with:
 
@@ -17594,8 +12122,7 @@ fn mask_pipeline(device: &wgpu::Device,samples:u32) -> wgpu::RenderPipeline {
   let model = crate::gpu_layout::uniform(device, crate::object_record::BYTES as u64);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   entry: &str,
@@ -17605,8 +12132,6 @@ fn mask_pipeline(device: &wgpu::Device,samples:u32) -> wgpu::RenderPipeline {
   let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     label: Some(entry),
 ```
-
-</details>
 
 Replace it with:
 
@@ -17620,8 +12145,7 @@ Replace it with:
     label: Some(entry),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],
@@ -17632,8 +12156,6 @@ Replace it with:
 }
 fn raster(
 ```
-
-</details>
 
 Replace it with:
 
@@ -17647,8 +12169,7 @@ Replace it with:
 fn raster(
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
           }),
@@ -17659,8 +12180,6 @@ fn raster(
         for mesh in meshes.iter().filter(|m| all||m.selected()) {
           mesh.draw(&mut pass);
 ```
-
-</details>
 
 Replace it with:
 
@@ -17674,8 +12193,7 @@ Replace it with:
           mesh.draw(&mut pass);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -17688,8 +12206,6 @@ Replace it with:
           })],
           depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
 ```
-
-</details>
 
 Replace it with:
 
@@ -17705,8 +12221,7 @@ Replace it with:
           depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       return;
@@ -17717,8 +12232,6 @@ Replace it with:
     let m = self.masks.as_ref().unwrap();
     if self.key.as_ref() != Some(&key) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -17732,8 +12245,7 @@ Replace it with:
     if self.key.as_ref() != Some(&key) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "selected outline alpha",
@@ -17746,8 +12258,6 @@ Replace it with:
       &self.radius,
       0,
 ```
-
-</details>
 
 Replace it with:
 
@@ -17767,8 +12277,7 @@ Replace it with:
       0,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   pub fn usage(&self) -> [u64; 4] {
@@ -17779,8 +12288,6 @@ Replace it with:
           + m.dilated.bytes()
           + m.alpha.bytes()
 ```
-
-</details>
 
 Replace it with:
 
@@ -17794,8 +12301,7 @@ Replace it with:
           + m.alpha.bytes()
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       draws: 0,
@@ -17805,8 +12311,6 @@ Replace it with:
     self.revision = self.revision.wrapping_add(1);
   }
 ```
-
-</details>
 
 Replace it with:
 
@@ -17822,8 +12326,7 @@ Replace it with:
   }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "fs_alpha",
@@ -17836,8 +12339,6 @@ Replace it with:
       composite_layout,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -17851,8 +12352,7 @@ Replace it with:
       composite_layout,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         "fs_dilate",
@@ -17862,8 +12362,6 @@ Replace it with:
       alpha_pipeline: fullscreen(
         &ctx.device,
 ```
-
-</details>
 
 Replace it with:
 
@@ -17877,8 +12375,7 @@ Replace it with:
         &ctx.device,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
       label: Some("current surface outline"),
@@ -17892,8 +12389,6 @@ Replace it with:
         &ctx.device,
         &shader,
 ```
-
-</details>
 
 Replace it with:
 
@@ -17911,8 +12406,7 @@ Replace it with:
         &shader,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   pub draws: u64,
@@ -17923,8 +12417,6 @@ impl Outline {
     let uniform = |binding, bytes| wgpu::BindGroupLayoutEntry {
       binding,
 ```
-
-</details>
 
 Replace it with:
 
@@ -17939,8 +12431,7 @@ impl Outline {
       binding,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -17956,8 +12447,6 @@ pub struct Outline {
   search_layout: wgpu::BindGroupLayout,
   composite_layout: wgpu::BindGroupLayout,
 ```
-
-</details>
 
 Replace it with:
 
@@ -17976,8 +12465,7 @@ pub struct Outline {
   composite_layout: wgpu::BindGroupLayout,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -17987,8 +12475,6 @@ struct Masks {
   dilated: Image,
   alpha: Image,
 ```
-
-</details>
 
 Replace it with:
 
@@ -18002,8 +12488,7 @@ struct Masks {
   alpha: Image,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
   size: [u32; 2],
@@ -18031,8 +12516,6 @@ impl Image {
 }
 impl Drop for Image {
 ```
-
-</details>
 
 Replace it with:
 
@@ -18064,16 +12547,13 @@ impl Image {
 impl Drop for Image {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{
   gpu_mesh::GpuMesh,
   text_gpu_support::{GpuCtx, resource_group, texture_entry},
 ```
-
-</details>
 
 Replace it with:
 
@@ -18084,8 +12564,7 @@ use crate::{
   text_gpu_support::{GpuCtx, resource_group, texture_entry},
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::sample_pipelines::Variants;
@@ -18531,227 +13010,9 @@ impl Outline {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-30.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-40.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-41.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-42.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-43.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-44.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-45.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-46.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-47.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-48.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-49.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-50.rs"
-```
-
-</details>
-
 ### 2. `src/outline_caps.rs`
 
 An empty section recipe no longer needs a device; allocate only when first used.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- pub fn new(_:&wgpu::Device)->Self {Self {pipelines:None,input:None,group:None}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -18759,25 +13020,13 @@ Edit the existing block to match this code; keep unchanged lines:
  pub fn new()->Self {Self {pipelines:None,input:None,group:None}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-51.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Late-created outline and final-blend owners adopt the current physical count. Do not prepare a section coverage recipe when no active section can contribute.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.targets.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass,&self.view_group);self.guides.draw(&mut pass,&self.view_group);}
@@ -18795,8 +13044,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.text_error.borrow_mut().take();
         if let Some(lane)=self.text.borrow_mut().as_mut() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -18817,8 +13064,7 @@ Replace it with:
         if let Some(lane)=self.text.borrow_mut().as_mut() {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -19465,41 +13711,7 @@ mod cloud_address_tests;
 mod cloud_composite_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-52.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-53.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-54.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-55.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-56.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-57.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -19507,25 +13719,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend the supplied actual sample-count fixture to current outline owners; do not introduce the complete production renderer API before its remaining consumers.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
- if let Some(text)=r.text.borrow_mut().as_mut(){text.retarget(&r.text_context(),crate::text_gpu_support::Target{format:r.format,samples:count});}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-58.rs" skip=146
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -19533,106 +13733,54 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Actual selected/global face and section coverage, bounded active-image memory, single black blend, exact returns and fresh original owners; retain every previous assertion.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-r{count}x text");}
- }
- assert_eq!(serde_json::to_string(&*original).unwrap(),source);crate::sample_test_proof::write(root.join("one.rgba"),single).unwrap();
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzf-resolve-float-outline-coverage-59.rs" skip=160
 ```
 
-</details>
+**Result after `96zzzzzzzf-resolve-float-outline-coverage`:** Physical-sample face and section coverage resolves into retained one-sample search images. Cached colour recipes match the active pass; selected/global masks agree and blend once. Only the active four-sample coverage image adds memory. Complete browser rendering remains one-sample until the remaining consumers are integrated.
 
-</details>
+These actual Native GPU pictures show original selected/global sections at one and four samples, the four-sample global outline without selection, and the full solid after disabling the section. The witness requires matching alpha masks, a single black blend, original-owner queries, source/geometry retention, exact return pixels and memory bounded to the active four-sample coverage image. Byte-identical pictures share one labelled figure. Complete browser rendering remains single-sample until all remaining consumers are connected. The outer thin frame and short central mark belong to the existing clipping-plane frame/direction marker in this isolated top-view fixture; they are not extra silhouette edges. Full procedural original-plane grid/axis parity remains a separate remaining coverage item.
+
+---
 
 <a id="checkpoint-96zzzzzzzg-retarget-original-ambient-properties"></a>
 
 ### Step 14 of 19 · Retarget original ambient properties (`96zzzzzzzg-retarget-original-ambient-properties`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/19 Visual Trace (96zzzzzzzg-retarget-original-ambient-properties): Retarget original ambient properties</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_source_pipeline.rs, src/ambient_source_gpu.rs, src/ambient_image.rs, src/ambient_images.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original face radii/normals</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching physical source</text>
-    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipes/images</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained one-sample ambient</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">hierarchy</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_source_pipeli…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching physical sourc…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained one-sample amb…</text>
 </svg>
-</div>
-
-- **Goal:** Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
-- **Data Flow Trace:** `Original face radii/normals → matching physical source recipes/images → retained one-sample ambient hierarchy`
-- **Files You Touch:** `src/ambient_source_pipeline.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_source_gpu.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_image.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_images.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient.wgsl` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_pipeline.rs` (*Assemble the matching original-property/depth input declarations while keeping the coarse hierarchy single-sample.*) · `src/ambient_shader_contract.rs` (*Retain both existing full Naga contracts and additionally validate both assembled original-property sample modes before their consumer is connected.*)
 
 Match original ambient radius and normal sources to the frame sample count. Cache the ordinary and shared source recipes, and replace only their full-resolution source images when the count changes. Keep the coarse hierarchy and filters single-sample.
 
 Ambient inputs describe the original source face, not authored display-lighting normals. The source pass uses the existing equal-depth policy and sample-qualified original world positions. Both ordinary and shared object paths retain their source geometry, placement records and original properties. The shared two-count cache selects the matching recipe without another source upload.
 
-The image owner accounts for the physical sample count in actual byte usage. Four-sample source images remain renderable and bindable; their original integer/depth inputs are not resolved. One-sample images retain the existing readback capability used by the actual Native witnesses. A dedicated retarget operation replaces only full-resolution radius/normal images and leaves the hierarchy, coarse normals, occupancy, filtered ambient and history images intact.
-
-Carry the same explicit physical sample through original radius, normal, primitive and depth reads. Sample zero remains the representative coarse input; sparse per-sample reconstruction also compares original primitive identity. Assemble matching texture declarations and retain full Naga validation of the original and both assembled recipes.
-
-The active ambient owner still creates one-sample resources until its matching shader bindings and sparse corrections are connected. Existing actual GPU regressions verify source geometric normals, contact radii, shared placements, released source records, cached contact shading and image release here. The complete four-sample source/property readback is required after the remaining ambient pieces are integrated.
-
-> **Self-Check Question:** *Which ambient resources need the physical sample count?*  
-> **Answer:** The full-resolution original radius/normal inputs and their source recipes must match physical depth samples. Coarse hierarchy, occupancy, filtering and history images remain single-sample; a colour count change should retain them.
-
-- **What You Should See:** Original radius/normal source recipes, full-resolution images and assembled shader inputs support matching physical samples. Coarse ambient images retain their existing one-sample ownership. The current ambient producer remains one-sample until the matching shaders and sparse correction path are connected.
-- **Hands-On Lab Experiment:** Run the actual source-normal, shared contact-radius and cached-contact regressions. Compare the new retarget operation with full image preparation: it changes only the two full-resolution original-property images. Check that physical sample count contributes to byte accounting and no four-sample source image is averaged into an original property.
-
-<details>
-<summary>Implementation 96zzzzzzzg-retarget-original-ambient-properties: Retarget original ambient properties</summary>
-
-Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
-
-Data flow: Original face radii/normals → matching physical source recipes/images → retained one-sample ambient hierarchy.
+> **Check:** *Which ambient resources need the physical sample count?* — The full-resolution original radius/normal inputs and their source recipes must match physical depth samples. Coarse hierarchy, occupancy, filtering and history images remain single-sample; a colour count change should retain them.
 
 ### 1. `src/ambient_source_pipeline.rs`
 
 Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Pipeline{pub draw:wgpu::RenderPipeline,pub record_draw:wgpu::RenderPipeline}
-impl Pipeline{
- pub fn new(device:&wgpu::Device)->Self{
-  let create=|shared| {
-  let view=crate::surface_view::layout(device);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let groups=[Some(&view),Some(&model),Some(&clip),Some(&geometry)];let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&groups[..if shared{4}else{3}],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
-",include_str!("ambient_sources.wgsl"));let source=if shared {crate::object_rows::source(source)}else{source.into()};let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient original normals and radii"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(&source,2,0).into())});
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3,1=>Uint32,2=>Uint32];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -19649,55 +13797,9 @@ impl Pipeline{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-06.rs"
-```
-
-</details>
-
 ### 2. `src/ambient_source_gpu.rs`
 
 Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Sources{pipes:crate::ambient_source_pipeline::Pipeline}
-impl Sources{
- pub fn new(device:&wgpu::Device)->Self{Self{pipes:crate::ambient_source_pipeline::Pipeline::new(device)}}
- pub fn encode(&mut self,encoder:&mut wgpu::CommandEncoder,radius:&wgpu::TextureView,normals:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clip:&wgpu::BindGroup,meshes:&[crate::gpu_mesh::GpuMesh],records:Option<&crate::instance_gpu::Lane>){
-  let attachments=[radius,normals].map(|view|Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}));let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original ambient source properties"),color_attachments:&attachments,depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&self.pipes.draw);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clip,&[]);for mesh in meshes{if records.is_some_and(|rows|rows.bind_record(&mut pass,mesh)){pass.set_pipeline(&self.pipes.record_draw);mesh.geometry.draw_pulled(&mut pass,1);}else{pass.set_pipeline(&self.pipes.draw);mesh.bind_model(&mut pass);mesh.geometry.draw(&mut pass);}}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -19714,88 +13816,9 @@ impl Sources{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-21.rs"
-```
-
-</details>
-
 ### 3. `src/ambient_image.rs`
 
 Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Image{pub texture:wgpu::Texture,pub view:wgpu::TextureView,pub bytes:u64,pub size:[u32;2]}
-impl Image{
- pub fn new(device:&wgpu::Device,size:[u32;2],format:wgpu::TextureFormat)->Self{let texture=device.create_texture(&wgpu::TextureDescriptor{label:Some("ambient actual image"),size:wgpu::Extent3d{width:size[0],height:size[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format,usage:wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::COPY_SRC,view_formats:&[]});let view=texture.create_view(&Default::default());let bytes=u64::from(size[0])*u64::from(size[1])*u64::from(format.block_copy_size(None).unwrap());Self{texture,view,bytes,size}}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -19807,53 +13830,9 @@ impl Image{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-26.rs"
-```
-
-</details>
-
 ### 4. `src/ambient_images.rs`
 
 Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{ambient_image::Image,pyramid_image::Image as Pyramid};
-pub struct Images{pub full:[u32;2],pub size:[u32;2],pub source_radius:Image,pub source_normals:Image,pub linear:Pyramid,pub radii:Pyramid,pub normals:Image,pub occupancy:Image,pub ground:Image,pub ao:[Image;3],pub history:Image,pub history_depth:Image}
-impl Images{
- pub fn new(device:&wgpu::Device,full:[u32;2],density:f32)->Self{
-  let(w,h)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[w.max(32),h.max(32)];let image=|size,format|Image::new(device,size,format);
-  let source_radius=image(full,wgpu::TextureFormat::R32Float);let source_normals=image(full,wgpu::TextureFormat::Rg8Unorm);let linear=Pyramid::new(device,size,wgpu::TextureFormat::R32Float);let radii=Pyramid::new(device,size,wgpu::TextureFormat::R16Uint);let normals=image(size,wgpu::TextureFormat::Rg8Unorm);let occupancy=image(size,wgpu::TextureFormat::R8Unorm);let ground=image(size,wgpu::TextureFormat::R8Unorm);let ao=std::array::from_fn(|i|image(if i==2{full}else{size},wgpu::TextureFormat::R8Unorm));let history=image(size,wgpu::TextureFormat::R8Unorm);let history_depth=image(size,wgpu::TextureFormat::R32Float);Self{full,size,source_radius,source_normals,linear,radii,normals,occupancy,ground,ao,history,history_depth}
- }
- pub fn bytes(&self)->u64{self.source_radius.bytes+self.source_normals.bytes+self.linear.bytes+self.radii.bytes+self.normals.bytes+self.occupancy.bytes+self.ground.bytes+self.ao.iter().map(|i|i.bytes).sum::<u64>()+self.history.bytes+self.history_depth.bytes}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -19873,57 +13852,13 @@ impl Images{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-30.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-35.rs"
-```
-
-</details>
-
 ### 5. `src/ambient.wgsl`
 
 Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     }
@@ -19940,8 +13875,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             different = different || ao[i]!=first;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -19962,8 +13895,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     var radius = ambient.params.y;
@@ -19974,8 +13906,6 @@ Replace it with:
     let origin = full_pixel(vec2<f32>(base)+0.5);
     let blend = (at-origin)/(full_pixel(vec2<f32>(base)+1.5)-origin);
 ```
-
-</details>
 
 Replace it with:
 
@@ -19989,8 +13919,7 @@ Replace it with:
     let blend = (at-origin)/(full_pixel(vec2<f32>(base)+1.5)-origin);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     }
@@ -20001,8 +13930,6 @@ Replace it with:
     let coord = vec2<u32>(pixel.xy);
     let encoded = (bits<<4u)|(coord.x&3u)|((coord.y&3u)<<2u);
 ```
-
-</details>
 
 Replace it with:
 
@@ -20016,8 +13943,7 @@ Replace it with:
     let encoded = (bits<<4u)|(coord.x&3u)|((coord.y&3u)<<2u);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     return decode_normal(textureLoad(normals,coord,0).xy*2.0-1.0);
@@ -20041,8 +13967,6 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
   let plane=clip_cap_plane(primitive);
   if(plane<clipping.count){let n=-clipping.planes[plane].xyz;return select(-n,n,dot(n,-ray_direction(pixel))>0.0);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -20069,8 +13993,7 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
   if(plane<clipping.count){let n=-clipping.planes[plane].xyz;return select(-n,n,dot(n,-ray_direction(pixel))>0.0);}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 const MSAA: bool = false;
@@ -20479,93 +14402,9 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-40.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-41.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-42.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-43.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-44.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-45.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-46.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-47.rs"
-```
-
-</details>
-
 ### 6. `src/ambient_pipeline.rs`
 
 Assemble the matching original-property/depth input declarations while keeping the coarse hierarchy single-sample. Use the assembled single-sample source without changing the current ambient owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use wgpu::{ShaderStages as S,TextureSampleType as T,BufferBindingType as B};
-pub struct Pipelines{pub source:wgpu::BindGroupLayout,pub level:wgpu::BindGroupLayout,pub sample:wgpu::BindGroupLayout,pub history:wgpu::BindGroupLayout,pub prepare:wgpu::RenderPipeline,pub reduce:wgpu::RenderPipeline,pub occupancy:wgpu::RenderPipeline,pub ground:wgpu::RenderPipeline,pub raw:wgpu::RenderPipeline,pub filter:[wgpu::RenderPipeline;2],pub upsample:wgpu::RenderPipeline,pub composite:wgpu::RenderPipeline}
-fn pipeline(device:&wgpu::Device,source:&str,fragment:&str,groups:&[Option<&wgpu::BindGroupLayout>],formats:&[wgpu::TextureFormat],blend:bool)->wgpu::RenderPipeline{
- let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("current ambient recipe"),source:wgpu::ShaderSource::Wgsl(source.into())});let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("current ambient recipe"),bind_group_layouts:groups,immediate_size:0});let targets=formats.iter().map(|format|Some(wgpu::ColorTargetState{format:*format,blend:if blend{Some(wgpu::BlendState::ALPHA_BLENDING)}else{None},write_mask:wgpu::ColorWrites::ALL})).collect::<Vec<_>>();
- device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("current ambient recipe"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some("vs_main"),compilation_options:Default::default(),buffers:&[]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some(fragment),compilation_options:Default::default(),targets:&targets}),primitive:Default::default(),depth_stencil:None,multisample:Default::default(),multiview_mask:None,cache:None})
-}
-impl Pipelines{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-  let texture=|binding,sample|crate::text_gpu_support::texture_entry(binding,S::FRAGMENT,sample,false);let uniform=|binding|crate::tile_pipelines::entry(binding,S::FRAGMENT,B::Uniform);
-  let source=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient source images and precise camera"),entries:&[texture(0,T::Depth),uniform(1),texture(2,T::Float{filterable:false}),texture(3,T::Float{filterable:false}),texture(4,T::Uint),uniform(5)]});
-  let level=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient reduced original properties"),entries:&[texture(0,T::Float{filterable:false}),texture(1,T::Uint),texture(2,T::Float{filterable:false})]});
-  let sample=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient filtered samples"),entries:&[texture(0,T::Float{filterable:true}),wgpu::BindGroupLayoutEntry{binding:1,visibility:S::FRAGMENT,ty:wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),count:None}]});
-  let mut entries=(0..4).map(|i|crate::tile_pipelines::entry(i,S::FRAGMENT,B::Storage{read_only:false})).collect::<Vec<_>>();entries.push(texture(4,T::Float{filterable:true}));entries.push(texture(5,T::Float{filterable:false}));let history=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient reserved current history bindings"),entries:&entries});
-  let shader=crate::clipping_gpu::source(include_str!("ambient.wgsl"),0,5);let groups=[Some(&source),Some(&level),Some(&sample),Some(&history)];let prepare=pipeline(device,&shader,"fs_prepare",&[Some(&source)],&[wgpu::TextureFormat::R32Float,wgpu::TextureFormat::R16Uint,wgpu::TextureFormat::Rg8Unorm],false);let make=|fragment|pipeline(device,&shader,fragment,&groups,&[wgpu::TextureFormat::R8Unorm],false);
-  let ground=make("fs_ground");let raw=make("fs_main");let filter=[make("fs_filter_x"),make("fs_filter_y")];let upsample=make("fs_upsample");let composite=pipeline(device,include_str!("ambient_composite.wgsl"),"fs_main",&[None,Some(&sample)],&[format],true);
-  let reduce=pipeline(device,include_str!("ambient_depth.wgsl"),"fs_reduce",&[Some(&level)],&[wgpu::TextureFormat::R32Float,wgpu::TextureFormat::R16Uint],false);let occupancy=pipeline(device,include_str!("ambient_depth.wgsl"),"fs_occupancy",&[Some(&level)],&[wgpu::TextureFormat::R8Unorm],false);
-  Self{source,level,sample,history,prepare,reduce,occupancy,ground,raw,filter,upsample,composite}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -20600,23 +14439,7 @@ pub(crate) fn shader_source(samples:u32)->String {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-48.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-49.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -20624,125 +14447,52 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Retain both existing full Naga contracts and additionally validate both assembled original-property sample modes before their consumer is connected.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        include_str!("ambient_composite.wgsl").to_string(),
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzg-retarget-original-ambient-properties-50.rs" skip=59
 ```
 
-</details>
+**Result after `96zzzzzzzg-retarget-original-ambient-properties`:** Original radius/normal source recipes, full-resolution images and assembled shader inputs support matching physical samples. Coarse ambient images retain their existing one-sample ownership. The current ambient producer remains one-sample until the matching shaders and sparse correction path are connected.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzzh-share-ambient-shader-recipes"></a>
 
 ### Step 15 of 19 · Share ambient shader recipes (`96zzzzzzzh-share-ambient-shader-recipes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/19 Visual Trace (96zzzzzzzh-share-ambient-shader-recipes): Share ambient shader recipes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_pipeline.rs, src/ambient_groups.rs, src/ambient_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Three distinct shader</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sources</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared modules</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">vertex/fragment/count…</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained composition</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inputs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_pipeline.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit vertex/fragmen…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained composition in…</text>
 </svg>
-</div>
-
-- **Goal:** Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
-- **Data Flow Trace:** `Three distinct shader sources → shared modules → explicit vertex/fragment/count recipes → retained composition inputs`
-- **Files You Touch:** `src/ambient_pipeline.rs` (*Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.*) · `src/ambient_groups.rs` (*Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.*) · `src/ambient_gpu.rs` (*Connect the retained camera and bounded one-sample work buffers to the current ambient groups.*)
 
 Create each distinct ambient shader module once per recipe set and reuse it across the passes that need it. Give the common pipeline factory explicit vertex and fragment entries, and connect retained composition inputs before activating the physical-sample owner.
 
 The ambient, depth-reduction and final-composition sources each get one module. Reuse those modules across preparation, hierarchy reduction, occupancy, ground, raw shading, filtering and upsampling. The same descriptor factory also creates sparse edge correction from its different vertex/fragment entries, avoiding a second nearly identical pipeline descriptor.
 
-The source layout distinguishes physical depth, original radius/normal and integer address inputs from the retained one-sample coarse and filtered inputs. Only the final colour composition uses the requested physical count; hierarchy and filtering recipes stay single-sample. The final layout binds the existing camera and reserved work buffers alongside filtered ambient. Its eventual indirect-draw buffer gains the required usage, while work storage still retains its small current one-sample size here.
-
-The current ambient owner and canonical browser still use one sample. Its composition now supplies both required groups without changing the intended pixels. Allocation of bounded physical corrections, clearing changed-frame work and the actual sparse draw follow together in the next lesson, with independent source/property and work-buffer readback.
-
-> **Self-Check Question:** *Why should the pipeline factory accept shader modules and entry names?*  
-> **Answer:** Many ambient passes share one source module but choose different entry points and output formats. Passing the existing module avoids recreating it for every pass, and explicit vertex/fragment entries let the same descriptor build fullscreen and sparse edge recipes.
-
-- **What You Should See:** Ambient passes reuse three distinct source modules and one descriptor factory. Physical input layouts and final composition bindings are prepared coherently; coarse recipes remain single-sample. The current ambient owner and complete browser remain one-sample until bounded corrections are connected.
-- **Hands-On Lab Experiment:** Trace every ambient pass back to one of the three source modules. Compare fullscreen and sparse edge construction: only entries, formats, bindings, blending and count differ. Run current actual GPU contact/cache and geometric-normal regressions, and inspect that canonical contact shading stays correct before activating sparse corrections.
-
-<details>
-<summary>Implementation 96zzzzzzzh-share-ambient-shader-recipes: Share ambient shader recipes</summary>
-
-Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
-
-Data flow: Three distinct shader sources → shared modules → explicit vertex/fragment/count recipes → retained composition inputs.
+> **Check:** *Why should the pipeline factory accept shader modules and entry names?* — Many ambient passes share one source module but choose different entry points and output formats. Passing the existing module avoids recreating it for every pass, and explicit vertex/fragment entries let the same descriptor build fullscreen and sparse edge recipes.
 
 ### 1. `src/ambient_pipeline.rs`
 
 Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use wgpu::{ShaderStages as S,TextureSampleType as T,BufferBindingType as B};
-pub struct Pipelines{pub source:wgpu::BindGroupLayout,pub level:wgpu::BindGroupLayout,pub sample:wgpu::BindGroupLayout,pub history:wgpu::BindGroupLayout,pub prepare:wgpu::RenderPipeline,pub reduce:wgpu::RenderPipeline,pub occupancy:wgpu::RenderPipeline,pub ground:wgpu::RenderPipeline,pub raw:wgpu::RenderPipeline,pub filter:[wgpu::RenderPipeline;2],pub upsample:wgpu::RenderPipeline,pub composite:wgpu::RenderPipeline}
-fn pipeline(device:&wgpu::Device,source:&str,fragment:&str,groups:&[Option<&wgpu::BindGroupLayout>],formats:&[wgpu::TextureFormat],blend:bool)->wgpu::RenderPipeline{
- let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("current ambient recipe"),source:wgpu::ShaderSource::Wgsl(source.into())});let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("current ambient recipe"),bind_group_layouts:groups,immediate_size:0});let targets=formats.iter().map(|format|Some(wgpu::ColorTargetState{format:*format,blend:if blend{Some(wgpu::BlendState::ALPHA_BLENDING)}else{None},write_mask:wgpu::ColorWrites::ALL})).collect::<Vec<_>>();
- device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("current ambient recipe"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some("vs_main"),compilation_options:Default::default(),buffers:&[]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some(fragment),compilation_options:Default::default(),targets:&targets}),primitive:Default::default(),depth_stencil:None,multisample:Default::default(),multiview_mask:None,cache:None})
-}
-impl Pipelines{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-  let texture=|binding,sample|crate::text_gpu_support::texture_entry(binding,S::FRAGMENT,sample,false);let uniform=|binding|crate::tile_pipelines::entry(binding,S::FRAGMENT,B::Uniform);
-  let source=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient source images and precise camera"),entries:&[texture(0,T::Depth),uniform(1),texture(2,T::Float{filterable:false}),texture(3,T::Float{filterable:false}),texture(4,T::Uint),uniform(5)]});
-  let level=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient reduced original properties"),entries:&[texture(0,T::Float{filterable:false}),texture(1,T::Uint),texture(2,T::Float{filterable:false})]});
-  let sample=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient filtered samples"),entries:&[texture(0,T::Float{filterable:true}),wgpu::BindGroupLayoutEntry{binding:1,visibility:S::FRAGMENT,ty:wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),count:None}]});
-  let mut entries=(0..4).map(|i|crate::tile_pipelines::entry(i,S::FRAGMENT,B::Storage{read_only:false})).collect::<Vec<_>>();entries.push(texture(4,T::Float{filterable:true}));entries.push(texture(5,T::Float{filterable:false}));let history=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient reserved current history bindings"),entries:&entries});
-  let shader=shader_source(1);let groups=[Some(&source),Some(&level),Some(&sample),Some(&history)];let prepare=pipeline(device,&shader,"fs_prepare",&[Some(&source)],&[wgpu::TextureFormat::R32Float,wgpu::TextureFormat::R16Uint,wgpu::TextureFormat::Rg8Unorm],false);let make=|fragment|pipeline(device,&shader,fragment,&groups,&[wgpu::TextureFormat::R8Unorm],false);
-  let ground=make("fs_ground");let raw=make("fs_main");let filter=[make("fs_filter_x"),make("fs_filter_y")];let upsample=make("fs_upsample");let composite=pipeline(device,include_str!("ambient_composite.wgsl"),"fs_main",&[None,Some(&sample)],&[format],true);
-  let reduce=pipeline(device,include_str!("ambient_depth.wgsl"),"fs_reduce",&[Some(&level)],&[wgpu::TextureFormat::R32Float,wgpu::TextureFormat::R16Uint],false);let occupancy=pipeline(device,include_str!("ambient_depth.wgsl"),"fs_occupancy",&[Some(&level)],&[wgpu::TextureFormat::R8Unorm],false);
-  Self{source,level,sample,history,prepare,reduce,occupancy,ground,raw,filter,upsample,composite}
- }
-}
-
-pub(crate) fn shader_source(samples:u32)->String {
- let source=crate::clipping_gpu::source(include_str!("ambient.wgsl"),0,5);if samples==1 {return source;}
- source.replace("const MSAA: bool = false;","const MSAA: bool = true;")
- .replace("var depth: texture_depth_2d;","var depth: texture_depth_multisampled_2d;")
- .replace("var source_radii:texture_2d<f32>;","var source_radii:texture_multisampled_2d<f32>;")
- .replace("var source_normals:texture_2d<f32>;","var source_normals:texture_multisampled_2d<f32>;")
- .replace("var source_primitives:texture_2d<u32>;","var source_primitives:texture_multisampled_2d<u32>;")
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -20783,232 +14533,9 @@ pub(crate) fn shader_source(samples:u32)->String {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-30.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-39.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-40.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-41.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-42.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-43.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-44.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-45.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-46.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-47.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-48.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-49.rs"
-```
-
-</details>
-
 ### 2. `src/ambient_groups.rs`
 
 Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Groups{pub levels:[wgpu::BindGroup;6],pub occupancy:wgpu::BindGroup,pub ground:wgpu::BindGroup,pub ao:[wgpu::BindGroup;3],pub history:wgpu::BindGroup,pub buffers:[wgpu::Buffer;4]}
-fn sampled(device:&wgpu::Device,layout:&wgpu::BindGroupLayout,view:&wgpu::TextureView,sampler:&wgpu::Sampler)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient retained sample"),layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(view)},wgpu::BindGroupEntry{binding:1,resource:wgpu::BindingResource::Sampler(sampler)}]})}
-impl Groups{
- pub fn new(device:&wgpu::Device,pipes:&crate::ambient_pipeline::Pipelines,images:&crate::ambient_images::Images)->Self{
-  let levels=std::array::from_fn(|i|device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient retained depth and properties"),layout:&pipes.level,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(&images.linear.levels[i])},wgpu::BindGroupEntry{binding:1,resource:wgpu::BindingResource::TextureView(&images.radii.levels[i])},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(&images.normals.view)}]}));
-  let sampler=device.create_sampler(&wgpu::SamplerDescriptor{mag_filter:wgpu::FilterMode::Linear,min_filter:wgpu::FilterMode::Linear,..Default::default()});let occupancy=sampled(device,&pipes.sample,&images.occupancy.view,&sampler);let ground=sampled(device,&pipes.sample,&images.ground.view,&sampler);let ao=std::array::from_fn(|i|sampled(device,&pipes.sample,&images.ao[i].view,&sampler));
-  let buffers=std::array::from_fn(|_|device.create_buffer(&wgpu::BufferDescriptor{label:Some("ambient reserved single-sample work"),size:16,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}));let mut entries=buffers.iter().enumerate().map(|(i,b)|wgpu::BindGroupEntry{binding:i as u32,resource:b.as_entire_binding()}).collect::<Vec<_>>();entries.push(wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&images.history.view)});entries.push(wgpu::BindGroupEntry{binding:5,resource:wgpu::BindingResource::TextureView(&images.history_depth.view)});let history=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient inactive single-sample history"),layout:&pipes.history,entries:&entries});Self{levels,occupancy,ground,ao,history,buffers}
- }
- pub fn source(device:&wgpu::Device,pipes:&crate::ambient_pipeline::Pipelines,images:&crate::ambient_images::Images,depth:&wgpu::TextureView,sections:&wgpu::TextureView,frame:&wgpu::Buffer,clip:&wgpu::Buffer)->wgpu::BindGroup{
-  let entries=[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:1,resource:frame.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(&images.source_radius.view)},wgpu::BindGroupEntry{binding:3,resource:wgpu::BindingResource::TextureView(&images.source_normals.view)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(sections)},wgpu::BindGroupEntry{binding:5,resource:clip.as_entire_binding()}];device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient exact current input"),layout:&pipes.source,entries:&entries})
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -21027,79 +14554,9 @@ impl Groups{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-50.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-51.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-52.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-53.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-54.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-55.rs"
-```
-
-</details>
-
 ### 3. `src/ambient_gpu.rs`
 
 Connect the retained camera and bounded one-sample work buffers to the current ambient groups. Bind the existing sparse-composition input group while the current ambient owner remains single-sample.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{ambient_images::Images,ambient_groups::Groups,ambient_pass::draw};
-struct State{images:Images,groups:Groups,input:(wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)}
-pub struct Ambient{pipes:crate::ambient_pipeline::Pipelines,pub sources:crate::ambient_source_gpu::Sources,frame:wgpu::Buffer,state:Option<State>,cached:Option<([f32;80],[u64;2])>,pub preparations:u64,pub writes:u64,pub passes:u64,pub error:Option<&'static str>}
-impl Ambient{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self){self.state=None;self.cached=None;self.error=None;}
- fn prepare(&mut self,device:&wgpu::Device,full:[u32;2],density:f32,depth:&wgpu::TextureView,sections:&wgpu::TextureView,clip:&wgpu::Buffer){
-  let(w,h)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[w.max(32),h.max(32)];
-  if self.state.as_ref().is_none_or(|s|s.images.full!=full||s.images.size!=size){let images=Images::new(device,full,density);let groups=Groups::new(device,&self.pipes,&images);let group=Groups::source(device,&self.pipes,&images,depth,sections,&self.frame,clip);self.state=Some(State{images,groups,input:(depth.clone(),sections.clone(),group)});self.cached=None;self.preparations+=1;}
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
- pub fn draw(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,clip:&wgpu::Buffer,sections:&wgpu::TextureView,meshes:&[crate::gpu_mesh::GpuMesh],matrix:[f32;16],full:[u32;2],density:f32,ground:[f32;2],revision:[u64;2],records:Option<&crate::instance_gpu::Lane>){
-  if ground[1]<=0.0{self.clear();return;}if matrix.iter().any(|v|!v.is_finite())||full.contains(&0)||!density.is_finite()||density<=0.{self.error=Some("Invalid ambient view");return;}
-  self.prepare(device,full,density,depth,sections,clip);let state=self.state.as_ref().unwrap();let Some(uniform)=crate::ambient_camera::uniform(matrix,full,state.images.size,ground)else{self.error=Some("Invalid ambient camera inverse");return;};
-  if self.cached!=Some((uniform,revision)){
-   queue.write_buffer(&self.frame,0,&uniform.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());self.writes+=1;
-   let images=&state.images;let groups=&state.groups;let source=&state.input.2;self.sources.encode(encoder,&images.source_radius.view,&images.source_normals.view,depth,view,clipping,meshes,records);self.passes+=1;
-   draw(encoder,&self.pipes.prepare,&[&images.linear.levels[0],&images.radii.levels[0],&images.normals.view],&[(0,source)],true);
-   for level in 1..6{draw(encoder,&self.pipes.reduce,&[&images.linear.levels[level],&images.radii.levels[level]],&[(0,&groups.levels[level-1])],true);}self.passes+=6;
-   draw(encoder,&self.pipes.occupancy,&[&images.occupancy.view],&[(0,&groups.levels[0])],true);
-   draw(encoder,&self.pipes.ground,&[&images.ground.view],&[(0,source),(1,&groups.levels[0]),(2,&groups.occupancy),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.raw,&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ground),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[0],&[&images.ao[1].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[1],&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[1]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.upsample,&[&images.ao[2].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);self.passes+=6;
-   self.cached=Some((uniform,revision));
-  }
-  draw(encoder,&self.pipes.composite,&[color],&[(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.state.as_ref().map_or(0,|s|s.images.bytes()+s.groups.buffers.iter().map(wgpu::Buffer::size).sum::<u64>()),1,self.preparations,self.writes,self.passes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -21137,138 +14594,46 @@ impl Ambient{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `96zzzzzzzh-share-ambient-shader-recipes`:** Ambient passes reuse three distinct source modules and one descriptor factory. Physical input layouts and final composition bindings are prepared coherently; coarse recipes remain single-sample. The current ambient owner and complete browser remain one-sample until bounded corrections are connected.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-56.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzh-share-ambient-shader-recipes-57.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples"></a>
 
 ### Step 16 of 19 · Correct ambient at physical samples (`96zzzzzzzi-correct-ambient-at-physical-samples`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/19 Visual Trace (96zzzzzzzi-correct-ambient-at-physical-samples): Correct ambient at physical samples</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu.rs, src/ambient_groups.rs, src/renderer.rs, src/ambient_sample_inspect.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Matching original</text>
-    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical…</text>
-    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">representative</text>
-    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coarse…</text>
-    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">changed-sample</text>
-    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">corrections</text>
-    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique bounded tiles</text>
-    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">indirect colour draw</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/ambient_gpu.rs, src/a…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">changed-sample correcti…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">indirect colour draw</text>
 </svg>
-</div>
-
-- **Goal:** Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
-- **Data Flow Trace:** `Matching original physical inputs → representative coarse shading → changed-sample corrections → unique bounded tiles → indirect colour draw`
-- **Files You Touch:** `src/ambient_gpu.rs` (*Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.*) · `src/ambient_groups.rs` (*Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.*) · `src/renderer.rs` (*Late-enabled ambient sources and colour recipes adopt the current frame count.*) · `src/ambient_sample_inspect.rs` (*Supplied Native actual GPU resource handles expose existing inputs for independent compute; production images/buffers do not gain readback flags.*) · `src/sample_surface_tests.rs` (*Extend the supplied Native count fixture to enabled ambient resources while retaining every prior owner.*)
 
 Connect matching original ambient properties to every physical sample and draw corrections only for samples that differ. Retain the existing coarse hierarchy and images, cache colour recipes and bound correction work by the viewport and its tile count.
 
 A real count change selects the cached recipes, retargets only the two full-resolution source images and refreshes incompatible bindings. Coarse hierarchy, normal and filtered ambient images stay retained. Late-enabled ambient rendering adopts the current frame count. Repeating a count keeps the current resources.
 
-Reserve one correction word per physical pixel and bounded tile flags/list storage for four-sample frames. Keep the indirect command four words long, initialize its six-vertex count once and clear only changed-frame flags and its instance count before generating work. Single-sample frames retain the small reserved buffers. Production resources do not gain readback flags.
-
-Compose the retained filtered result across the current colour target, then use the actual indirect command to draw sparse per-sample alpha corrections. The supplied Native observer reads the existing resources through independent GPU compute: every original depth/address/radius/normal sample must agree with source geometry, correction tiles must be unique and bounded, and the real draw count must match the list. It also checks exact return pixels, retained coarse image identities, unchanged uploads and identical ordinary/shared inputs.
-
-> **Self-Check Question:** *What prevents correction work from accumulating across changed frames?*  
-> **Answer:** Clear the bounded tile flags and indirect instance count before generating changed-frame work, while retaining the fixed six-vertex count and cached images. Unique flagged tiles produce a bounded list and actual indirect instance count; unchanged frames reuse the prepared result.
-
-- **What You Should See:** Ambient rendering supports matching physical original properties with retained coarse images and bounded sparse correction draws. Real GPU readback verifies every physical property, unique tile work and indirect counts through exact sample returns. Complete browser rendering remains one-sample until all consumers are integrated.
-
-These actual Native GPU pictures show the original ambient scene at one and four samples and its plain four-sample control. Independent GPU readback checks every physical original property, unique bounded correction tiles and actual indirect counts. Coarse images, original sources and geometry remain retained, exact count returns and ordinary/shared equality pass. Complete browser rendering remains single-sample until all remaining consumers are connected.
-
-**original ambient scene, one sample — actual ambient correction check.**
-
-**original ambient scene, four samples — actual ambient correction check.**
-
-**plain control without ambient, four samples — actual ambient correction check.**
-- **Hands-On Lab Experiment:** Run the actual ambient witness at4→1→4. Inspect both shaded frames and the separate plain four-sample control. Require exact return pixels, retained coarse image identities and source geometry, and unchanged source uploads. Read the real correction JSON and require covered samples, mixed original radii/addresses, nonzero corrections, unique bounded tiles and repeatable indirect counts.
-
-<details>
-<summary>Implementation 96zzzzzzzi-correct-ambient-at-physical-samples: Correct ambient at physical samples</summary>
-
-Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
-
-Data flow: Matching original physical inputs → representative coarse shading → changed-sample corrections → unique bounded tiles → indirect colour draw.
+> **Check:** *What prevents correction work from accumulating across changed frames?* — Clear the bounded tile flags and indirect instance count before generating changed-frame work, while retaining the fixed six-vertex count and cached images. Unique flagged tiles produce a bounded list and actual indirect instance count; unchanged frames reuse the prepared result.
 
 ### 1. `src/ambient_gpu.rs`
 
 Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{ambient_images::Images,ambient_groups::Groups,ambient_pass::draw};
-struct State{images:Images,groups:Groups,input:(wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)}
-pub struct Ambient{pipes:crate::ambient_pipeline::Pipelines,pub sources:crate::ambient_source_gpu::Sources,frame:wgpu::Buffer,state:Option<State>,cached:Option<([f32;80],[u64;2])>,pub preparations:u64,pub writes:u64,pub passes:u64,pub error:Option<&'static str>}
-impl Ambient{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self){self.state=None;self.cached=None;self.error=None;}
- fn prepare(&mut self,device:&wgpu::Device,full:[u32;2],density:f32,depth:&wgpu::TextureView,sections:&wgpu::TextureView,clip:&wgpu::Buffer){
-  let(w,h)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[w.max(32),h.max(32)];
-  if self.state.as_ref().is_none_or(|s|s.images.full!=full||s.images.size!=size){let images=Images::new(device,full,density);let groups=Groups::new(device,&self.pipes,&images,&self.frame);let group=Groups::source(device,&self.pipes,&images,depth,sections,&self.frame,clip);self.state=Some(State{images,groups,input:(depth.clone(),sections.clone(),group)});self.cached=None;self.preparations+=1;}
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
- pub fn draw(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,clip:&wgpu::Buffer,sections:&wgpu::TextureView,meshes:&[crate::gpu_mesh::GpuMesh],matrix:[f32;16],full:[u32;2],density:f32,ground:[f32;2],revision:[u64;2],records:Option<&crate::instance_gpu::Lane>){
-  if ground[1]<=0.0{self.clear();return;}if matrix.iter().any(|v|!v.is_finite())||full.contains(&0)||!density.is_finite()||density<=0.{self.error=Some("Invalid ambient view");return;}
-  self.prepare(device,full,density,depth,sections,clip);let state=self.state.as_ref().unwrap();let Some(uniform)=crate::ambient_camera::uniform(matrix,full,state.images.size,ground)else{self.error=Some("Invalid ambient camera inverse");return;};
-  if self.cached!=Some((uniform,revision)){
-   queue.write_buffer(&self.frame,0,&uniform.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());self.writes+=1;
-   let images=&state.images;let groups=&state.groups;let source=&state.input.2;self.sources.encode(encoder,&images.source_radius.view,&images.source_normals.view,depth,view,clipping,meshes,records);self.passes+=1;
-   draw(encoder,&self.pipes.prepare,&[&images.linear.levels[0],&images.radii.levels[0],&images.normals.view],&[(0,source)],true);
-   for level in 1..6{draw(encoder,&self.pipes.reduce,&[&images.linear.levels[level],&images.radii.levels[level]],&[(0,&groups.levels[level-1])],true);}self.passes+=6;
-   draw(encoder,&self.pipes.occupancy,&[&images.occupancy.view],&[(0,&groups.levels[0])],true);
-   draw(encoder,&self.pipes.ground,&[&images.ground.view],&[(0,source),(1,&groups.levels[0]),(2,&groups.occupancy),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.raw,&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ground),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[0],&[&images.ao[1].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[1],&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[1]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.upsample,&[&images.ao[2].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);self.passes+=6;
-   self.cached=Some((uniform,revision));
-  }
-  draw(encoder,&self.pipes.composite,&[color],&[(0,&state.groups.composite),(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.state.as_ref().map_or(0,|s|s.images.bytes()+s.groups.buffers.iter().map(wgpu::Buffer::size).sum::<u64>()),1,self.preparations,self.writes,self.passes]}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -21313,192 +14678,9 @@ if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),se
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-13.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-15.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-16.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-18.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-21.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-22.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-23.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-24.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-25.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-26.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-27.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-28.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-29.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-30.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-31.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-32.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-33.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-34.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-35.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-36.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-37.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-38.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-39.rs"
-```
-
-</details>
-
 ### 2. `src/ambient_groups.rs`
 
 Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Groups{pub levels:[wgpu::BindGroup;6],pub occupancy:wgpu::BindGroup,pub ground:wgpu::BindGroup,pub ao:[wgpu::BindGroup;3],pub history:wgpu::BindGroup,pub composite:wgpu::BindGroup,pub buffers:[wgpu::Buffer;4]}
-fn sampled(device:&wgpu::Device,layout:&wgpu::BindGroupLayout,view:&wgpu::TextureView,sampler:&wgpu::Sampler)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient retained sample"),layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(view)},wgpu::BindGroupEntry{binding:1,resource:wgpu::BindingResource::Sampler(sampler)}]})}
-impl Groups{
- pub fn new(device:&wgpu::Device,pipes:&crate::ambient_pipeline::Pipelines,images:&crate::ambient_images::Images,frame:&wgpu::Buffer)->Self{
-  let levels=std::array::from_fn(|i|device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient retained depth and properties"),layout:&pipes.level,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(&images.linear.levels[i])},wgpu::BindGroupEntry{binding:1,resource:wgpu::BindingResource::TextureView(&images.radii.levels[i])},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(&images.normals.view)}]}));
-  let sampler=device.create_sampler(&wgpu::SamplerDescriptor{mag_filter:wgpu::FilterMode::Linear,min_filter:wgpu::FilterMode::Linear,..Default::default()});let occupancy=sampled(device,&pipes.sample,&images.occupancy.view,&sampler);let ground=sampled(device,&pipes.sample,&images.ground.view,&sampler);let ao=std::array::from_fn(|i|sampled(device,&pipes.sample,&images.ao[i].view,&sampler));
-  let buffers=std::array::from_fn(|i|device.create_buffer(&wgpu::BufferDescriptor{label:Some("ambient reserved single-sample work"),size:16,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST|if i==3{wgpu::BufferUsages::INDIRECT}else{wgpu::BufferUsages::empty()},mapped_at_creation:false}));let mut entries=buffers.iter().enumerate().map(|(i,b)|wgpu::BindGroupEntry{binding:i as u32,resource:b.as_entire_binding()}).collect::<Vec<_>>();entries.push(wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&images.history.view)});entries.push(wgpu::BindGroupEntry{binding:5,resource:wgpu::BindingResource::TextureView(&images.history_depth.view)});let history=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient inactive single-sample history"),layout:&pipes.history,entries:&entries});let composite=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient sparse sample corrections"),layout:&pipes.composite_layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:frame.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:buffers[0].as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:buffers[2].as_entire_binding()}]});Self{levels,occupancy,ground,ao,history,composite,buffers}
- }
- pub fn source(device:&wgpu::Device,pipes:&crate::ambient_pipeline::Pipelines,images:&crate::ambient_images::Images,depth:&wgpu::TextureView,sections:&wgpu::TextureView,frame:&wgpu::Buffer,clip:&wgpu::Buffer)->wgpu::BindGroup{
-  let entries=[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:1,resource:frame.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(&images.source_radius.view)},wgpu::BindGroupEntry{binding:3,resource:wgpu::BindingResource::TextureView(&images.source_normals.view)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(sections)},wgpu::BindGroupEntry{binding:5,resource:clip.as_entire_binding()}];device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient exact current input"),layout:&pipes.source,entries:&entries})
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -21518,61 +14700,9 @@ impl Groups{
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-40.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-41.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-42.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-43.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-44.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-45.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-46.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-47.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-48.rs"
-```
-
-</details>
-
 ### 3. `src/renderer.rs`
 
 Late-enabled ambient sources and colour recipes adopt the current frame count.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));}else if let Some(owner)=ambient.as_mut(){owner.clear();}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -21580,19 +14710,7 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::with_samples(&self.device,self.format,self.targets.samples));owner.set_samples(&self.device,self.targets.samples);}else if let Some(owner)=ambient.as_mut(){owner.clear();}}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-49.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -21606,10 +14724,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-50.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -21617,26 +14732,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register only the optional Native original-property/sparse-work observer.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-uffers.iter().map(wgpu::Buffer::size).sum::<u64>()),1,self.preparations,self.writes,self.passes]}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-51.rs" skip=100
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -21644,25 +14746,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend the supplied Native count fixture to enabled ambient resources while retaining every prior owner.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn retarget_basic_fixture(r:&mut Renderer,count:u32) {
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-52.rs" skip=55
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -21670,109 +14760,54 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Read all actual physical depth/address/radius/normal samples, bounded sparse tiles/indirect work, retained coarse images and exact current output through repeated counts and ordinary/shared source paths.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-,"Actual4x horizontal section and full solid share the same outer silhouette");crate::sample_test_proof::write(root.join("uncut-four.rgba"),uncut).unwrap();
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzi-correct-ambient-at-physical-samples-53.rs" skip=160
 ```
 
-</details>
+**Result after `96zzzzzzzi-correct-ambient-at-physical-samples`:** Ambient rendering supports matching physical original properties with retained coarse images and bounded sparse correction draws. Real GPU readback verifies every physical property, unique tile work and indirect counts through exact sample returns. Complete browser rendering remains one-sample until all consumers are integrated.
 
-</details>
+These actual Native GPU pictures show the original ambient scene at one and four samples and its plain four-sample control. Independent GPU readback checks every physical original property, unique bounded correction tiles and actual indirect counts. Coarse images, original sources and geometry remain retained, exact count returns and ordinary/shared equality pass. Complete browser rendering remains single-sample until all remaining consumers are connected.
+
+---
 
 <a id="checkpoint-96zzzzzzzj-cache-physical-depth-pyramid-inputs"></a>
 
 ### Step 17 of 19 · Cache physical depth-pyramid inputs (`96zzzzzzzj-cache-physical-depth-pyramid-inputs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/19 Visual Trace (96zzzzzzzj-cache-physical-depth-pyramid-inputs): Cache physical depth-pyramid inputs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_pipeline.rs, src/pyramid_gpu.rs, src/pyramid_gpu_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Matching physical depth</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached source recipe</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">representative sample zero</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">six retained single-sample</text>
-    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">levels</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/pyramid_pipeline.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">representative sample z…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">six retained single-sam…</text>
 </svg>
-</div>
-
-- **Goal:** Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
-- **Data Flow Trace:** `Matching physical depth → cached source recipe → representative sample zero → six retained single-sample levels`
-- **Files You Touch:** `src/pyramid_pipeline.rs` (*Cache the matching physical-depth input recipe; retain the exact render descriptor, one-sample reductions and six coarse image levels.*) · `src/pyramid_gpu.rs` (*Retain coarse image identities and reduction groups; invalidate only an incompatible physical-depth input binding and its prepared result.*) · `src/pyramid_gpu_tests.rs` (*Extend the existing actual six-level positive-depth/radius-address GPU assertions to both physical inputs. The isolated fixture retargets only its active consumers until the next production API step.*)
 
 Read the matching physical depth texture through a cached input recipe. Retain the six coarse pyramid levels, encoded radius/pixel addresses and one-sample reductions. A count change invalidates only the incompatible input binding and its prepared result.
 
 The pyramid deliberately reads representative sample zero into its existing one-sample hierarchy. Reduction selects each nearest-positive depth together with its encoded radius/pixel address; it does not resolve or average the pair. This coarse hierarchy is separate from the matching per-sample ambient corrections taught earlier.
 
-Reuse the existing render descriptor and reduction recipe. The shared two-count cache holds compatible source layouts/pipelines, while existing image allocation depends only on the coarse dimensions. An unchanged count retains its binding and prepared result.
-
-The supplied Native regression renders actual physical inputs at both counts and reads every pixel of all six depth/radius levels. It retains the nearest-positive-depth, empty-background and original section-depth assertions, plus resting-view cache, resize and release checks. Main browser rendering remains one-sample until the production switch is connected next.
-
-> **Self-Check Question:** *Why does a four-sample depth input not require four-sample pyramid images?*  
-> **Answer:** The coarse pyramid deliberately reads representative sample zero. Cache the compatible input layout/pipeline, then keep the existing one-sample reduction hierarchy. Reduction selects the nearest-positive depth and its encoded radius/pixel address together, without averaging.
-
-- **What You Should See:** Physical depth input recipes are cached for either count; six coarse image levels and reduction groups stay retained. Main browser integration follows in the next step.
-- **Hands-On Lab Experiment:** Run both existing actual pyramid GPU regressions. Require all six nearest-positive-depth and radius-address reductions at both physical input counts, correct empty/section depths, unchanged resting counters, bounded resize allocation and release on disable.
-
-<details>
-<summary>Implementation 96zzzzzzzj-cache-physical-depth-pyramid-inputs: Cache physical depth-pyramid inputs</summary>
-
-Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
-
-Data flow: Matching physical depth → cached source recipe → representative sample zero → six retained single-sample levels.
+> **Check:** *Why does a four-sample depth input not require four-sample pyramid images?* — The coarse pyramid deliberately reads representative sample zero. Cache the compatible input layout/pipeline, then keep the existing one-sample reduction hierarchy. Reduction selects the nearest-positive depth and its encoded radius/pixel address together, without averaging.
 
 ### 1. `src/pyramid_pipeline.rs`
 
 Cache the matching physical-depth input recipe; retain the exact render descriptor, one-sample reductions and six coarse image levels.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Pipelines{pub prepare:wgpu::RenderPipeline,pub reduce:wgpu::RenderPipeline,pub input:wgpu::BindGroupLayout,pub level:wgpu::BindGroupLayout}
-fn pipeline(device:&wgpu::Device,shader:&str,fragment:&str,layout:&wgpu::BindGroupLayout)->wgpu::RenderPipeline{
- let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient linear-depth recipe"),source:wgpu::ShaderSource::Wgsl(shader.into())});let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:None,bind_group_layouts:&[Some(layout)],immediate_size:0});
- device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient linear-depth pyramid"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some("vs_main"),compilation_options:Default::default(),buffers:&[]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some(fragment),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R16Uint,blend:None,write_mask:wgpu::ColorWrites::RED})]}),primitive:Default::default(),depth_stencil:None,multisample:Default::default(),multiview_mask:None,cache:None})
-}
-impl Pipelines{
- pub fn new(device:&wgpu::Device)->Self{
-  let texture=|binding,sample_type|crate::text_gpu_support::texture_entry(binding,wgpu::ShaderStages::FRAGMENT,sample_type,false);
-  let input=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient original depth and camera"),entries:&[texture(0,wgpu::TextureSampleType::Depth),crate::tile_pipelines::entry(1,wgpu::ShaderStages::FRAGMENT,wgpu::BufferBindingType::Uniform)]});
-  let level=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("ambient depth and radius level"),entries:&[texture(0,wgpu::TextureSampleType::Float{filterable:false}),texture(1,wgpu::TextureSampleType::Uint)]});
-  let prepare=pipeline(device,include_str!("pyramid_prepare.wgsl"),"fs_prepare",&input);let reduce=pipeline(device,include_str!("ambient_depth.wgsl"),"fs_reduce",&level);Self{prepare,reduce,input,level}
- }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -21784,43 +14819,13 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Retain coarse image identities and reduction groups; invalidate only an incompatible physical-depth input binding and its prepared result.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::pyramid_image::Image;
-struct Images{size:[u32;2],pub linear:Image,pub radii:Image,groups:[wgpu::BindGroup;5]}
-pub struct Pyramid{pipes:crate::pyramid_pipeline::Pipelines,frame:wgpu::Buffer,images:Option<Images>,input:Option<(wgpu::TextureView,wgpu::BindGroup)>,cached:Option<([u32;16],[u32;2],u32,[u64;2])>,pub preparations:u64,pub writes:u64,pub passes:u64,pub error:Option<&'static str>}
-impl Pyramid{
- pub fn new(device:&wgpu::Device)->Self{Self{pipes:crate::pyramid_pipeline::Pipelines::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("ambient earlier camera"),size:112,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),images:None,input:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- fn prepare(&mut self,device:&wgpu::Device,depth:&wgpu::TextureView,full:[u32;2],density:f32){
-  let (width,height)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[width.max(32),height.max(32)];
-  if self.images.as_ref().is_none_or(|images|images.size!=size){let linear=Image::new(device,size,wgpu::TextureFormat::R32Float);let radii=Image::new(device,size,wgpu::TextureFormat::R16Uint);let groups=std::array::from_fn(|i|device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient previous level"),layout:&self.pipes.level,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(&linear.levels[i])},wgpu::BindGroupEntry{binding:1,resource:wgpu::BindingResource::TextureView(&radii.levels[i])}]}));self.images=Some(Images{size,linear,radii,groups});self.cached=None;self.preparations+=1;}
-  if self.input.as_ref().is_none_or(|(old,_)|old!=depth){let group=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient source depth"),layout:&self.pipes.input,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:1,resource:self.frame.as_entire_binding()}]});self.input=Some((depth.clone(),group));self.cached=None;}
- }
- pub fn encode(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,depth:&wgpu::TextureView,matrix:[f32;16],full:[u32;2],density:f32,revision:[u64;2]){
-  if full.contains(&0)||!density.is_finite()||density<=0.||matrix.iter().any(|v|!v.is_finite()){self.error=Some("Invalid ambient depth view");self.cached=None;return;}
-  self.prepare(device,depth,full,density);let key=(matrix.map(f32::to_bits),full,density.to_bits(),revision);if self.cached==Some(key){return;}
-  let Some(inverse)=crate::clipping_uniform::inverse(&session_rust::Xform::from_matrix(matrix.map(f64::from)))else{self.error=Some("Ambient depth camera is singular");self.cached=None;return;};if inverse.m.iter().any(|v|!(*v as f32).is_finite()){self.error=Some("Ambient inverse exceeds display range");self.cached=None;return;}let images=self.images.as_ref().unwrap();let mut bytes=inverse.m.into_iter().flat_map(|v|(v as f32).to_ne_bytes()).collect::<Vec<_>>();bytes.extend([full[0]as f32,full[1]as f32,images.size[0]as f32,images.size[1]as f32,0.05,0.,0.,0.,0.,0.,0.,0.].into_iter().flat_map(f32::to_ne_bytes));queue.write_buffer(&self.frame,0,&bytes);self.writes+=1;
-  for level in 0..6{let attachments=[&images.linear.levels[level],&images.radii.levels[level]].map(|view|Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}));let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("ambient nearest positive depth"),color_attachments:&attachments,..Default::default()});if level==0{pass.set_pipeline(&self.pipes.prepare);pass.set_bind_group(0,&self.input.as_ref().unwrap().1,&[]);}else{pass.set_pipeline(&self.pipes.reduce);pass.set_bind_group(0,&images.groups[level-1],&[]);}pass.draw(0..3,0..1);self.passes+=1;}
-  self.cached=Some(key);self.error=None;
- }
- pub fn usage(&self)->[u64;4]{[self.frame.size()+self.images.as_ref().map_or(0,|i|i.linear.bytes+i.radii.bytes),self.preparations,self.writes,self.passes]}
- pub fn linear(&self)->Option<&Image>{self.images.as_ref().map(|i|&i.linear)}
- pub fn radii(&self)->Option<&Image>{self.images.as_ref().map(|i|&i.radii)}
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/96zzzzzzzj-cache-physical-depth-pyramid-inputs-02.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -21828,112 +14833,48 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Extend the existing actual six-level positive-depth/radius-address GPU assertions to both physical inputs. The isolated fixture retargets only its active consumers until the next production API step.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::cap_gpu_tests::{scene,renderer,pixels,wait};
-fn level(r:&crate::renderer::Renderer,texture:&wgpu::Texture,mip:u32,bytes:u32)->Vec<u8>{
- let width=texture.width()>>mip;let height=texture.height()>>mip;let pitch=(width*bytes).div_ceil(256)*256;let buffer=r.device.create_buffer(&wgpu::BufferDescriptor{label:Some("actual pyramid fixture"),size:u64::from(pitch)*u64::from(height),usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let mut encoder=r.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo{mip_level:mip,..texture.as_image_copy()},wgpu::TexelCopyBufferInfo{buffer:&buffer,layout:wgpu::TexelCopyBufferLayout{offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},wgpu::Extent3d{width,height,depth_or_array_layers:1});r.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());wait(r);rx.recv().unwrap().unwrap();let view=buffer.slice(..).get_mapped_range();let data=view.chunks_exact(pitch as usize).flat_map(|r|r[..(width*bytes)as usize].iter().copied()).collect();drop(view);buffer.unmap();data
-}
-#[test]
-fn actual_pyramid_uses_six_nearest_positive_depth_levels_and_keeps_radius_addresses(){
- let(scene,_)=scene(false);let r=renderer(&scene);r.set_depth_pyramid(true);pixels(&r);assert_eq!(r.depth_pyramid_error(),None);let owner=r.pyramid.borrow();let owner=owner.as_ref().unwrap();let linear=owner.linear().unwrap();let radii=owner.radii().unwrap();let mut previous:Option<(Vec<f32>,Vec<u16>,usize,usize)>=None;
- for mip in 0..6{let width=(linear.texture.width()>>mip)as usize;let height=(linear.texture.height()>>mip)as usize;let depths=level(&r,&linear.texture,mip,4).chunks_exact(4).map(|b|f32::from_le_bytes(b.try_into().unwrap())).collect::<Vec<_>>();let encoded=level(&r,&radii.texture,mip,2).chunks_exact(2).map(|b|u16::from_le_bytes(b.try_into().unwrap())).collect::<Vec<_>>();assert!(depths.iter().all(|z|z.is_finite()&&*z>=0.));if let Some((before,radius,w,h))=&previous{for y in 0..height{for x in 0..width{let mut nearest=1e30;let mut chosen=0;for i in 0..4{let q=(y*2+i/2).min(h-1)*w+(x*2+i%2).min(w-1);if before[q]>0.&&before[q]<nearest{nearest=before[q];chosen=radius[q];}}let expected=if nearest==1e30{0.}else{nearest};assert_eq!(depths[y*width+x],expected,"actual reduction mip{mip} at{x},{y}");assert_eq!(encoded[y*width+x],chosen);}}}else{let index=48*width+104;assert!((depths[index]-0.5).abs()<1e-5,"original section depth: {}",depths[index]);assert_eq!(depths[0],0.,"empty depth stays absent");assert!(encoded[index]>0);}previous=Some((depths,encoded,width,height));}
- assert_eq!(r.depth_pyramid_usage()[3],6);
-}
-#[test]
-fn actual_pyramid_caches_resting_views_rebuilds_on_resize_and_releases_on_disable(){
- let(scene,_)=scene(false);let mut r=renderer(&scene);r.set_depth_pyramid(true);pixels(&r);let first=r.depth_pyramid_usage();pixels(&r);assert_eq!(r.depth_pyramid_usage(),first);r.resize(crate::viewport::Viewport{width:640,height:480});r.set_density(2.);let texture=r.device.create_texture(&wgpu::TextureDescriptor{label:None,size:wgpu::Extent3d{width:640,height:480,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT,view_formats:&[]});r.draw(&texture.create_view(&Default::default()),&Default::default(),&crate::cap_gpu_tests::matrix());assert_eq!(r.depth_pyramid_usage()[1],2);assert_eq!(r.depth_pyramid_usage()[3],12);r.set_depth_pyramid(false);assert_eq!(r.depth_pyramid_usage(),[0;4]);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzj-cache-physical-depth-pyramid-inputs-03.rs"
 ```
 
-</details>
+**Result after `96zzzzzzzj-cache-physical-depth-pyramid-inputs`:** Physical depth input recipes are cached for either count; six coarse image levels and reduction groups stay retained. Main browser integration follows in the next step.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzzk-retarget-the-complete-colour-frame"></a>
 
 ### Step 18 of 19 · Retarget the complete colour frame (`96zzzzzzzk-retarget-the-complete-colour-frame`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/19 Visual Trace (96zzzzzzzk-retarget-the-complete-colour-frame): Retarget the complete colour frame</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/browser.rs, src/cloud_address_tests.rs, src/sample_surface_tests.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">One count owner</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">compatible cached colour consumers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matching attachments; independent</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original-owner…</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/brow…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">compatible cached colou…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching attachments; i…</text>
 </svg>
-</div>
-
-- **Goal:** Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
-- **Data Flow Trace:** `One count owner → compatible cached colour consumers → matching attachments; independent original-owner queries retained`
-- **Files You Touch:** `src/renderer.rs` (*Retarget every active physical-colour consumer through one production API; preserve independent query resources and no-op repeated counts.*) · `src/browser.rs` (*Keep one optional diagnostic override; automatic default policy is connected next.*) · `src/cloud_address_tests.rs` (*Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.*) · `src/sample_surface_tests.rs` (*Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.*) · `src/pyramid_gpu_tests.rs` (*Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.*) · `src/sample_composition_tests.rs` (*Supplied complete original mixed-source GPU scene with both physical counts/projections, white top/clipped bores, every original owner/source/archive/geometry, and exact return pixels.*)
 
 Select one physical sample count for the complete colour frame. Retarget every active consumer and its attachments together, let later owners adopt that count, and retain independent original-owner query resources. Repeating the count does no work.
 
 The renderer owns the choice. Existing surface, ink, overlay, section, sheet, cloud, text, outline, ambient and depth-pyramid caches select compatible recipes. One shared GPU context supplies existing text/cloud/outline owners. The final frame targets match every active colour consumer.
 
-Colour-only retargeting does not change source geometry, placements, uploaded records or the independently single-sample query image. The supplied actual GPU witness submits an original-owner query, changes colour count before completion and still requires that original owner. Repeated counts preserve the actual target handles, counters and exact drawing pixels.
-
-Late-enabled pyramid input starts at the active count, matching the other late-created consumers. The existing browser event path accepts a diagnostic one/four override and exposes the actual target count for Chrome validation. It changes no semantic editor command. The default remains one here; automatic device/density/geometry and recovery policy follows next.
-
-> **Self-Check Question:** *Should a colour sample-count change cancel an independent owner query?*  
-> **Answer:** Its query resources and submitted ticket stay valid because that pass remains independently single-sample. Retarget compatible colour recipes and physical attachments together, while retaining the query and original source records.
-
-- **What You Should See:** One production API matches every active colour consumer and frame target, retains independent pending queries and skips repeated counts. A browser diagnostic override selects either count; automatic default policy follows.
-
-These actual Native GPU frames combine the original CAD bore, NURBS patch, shared triangles, cube, point cloud, drawing pens, source line, point and labels at the stated count/projection. The six iso-curves are original NURBS curves extracted with the surface API at parameters 0.25, 0.5 and 0.75 in both directions, then placed with their source patch. Top and clipped-top frames show the white open bore; original queries, full sources/archives, geometry and exact return pixels retain independent assertions. Fresh actual browser count-override checks and every current mixed-scene picture must pass before accepting colour integration. Automatic quality follows next. In the clipped-top view, the large grey rectangle and short central dash belong to the current clipping-plane helper: its normal-arrow wings project onto a top-view line. They are separate from the NURBS iso-curves. Full original-plane grid/axis appearance and final whole-course review remain pending.
-
-**orthographic original scene; one sample — actual combined original-source GPU frame.**
-
-**orthographic original scene; four samples — actual combined original-source GPU frame.**
-
-**perspective original scene; one sample — actual combined original-source GPU frame.**
-
-**perspective original scene; four samples — actual combined original-source GPU frame.**
-
-**top view with a white open bore and source NURBS iso-curves; four samples — actual combined original-source GPU frame.**
-
-**clipped top view with a white open bore and section hatching; four samples — actual combined original-source GPU frame.**
-
-These actual optimized Chrome frames show the complete owned colour frame. All 28 current mixed-source pictures were individually inspected across one/four samples, both densities and orthographic/perspective/section views. Two representative four-sample frames are shown here. Original source archives, owners, bore openings, cloud depth, front ink and exact sample-count returns retain independent assertions. Full original-plane appearance and the final whole-course feature review remain pending.
-
-**Perspective mixed original scene, four samples, physical density 1 — actual complete-frame browser check.**
-
-**Top projection with an active section, four samples, physical density 2 — actual complete-frame browser check.**
-- **Hands-On Lab Experiment:** Require fresh actual count-switch GPU regressions for all previously connected families. Submit an owner query before each colour switch and require its original owner after real GPU completion. Repeated counts must preserve target identity, source/upload counters and exact pixels. Check late owners and both Chrome physical counts before accepting this integration.
-
-<details>
-<summary>Implementation 96zzzzzzzk-retarget-the-complete-colour-frame: Retarget the complete colour frame</summary>
-
-Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
-
-Data flow: One count owner → compatible cached colour consumers → matching attachments; independent original-owner queries retained.
+> **Check:** *Should a colour sample-count change cancel an independent owner query?* — Its query resources and submitted ticket stay valid because that pass remains independently single-sample. Retarget compatible colour recipes and physical attachments together, while retaining the query and original source records.
 
 ### 1. `src/renderer.rs`
 
@@ -21941,8 +14882,7 @@ Retarget every active physical-colour consumer through one production API; prese
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::with_samples(&self.device,self.format,self.targets.samples));owner.set_samples(&self.device,self.targets.samples);}else if let Some(owner)=ambient.as_mut(){owner.clear();}}
@@ -21953,8 +14893,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
     pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
 ```
-
-</details>
 
 Replace it with:
 
@@ -21968,8 +14906,7 @@ Replace it with:
     pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.targets=crate::frame_targets::Targets::with_formats(&self.device,self.size,self.output_format,self.format,self.targets.samples);
@@ -21979,8 +14916,6 @@ Replace it with:
         if density.is_finite() && density > 0.0 && density != self.density { self.cancel_pick(); self.density = density; }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -22014,8 +14949,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -22683,31 +15617,13 @@ mod cloud_address_tests;
 mod cloud_composite_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-02.rs"
-```
-
-</details>
-
 ### 2. `src/browser.rs`
 
 Keep one optional diagnostic override; automatic default policy is connected next. Choose matching physical consumers on the initial viewport. Apply the same physical count choice after input and resize. Use the existing browser event path for actual count validation; semantic editor/source actions retain their existing dispatch. Register the bounded count override on the existing listener owner. Observe the actual production target count for source-bound Chrome assertions. Pass the single override into actual viewport configuration. Retarget colour consumers before drawing; the unchanged default remains one until the following automatic-quality lesson.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         surface.configure(&renderer.device, config);
@@ -22717,8 +15633,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     true
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -22732,8 +15646,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     config: &mut wgpu::SurfaceConfiguration,
@@ -22743,8 +15656,6 @@ Replace it with:
     let rect = canvas.get_bounding_client_rect();
     let limit = renderer.device.limits().max_texture_dimension_2d;
 ```
-
-</details>
 
 Replace it with:
 
@@ -22758,8 +15669,7 @@ Replace it with:
     let limit = renderer.device.limits().max_texture_dimension_2d;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
@@ -22769,8 +15679,6 @@ Replace it with:
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -22784,8 +15692,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     listeners.listen(document.as_ref(), "change")?;
@@ -22795,8 +15702,6 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-tiles")?;
     listeners.listen(window.as_ref(), "viewer-publication")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -22810,8 +15715,7 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-publication")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             &mut config,
@@ -22821,8 +15725,6 @@ Replace it with:
             if let Err(error) = panel.update(None, &input_canvas) {
                 report(&format!("Cannot lay out commands: {error:?}"));
 ```
-
-</details>
 
 Replace it with:
 
@@ -22836,8 +15738,7 @@ Replace it with:
                 report(&format!("Cannot lay out commands: {error:?}"));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -22848,8 +15749,6 @@ Replace it with:
             .is_some_and(|input| input.id() == "open")
         {
 ```
-
-</details>
 
 Replace it with:
 
@@ -22870,8 +15769,7 @@ Replace it with:
         {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &mut config,
@@ -22881,8 +15779,6 @@ Replace it with:
         panel.update(None,&canvas)?;
         crate::browser_rebase::prepare(&mut renderer,&mut editor)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -22896,8 +15792,7 @@ Replace it with:
         crate::browser_rebase::prepare(&mut renderer,&mut editor)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if let Some(info) = probe.as_ref().and_then(|probe| probe.info()) { let _ = crate::browser_report::adapter(info); }
@@ -22907,8 +15802,6 @@ Replace it with:
     let device = adapter
         .request_device(&wgpu::DeviceDescriptor::default())
 ```
-
-</details>
 
 Replace it with:
 
@@ -22922,8 +15815,7 @@ Replace it with:
         .request_device(&wgpu::DeviceDescriptor::default())
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -23828,49 +16720,7 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-10.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -23878,33 +16728,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub(super) fn retarget(r:&mut Renderer,count:u32) {
- assert!(matches!(count,1|4));if r.targets.samples==count{return;}
- r.surfaces.select(count,||crate::surface_pipelines::pipelines(&r.device,r.format,&crate::surface_view::layout(&r.device),&crate::gpu_layout::uniform(&r.device,crate::object_record::BYTES as u64),count));
- r.instances.set_samples(&r.device,r.format,count);
- for lane in [&mut r.mesh_ink,&mut r.strokes,&mut r.paths,&mut r.markers,&mut r.grid] {lane.set_samples(&r.device,count);}
- r.highlight.set_samples(&r.device,count);r.preview.set_samples(&r.device,count);r.measurement.set_samples(&r.device,count);r.guides.set_samples(&r.device,count);r.caps.borrow_mut().set_samples(count);
- if let Some(cloud)=r.clouds.borrow_mut().as_mut(){cloud.set_samples(&r.text_context(),count);}
- r.targets=crate::frame_targets::Targets::with_formats(&r.device,r.size,r.output_format,r.format,count);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-11.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -23912,33 +16742,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn retarget_basic_fixture(r:&mut Renderer,count:u32) {
- if r.ambient_enabled.get(){if let Some(owner)=r.ambient.borrow_mut().as_mut(){owner.set_samples(&r.device,count);}}
- super::cloud_address_tests::retarget(r,count);
- r.sheets.set_samples(&r.device,count);
- if let Some(text)=r.text.borrow_mut().as_mut(){text.retarget(&r.text_context(),crate::text_gpu_support::Target{format:r.format,samples:count});}
- let ctx=r.text_context();
- for owner in [&r.global_outline,&r.outline] {if let Some(owner)=owner.borrow_mut().as_mut(){owner.set_samples(&ctx,count);}}
- if let Some(owner)=r.outline_composite.borrow_mut().as_mut(){owner.set_samples(&r.device,count);}
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-12.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -23946,33 +16756,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-fn retarget(r:&mut crate::renderer::Renderer,count:u32) {
- assert!(matches!(count,1|4));if r.targets.samples==count{return;}
- r.surfaces.select(count,||crate::surface_pipelines::pipelines(&r.device,r.format,&crate::surface_view::layout(&r.device),&crate::gpu_layout::uniform(&r.device,crate::object_record::BYTES as u64),count));
- r.instances.set_samples(&r.device,r.format,count);
- for lane in [&mut r.mesh_ink,&mut r.strokes,&mut r.paths,&mut r.markers,&mut r.grid] {lane.set_samples(&r.device,count);}
- r.highlight.set_samples(&r.device,count);r.preview.set_samples(&r.device,count);r.measurement.set_samples(&r.device,count);r.guides.set_samples(&r.device,count);r.caps.borrow_mut().set_samples(count);
- if let Some(cloud)=r.clouds.borrow_mut().as_mut(){cloud.set_samples(&r.text_context(),count);}
- r.targets=crate::frame_targets::Targets::with_formats(&r.device,r.size,r.output_format,r.format,count);
-}
-```
-
-</details>
-
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
 --8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-13.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -23980,26 +16770,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Actual pending independent GPU owner queries survive colour-only count changes; repeated counts preserve target identity, source uploads and exact pixels.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-before));assert_eq!(&scene.objects().iter().find(|o|o.id==mesh.id).unwrap().geometry().unwrap().to_proto(),source);}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-14.rs" skip=120
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -24013,10 +16790,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-15.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -24024,83 +16798,50 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the supplied actual combined original-family GPU witness.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod sample_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzk-retarget-the-complete-colour-frame-16.rs" skip=17
 ```
 
-</details>
+**Result after `96zzzzzzzk-retarget-the-complete-colour-frame`:** One production API matches every active colour consumer and frame target, retains independent pending queries and skips repeated counts. A browser diagnostic override selects either count; automatic default policy follows.
 
-</details>
+These actual Native GPU frames combine the original CAD bore, NURBS patch, shared triangles, cube, point cloud, drawing pens, source line, point and labels at the stated count/projection. The six iso-curves are original NURBS curves extracted with the surface API at parameters 0.25, 0.5 and 0.75 in both directions, then placed with their source patch. Top and clipped-top frames show the white open bore; original queries, full sources/archives, geometry and exact return pixels retain independent assertions. Fresh actual browser count-override checks and every current mixed-scene picture must pass before accepting colour integration. Automatic quality follows next. In the clipped-top view, the large grey rectangle and short central dash belong to the current clipping-plane helper: its normal-arrow wings project onto a top-view line. They are separate from the NURBS iso-curves. Full original-plane grid/axis appearance and final whole-course review remain pending.
+
+---
 
 <a id="checkpoint-96zzzzzzzl-choose-bounded-frame-quality"></a>
 
 ### Step 19 of 19 · Choose bounded frame quality (`96zzzzzzzl-choose-bounded-frame-quality`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/19 Visual Trace (96zzzzzzzl-choose-bounded-frame-quality): Choose bounded frame quality</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sample_quality.rs, src/lib.rs, src/renderer.rs, src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Active original geometry + physical</text>
-    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixels/density…</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one quality policy</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete-frame count API</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/sample_quality.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one quality policy</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete-frame count API</text>
 </svg>
-</div>
-
-- **Goal:** Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
-- **Data Flow Trace:** `Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API`
-- **Files You Touch:** `src/sample_quality.rs` (*Choose a bounded physical count using active world geometry, exact device budgets, physical density and reduced-mode precedence.*) · `src/lib.rs` (*Register the one shared sampling policy used by the browser.*) · `src/renderer.rs` (*Automatic quality follows actual active faces and filled world lettering rather than drawing ribbons or hidden sources.*) · `src/browser.rs` (*Read the adapter budget and optional unsigned ?msaa= override once, retaining the same override owner used by diagnostics. The shared policy gives reduced recovery precedence.*) · `src/browser_recovery.rs` (*Query the existing recovery owner rather than introducing another policy flag.*) · `src/sample_surface_tests.rs` (*Supplied actual renderer geometry/visibility/world-lettering eligibility regression. Original sheets remain source drawing ribbons. Validate actual isolated source vertices and visible/hidden original surface, CAD and plane families without adding speculative GPU classification.*) · `src/sample_positions_tests.rs` (*Supplied independent actual GPU observation of the implementation sample coordinates. Retain all coordinate/coverage/owner assertions without prescribing a fixed hardware pattern.*)
 
 Choose the colour sample count from the current geometry, physical viewport, device budget and recovery state. Read an optional `?msaa=` override once. Keep source and query ownership unchanged.
 
 Automatic quality selects four only when filled world geometry is active, physical density is below two and the framebuffer fits the actual device budget. Native CPU adapters have no automatic four-sample budget. Original drawing pens are ribbons, and screen-only labels do not become filled world geometry. Isolated mesh vertices have no visible mesh dots; validated mesh, surface and CAD boundaries accompany faces.
 
-An unsigned `?msaa=4` forces four; every other parsed unsigned value forces one. Invalid text leaves the automatic policy active. The existing diagnostic override uses that same owner. Reduced device-loss recovery wins over either override, and an ordinary reload restores normal policy.
-
-The canonical checker keeps every existing target-reuse assertion under an explicit one-sample URL. Separate real browser contexts then check automatic and forced choices at both densities, original owners/sources/archives, repeated counts, actual resize returns and real device loss. They observe actual GPU attachment descriptors and keep the frozen 60ms command timing.
-
-The supplied Native observer measures sample-qualified positions on the real implementation without prescribing a hardware sample pattern. It supports the earlier physical-sample addressing lessons; it is not a screenshot or a hardware frame-rate claim.
-
-The recovery figure shows the unchanged original contact document reopened and fitted after real device loss. First recovered-frame attachment settings are checked before those commands. A nearly empty startup specimen is retained as a diagnostic picture, rather than presented as useful geometry validation.
-
-> **Self-Check Question:** *Which choice wins when a recovered run retains a forced-four URL?*  
-> **Answer:** Reduced recovery selects one sample and reduced density. Keep the retained override for the next ordinary reload, which restores the normal policy.
-
-- **What You Should See:** The browser drives the complete-frame sample API with one bounded policy and one optional URL/diagnostic override. Native CPU, geometry, density, exact budget boundaries and reduced recovery are explicit. Actual browser figures and source/owner/query/cache assertions remain separately required.
-- **Hands-On Lab Experiment:** Compare actual automatic and explicit counts at physical densities 1 and 2. Return 4→1→4 and resize back to the original extent; require identical drawing pixels, original owners/source archives and no repeated-count attachments. Destroy the actual GPUDevice and require reduced one-sample drawing even with URL `msaa=4`, then reload normally and require four again. Reopen the unchanged original contact after recovery, fit it explicitly and inspect the readable scene while reduced density/count still override the forced-four URL.
-
-<details>
-<summary>Implementation 96zzzzzzzl-choose-bounded-frame-quality: Choose bounded frame quality</summary>
-
-Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
-
-Data flow: Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API.
+> **Check:** *Which choice wins when a recovered run retains a forced-four URL?* — Reduced recovery selects one sample and reduced density. Keep the retained override for the next ordinary reload, which restores the normal policy.
 
 ### 1. `src/sample_quality.rs`
 
@@ -24112,8 +16853,7 @@ Create the file and type:
 --8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-01.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -24121,50 +16861,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supplied Native boundary/overflow/override/recovery cases for the same production policy.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub fn budget(gpu:wgpu::DeviceType)->Option<u32> {
-    match gpu {
-        wgpu::DeviceType::DiscreteGpu=>Some(9_000_000),
-        wgpu::DeviceType::IntegratedGpu|wgpu::DeviceType::VirtualGpu=>Some(2_500_000),
-        wgpu::DeviceType::Other=>Some(4_200_000),
-        wgpu::DeviceType::Cpu=>None,
-    }
-}
-
-pub fn samples(solid:bool,size:[u32;2],forced:Option<u32>,budget:Option<u32>,pixel_scale:f32,reduced:bool)->u32 {
-    if reduced {return 1;}
-    if let Some(count)=forced {return if count==4 {4}else{1};}
-    if pixel_scale>=2. {return 1;}
-    let pixels=u64::from(size[0])*u64::from(size[1]);
-    if solid&&budget.is_some_and(|max|pixels<=u64::from(max)) {4}else{1}
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-02.rs" skip=675
 ```
 
-</details>
-
 ### 3. `src/lib.rs`
 
 Register the one shared sampling policy used by the browser.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod renderer;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -24173,29 +16878,9 @@ pub mod sample_quality;
 pub mod renderer;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-03.rs"
-```
-
-</details>
-
 ### 4. `src/renderer.rs`
 
 Automatic quality follows actual active faces and filled world lettering rather than drawing ribbons or hidden sources.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn samples(&self)->u32{self.targets.samples}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -24206,25 +16891,13 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn samples(&self)->u32{self.targets.samples}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-04.rs"
-```
-
-</details>
-
 ### 5. `src/browser.rs`
 
 Read the adapter budget and optional unsigned ?msaa= override once, retaining the same override owner used by diagnostics. The shared policy gives reduced recovery precedence. Apply the same automatic policy on the initial viewport. Apply actual geometry, density and recovery policy after scene/input/extent changes. Pass the retained device budget alongside the optional override. Use actual physical pixels per CSS width. Reduced recovery wins even over an explicit four-sample override.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         surface.configure(&renderer.device, config);
@@ -24235,8 +16908,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     true
 }
 ```
-
-</details>
 
 Replace it with:
 
@@ -24251,8 +16922,7 @@ Replace it with:
 }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     config: &mut wgpu::SurfaceConfiguration,
@@ -24263,8 +16933,6 @@ Replace it with:
     let rect = canvas.get_bounding_client_rect();
     let limit = renderer.device.limits().max_texture_dimension_2d;
 ```
-
-</details>
 
 Replace it with:
 
@@ -24278,8 +16946,7 @@ Replace it with:
     let limit = renderer.device.limits().max_texture_dimension_2d;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             &mut config,
@@ -24290,8 +16957,6 @@ Replace it with:
             if let Err(error) = panel.update(None, &input_canvas) {
                 report(&format!("Cannot lay out commands: {error:?}"));
 ```
-
-</details>
 
 Replace it with:
 
@@ -24305,8 +16970,7 @@ Replace it with:
                 report(&format!("Cannot lay out commands: {error:?}"));
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         &mut config,
@@ -24317,8 +16981,6 @@ Replace it with:
         panel.update(None,&canvas)?;
         crate::browser_rebase::prepare(&mut renderer,&mut editor)?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -24332,8 +16994,7 @@ Replace it with:
         crate::browser_rebase::prepare(&mut renderer,&mut editor)?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     if let Some(info) = probe.as_ref().and_then(|probe| probe.info()) { let _ = crate::browser_report::adapter(info); }
@@ -24344,8 +17005,6 @@ Replace it with:
     let device = adapter
         .request_device(&wgpu::DeviceDescriptor::default())
 ```
-
-</details>
 
 Replace it with:
 
@@ -24360,8 +17019,7 @@ Replace it with:
         .request_device(&wgpu::DeviceDescriptor::default())
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -25268,47 +17926,9 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-09.rs"
-```
-
-</details>
-
 ### 6. `src/browser_recovery.rs`
 
 Query the existing recovery owner rather than introducing another policy flag.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn density(value: f64) -> f64 {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -25318,19 +17938,7 @@ pub fn reduced()->bool{POLICY.with(|policy|policy.borrow().reduced())}
 pub fn density(value: f64) -> f64 {
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-10.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -25338,26 +17946,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supplied actual renderer geometry/visibility/world-lettering eligibility regression. Original sheets remain source drawing ribbons. Validate actual isolated source vertices and visible/hidden original surface, CAD and plane families without adding speculative GPU classification.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-),usage);crate::cap_gpu_tests::wait(&r);assert_eq!(r.take_pick(matrix).unwrap().unwrap().unwrap()[0],owner.value());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-11.rs" skip=120
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -25371,10 +17966,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-12.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -25382,35 +17974,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the optional actual GPU sample-coordinate observer.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-pub mod sample_quality;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-13.rs" skip=23
 ```
 
-</details>
-
 ### 10. `src/browser.rs`
 
 Accept the same unsigned override domain as the URL parser; leave negative, fractional and out-of-range diagnostic values unchanged.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                else if let Some(count)=value.as_f64().filter(|v|*v==1.||*v==4.){sample_forced=Some(count as u32);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -25418,40 +17990,22 @@ Edit the existing block to match this code; keep unchanged lines:
                 else if let Some(count)=value.as_f64().filter(|v| *v >= 0. && *v <= u32::MAX as f64 && v.fract() == 0.){sample_forced=Some(count as u32);}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzzl-choose-bounded-frame-quality-14.rs"
-```
-
-</details>
-
-</details>
+**Result after `96zzzzzzzl-choose-bounded-frame-quality`:** The browser drives the complete-frame sample API with one bounded policy and one optional URL/diagnostic override. Native CPU, geometry, density, exact budget boundaries and reduced recovery are explicit. Actual browser figures and source/owner/query/cache assertions remain separately required.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzzzzzzl-choose-bounded-frame-quality
-npm --prefix ../session_tests run course -- check 96zzzzzzzl-choose-bounded-frame-quality
-npm --prefix ../session_tests run course -- save 96zzzzzzzl-choose-bounded-frame-quality
+npm --prefix ../session_tests run course -- dependencies 22.5
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 22.5
+npm --prefix ../session_tests run course -- save 22.5
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-The browser drives the complete-frame sample API with one bounded policy and one optional URL/diagnostic override. Native CPU, geometry, density, exact budget boundaries and reduced recovery are explicit. Actual browser figures and source/owner/query/cache assertions remain separately required.
-
-- **Final Lesson Experiment:** Compare actual automatic and explicit counts at physical densities 1 and 2. Return 4→1→4 and resize back to the original extent; require identical drawing pixels, original owners/source archives and no repeated-count attachments. Destroy the actual GPUDevice and require reduced one-sample drawing even with URL `msaa=4`, then reload normally and require four again. Reopen the unchanged original contact after recovery, fit it explicitly and inspect the readable scene while reduced density/count still override the forced-four URL.
-
-Continue with [Original display controls and remaining integration boundaries](../../consolidation/96zzzzzzzm-retain-visible-instance-ranges.md).
+Continue with [22.6 · Original display controls and remaining integration boundaries](../../consolidation/96zzzzzzzm-retain-visible-instance-ranges.md).

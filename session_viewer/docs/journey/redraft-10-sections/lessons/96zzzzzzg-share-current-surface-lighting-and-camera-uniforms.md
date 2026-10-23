@@ -1,205 +1,94 @@
 # 22.1 · Original surface colours and lighting controls
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.1** (Redraft `10.16`) · **2 checkpoints (`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms` → `96zzzzzzh-connect-headlight-and-backface-controls`)** · **Study time: 2–4 h**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Checkpoints:** `96zzzzzzg-share-current-surface-lighting-and-camera-uniforms` → `96zzzzzzh-connect-headlight-and-backface-controls` (2 steps) · **Production source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs)
 
-> **What You Will Learn & Build:** Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom. By the final checkpoint (`96zzzzzzh-connect-headlight-and-backface-controls`), you will expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
+> **Goal:** Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
-    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
-    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
-    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
-
-    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
-    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
-    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
-    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
-    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
-    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
-    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
-    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
-    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
-    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
-    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 22.1 Pipeline Schematic: Original surface colours and lighting controls</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (2 Checkpoints: 96zzzzzzg-share-current-surface-lighting-and-camera-uniforms → 96zzzzzzh-connect-headlight-and-backface-controls)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Existing view</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">controls</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">one frame encoder</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">shared surface</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">shader; scaled</text>
-    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">clipping…</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">ambient and depth</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">pyramid</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">View command or</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">startup query</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 22.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/surface_view.rs  ·  src/lib.rs  ·  src/renderer.rs  ·  src/face_pick.rs  ·  src/ambient_source_pipeline.rs  ·  src/cap_pipeline.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">2 Checkpoints: 96zzzzzzg-share-current-surface-lighting-and-camera-uniforms → 96zzzzzzh-connect-headlight-and-backface-controls — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms`](#checkpoint-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms) | Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom. | `src/surface_view.rs`, `src/lib.rs`, `src/renderer.rs`, `src/face_pick.rs` | `Existing view controls → one frame encoder → shared surface shader; scaled clipping inverse → ambient and depth pyramid` |
-| **2** | [`96zzzzzzh-connect-headlight-and-backface-controls`](#checkpoint-96zzzzzzh-connect-headlight-and-backface-controls) | Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings. | `src/renderer.rs`, `src/triangle.wgsl`, `src/editor.rs`, `src/commands.rs` | `View command or startup query → existing editor settings → shared frame → the same surface shader` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms"></a>
 
 ### Step 1 of 2 · Share flat and Arctic surface frames (`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/2 Visual Trace (96zzzzzzg-share-current-surface-lighting-and-camera-uniforms): Share flat and Arctic surface frames</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/surface_view.rs, src/lib.rs, src/renderer.rs, src/face_pick.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing view controls</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one frame encoder</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared surface shader;</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scaled…</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ambient and depth pyramid</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/surface_view.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared surface shader;…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ambient and depth pyram…</text>
 </svg>
-</div>
-
-- **Goal:** Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
-- **Data Flow Trace:** `Existing view controls → one frame encoder → shared surface shader; scaled clipping inverse → ambient and depth pyramid`
-- **Files You Touch:** `src/surface_view.rs` (*Encode the existing anchored frame once, on the stack, with its current eye and projection kind.*) · `src/lib.rs` (*Keep one internal owner for the shared surface-frame layout.*) · `src/renderer.rs` (*Share the frame layout with derived surface pipelines.*) · `src/face_pick.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/ambient_source_pipeline.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/cap_pipeline.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/cap_pick_pipeline.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/outline_gpu.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/pick_gpu.rs` (*Grow only the shared pick view; its crop frame keeps its own size.*) · `src/triangle.wgsl` (*Read the same eye/projection block in both surface-record variants.*) · `src/clipping_uniform.rs` (*Share the existing scale-stable inverse and reject invalid inputs.*) · `src/ambient_camera.rs` (*Keep valid wide orthographic cameras in the real ambient pass.*) · `src/pyramid_gpu.rs` (*Reuse the same current camera inversion in the optional depth-pyramid path.*) · `src/surface_lighting_tests.rs` (*Supply real mode pixels, uniform/fallback restoration, current camera bytes and wide ambient/pyramid controls.*)
 
 A surface color should remain its original color when lighting is off. Arctic uses eye-facing soft sky light before its separate ambient compositor. Headlight and backface controls will connect to this same frame in the following lesson. Keep these modes in the existing shader so ordinary and placed originals agree. Extend the existing frame with the kernel-derived eye and projection kind, and share its size and byte encoder with original picking. Ink and sheet lanes retain their own frame owners. A wide orthographic camera also exposes a scale problem: the general kernel inverse rejects its small determinant. Reuse the row-scaled clipping inverse for ambient cameras and the depth pyramid rather than copying another inverse.
 
-> **Self-Check Question:** *Why share the frame and inverse instead of adding another camera?*  
-> **Answer:** All passes already use the same anchored projection. One frame encoder keeps its byte layout consistent, and the existing scaled inverse handles camera units without retaining scene or camera copies.
-
-- **What You Should See:** Flat and Arctic modes retain original geometry. Wide orthographic navigation keeps ambient shading live and recovers the exact view after zooming back.
-- **Hands-On Lab Experiment:** Compare Arctic On and Off on the same original surface. The default flat mode preserves its source color. Zoom a large Box out three times in Top/Orthographic with Arctic enabled, then zoom back. Compare original coordinates, geometry uploads, actual pixels and ambient errors.
-
-<details>
-<summary>Implementation 96zzzzzzg-share-current-surface-lighting-and-camera-uniforms: Share flat and Arctic surface frames</summary>
-
-Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
-
-Data flow: Existing view controls → one frame encoder → shared surface shader; scaled clipping inverse → ambient and depth pyramid.
+> **Check:** *Why share the frame and inverse instead of adding another camera?* — All passes already use the same anchored projection. One frame encoder keeps its byte layout consistent, and the existing scaled inverse handles camera units without retaining scene or camera copies.
 
 ### 1. `src/surface_view.rs`
 
@@ -215,31 +104,11 @@ Create the file and type:
 
 Keep one internal owner for the shared surface-frame layout.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod shader_check;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 mod surface_view;
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-02.rs"
-```
-
-</details>
 
 ### 3. `src/renderer.rs`
 
@@ -247,8 +116,7 @@ Share the frame layout with derived surface pipelines. Allocate the exact shared
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
@@ -261,8 +129,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.strokes.view(&self.queue, transform, self.size, self.density);
         self.sheets.view(&self.queue,transform,self.size,self.density);
 ```
-
-</details>
 
 Replace it with:
 
@@ -277,8 +143,7 @@ Replace it with:
         self.sheets.view(&self.queue,transform,self.size,self.density);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.prepare_clouds(transform);
@@ -289,8 +154,6 @@ Replace it with:
             self.picker.submit_finite(&self.device, &self.queue, request,
             &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -304,8 +167,7 @@ Replace it with:
             &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let widget = crate::widget::Widget::new(&device, format);
@@ -316,8 +178,6 @@ Replace it with:
             mapped_at_creation: false,
         });
 ```
-
-</details>
 
 Replace it with:
 
@@ -331,8 +191,7 @@ Replace it with:
         });
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             label: Some("triangle"),
@@ -343,8 +202,6 @@ Replace it with:
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
 ```
-
-</details>
 
 Replace it with:
 
@@ -358,8 +215,7 @@ Replace it with:
             label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -973,43 +829,9 @@ mod opacity_gpu_tests;
 mod camera_extent_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-05.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-06.rs"
-```
-
-</details>
-
 ### 4. `src/face_pick.rs`
 
 Keep every consumer of the shared frame on the same binding layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let create=|shared| {let storage = layout(device); let view = crate::gpu_layout::uniform(device, 80);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1017,29 +839,9 @@ Edit the existing block to match this code; keep unchanged lines:
         let create=|shared| {let storage = layout(device); let view=crate::surface_view::layout(device);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-07.rs"
-```
-
-</details>
-
 ### 5. `src/ambient_source_pipeline.rs`
 
 Keep every consumer of the shared frame on the same binding layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let view=crate::gpu_layout::uniform(device,80);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(if shared {&geometry}else{&radius})],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1047,29 +849,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let view=crate::surface_view::layout(device);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(if shared {&geometry}else{&radius})],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-08.rs"
-```
-
-</details>
-
 ### 6. `src/cap_pipeline.rs`
 
 Keep every consumer of the shared frame on the same binding layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1077,29 +859,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let view=crate::surface_view::layout(device);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-09.rs"
-```
-
-</details>
-
 ### 7. `src/cap_pick_pipeline.rs`
 
 Keep every consumer of the shared frame on the same binding layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1107,29 +869,9 @@ Edit the existing block to match this code; keep unchanged lines:
   let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::surface_view::layout(device);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-10.rs"
-```
-
-</details>
-
 ### 8. `src/outline_gpu.rs`
 
 Keep every consumer of the shared frame on the same binding layout.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let view = crate::gpu_layout::uniform(device, 80);
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1137,25 +879,13 @@ Edit the existing block to match this code; keep unchanged lines:
   let view=crate::surface_view::layout(device);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-11.rs"
-```
-
-</details>
-
 ### 9. `src/pick_gpu.rs`
 
 Grow only the shared pick view; its crop frame keeps its own size. Share exact frame bytes with the color renderer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.image = Some(crate::pick_image::Image::new(device, window));
@@ -1166,8 +896,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
         bytes.extend((request.mode as u32).to_ne_bytes());bytes.extend(window.draw[0].to_ne_bytes());bytes.extend(window.draw[1].to_ne_bytes());bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1181,8 +909,7 @@ Replace it with:
         bytes.extend((request.mode as u32).to_ne_bytes());bytes.extend(window.draw[0].to_ne_bytes());bytes.extend(window.draw[1].to_ne_bytes());bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let record_pipeline=crate::pick_pipeline::mesh_with(device,view_layout,&crate::object_rows::layout(device),&crop_layout,true);
@@ -1193,8 +920,6 @@ Replace it with:
         let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
         Self { legacy_clipping:None,pipeline,record_pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1208,8 +933,7 @@ Replace it with:
         Self { legacy_clipping:None,pipeline,record_pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -1221,7 +945,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     legacy_clipping:Option<crate::clipping_gpu::Clipping>,
@@ -1278,7 +1001,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {let clipping=self.legacy_clipping.get_or_insert_with(||crate::clipping_gpu::Clipping::new(device));let group=clipping.group.clone();let buffer=clipping.buffer.clone();self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None,&group,&buffer,None,None)}
     pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>,clipping:&wgpu::BindGroup,clipping_buffer:&wgpu::Buffer,caps:Option<&mut crate::caps_gpu::Caps>,records:Option<&crate::instance_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -1330,31 +1052,13 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-12.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-13.rs"
-```
-
-</details>
-
 ### 10. `src/triangle.wgsl`
 
 Read the same eye/projection block in both surface-record variants. Use current flat source colors and eye-facing Arctic sky shading in the existing shared shader.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
     let bounded = direction / max(scale, 1e-30);
@@ -1368,8 +1072,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 struct FragmentOutput{
 ```
-
-</details>
 
 Replace it with:
 
@@ -1387,8 +1089,7 @@ Replace it with:
 struct FragmentOutput{
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
@@ -1396,8 +1097,6 @@ struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
 @group(1) @binding(0) var<uniform> object_settings: ObjectSettings;
 fn object_at(index: u32) -> ObjectSettings { return object_settings; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1408,8 +1107,7 @@ struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, eye:vec4<f32>,
 fn object_at(index: u32) -> ObjectSettings { return object_settings; }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, eye:vec4<f32>, }
@@ -1493,35 +1191,9 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @location(0) row:u32,@location
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-15.rs"
-```
-
-</details>
-
 ### 11. `src/clipping_uniform.rs`
 
 Share the existing scale-stable inverse and reject invalid inputs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-fn inverse(m: &Xform) -> Option<Xform> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1530,29 +1202,9 @@ pub(crate) fn inverse(m: &Xform) -> Option<Xform> {
     if m.m.iter().any(|v|!v.is_finite()){return None;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-16.rs"
-```
-
-</details>
-
 ### 12. `src/ambient_camera.rs`
 
 Keep valid wide orthographic cameras in the real ambient pass.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- let mvp=session_rust::Xform::from_matrix(matrix.map(f64::from));let inverse=mvp.inverse()?.m.map(|v|v as f32);if inverse.iter().any(|v|!v.is_finite()){return None;}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1560,29 +1212,9 @@ Edit the existing block to match this code; keep unchanged lines:
  let mvp=session_rust::Xform::from_matrix(matrix.map(f64::from));let inverse=crate::clipping_uniform::inverse(&mvp)?.m.map(|v|v as f32);if inverse.iter().any(|v|!v.is_finite()){return None;}
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-17.rs"
-```
-
-</details>
-
 ### 13. `src/pyramid_gpu.rs`
 
 Reuse the same current camera inversion in the optional depth-pyramid path.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  let Some(inverse)=session_rust::Xform::from_matrix(matrix.map(f64::from)).inverse()else{self.error=Some("Ambient depth camera is singular");self.cached=None;return;};if inverse.m.iter().any(|v|!(*v as f32).is_finite()){self.error=Some("Ambient inverse exceeds display range");self.cached=None;return;}let images=self.images.as_ref().unwrap();let mut bytes=inverse.m.into_iter().flat_map(|v|(v as f32).to_ne_bytes()).collect::<Vec<_>>();bytes.extend([full[0]as f32,full[1]as f32,images.size[0]as f32,images.size[1]as f32,0.05,0.,0.,0.,0.,0.,0.,0.].into_iter().flat_map(f32::to_ne_bytes));queue.write_buffer(&self.frame,0,&bytes);self.writes+=1;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1590,19 +1222,7 @@ Edit the existing block to match this code; keep unchanged lines:
   let Some(inverse)=crate::clipping_uniform::inverse(&session_rust::Xform::from_matrix(matrix.map(f64::from)))else{self.error=Some("Ambient depth camera is singular");self.cached=None;return;};if inverse.m.iter().any(|v|!(*v as f32).is_finite()){self.error=Some("Ambient inverse exceeds display range");self.cached=None;return;}let images=self.images.as_ref().unwrap();let mut bytes=inverse.m.into_iter().flat_map(|v|(v as f32).to_ne_bytes()).collect::<Vec<_>>();bytes.extend([full[0]as f32,full[1]as f32,images.size[0]as f32,images.size[1]as f32,0.05,0.,0.,0.,0.,0.,0.,0.].into_iter().flat_map(f32::to_ne_bytes));queue.write_buffer(&self.frame,0,&bytes);self.writes+=1;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-18.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1616,10 +1236,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-19.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1627,77 +1244,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register optional GPU validation outside the required browser graph.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod camera_extent_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-20.rs" skip=24
 ```
 
-</details>
+**Result after `96zzzzzzg-share-current-surface-lighting-and-camera-uniforms`:** Flat and Arctic modes retain original geometry. Wide orthographic navigation keeps ambient shading live and recovers the exact view after zooming back.
 
-</details>
+---
 
 <a id="checkpoint-96zzzzzzh-connect-headlight-and-backface-controls"></a>
 
 ### Step 2 of 2 · Connect headlight and backface controls (`96zzzzzzh-connect-headlight-and-backface-controls`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/2 Visual Trace (96zzzzzzh-connect-headlight-and-backface-controls): Connect headlight and backface controls</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/triangle.wgsl, src/editor.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">View command or startup</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">query</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing editor settings</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared frame</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">the same surface shader</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/tria…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared frame</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">the same surface shader</text>
 </svg>
-</div>
-
-- **Goal:** Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
-- **Data Flow Trace:** `View command or startup query → existing editor settings → shared frame → the same surface shader`
-- **Files You Touch:** `src/renderer.rs` (*Store only the two optional presentation settings.*) · `src/triangle.wgsl` (*Reuse the current wrapped headlight, soft highlight, sky and backface colors in one shader.*) · `src/editor.rs` (*Keep presentation state beside Arctic.*) · `src/commands.rs` (*Share registry entries with command completion.*) · `src/browser_defaults.rs` (*Match current presence-based startup queries.*) · `src/browser.rs` (*Forward presentation through the same renderer.*) · `src/surface_controls_tests.rs` (*Supply command, draft/history and actual shared/fallback face-pixel controls.*) · `src/lib.rs` (*Register optional command controls.*) · `src/surface_controls_gpu_tests.rs` (*Supply actual headlight/backface, mirrored orientation, projection and exact restoration controls.*)
 
 The preceding lesson established one surface frame for flat and Arctic shading. Reuse its existing display fields for optional headlight and backface modes. A headlight follows the eye through either projection, with wrapped diffuse light and a soft highlight. Red backfaces use original face orientation, including mirrored placements. Contact and sheet fills keep their existing unlit behavior. Presentation commands must return before tool cancellation or history mutation, so a lighting change cannot consume a pending point or erase Redo.
 
-> **Self-Check Question:** *Why extend the existing display controls instead of adding another render pass?*  
-> **Answer:** These modes only change a face color. The original source, surface records, frame owner and draw path already contain everything the shader needs.
-
-- **What You Should See:** Headlight and backface modes change actual original face pixels and restore the exact flat image without a geometry upload or document edit.
-- **Hands-On Lab Experiment:** Compare View Lighting On and Off on the same original surface, then inspect an open face from behind with View Backfaces On. Change a mode while a Line is waiting for its second point, and check that its first point remains. Arctic still takes precedence over the optional headlight.
-
-<details>
-<summary>Implementation 96zzzzzzh-connect-headlight-and-backface-controls: Connect headlight and backface controls</summary>
-
-Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
-
-Data flow: View command or startup query → existing editor settings → shared frame → the same surface shader.
+> **Check:** *Why extend the existing display controls instead of adding another render pass?* — These modes only change a face color. The original source, surface records, frame owner and draw path already contain everything the shader needs.
 
 ### 1. `src/renderer.rs`
 
@@ -1705,8 +1291,7 @@ Store only the two optional presentation settings. Retain current flat defaults.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
@@ -1717,8 +1302,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.queue.write_buffer(&self.uniform, 0, &bytes);
         self.strokes.view(&self.queue, transform, self.size, self.density);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1733,8 +1316,7 @@ Replace it with:
         self.strokes.view(&self.queue, transform, self.size, self.density);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     #[cfg(test)]
@@ -1744,8 +1326,6 @@ Replace it with:
     pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
     pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1759,8 +1339,7 @@ Replace it with:
     pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
@@ -1771,8 +1350,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, primitive, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1786,8 +1363,7 @@ Replace it with:
         for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1797,8 +1373,6 @@ pub struct Renderer {
     space:crate::render_space::Origin,
     opacity:std::cell::Cell<f32>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1812,8 +1386,7 @@ pub struct Renderer {
     opacity:std::cell::Cell<f32>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -2434,44 +2007,9 @@ mod camera_extent_tests;
 mod surface_lighting_tests;
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-04.rs"
-```
-
-</details>
-
 ### 2. `src/triangle.wgsl`
 
 Reuse the current wrapped headlight, soft highlight, sky and backface colors in one shader.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-    let brightness=select(1.,mix(0.72,1.,0.5+0.5*n.z),view.display.z>1.5);
-    return vec4<f32>(input.colour*brightness,select(1.,view.display.y,closed));
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2486,25 +2024,13 @@ Edit the existing block to match this code; keep unchanged lines:
     return vec4<f32>(base*brightness,select(1.,view.display.y,closed));
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-05.rs"
-```
-
-</details>
-
 ### 3. `src/editor.rs`
 
 Keep presentation state beside Arctic. Keep the native flat defaults. Use the existing action path. Return before tool cancellation or history changes. Keep the existing action match exhaustive.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             },
@@ -2515,8 +2041,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
             Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
 ```
-
-</details>
 
 Replace it with:
 
@@ -2530,8 +2054,7 @@ Replace it with:
             Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
@@ -2541,8 +2064,6 @@ Replace it with:
         if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
         if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else if self.pick_mode==crate::pick_sources::Mode::Control{self.apply(Action::Controls(false))}else{self.apply(Action::Picked(None))}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2557,8 +2078,7 @@ Replace it with:
         if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else if self.pick_mode==crate::pick_sources::Mode::Control{self.apply(Action::Controls(false))}else{self.apply(Action::Picked(None))}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 impl Default for Editor {
@@ -2569,8 +2089,6 @@ impl Default for Editor {
             scene: Scene::demo(),
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
@@ -2584,8 +2102,7 @@ impl Default for Editor {
             selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub element_interactions:bool,
@@ -2595,8 +2112,6 @@ impl Default for Editor {
     pub clipping_enabled:bool,pub clipping_solid:bool,
     pub interaction_epoch:u64,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2610,8 +2125,7 @@ Replace it with:
     pub interaction_epoch:u64,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     AddCurve,
@@ -2621,8 +2135,6 @@ Replace it with:
     AddNormals(crate::normal_example::Mode),
     EnableControls,
 ```
-
-</details>
 
 Replace it with:
 
@@ -2636,8 +2148,7 @@ Replace it with:
     EnableControls,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3863,43 +3374,13 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-06.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-07.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-08.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-10.rs"
-```
-
-</details>
-
 ### 4. `src/commands.rs`
 
 Share registry entries with command completion. Reuse strict optional On/Off parsing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -3909,8 +3390,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
     if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3924,8 +3403,7 @@ Replace it with:
     if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ("Opacity",||Action::Opacity(1.)),
@@ -3935,8 +3413,6 @@ Replace it with:
     ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
     ("Add Group",||Action::AddGroup(String::new())),
 ```
-
-</details>
 
 Replace it with:
 
@@ -3951,8 +3427,7 @@ Replace it with:
     ("Add Group",||Action::AddGroup(String::new())),
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -4186,35 +3661,9 @@ fn command_alias(line:&str)->String{
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-11.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-12.rs"
-```
-
-</details>
-
 ### 5. `src/browser_defaults.rs`
 
 Match current presence-based startup queries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let query=query();
-```
-
-</details>
 
 After that block, type:
 
@@ -4222,25 +3671,13 @@ After that block, type:
     editor.lit=query.as_ref().is_some_and(|q|q.has("lit"));editor.backfaces=query.as_ref().is_some_and(|q|q.has("backface"));
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-13.rs"
-```
-
-</details>
-
 ### 6. `src/browser.rs`
 
 Forward presentation through the same renderer. Expose the live view state for actual browser checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
@@ -4251,8 +3688,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4266,8 +3701,7 @@ Replace it with:
     canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
@@ -4278,8 +3712,6 @@ Replace it with:
             report(error); return;
         }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4293,8 +3725,7 @@ Replace it with:
         }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5184,25 +4615,7 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-15.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5216,10 +4629,7 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-16.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5227,25 +4637,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register optional command controls.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod arctic_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-17.rs" skip=17
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5253,25 +4651,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register actual native GPU controls outside the browser graph.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-mod surface_lighting_tests;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-18.rs" skip=27
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -5285,31 +4671,22 @@ Copy this supplied file:
 --8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-19.rs"
 ```
 
-</details>
-
-</details>
+**Result after `96zzzzzzh-connect-headlight-and-backface-controls`:** Headlight and backface modes change actual original face pixels and restore the exact flat image without a geometry upload or document edit.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzzzzzh-connect-headlight-and-backface-controls
-npm --prefix ../session_tests run course -- check 96zzzzzzh-connect-headlight-and-backface-controls
-npm --prefix ../session_tests run course -- save 96zzzzzzh-connect-headlight-and-backface-controls
+npm --prefix ../session_tests run course -- dependencies 22.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 22.1
+npm --prefix ../session_tests run course -- save 22.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Headlight and backface modes change actual original face pixels and restore the exact flat image without a geometry upload or document edit.
-
-- **Final Lesson Experiment:** Compare View Lighting On and Off on the same original surface, then inspect an open face from behind with View Backfaces On. Change a mode while a Line is waiting for its second point, and check that its first point remains. Arctic still takes precedence over the optional headlight.
-
-Continue with [Contact fills and original face queries](../../consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md).
+Continue with [22.2 · Contact fills and original face queries](../../consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md).

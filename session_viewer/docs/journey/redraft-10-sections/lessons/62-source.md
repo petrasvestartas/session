@@ -1,260 +1,95 @@
 # 10.4 · Original world labels, plates and integer picks
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 10.4** (Redraft `6.9`) · **37 checkpoints (`62-source` → `62o-labels`)** · **Study time: 18.5–37 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `62-source` → `62o-labels` (37 steps) · **Production source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs) · [app/scene_text.rs](../../../../src/app/scene_text.rs) · [app/fonts.rs](../../../../src/app/fonts.rs)
 
-> **What You Will Learn & Build:** Own original scene words and font metrics. By the final checkpoint (`62o-labels`), you will create pick move and delete the original scene labels.
+> **Goal:** Create pick move and delete the original scene labels.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 10 Visual Explanation: Shelf-Packed R8Unorm Font Atlas, 3D World Text vs. Billboard & Matrix Shader</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Shelf-packed glyph atlas with 1px gutter. Center: Foreshortened 3D plane text vs billboard. Right: Procedural matrix.wgsl.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: Shelf-Packed Glyph Atlas Texture -->
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. R8Unorm Shelf Glyph Atlas</text>
-    <rect x="52" y="94" width="176" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <!-- Shelf 1 -->
-    <line x1="52" y1="138" x2="228" y2="138" stroke="#111111" stroke-width="1"/>
-    <rect x="58" y="100" width="32" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <text x="74" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">A</text>
-    <rect x="96" y="100" width="32" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <text x="112" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">B</text>
-    <rect x="134" y="100" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <text x="148" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">g</text>
-    <!-- Shelf 2 -->
-    <rect x="58" y="144" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <text x="72" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#111111">0</text>
-    <rect x="92" y="144" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
-    <text x="106" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#111111">1</text>
-    <text x="140" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">1px transparent gutter prevents bleed</text>
-    <text x="140" y="225" text-anchor="middle" font-size="9" fill="#111111">queue.write_texture uploads dirty rects</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D World-Plane Text vs Screen Billboard -->
-    <rect x="287" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. World-Plane vs. Billboard Text</text>
-    <!-- Tilted 3D World Text Quad -->
-    <polygon points="304,168 388,142 406,174 322,200" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="342" y="175" font-size="11" font-weight="700" fill="#111111" transform="rotate(-16 342 175)">WORLD</text>
-    <text x="355" y="216" text-anchor="middle" font-size="9" fill="#111111">text_plane.wgsl (3D)</text>
-    <!-- Screen-aligned Billboard with Leader Line -->
-    <rect x="432" y="102" width="104" height="34" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="484" y="123" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Label #42</text>
-    <line x1="464" y1="136" x2="438" y2="178" stroke="#111111" stroke-width="1.5"/>
-    <circle cx="438" cy="178" r="3.5" fill="#111111"/>
-    <text x="484" y="216" text-anchor="middle" font-size="9" fill="#111111">text.wgsl (Billboard)</text>
-
-    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Procedural Matrix Shader (matrix.wgsl) -->
-    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Procedural Matrix (matrix.wgsl)</text>
-    <text x="699" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Stiffness K (3×3) — Plate-less Title</text>
-    <!-- 3x2 Matrix Grid -->
-    <rect x="604" y="108" width="190" height="84" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <line x1="667" y1="108" x2="667" y2="192" stroke="#111111" stroke-width="1"/>
-    <line x1="730" y1="108" x2="730" y2="192" stroke="#111111" stroke-width="1"/>
-    <line x1="604" y1="150" x2="794" y2="150" stroke="#111111" stroke-width="1"/>
-    <text x="635" y="133" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">0.425</text>
-    <!-- Zero cell left blank intentionally! -->
-    <text x="698" y="133" text-anchor="middle" font-size="9" fill="#111111">(0 blank)</text>
-    <text x="762" y="133" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">-1.200</text>
-    <rect x="604" y="150" width="63" height="42" fill="url(#hatch)" stroke="#111111" stroke-width="1"/>
-    <text x="635" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">3.142</text>
-    <text x="698" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">0.008</text>
-    <text x="762" y="175" text-anchor="middle" font-size="9" fill="#111111">(0 blank)</text>
-    <text x="699" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">16-word header + 3 words/cell</text>
-    <text x="699" y="226" text-anchor="middle" font-size="9" fill="#111111">Whole-matrix Rg32Uint pick + border</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 10.4 Pipeline Schematic: Original world labels, plates and integer picks</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (37 Checkpoints: 62-source → 62o-labels)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original words and</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared source</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">checked shaping</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">derived extent</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original text</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">example</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 10.4:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/scene_label.rs  ·  src/lib.rs  ·  src/text.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/document.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">37 Checkpoints: 62-source → 62o-labels — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Glyph Atlas (R8)</text>
+  <rect x="52" y="60" width="166" height="96" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="64" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="80" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">A</text>
+  <rect x="104" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="120" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">B</text>
+  <rect x="144" y="70" width="32" height="36" rx="3" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/><text x="160" y="93" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#111111">7</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">1px Padded Shelves</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Plane vs Billboard</text>
+  <polygon points="324,136 364,74 416,74 376,136" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3D</text>
+  <rect x="436" y="78" width="68" height="54" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="470" y="109" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2D UI</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">text_plane vs text</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. matrix.wgsl</text>
+  <rect x="644" y="64" width="120" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="684" y1="64" x2="684" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="724" y1="64" x2="724" y2="154" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="94" x2="764" y2="94" stroke="#111111" stroke-width="1"/>
+  <line x1="644" y1="124" x2="764" y2="124" stroke="#111111" stroke-width="1"/>
+  <rect x="644" y="64" width="40" height="30" fill="url(#hatch)"/><text x="664" y="83" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <rect x="684" y="94" width="40" height="30" fill="url(#hatch)"/><text x="704" y="113" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">2.4</text>
+  <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
-| **Rust / WebGPU** | Shelf-Packed `R8Unorm` Glyph Atlas + 1px Padding | Rasterizes Unicode glyphs on demand into a single-channel GPU texture with a 1-pixel transparent gutter so bilinear filtering never bleeds neighbor glyphs. |
-| **WGSL (`text_plane.wgsl` / `text.wgsl`)** | World-Plane Quad vs. Screen-Aligned Billboard Quad | `text_plane.wgsl` expands glyph quads along 3D plane axes `(plane_x, plane_y)` that foreshorten in perspective; `text.wgsl` expands along camera `(Right, Up)` vectors. |
-| **WGSL (`matrix.wgsl`)** | Procedural Matrix Cell Digits (16-word Header + 3 words/cell) | Draws heatmap cells and procedural 3-decimal digits directly in the fragment shader (leaving `0` cells blank), with a plate-less world title and yellow selection border. |
+| **Rust / WebGPU** | `R8Unorm` Shelf Glyph Atlas | On-demand glyph rasterization with 1px transparent padding. |
+| **WGSL** | `text_plane.wgsl` vs. `text.wgsl` | Foreshortened 3D plane text vs. screen-aligned 2D billboard labels. |
+| **WGSL (`matrix.wgsl`)** | Procedural Matrix Grid (`0` Blank) | Draws heatmap cells and 3-decimal digits in `@fragment`. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/text.rs](../../../../src/engine/text.rs), [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../../src/app/scene_text.rs), [app/fonts.rs](../../../../src/app/fonts.rs)
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`62-source`](#checkpoint-62-source) | Own original scene words and font metrics. | `src/scene_label.rs`, `src/lib.rs` | `original words and placement → shared source → checked shaping → derived extent` |
-| **2** | [`62a-placements`](#checkpoint-62a-placements) | Transform the label frame without changing its source. | `src/text.rs`, `src/scene_label.rs` | `shared original placement → instance model → checked world frame → presentation label` |
-| **3** | [`62b-bounds`](#checkpoint-62b-bounds) | Measure the world-sized label and its padded plate. | `src/scene_label.rs` | `font-unit extent → world-height ratio → padded corners → fit bounds` |
-| **4** | [`62c-rows`](#checkpoint-62c-rows) | Register text rows and release them with the scene. | `src/scene.rs` | `validated text → stable row → current layer → explicit scene release` |
-| **5** | [`62d-identity`](#checkpoint-62d-identity) | Include label owners in selection layers and history. | `src/scene.rs`, `src/hierarchy.rs`, `src/document.rs`, `src/memory.rs` | `stable label owner → layer eligibility → one history transaction → shared source reuse` |
-| **6** | [`62e-rectangles`](#checkpoint-62e-rectangles) | Select a label through its projected plate. | `src/scene_label_screen.rs`, `src/lib.rs`, `src/rect_select.rs` | `original placed label → projected plate → window or crossing rectangle → eligible owner` |
-| **7** | [`62f-gpu-support`](#checkpoint-62f-gpu-support) | Supply the text buffer and target adapters. | `src/text_gpu_support.rs`, `src/lib.rs` | `current text vertices → bounded buffer → explicit bindings → colour and integer targets` |
-| **8** | [`62g-plane-shader`](#checkpoint-62g-plane-shader) | Keep plane clipping correct in a small pick window. | `src/text_plane.wgsl` | `original clip position → cropped integer draw → original canvas clip → original row id` |
-| **9** | [`62h-plate-shader`](#checkpoint-62h-plate-shader) | Draw the current rounded nameplate and its original ID. | `src/text_plate.wgsl` | `projected plate → rounded distance → colour coverage or original integer id` |
-| **10** | [`62i-coverage`](#checkpoint-62i-coverage) | Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32. | `src/scene_text_gpu.rs`, `src/lib.rs` | `keep css pixels separate from framebuffer pixels` |
-| **11** | [`62ia-project-an-original-label-into-framebuffer-coordinates`](#checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates) | Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once. | `src/scene_text_gpu.rs` | `project an original label into framebuffer coordinates` |
-| **12** | [`62ib-give-nameplate-vertices-one-gpu-owner`](#checkpoint-62ib-give-nameplate-vertices-one-gpu-owner) | Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines. | `src/text_plate.rs`, `src/scene_text_gpu.rs` | `give nameplate vertices one gpu owner` |
-| **13** | [`62ic-build-nameplate-color-and-object-id-pipelines`](#checkpoint-62ic-build-nameplate-color-and-object-id-pipelines) | Prepare color and original-ID pipelines for nameplate geometry. | `src/text_plate.rs` | `build nameplate color and object-id pipelines` |
-| **14** | [`62id-own-and-release-nameplate-draw-resources`](#checkpoint-62id-own-and-release-nameplate-draw-resources) | Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity. | `src/text_plate.rs` | `own and release nameplate draw resources` |
-| **15** | [`62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system`](#checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system) | Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays. | `src/text_plate.rs` | `upload nameplate rectangles in one physical coordinate system` |
-| **16** | [`62if-place-the-plate-around-the-shaped-label`](#checkpoint-62if-place-the-plate-around-the-shaped-label) | Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data. | `src/scene_text_gpu.rs` | `place the plate around the shaped label` |
-| **17** | [`62ig-give-world-text-a-bounded-coverage-cache`](#checkpoint-62ig-give-world-text-a-bounded-coverage-cache) | A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it. | `src/text_plane.rs`, `src/scene_text_gpu.rs` | `give world text a bounded coverage cache` |
-| **18** | [`62ih-choose-bounded-glyph-raster-resolution`](#checkpoint-62ih-choose-bounded-glyph-raster-resolution) | Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently. | `src/text_plane.rs` | `choose bounded glyph raster resolution` |
-| **19** | [`62ii-rasterize-the-shaped-run-into-owned-coverage-bytes`](#checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes) | Allocate bounded coverage storage from the shaped glyph bounds. | `src/text_plane.rs` | `rasterize the shaped run into owned coverage bytes` |
-| **20** | [`62ij-upload-and-bind-one-world-text-coverage-texture`](#checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture) | Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner. | `src/text_plane.rs` | `upload and bind one world-text coverage texture` |
-| **21** | [`62ik-build-the-world-plane-text-quad`](#checkpoint-62ik-build-the-world-plane-text-quad) | Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad. | `src/text_plane.rs` | `build the world-plane text quad` |
-| **22** | [`62il-build-world-text-color-and-id-pipelines`](#checkpoint-62il-build-world-text-color-and-id-pipelines) | The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes. | `src/text_plane.rs` | `build world-text color and id pipelines` |
-| **23** | [`62im-own-the-world-text-buffer-and-pipeline-lifetime`](#checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime) | Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting. | `src/text_plane.rs` | `own the world-text buffer and pipeline lifetime` |
-| **24** | [`62in-rebuild-only-invalid-world-text-cache-entries`](#checkpoint-62in-rebuild-only-invalid-world-text-cache-entries) | Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry. | `src/text_plane.rs` | `rebuild only invalid world-text cache entries` |
-| **25** | [`62io-prepare-and-draw-the-retained-world-text-planes`](#checkpoint-62io-prepare-and-draw-the-retained-world-text-planes) | Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices. | `src/text_plane.rs` | `prepare and draw the retained world-text planes` |
-| **26** | [`62ip-collect-anchored-and-overlay-glyph-work-separately`](#checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately) | Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created. | `src/scene_text_gpu.rs` | `collect anchored and overlay glyph work separately` |
-| **27** | [`62iq-give-the-text-lane-its-retained-resource-owners`](#checkpoint-62iq-give-the-text-lane-its-retained-resource-owners) | Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates. | `src/scene_text_gpu.rs` | `give the text lane its retained resource owners` |
-| **28** | [`62ir-construct-and-rebuild-the-text-lane-once`](#checkpoint-62ir-construct-and-rebuild-the-text-lane-once) | Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document. | `src/scene_text_gpu.rs` | `construct and rebuild the text lane once` |
-| **29** | [`62is-reset-the-text-lane-and-record-scoped-preparation-costs`](#checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs) | Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope. | `src/scene_text_gpu.rs` | `reset the text lane and record scoped preparation costs` |
-| **30** | [`62it-prepare-glyphs-only-when-the-witness-changes`](#checkpoint-62it-prepare-glyphs-only-when-the-witness-changes) | Skip text preparation when its complete frame witness is unchanged. | `src/scene_text_gpu.rs` | `prepare glyphs only when the witness changes` |
-| **31** | [`62iu-draw-the-prepared-text-passes-in-order`](#checkpoint-62iu-draw-the-prepared-text-passes-in-order) | Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson. | `src/scene_text_gpu.rs` | `draw the prepared text passes in order` |
-| **32** | [`62j-frame-pass`](#checkpoint-62j-frame-pass) | Prepare the full text frame and load the scene depth. | `src/renderer.rs` | `camera and CSS density → text frame → current lane preparation → colour/depth load pass` |
-| **33** | [`62k-lane-labels`](#checkpoint-62k-lane-labels) | Merge original scene labels with the screen specimen. | `src/renderer.rs` | `visible source labels and overlays → stable label ids → one lazy document → reused shaping` |
-| **34** | [`62l-picking`](#checkpoint-62l-picking) | Draw original text IDs through bounded readback. | `src/renderer.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `current camera text preparation → bounded integer pass → original owner → current derived bounds` |
-| **35** | [`62m-whole-fonts`](#checkpoint-62m-whole-fonts) | Fetch missing whole fonts as one checked set. | `src/text_fonts.rs`, `src/lib.rs` | `subset coverage miss → bounded font requests → complete font set → atomic adoption` |
-| **36** | [`62n-diagnostics`](#checkpoint-62n-diagnostics) | Show current text sources metrics and preparation errors. | `src/browser.rs` | `font delivery → current derived bounds → truthful diagnostics → visible error status` |
-| **37** | [`62o-labels`](#checkpoint-62o-labels) | Create pick move and delete the original scene labels. | `src/editor.rs`, `src/commands.rs`, `src/scene_label_tests.rs`, `src/lib.rs` | `original text example → current placement and coverage → original integer pick → one reversible edit` |
+![Recorded visual output for Lesson 10.4 (62o-labels)](../../../screenshots/journey/62o-labels-browser.png)
 
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-62-source"></a>
 
 ### Step 1 of 37 · Own original scene words and font metrics (`62-source`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/37 Visual Trace (62-source): Own original scene words and font metrics</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_label.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original words and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked shaping</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived extent</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_label.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked shaping</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived extent</text>
 </svg>
-</div>
-
-- **Goal:** Own original scene words and font metrics.
-- **Data Flow Trace:** `original words and placement → shared source → checked shaping → derived extent`
-- **Files You Touch:** `src/scene_label.rs` (*Own immutable original label data and derive measured bounds separately.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep original words, source GUID, name, flags and f64 placement in a shared source. Validate one label before deriving its font-unit extent.
 
-> **Self-Check Question:** *Does a glyph cache replace the original words?*  
-> **Answer:** No. The original label remains a shared source. Shaped metrics, glyph coverage and integer pick addresses are derived presentation data. Screen-only specimens stay outside scene rows.
-
-- **What You Should See:** The earlier CAD bore and screen-font specimen remain visible while the original scene-label lane is prepared. Connect the scene examples at the end of 62.
-- **Hands-On Lab Experiment:** Compare source words and placement with the derived extent. Reject a screen specimen or a source carrying an existing viewer pick address before inserting a row.
-
-<details>
-<summary>Implementation 62-source: Own original scene words and font metrics</summary>
-
-Own original scene words and font metrics.
-
-Data flow: original words and placement → shared source → checked shaping → derived extent.
+> **Check:** *Does a glyph cache replace the original words?* — No. The original label remains a shared source. Shaped metrics, glyph coverage and integer pick addresses are derived presentation data. Screen-only specimens stay outside scene rows.
 
 ### 1. `src/scene_label.rs`
 
@@ -270,91 +105,50 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod text_atlas_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/62-source-02.rs" skip=35
 ```
 
-</details>
+**Result after `62-source`:** The earlier CAD bore and screen-font specimen remain visible while the original scene-label lane is prepared. Connect the scene examples at the end of 62.
+
+---
 
 <a id="checkpoint-62a-placements"></a>
 
 ### Step 2 of 37 · Transform the label frame without changing its source (`62a-placements`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/37 Visual Trace (62a-placements): Transform the label frame without changing its source</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs, src/scene_label.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original placement</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">instance model</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked world frame</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">presentation label</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text.rs, src/scene_la…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked world frame</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">presentation label</text>
 </svg>
-</div>
-
-- **Goal:** Transform the label frame without changing its source.
-- **Data Flow Trace:** `shared original placement → instance model → checked world frame → presentation label`
-- **Files You Touch:** `src/text.rs` (*Reuse the checked current label validator for placed labels.*) · `src/scene_label.rs` (*Derive world labels and GPU addresses from stable source and instance identities.*)
 
 Give each instance a stable viewer ID and independent f64 model. Preserve orthogonal equal-scale axes for plane text and uniform scale for billboards.
 
-> **Self-Check Question:** *Should Move rewrite the source label coordinates?*  
-> **Answer:** No. Move changes the instance model. Plane directions remain orthogonal and billboard scale stays uniform; an incompatible placement is rejected before adoption.
-
-- **Hands-On Lab Experiment:** Translate a source at 1,000,000,000.125 by 0.25. Verify the displayed placement changes while original source coordinates and words remain exact.
-
-<details>
-<summary>Implementation 62a-placements: Transform the label frame without changing its source</summary>
-
-Transform the label frame without changing its source.
-
-Data flow: shared original placement → instance model → checked world frame → presentation label.
+> **Check:** *Should Move rewrite the source label coordinates?* — No. Move changes the instance model. Plane directions remain orthogonal and billboard scale stays uniform; an incompatible placement is rejected before adoption.
 
 ### 1. `src/text.rs`
 
 Reuse the checked current label validator for placed labels.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-
-fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
-    anyhow::ensure!(
-        label.font_size.is_finite() && (1.0..=256.0).contains(&label.font_size),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -366,91 +160,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Derive world labels and GPU addresses from stable source and instance identities.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
- }
-}
-pub fn example(placement:TextPlacement)->Source {let mut label=crate::text_example::label();label.text="Original CAD · Ø25 · Ω".into();label.color=[255;4];label.placement=placement;Source {guid:uuid::Uuid::new_v4().to_string(),name:"Original CAD label".into(),visible:true,locked:false,label}}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/62a-placements-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-62b-bounds"></a>
 
 ### Step 3 of 37 · Measure the world-sized label and its padded plate (`62b-bounds`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/37 Visual Trace (62b-bounds): Measure the world-sized label and its padded plate</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_label.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">font-unit extent</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world-height ratio</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">padded corners</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fit bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_label.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">padded corners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fit bounds</text>
 </svg>
-</div>
-
-- **Goal:** Measure the world-sized label and its padded plate.
-- **Data Flow Trace:** `font-unit extent → world-height ratio → padded corners → fit bounds`
-- **Files You Touch:** `src/scene_label.rs` (*Derive source-owned world bounds without replacing f64 coordinates by display floats.*)
 
 Convert shaped font-unit widths and heights to scene units. Include plane/billboard plates in Fit bounds; screen-sized anchors keep a world anchor.
 
-> **Self-Check Question:** *Does world_height mean the complete multiline label height?*  
-> **Answer:** No. It scales the font em into world units. The shaped line extents determine the complete label and its plate. Camera-facing text changes its projection while preserving that world size.
-
-- **Hands-On Lab Experiment:** Compare font size, line height and world height. Inspect the four padded world corners and the anchor-only bounds for a CSS-sized nameplate.
-
-<details>
-<summary>Implementation 62b-bounds: Measure the world-sized label and its padded plate</summary>
-
-Measure the world-sized label and its padded plate.
-
-Data flow: font-unit extent → world-height ratio → padded corners → fit bounds.
+> **Check:** *Does world_height mean the complete multiline label height?* — No. It scales the font em into world units. The shaped line extents determine the complete label and its plate. Camera-facing text changes its projection while preserving that world size.
 
 ### 1. `src/scene_label.rs`
 
 Derive source-owned world bounds without replacing f64 coordinates by display floats.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  crate::text::validate_label(&label).map_err(|_|"Text placement is invalid")?;Ok(label)
- }
-}
-pub fn example(placement:TextPlacement)->Source {let mut label=crate::text_example::label();label.text="Original CAD · Ø25 · Ω".into();label.color=[255;4];label.placement=placement;Source {guid:uuid::Uuid::new_v4().to_string(),name:"Original CAD label".into(),visible:true,locked:false,label}}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -458,58 +209,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/62b-bounds-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-62c-rows"></a>
 
 ### Step 4 of 37 · Register text rows and release them with the scene (`62c-rows`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/37 Visual Trace (62c-rows): Register text rows and release them with the scene</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated text</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable row</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current layer</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit scene release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current layer</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit scene release</text>
 </svg>
-</div>
-
-- **Goal:** Register text rows and release them with the scene.
-- **Data Flow Trace:** `validated text → stable row → current layer → explicit scene release`
-- **Files You Touch:** `src/scene.rs` (*Add checked text rows, stable allocation and explicit source cleanup.*)
 
 Insert a validated source on the current layer with an independent viewer ID. Allocate IDs only after label/frame validation; clearing the scene drops text rows.
 
-> **Self-Check Question:** *Does clearing the glyph atlas delete the original scene label?*  
-> **Answer:** No. Scene rows own original labels. Clearing presentation resources is separate; Close drops the rows and document history so their original owners can be released.
-
-- **Hands-On Lab Experiment:** Compare original source GUID with viewer ID and layer-node identity. Insert the same shared source twice and keep independent row identities.
-
-<details>
-<summary>Implementation 62c-rows: Register text rows and release them with the scene</summary>
-
-Register text rows and release them with the scene.
-
-Data flow: validated text → stable row → current layer → explicit scene release.
+> **Check:** *Does clearing the glyph atlas delete the original scene label?* — No. Scene rows own original labels. Clearing presentation resources is separate; Close drops the rows and document history so their original owners can be released.
 
 ### 1. `src/scene.rs`
 
@@ -517,8 +248,7 @@ Add checked text rows, stable allocation and explicit source cleanup.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.ids=Default::default();
@@ -528,8 +258,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.paths = Vec::new();
         self.lines = Vec::new();
 ```
-
-</details>
 
 Replace it with:
 
@@ -543,8 +271,7 @@ Replace it with:
         self.lines = Vec::new();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -554,8 +281,6 @@ Replace it with:
 
     pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
 ```
-
-</details>
 
 Replace it with:
 
@@ -578,8 +303,7 @@ Replace it with:
     pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let turquoise = PreparedMesh::triangle([
@@ -591,8 +315,6 @@ Replace it with:
         scene
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -605,8 +327,7 @@ Replace it with:
         scene
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     ids:Rc<std::collections::HashSet<ObjectId>>,
@@ -616,8 +337,6 @@ Replace it with:
     paths: Vec<PathObject>,
     lines: Vec<LineObject>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -631,8 +350,7 @@ Replace it with:
     lines: Vec<LineObject>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -738,7 +456,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -1239,83 +956,38 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62c-rows-01.rs"
-```
-
-```text
---8<-- "journey/code/62c-rows-02.rs"
-```
-
-```text
---8<-- "journey/code/62c-rows-03.rs"
-```
-
-```text
---8<-- "journey/code/62c-rows-04.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-62d-identity"></a>
 
 ### Step 5 of 37 · Include label owners in selection layers and history (`62d-identity`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/37 Visual Trace (62d-identity): Include label owners in selection layers and history</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/hierarchy.rs, src/document.rs, src/memory.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable label owner</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">layer eligibility</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history transaction</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared source reuse</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene.rs, src/hierarc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared source reuse</text>
 </svg>
-</div>
-
-- **Goal:** Include label owners in selection layers and history.
-- **Data Flow Trace:** `stable label owner → layer eligibility → one history transaction → shared source reuse`
-- **Files You Touch:** `src/scene.rs` (*Connect text to the existing owner, bounds, placement, copy and removal routes.*) · `src/hierarchy.rs` (*Include text identities and truthful source capacity; reject incomplete mixed saves.*) · `src/document.rs` (*Include text identities and truthful source capacity; reject incomplete mixed saves.*) · `src/memory.rs` (*Include text identities and truthful source capacity; reject incomplete mixed saves.*) · `src/editor.rs` (*Make generic whole-owner Move and Select All include the text lane.*)
 
 Connect placed bounds, whole Move, copy, layer identity, Select All, Delete and Undo/Redo. Count unique original text owners separately from repeated scene snapshots.
 
-> **Self-Check Question:** *Does a layer copy need another original word allocation?*  
-> **Answer:** No. A copied row has its own viewer identity and placement while sharing the original text source. Presentation flags and document history remain separate.
-
-- **Hands-On Lab Experiment:** Lock and hide a text row, compare Select All eligibility, copy it and inspect source sharing. Delete then Undo; Close must release the owner. Saving text is explicitly deferred until mixed-document persistence.
-
-<details>
-<summary>Implementation 62d-identity: Include label owners in selection layers and history</summary>
-
-Include label owners in selection layers and history.
-
-Data flow: stable label owner → layer eligibility → one history transaction → shared source reuse.
+> **Check:** *Does a layer copy need another original word allocation?* — No. A copied row has its own viewer identity and placement while sharing the original text source. Presentation flags and document history remain separate.
 
 ### 1. `src/scene.rs`
 
@@ -1323,8 +995,7 @@ Connect text to the existing owner, bounds, placement, copy and removal routes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
@@ -1335,8 +1006,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1350,8 +1019,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn remove(&mut self, id: ObjectId) -> bool {
@@ -1362,8 +1030,6 @@ Replace it with:
         existed
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1377,8 +1043,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
@@ -1388,8 +1053,6 @@ Replace it with:
 
     pub fn clear(&mut self) {
 ```
-
-</details>
 
 Replace it with:
 
@@ -1403,8 +1066,7 @@ Replace it with:
     pub fn clear(&mut self) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
@@ -1414,8 +1076,6 @@ Replace it with:
         let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
         for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1429,8 +1089,7 @@ Replace it with:
         for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
@@ -1445,8 +1104,6 @@ Replace it with:
         let mut vertices = object.mesh.vertices().iter();
         let first = vertices.next()?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -1466,8 +1123,7 @@ Replace it with:
         let first = vertices.next()?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
@@ -1476,8 +1132,6 @@ Replace it with:
         else { self.place_point(id,model) }
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1490,8 +1144,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
@@ -1501,8 +1154,6 @@ Replace it with:
 
     pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1516,8 +1167,7 @@ Replace it with:
     pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let p = row.point(); let p = [p[0], p[1], p[2]];
@@ -1526,8 +1176,6 @@ Replace it with:
         bounds
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1540,8 +1188,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{mesh::Mesh, prepared::PreparedMesh};
@@ -1647,7 +1294,6 @@ impl PathObject {
     pub fn points(&self) -> Vec<session_rust::Point> {
         self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
     }
-
 
 }
 
@@ -2155,67 +1801,9 @@ impl Scene {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62d-identity-01.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-02.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-03.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-04.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-05.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-06.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-07.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-08.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-09.rs"
-```
-
-</details>
-
 ### 2. `src/hierarchy.rs`
 
 Include text identities and truthful source capacity; reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2227,18 +1815,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Include text identities and truthful source capacity; reject incomplete mixed saves.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if scene.objects().iter().any(|row|row.surface.is_some()||row.cad.is_some()) {return Err("This checkpoint cannot save CAD surface objects yet");}
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
@@ -2248,16 +1824,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ### 4. `src/memory.rs`
 
 Include text identities and truthful source capacity; reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    counts[1]=sources.len();counts[2]=prepared.len();counts
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -2271,8 +1837,7 @@ Make generic whole-owner Move and Select All include the text lane.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -2283,8 +1848,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             }
             Action::PickedTarget(target) => {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2298,8 +1861,7 @@ Replace it with:
             Action::PickedTarget(target) => {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2312,8 +1874,6 @@ Replace it with:
         let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
         self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2330,8 +1890,7 @@ Replace it with:
         self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3070,76 +2629,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62d-identity-13.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-14.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-62e-rectangles"></a>
 
 ### Step 6 of 37 · Select a label through its projected plate (`62e-rectangles`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/37 Visual Trace (62e-rectangles): Select a label through its projected plate</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_label_screen.rs, src/lib.rs, src/rect_select.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original placed label</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected plate</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">window or crossing</text>
-    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rectangle</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">eligible owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_label_screen.rs…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window or crossing rect…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">eligible owner</text>
 </svg>
-</div>
-
-- **Goal:** Select a label through its projected plate.
-- **Data Flow Trace:** `original placed label → projected plate → window or crossing rectangle → eligible owner`
-- **Files You Touch:** `src/scene_label_screen.rs` (*Project source-owned plate extents for rectangle selection.*) · `src/lib.rs` (*Register the source component.*) · `src/rect_select.rs` (*Include only eligible original label owners in rectangle results.*)
 
 Project plane corners and screen-sized/world-sized placements into CSS coordinates. A crossing rectangle fully inside a plate still intersects its owner.
 
-> **Self-Check Question:** *Does a crossing rectangle need to cross a plate boundary?*  
-> **Answer:** No. It also intersects when wholly inside the plate. A window requires every projected corner to fit. Hidden and locked rows remain ineligible.
-
-- **Hands-On Lab Experiment:** Compare a small crossing rectangle inside a plate with the same rectangle drawn left to right. The crossing selects; the small window does not contain the whole plate.
-
-<details>
-<summary>Implementation 62e-rectangles: Select a label through its projected plate</summary>
-
-Select a label through its projected plate.
-
-Data flow: original placed label → projected plate → window or crossing rectangle → eligible owner.
+> **Check:** *Does a crossing rectangle need to cross a plate boundary?* — No. It also intersects when wholly inside the plate. A window requires every projected corner to fit. Hidden and locked rows remain ineligible.
 
 ### 1. `src/scene_label_screen.rs`
 
@@ -3155,16 +2676,6 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod scene_label;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -3175,76 +2686,44 @@ After that block, type:
 
 Include only eligible original label owners in rectangle results.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.paths().iter().filter(|row|eligible(row.id)) {if matches(matrix,size,rectangle,vec![row.points().into_iter().map(|point|[point[0],point[1],point[2]]).collect()]) {found.push(row.id);}}
-    for row in scene.points().iter().filter(|row|eligible(row.id)) {let point=row.point();if matches(matrix,size,rectangle,vec![vec![[point[0],point[1],point[2]]]]) {found.push(row.id);}}
-    found.sort_unstable_by_key(|id|id.value());found.dedup();found
-}
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/62e-rectangles-03.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-62f-gpu-support"></a>
 
 ### Step 7 of 37 · Supply the text buffer and target adapters (`62f-gpu-support`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/37 Visual Trace (62f-gpu-support): Supply the text buffer and target adapters</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_gpu_support.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current text vertices</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded buffer</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit bindings</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour and integer targets</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_gpu_support.rs,…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit bindings</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour and integer targ…</text>
 </svg>
-</div>
-
-- **Goal:** Supply the text buffer and target adapters.
-- **Data Flow Trace:** `current text vertices → bounded buffer → explicit bindings → colour and integer targets`
-- **Files You Touch:** `src/text_gpu_support.rs` (*Adapt current text buffers and bindings to this cumulative renderer.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep bounded vertex uploads, explicit target formats, texture bindings and exact allocated buffer sizes compatible with current text code.
 
-> **Self-Check Question:** *Are used vertex bytes the same as reserved GPU bytes?*  
-> **Answer:** No. Buffers reserve capacity and draw only their live vertex count. Report the actual allocation separately, and release both the count and the allocation on cleanup.
-
-- **Hands-On Lab Experiment:** Check the 40-byte plate and 64-byte plane vertex strides against their shader layouts. Inspect the integer target and the 80-byte pick-transform binding.
-
-<details>
-<summary>Implementation 62f-gpu-support: Supply the text buffer and target adapters</summary>
-
-Supply the text buffer and target adapters.
-
-Data flow: current text vertices → bounded buffer → explicit bindings → colour and integer targets.
+> **Check:** *Are used vertex bytes the same as reserved GPU bytes?* — No. Buffers reserve capacity and draw only their live vertex count. Report the actual allocation separately, and release both the count and the allocation on cleanup.
 
 ### 1. `src/text_gpu_support.rs`
 
@@ -3260,74 +2739,44 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod scene_label_screen;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/62f-gpu-support-02.rs" skip=29
 ```
 
-</details>
+---
 
 <a id="checkpoint-62g-plane-shader"></a>
 
 ### Step 8 of 37 · Keep plane clipping correct in a small pick window (`62g-plane-shader`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/37 Visual Trace (62g-plane-shader): Keep plane clipping correct in a small pick window</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clip position</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped integer draw</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original canvas clip</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original row id</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original canvas clip</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original row id</text>
 </svg>
-</div>
-
-- **Goal:** Keep plane clipping correct in a small pick window.
-- **Data Flow Trace:** `original clip position → cropped integer draw → original canvas clip → original row id`
-- **Files You Touch:** `src/text_plane.wgsl` (*Keep original clip coordinates through the bounded pick crop and shade actual rounded coverage.*)
 
 Carry original homogeneous clip coordinates through the colour and integer shaders. Test the CSS clip in original canvas coordinates after applying a pick crop.
 
-> **Self-Check Question:** *Can a cropped pick image use its local pixel coordinates as canvas coordinates?*  
-> **Answer:** No. Its origin and size differ. Retain the original clip position so colour and integer draws apply the same label clip after perspective division.
-
-- **Hands-On Lab Experiment:** Compare the main image and a 13-pixel pick window over a clipped label. Pixels outside its CSS clip cannot draw or acquire its original row ID.
-
-<details>
-<summary>Implementation 62g-plane-shader: Keep plane clipping correct in a small pick window</summary>
-
-Keep plane clipping correct in a small pick window.
-
-Data flow: original clip position → cropped integer draw → original canvas clip → original row id.
+> **Check:** *Can a cropped pick image use its local pixel coordinates as canvas coordinates?* — No. Its origin and size differ. Retain the original clip position so colour and integer draws apply the same label clip after perspective division.
 
 ### 1. `src/text_plane.wgsl`
 
@@ -3339,55 +2788,38 @@ Create the file and type:
 --8<-- "journey/code/62g-plane-shader-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-62h-plate-shader"></a>
 
 ### Step 9 of 37 · Draw the current rounded nameplate and its original ID (`62h-plate-shader`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/37 Visual Trace (62h-plate-shader): Draw the current rounded nameplate and its original ID</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected plate</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rounded distance</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour coverage or original integer</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">id</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plate.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rounded distance</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour coverage or orig…</text>
 </svg>
-</div>
-
-- **Goal:** Draw the current rounded nameplate and its original ID.
-- **Data Flow Trace:** `projected plate → rounded distance → colour coverage or original integer id`
-- **Files You Touch:** `src/text_plate.wgsl` (*Shade current rounded plates and preserve integer coverage ownership.*)
 
 Use the same rounded plate distance for colour coverage and integer ownership. Black plates use white source ink; selected plates use yellow with black ink.
 
-> **Self-Check Question:** *Should transparent rounded corners acquire the text owner?*  
-> **Answer:** No. The integer pass discards fragments outside the rounded plate. A locked plate writes the zero address where it occludes, while visible unlocked text keeps its original row ID.
-
-- **Hands-On Lab Experiment:** Inspect the rounded corners in colour and the integer pass. Compare the selected plate with original source color and verify selection never rewrites source words.
-
-<details>
-<summary>Implementation 62h-plate-shader: Draw the current rounded nameplate and its original ID</summary>
-
-Draw the current rounded nameplate and its original ID.
-
-Data flow: projected plate → rounded distance → colour coverage or original integer id.
+> **Check:** *Should transparent rounded corners acquire the text owner?* — No. The integer pass discards fragments outside the rounded plate. A locked plate writes the zero address where it occludes, while visible unlocked text keeps its original row ID.
 
 ### 1. `src/text_plate.wgsl`
 
@@ -3399,49 +2831,40 @@ Create the file and type:
 --8<-- "journey/code/62h-plate-shader-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-62i-coverage"></a>
 
 ### Step 10 of 37 · Keep CSS pixels separate from framebuffer pixels (`62i-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/37 Visual Trace (62i-coverage): Keep CSS pixels separate from framebuffer pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">keep css pixels separate from framebuffer pixels</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs, sr…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">keep css pixels separat…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">keep css pixels separat…</text>
 </svg>
-</div>
-
-- **Goal:** Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
-- **Data Flow Trace:** `keep css pixels separate from framebuffer pixels`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of keep css pixels separate from framebuffer pixels.*) · `src/lib.rs` (*Compile the text-frame preparation in the cumulative browser crate.*)
 
 Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
 
 This sequence assembles the text owners in bounded coding sessions. Reuse the already-written shaders and Session geometry. The original glyph scene remains available during preparation; [62j](../../62j-frame-pass.md) connects the completed lane to the same browser frame.
 
-> **Self-Check Question:** *When does the canvas have one valid CSS-to-framebuffer scale?*  
-> **Answer:** When framebuffer width/CSS width and framebuffer height/CSS height agree on one finite positive scale. Reject invalid or nonuniform dimensions before text preparation.
-
-- **What You Should See:** The frame scale is validated before text preparation. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** At CSS size 900×760, predict framebuffer sizes and scale at DPR1 and2. Explain why 1800×760 must be rejected as stretched.
-
-<details>
-<summary>Implementation 62i-coverage: Keep CSS pixels separate from framebuffer pixels</summary>
-
-Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
-
-Data flow: keep css pixels separate from framebuffer pixels.
+> **Check:** *When does the canvas have one valid CSS-to-framebuffer scale?* — When framebuffer width/CSS width and framebuffer height/CSS height agree on one finite positive scale. Reject invalid or nonuniform dimensions before text preparation.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3457,77 +2880,50 @@ Create the file and type:
 
 Compile the text-frame preparation in the cumulative browser crate.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod text_gpu_support;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/62i-coverage-02.rs" skip=27
 ```
 
-</details>
+**Result after `62i-coverage`:** The frame scale is validated before text preparation. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"></a>
 
 ### Step 11 of 37 · Project an original label into framebuffer coordinates (`62ia-project-an-original-label-into-framebuffer-coordinates`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/37 Visual Trace (62ia-project-an-original-label-into-framebuffer-coordinates): Project an original label into framebuffer coordinates</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">project an original label into framebuffer coordinates</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">project an original lab…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">project an original lab…</text>
 </svg>
-</div>
-
-- **Goal:** Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
-- **Data Flow Trace:** `project an original label into framebuffer coordinates`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of project an original label into framebuffer coordinates.*)
 
 Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
 
-> **Self-Check Question:** *Why subtract the scene origin before projecting a label?*  
-> **Answer:** Subtracting in double precision preserves the small offset between a distant label and the frame origin. Narrowing the large world position first would lose that offset.
-
-- **What You Should See:** Label projection produces framebuffer coordinates from a precise origin. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Project a label at the declared origin, then one unit along camera right. Predict its visibility and pixel displacement before the later frame connection.
-
-<details>
-<summary>Implementation 62ia-project-an-original-label-into-framebuffer-coordinates: Project an original label into framebuffer coordinates</summary>
-
-Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
-
-Data flow: project an original label into framebuffer coordinates.
+> **Check:** *Why subtract the scene origin before projecting a label?* — Subtracting in double precision preserves the small offset between a distant label and the frame origin. Narrowing the large world position first would lose that offset.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of project an original label into framebuffer coordinates.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3535,47 +2931,40 @@ After that block, type:
 --8<-- "journey/code/62ia-project-an-original-label-into-framebuffer-coordinates-01.rs" skip=8
 ```
 
-</details>
+**Result after `62ia-project-an-original-label-into-framebuffer-coordinates`:** Label projection produces framebuffer coordinates from a precise origin. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>
 
 ### Step 12 of 37 · Give nameplate vertices one GPU owner (`62ib-give-nameplate-vertices-one-gpu-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/37 Visual Trace (62ib-give-nameplate-vertices-one-gpu-owner): Give nameplate vertices one GPU owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs, src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">give nameplate vertices one gpu owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plate.rs, src/sc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">give nameplate vertices…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">give nameplate vertices…</text>
 </svg>
-</div>
-
-- **Goal:** Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
-- **Data Flow Trace:** `give nameplate vertices one gpu owner`
-- **Files You Touch:** `src/text_plate.rs` (*Add this part of give nameplate vertices one gpu owner.*) · `src/scene_text_gpu.rs` (*Compile the already-created child owner in the text lane.*)
 
 Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
 
-> **Self-Check Question:** *Which retained resources does one nameplate owner keep?*  
-> **Answer:** The rectangle vertex buffer, its logical draw counts, and the color and original-ID pipelines. Rectangle inputs remain temporary preparation data.
-
-- **What You Should See:** One retained owner describes nameplate geometry and draw ranges. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** List the plate vertex buffer, bind group and pipelines retained between frames. Identify which owner drops each resource.
-
-<details>
-<summary>Implementation 62ib-give-nameplate-vertices-one-gpu-owner: Give nameplate vertices one GPU owner</summary>
-
-Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
-
-Data flow: give nameplate vertices one gpu owner.
+> **Check:** *Which retained resources does one nameplate owner keep?* — The rectangle vertex buffer, its logical draw counts, and the color and original-ID pipelines. Rectangle inputs remain temporary preparation data.
 
 ### 1. `src/text_plate.rs`
 
@@ -3591,78 +2980,50 @@ Create the file and type:
 
 Compile the already-created child owner in the text lane.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        },
-    }
-}
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/62ib-give-nameplate-vertices-one-gpu-owner-02.rs" skip=19
 ```
 
-</details>
+**Result after `62ib-give-nameplate-vertices-one-gpu-owner`:** One retained owner describes nameplate geometry and draw ranges. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"></a>
 
 ### Step 13 of 37 · Build nameplate color and object-ID pipelines (`62ic-build-nameplate-color-and-object-id-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/37 Visual Trace (62ic-build-nameplate-color-and-object-id-pipelines): Build nameplate color and object-ID pipelines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">build nameplate color and object-id pipelines</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plate.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">build nameplate color a…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">build nameplate color a…</text>
 </svg>
-</div>
-
-- **Goal:** Prepare color and original-ID pipelines for nameplate geometry.
-- **Data Flow Trace:** `build nameplate color and object-id pipelines`
-- **Files You Touch:** `src/text_plate.rs` (*Add this part of build nameplate color and object-id pipelines.*)
 
 Use the already-written shader with declared vertex layout, blending, depth and target formats. The ID pass shares geometry without making a plate an editable original.
 
-> **Self-Check Question:** *What differs between a color target and an object-ID target?*  
-> **Answer:** The color target blends coverage; the integer target writes an exact original owner ID. Integer IDs must not blend.
-
-- **What You Should See:** Both pipeline descriptors are prepared. [62j](../../62j-frame-pass.md) connects their display work.
-- **Hands-On Lab Experiment:** Compare the color and integer-ID pipeline descriptors. Explain why the ID attachment cannot use alpha blending.
-
-<details>
-<summary>Implementation 62ic-build-nameplate-color-and-object-id-pipelines: Build nameplate color and object-ID pipelines</summary>
-
-Prepare color and original-ID pipelines for nameplate geometry.
-
-Data flow: build nameplate color and object-id pipelines.
+> **Check:** *What differs between a color target and an object-ID target?* — The color target blends coverage; the integer target writes an exact original owner ID. Integer IDs must not blend.
 
 ### 1. `src/text_plate.rs`
 
 Add this part of build nameplate color and object-id pipelines.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    physical_vertices: u32,
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3670,61 +3031,44 @@ After that block, type:
 --8<-- "journey/code/62ic-build-nameplate-color-and-object-id-pipelines-01.rs" skip=30
 ```
 
-</details>
+**Result after `62ic-build-nameplate-color-and-object-id-pipelines`:** Both pipeline descriptors are prepared. [62j](../../62j-frame-pass.md) connects their display work.
+
+---
 
 <a id="checkpoint-62id-own-and-release-nameplate-draw-resources"></a>
 
 ### Step 14 of 37 · Own and release nameplate draw resources (`62id-own-and-release-nameplate-draw-resources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/37 Visual Trace (62id-own-and-release-nameplate-draw-resources): Own and release nameplate draw resources</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">own and release nameplate draw resources</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plate.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">own and release namepla…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">own and release namepla…</text>
 </svg>
-</div>
-
-- **Goal:** Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
-- **Data Flow Trace:** `own and release nameplate draw resources`
-- **Files You Touch:** `src/text_plate.rs` (*Add this part of own and release nameplate draw resources.*)
 
 Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
 
-> **Self-Check Question:** *Does resetting a draw count release its GPU buffer?*  
-> **Answer:** No. A zero logical count suppresses drawing while retaining capacity. Releasing the owner drops its resources.
-
-- **What You Should See:** Nameplate resources can reset their draw counts and release their owner separately. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Follow reset and release separately. Predict which resource capacities remain after resetting only the draw count.
-
-<details>
-<summary>Implementation 62id-own-and-release-nameplate-draw-resources: Own and release nameplate draw resources</summary>
-
-Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
-
-Data flow: own and release nameplate draw resources.
+> **Check:** *Does resetting a draw count release its GPU buffer?* — No. A zero logical count suppresses drawing while retaining capacity. Releasing the owner drops its resources.
 
 ### 1. `src/text_plate.rs`
 
 Add this part of own and release nameplate draw resources.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3732,62 +3076,44 @@ After that block, type:
 --8<-- "journey/code/62id-own-and-release-nameplate-draw-resources-01.rs" skip=8
 ```
 
-</details>
+**Result after `62id-own-and-release-nameplate-draw-resources`:** Nameplate resources can reset their draw counts and release their owner separately. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>
 
 ### Step 15 of 37 · Upload nameplate rectangles in one physical coordinate system (`62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/37 Visual Trace (62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system): Upload nameplate rectangles in one physical coordinate system</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">upload nameplate rectangles in one physical coordinate system</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plate.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">upload nameplate rectan…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">upload nameplate rectan…</text>
 </svg>
-</div>
-
-- **Goal:** Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
-- **Data Flow Trace:** `upload nameplate rectangles in one physical coordinate system`
-- **Files You Touch:** `src/text_plate.rs` (*Add this part of upload nameplate rectangles in one physical coordinate system.*)
 
 Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
 
-> **Self-Check Question:** *Which coordinates are written into the nameplate vertex buffer?*  
-> **Answer:** Framebuffer coordinates, after one CSS/device conversion. Keep separate ranges for depth-tested plates and overlays.
-
-- **What You Should See:** Rectangle uploads retain separate physical and overlay ranges. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Trace one rectangle’s six vertices in framebuffer pixels. Predict what doubles at DPR2 and what remains an original source value.
-
-<details>
-<summary>Implementation 62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system: Upload nameplate rectangles in one physical coordinate system</summary>
-
-Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
-
-Data flow: upload nameplate rectangles in one physical coordinate system.
+> **Check:** *Which coordinates are written into the nameplate vertex buffer?* — Framebuffer coordinates, after one CSS/device conversion. Keep separate ranges for depth-tested plates and overlays.
 
 ### 1. `src/text_plate.rs`
 
 Add this part of upload nameplate rectangles in one physical coordinate system.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.vertices.buf.size()
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3795,61 +3121,44 @@ After that block, type:
 --8<-- "journey/code/62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system-01.rs" skip=41
 ```
 
-</details>
+**Result after `62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system`:** Rectangle uploads retain separate physical and overlay ranges. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62if-place-the-plate-around-the-shaped-label"></a>
 
 ### Step 16 of 37 · Place the plate around the shaped label (`62if-place-the-plate-around-the-shaped-label`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/37 Visual Trace (62if-place-the-plate-around-the-shaped-label): Place the plate around the shaped label</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">place the plate around the shaped label</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">place the plate around…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">place the plate around…</text>
 </svg>
-</div>
-
-- **Goal:** Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
-- **Data Flow Trace:** `place the plate around the shaped label`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of place the plate around the shaped label.*)
 
 Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
 
-> **Self-Check Question:** *Why must plate padding use the same scale as glyph placement?*  
-> **Answer:** Glyphs and their backing rectangle must expand together. Applying device scale twice to padding would change the border with display density.
-
-- **What You Should See:** Plate bounds follow the shaped glyph placement and padding. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** For a shaped label with a given measured width, calculate the plate bounds with padding at DPR1 and2.
-
-<details>
-<summary>Implementation 62if-place-the-plate-around-the-shaped-label: Place the plate around the shaped label</summary>
-
-Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
-
-Data flow: place the plate around the shaped label.
+> **Check:** *Why must plate padding use the same scale as glyph placement?* — Glyphs and their backing rectangle must expand together. Applying device scale twice to padding would change the border with display density.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of place the plate around the shaped label.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[path = "text_plate.rs"]
-mod plate;
-```
-
-</details>
 
 After that block, type:
 
@@ -3857,47 +3166,40 @@ After that block, type:
 --8<-- "journey/code/62if-place-the-plate-around-the-shaped-label-01.rs" skip=37
 ```
 
-</details>
+**Result after `62if-place-the-plate-around-the-shaped-label`:** Plate bounds follow the shaped glyph placement and padding. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>
 
 ### Step 17 of 37 · Give world text a bounded coverage cache (`62ig-give-world-text-a-bounded-coverage-cache`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/37 Visual Trace (62ig-give-world-text-a-bounded-coverage-cache): Give world text a bounded coverage cache</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs, src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">give world text a bounded coverage cache</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs, src/sc…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">give world text a bound…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">give world text a bound…</text>
 </svg>
-</div>
-
-- **Goal:** A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
-- **Data Flow Trace:** `give world text a bounded coverage cache`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of give world text a bounded coverage cache.*) · `src/scene_text_gpu.rs` (*Compile the already-created child owner in the text lane.*)
 
 A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
 
-> **Self-Check Question:** *What makes an old world-text coverage entry reusable?*  
-> **Answer:** Its text, font and raster inputs must still match. A placement change can move the quad while reusing the coverage texture.
-
-- **What You Should See:** Coverage cache entries own their textures and enforce the raster budget. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** List the cache key and its source witnesses. Predict the result of changing only the camera, then the original text.
-
-<details>
-<summary>Implementation 62ig-give-world-text-a-bounded-coverage-cache: Give world text a bounded coverage cache</summary>
-
-A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
-
-Data flow: give world text a bounded coverage cache.
+> **Check:** *What makes an old world-text coverage entry reusable?* — Its text, font and raster inputs must still match. A placement change can move the quad while reusing the coverage texture.
 
 ### 1. `src/text_plane.rs`
 
@@ -3913,78 +3215,50 @@ Create the file and type:
 
 Compile the already-created child owner in the text lane.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        object: run.label.object,
-    })
-}
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/62ig-give-world-text-a-bounded-coverage-cache-02.rs" skip=43
 ```
 
-</details>
+**Result after `62ig-give-world-text-a-bounded-coverage-cache`:** Coverage cache entries own their textures and enforce the raster budget. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ih-choose-bounded-glyph-raster-resolution"></a>
 
 ### Step 18 of 37 · Choose bounded glyph raster resolution (`62ih-choose-bounded-glyph-raster-resolution`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/37 Visual Trace (62ih-choose-bounded-glyph-raster-resolution): Choose bounded glyph raster resolution</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">choose bounded glyph raster resolution</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">choose bounded glyph ra…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">choose bounded glyph ra…</text>
 </svg>
-</div>
-
-- **Goal:** Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
-- **Data Flow Trace:** `choose bounded glyph raster resolution`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of choose bounded glyph raster resolution.*)
 
 Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
 
-> **Self-Check Question:** *How is raster resolution bounded for a world-space label?*  
-> **Answer:** Start from projected framebuffer height, then reduce the raster scale until the complete shaped extent fits the device texture limit.
-
-- **What You Should See:** World-text raster resolution fits the device texture limit. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** For a world-sized label, compare the chosen raster scale when zooming closer and when doubling DPR. Locate both upper bounds.
-
-<details>
-<summary>Implementation 62ih-choose-bounded-glyph-raster-resolution: Choose bounded glyph raster resolution</summary>
-
-Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
-
-Data flow: choose bounded glyph raster resolution.
+> **Check:** *How is raster resolution bounded for a world-space label?* — Start from projected framebuffer height, then reduce the raster scale until the complete shaped extent fits the device texture limit.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of choose bounded glyph raster resolution.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    clip
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -3992,62 +3266,44 @@ After that block, type:
 --8<-- "journey/code/62ih-choose-bounded-glyph-raster-resolution-01.rs" skip=11
 ```
 
-</details>
+**Result after `62ih-choose-bounded-glyph-raster-resolution`:** World-text raster resolution fits the device texture limit. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>
 
 ### Step 19 of 37 · Rasterize the shaped run into owned coverage bytes (`62ii-rasterize-the-shaped-run-into-owned-coverage-bytes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/37 Visual Trace (62ii-rasterize-the-shaped-run-into-owned-coverage-bytes): Rasterize the shaped run into owned coverage bytes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rasterize the shaped run into owned coverage bytes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rasterize the shaped ru…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rasterize the shaped ru…</text>
 </svg>
-</div>
-
-- **Goal:** Allocate bounded coverage storage from the shaped glyph bounds.
-- **Data Flow Trace:** `rasterize the shaped run into owned coverage bytes`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of rasterize the shaped run into owned coverage bytes.*)
 
 Find glyph/layout bounds before allocating the bounded texture-sized array. Composite coverage into that array without retaining temporary font images as original CAD data.
 
-> **Self-Check Question:** *When can the coverage byte array be allocated safely?*  
-> **Answer:** After measuring the run and checking its dimensions against the texture limit. The width and height then determine the byte count.
-
-- **What You Should See:** The run owns bounded coverage bytes; temporary glyph images can be released. [62j](../../62j-frame-pass.md) connects display preparation.
-- **Hands-On Lab Experiment:** Calculate the output byte count for a 128×32 coverage image. Trace alpha, monochrome and subpixel glyph input through the coverage helper.
-
-<details>
-<summary>Implementation 62ii-rasterize-the-shaped-run-into-owned-coverage-bytes: Rasterize the shaped run into owned coverage bytes</summary>
-
-Allocate bounded coverage storage from the shaped glyph bounds.
-
-Data flow: rasterize the shaped run into owned coverage bytes.
+> **Check:** *When can the coverage byte array be allocated safely?* — After measuring the run and checking its dimensions against the texture limit. The width and height then determine the byte count.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of rasterize the shaped run into owned coverage bytes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        }
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4055,61 +3311,44 @@ After that block, type:
 --8<-- "journey/code/62ii-rasterize-the-shaped-run-into-owned-coverage-bytes-01.rs" skip=18
 ```
 
-</details>
+**Result after `62ii-rasterize-the-shaped-run-into-owned-coverage-bytes`:** The run owns bounded coverage bytes; temporary glyph images can be released. [62j](../../62j-frame-pass.md) connects display preparation.
+
+---
 
 <a id="checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture"></a>
 
 ### Step 20 of 37 · Upload and bind one world-text coverage texture (`62ij-upload-and-bind-one-world-text-coverage-texture`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/37 Visual Trace (62ij-upload-and-bind-one-world-text-coverage-texture): Upload and bind one world-text coverage texture</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">upload and bind one world-text coverage texture</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">upload and bind one wor…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">upload and bind one wor…</text>
 </svg>
-</div>
-
-- **Goal:** Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
-- **Data Flow Trace:** `upload and bind one world-text coverage texture`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of upload and bind one world-text coverage texture.*)
 
 Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
 
-> **Self-Check Question:** *Which texture format and row layout carry glyph coverage?*  
-> **Answer:** One R8 texel stores each coverage value. The upload declares the coverage width as bytes per row and retains a texture/sampler bind group.
-
-- **What You Should See:** One cached bind group owns the uploaded coverage texture. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Identify the R8 texture size, row stride and upload operation for that image. Explain when the texture becomes owned by its cache entry.
-
-<details>
-<summary>Implementation 62ij-upload-and-bind-one-world-text-coverage-texture: Upload and bind one world-text coverage texture</summary>
-
-Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
-
-Data flow: upload and bind one world-text coverage texture.
+> **Check:** *Which texture format and row layout carry glyph coverage?* — One R8 texel stores each coverage value. The upload declares the coverage width as bytes per row and retains a texture/sampler bind group.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of upload and bind one world-text coverage texture.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ))
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4117,62 +3356,44 @@ After that block, type:
 --8<-- "journey/code/62ij-upload-and-bind-one-world-text-coverage-texture-01.rs" skip=9
 ```
 
-</details>
+**Result after `62ij-upload-and-bind-one-world-text-coverage-texture`:** One cached bind group owns the uploaded coverage texture. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>
 
 ### Step 21 of 37 · Build the world-plane text quad (`62ik-build-the-world-plane-text-quad`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/37 Visual Trace (62ik-build-the-world-plane-text-quad): Build the world-plane text quad</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">build the world-plane text quad</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">build the world-plane t…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">build the world-plane t…</text>
 </svg>
-</div>
-
-- **Goal:** Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
-- **Data Flow Trace:** `build the world-plane text quad`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of build the world-plane text quad.*)
 
 Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
 
-> **Self-Check Question:** *Which original data does the generated world-text quad retain?*  
-> **Answer:** The original label supplies placement, size and color. The quad is a derived render input, not a replacement label or new CAD object.
-
-- **What You Should See:** The world-text quad derives its vertices from the original label plane. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Trace the four original world corners into the generated six-vertex quad. Identify which values depend on camera origin.
-
-<details>
-<summary>Implementation 62ik-build-the-world-plane-text-quad: Build the world-plane text quad</summary>
-
-Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
-
-Data flow: build the world-plane text quad.
+> **Check:** *Which original data does the generated world-text quad retain?* — The original label supplies placement, size and color. The quad is a derived render input, not a replacement label or new CAD object.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of build the world-plane text quad.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        bind,
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4180,62 +3401,44 @@ After that block, type:
 --8<-- "journey/code/62ik-build-the-world-plane-text-quad-01.rs" skip=22
 ```
 
-</details>
+**Result after `62ik-build-the-world-plane-text-quad`:** The world-text quad derives its vertices from the original label plane. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62il-build-world-text-color-and-id-pipelines"></a>
 
 ### Step 22 of 37 · Build world-text color and ID pipelines (`62il-build-world-text-color-and-id-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/37 Visual Trace (62il-build-world-text-color-and-id-pipelines): Build world-text color and ID pipelines</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">build world-text color and id pipelines</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">build world-text color…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">build world-text color…</text>
 </svg>
-</div>
-
-- **Goal:** The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
-- **Data Flow Trace:** `build world-text color and id pipelines`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of build world-text color and id pipelines.*)
 
 The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
 
-> **Self-Check Question:** *Which contracts must the world-text color and ID passes share?*  
-> **Answer:** They share vertex placement and coverage rejection. The color pass blends visible coverage; the ID pass writes the exact original owner.
-
-- **What You Should See:** World-text pipelines share placement and coverage while keeping color and ID targets distinct. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Compare the world-plane color and ID pipelines. Find the shared coverage cutoff and their depth contracts in the already-written shaders.
-
-<details>
-<summary>Implementation 62il-build-world-text-color-and-id-pipelines: Build world-text color and ID pipelines</summary>
-
-The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
-
-Data flow: build world-text color and id pipelines.
+> **Check:** *Which contracts must the world-text color and ID passes share?* — They share vertex placement and coverage rejection. The color pass blends visible coverage; the ID pass writes the exact original owner.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of build world-text color and id pipelines.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        ]);
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4243,62 +3446,44 @@ After that block, type:
 --8<-- "journey/code/62il-build-world-text-color-and-id-pipelines-01.rs" skip=20
 ```
 
-</details>
+**Result after `62il-build-world-text-color-and-id-pipelines`:** World-text pipelines share placement and coverage while keeping color and ID targets distinct. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>
 
 ### Step 23 of 37 · Own the world-text buffer and pipeline lifetime (`62im-own-the-world-text-buffer-and-pipeline-lifetime`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/37 Visual Trace (62im-own-the-world-text-buffer-and-pipeline-lifetime): Own the world-text buffer and pipeline lifetime</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">own the world-text buffer and pipeline lifetime</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">own the world-text buff…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">own the world-text buff…</text>
 </svg>
-</div>
-
-- **Goal:** Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
-- **Data Flow Trace:** `own the world-text buffer and pipeline lifetime`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of own the world-text buffer and pipeline lifetime.*)
 
 Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
 
-> **Self-Check Question:** *What must change when the render target changes?*  
-> **Answer:** Pipelines that depend on its format must be rebuilt. Retained geometry and compatible coverage textures need not be rasterized again.
-
-- **What You Should See:** The world-text owner can retarget pipelines and release retained resources. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Follow a target-format change through retarget. Identify which pipelines change and which cached original labels remain valid.
-
-<details>
-<summary>Implementation 62im-own-the-world-text-buffer-and-pipeline-lifetime: Own the world-text buffer and pipeline lifetime</summary>
-
-Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
-
-Data flow: own the world-text buffer and pipeline lifetime.
+> **Check:** *What must change when the render target changes?* — Pipelines that depend on its format must be rebuilt. Retained geometry and compatible coverage textures need not be rasterized again.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of own the world-text buffer and pipeline lifetime.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        })
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4306,62 +3491,44 @@ After that block, type:
 --8<-- "journey/code/62im-own-the-world-text-buffer-and-pipeline-lifetime-01.rs" skip=19
 ```
 
-</details>
+**Result after `62im-own-the-world-text-buffer-and-pipeline-lifetime`:** The world-text owner can retarget pipelines and release retained resources. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"></a>
 
 ### Step 24 of 37 · Rebuild only invalid world-text cache entries (`62in-rebuild-only-invalid-world-text-cache-entries`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/37 Visual Trace (62in-rebuild-only-invalid-world-text-cache-entries): Rebuild only invalid world-text cache entries</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rebuild only invalid world-text cache entries</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rebuild only invalid wo…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">rebuild only invalid wo…</text>
 </svg>
-</div>
-
-- **Goal:** Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
-- **Data Flow Trace:** `rebuild only invalid world-text cache entries`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of rebuild only invalid world-text cache entries.*)
 
 Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
 
-> **Self-Check Question:** *When does a cached label need a new GPU texture?*  
-> **Answer:** When its font, text or required raster no longer matches the entry. Check the aggregate texture budget before replacing or appending GPU storage.
-
-- **What You Should See:** Only invalid label cache entries require replacement coverage. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Predict cache hits for repeated frames, a font revision, and a changed label. Trace the byte budget check before texture allocation.
-
-<details>
-<summary>Implementation 62in-rebuild-only-invalid-world-text-cache-entries: Rebuild only invalid world-text cache entries</summary>
-
-Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
-
-Data flow: rebuild only invalid world-text cache entries.
+> **Check:** *When does a cached label need a new GPU texture?* — When its font, text or required raster no longer matches the entry. Check the aggregate texture budget before replacing or appending GPU storage.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of rebuild only invalid world-text cache entries.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        total
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4369,62 +3536,44 @@ After that block, type:
 --8<-- "journey/code/62in-rebuild-only-invalid-world-text-cache-entries-01.rs" skip=22
 ```
 
-</details>
+**Result after `62in-rebuild-only-invalid-world-text-cache-entries`:** Only invalid label cache entries require replacement coverage. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>
 
 ### Step 25 of 37 · Prepare and draw the retained world-text planes (`62io-prepare-and-draw-the-retained-world-text-planes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/37 Visual Trace (62io-prepare-and-draw-the-retained-world-text-planes): Prepare and draw the retained world-text planes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepare and draw the retained world-text planes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_plane.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepare and draw the re…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepare and draw the re…</text>
 </svg>
-</div>
-
-- **Goal:** Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
-- **Data Flow Trace:** `prepare and draw the retained world-text planes`
-- **Files You Touch:** `src/text_plane.rs` (*Add this part of prepare and draw the retained world-text planes.*)
 
 Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
 
-> **Self-Check Question:** *How do current draw indices refer to retained cache entries?*  
-> **Answer:** Preparation builds indices into the retained cache after pruning expired entries. Draw only those accepted indices for the current frame.
-
-- **What You Should See:** Prepared draw indices reference the surviving retained text planes. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Follow one visible run from cache lookup to draw index. Explain why cache indices cannot be treated as original object IDs.
-
-<details>
-<summary>Implementation 62io-prepare-and-draw-the-retained-world-text-planes: Prepare and draw the retained world-text planes</summary>
-
-Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
-
-Data flow: prepare and draw the retained world-text planes.
+> **Check:** *How do current draw indices refer to retained cache entries?* — Preparation builds indices into the retained cache after pruning expired entries. Draw only those accepted indices for the current frame.
 
 ### 1. `src/text_plane.rs`
 
 Add this part of prepare and draw the retained world-text planes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(index.expect("a prepared world plane has a cache entry"))
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4432,61 +3581,44 @@ After that block, type:
 --8<-- "journey/code/62io-prepare-and-draw-the-retained-world-text-planes-01.rs" skip=77
 ```
 
-</details>
+**Result after `62io-prepare-and-draw-the-retained-world-text-planes`:** Prepared draw indices reference the surviving retained text planes. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"></a>
 
 ### Step 26 of 37 · Collect anchored and overlay glyph work separately (`62ip-collect-anchored-and-overlay-glyph-work-separately`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/37 Visual Trace (62ip-collect-anchored-and-overlay-glyph-work-separately): Collect anchored and overlay glyph work separately</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">collect anchored and overlay glyph work separately</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">collect anchored and ov…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">collect anchored and ov…</text>
 </svg>
-</div>
-
-- **Goal:** Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
-- **Data Flow Trace:** `collect anchored and overlay glyph work separately`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of collect anchored and overlay glyph work separately.*)
 
 Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
 
-> **Self-Check Question:** *How long must the borrowed shaped runs stay alive?*  
-> **Answer:** Until glyph preparation finishes reading their text areas. The borrow belongs to this preparation call and does not create another original-source owner.
-
-- **What You Should See:** Anchored glyphs and overlays have separate preparation inputs. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Place one anchored and one overlay run in their respective TextArea collections. Explain why those areas borrow the existing shaped runs.
-
-<details>
-<summary>Implementation 62ip-collect-anchored-and-overlay-glyph-work-separately: Collect anchored and overlay glyph work separately</summary>
-
-Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
-
-Data flow: collect anchored and overlay glyph work separately.
+> **Check:** *How long must the borrowed shaped runs stay alive?* — Until glyph preparation finishes reading their text areas. The borrow belongs to this preparation call and does not create another original-source owner.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of collect anchored and overlay glyph work separately.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[path = "text_plane.rs"]
-mod plane;
-```
-
-</details>
 
 After that block, type:
 
@@ -4494,62 +3626,44 @@ After that block, type:
 --8<-- "journey/code/62ip-collect-anchored-and-overlay-glyph-work-separately-01.rs" skip=37
 ```
 
-</details>
+**Result after `62ip-collect-anchored-and-overlay-glyph-work-separately`:** Anchored glyphs and overlays have separate preparation inputs. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>
 
 ### Step 27 of 37 · Give the text lane its retained resource owners (`62iq-give-the-text-lane-its-retained-resource-owners`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/37 Visual Trace (62iq-give-the-text-lane-its-retained-resource-owners): Give the text lane its retained resource owners</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">give the text lane its retained resource owners</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">give the text lane its…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">give the text lane its…</text>
 </svg>
-</div>
-
-- **Goal:** Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
-- **Data Flow Trace:** `give the text lane its retained resource owners`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of give the text lane its retained resource owners.*)
 
 Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
 
-> **Self-Check Question:** *Which owners make up the text lane?*  
-> **Answer:** Its font/raster system, glyph atlas and viewport, depth-tested and overlay renderers, world-plane and plate owners, caches and accepted preparation witness.
-
-- **What You Should See:** The text lane retains its atlas, viewport and render owners. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Draw the text lane ownership tree: document, atlas, raster cache, plane cache and plates. Mark which resources survive a camera move.
-
-<details>
-<summary>Implementation 62iq-give-the-text-lane-its-retained-resource-owners: Give the text lane its retained resource owners</summary>
-
-Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
-
-Data flow: give the text lane its retained resource owners.
+> **Check:** *Which owners make up the text lane?* — Its font/raster system, glyph atlas and viewport, depth-tested and overlay renderers, world-plane and plate owners, caches and accepted preparation witness.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of give the text lane its retained resource owners.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        anchored,
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4557,61 +3671,44 @@ After that block, type:
 --8<-- "journey/code/62iq-give-the-text-lane-its-retained-resource-owners-01.rs" skip=26
 ```
 
-</details>
+**Result after `62iq-give-the-text-lane-its-retained-resource-owners`:** The text lane retains its atlas, viewport and render owners. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62ir-construct-and-rebuild-the-text-lane-once"></a>
 
 ### Step 28 of 37 · Construct and rebuild the text lane once (`62ir-construct-and-rebuild-the-text-lane-once`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/37 Visual Trace (62ir-construct-and-rebuild-the-text-lane-once): Construct and rebuild the text lane once</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">construct and rebuild the text lane once</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">construct and rebuild t…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">construct and rebuild t…</text>
 </svg>
-</div>
-
-- **Goal:** Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
-- **Data Flow Trace:** `construct and rebuild the text lane once`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of construct and rebuild the text lane once.*)
 
 Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
 
-> **Self-Check Question:** *Which resources depend on the current font atlas?*  
-> **Answer:** Glyph renderers and their atlas bindings. Rebuild them with the new atlas and invalidate the preparation witness so stale glyph locations cannot draw.
-
-- **What You Should See:** The text lane rebuilds resources that depend on a replaced atlas. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Trace construction and atlas rebuild. Explain why every glyph renderer must refer to the same current atlas.
-
-<details>
-<summary>Implementation 62ir-construct-and-rebuild-the-text-lane-once: Construct and rebuild the text lane once</summary>
-
-Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
-
-Data flow: construct and rebuild the text lane once.
+> **Check:** *Which resources depend on the current font atlas?* — Glyph renderers and their atlas bindings. Rebuild them with the new atlas and invalidate the preparation witness so stale glyph locations cannot draw.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of construct and rebuild the text lane once.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    depths.get(&id).copied().unwrap_or(0.0)
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4619,62 +3716,44 @@ After that block, type:
 --8<-- "journey/code/62ir-construct-and-rebuild-the-text-lane-once-01.rs" skip=46
 ```
 
-</details>
+**Result after `62ir-construct-and-rebuild-the-text-lane-once`:** The text lane rebuilds resources that depend on a replaced atlas. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>
 
 ### Step 29 of 37 · Reset the text lane and record scoped preparation costs (`62is-reset-the-text-lane-and-record-scoped-preparation-costs`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/37 Visual Trace (62is-reset-the-text-lane-and-record-scoped-preparation-costs): Reset the text lane and record scoped preparation costs</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reset the text lane and record scoped preparation costs</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reset the text lane and…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reset the text lane and…</text>
 </svg>
-</div>
-
-- **Goal:** Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
-- **Data Flow Trace:** `reset the text lane and record scoped preparation costs`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of reset the text lane and record scoped preparation costs.*)
 
 Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
 
-> **Self-Check Question:** *What do the text preparation counters actually measure?*  
-> **Answer:** Work observed during the declared preparation call. They do not measure total device memory or convert generated glyph resources into source data.
-
-- **What You Should See:** Reset and preparation accounting follow their declared resource scope. The browser frame connection follows in [62j](../../62j-frame-pass.md).
-- **Hands-On Lab Experiment:** Predict which preparation counters change after shaping, rasterizing and uploading. Explain why retained capacity is not a timing measurement.
-
-<details>
-<summary>Implementation 62is-reset-the-text-lane-and-record-scoped-preparation-costs: Reset the text lane and record scoped preparation costs</summary>
-
-Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
-
-Data flow: reset the text lane and record scoped preparation costs.
+> **Check:** *What do the text preparation counters actually measure?* — Work observed during the declared preparation call. They do not measure total device memory or convert generated glyph resources into source data.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of reset the text lane and record scoped preparation costs.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.document.set_labels(labels)
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4682,62 +3761,44 @@ After that block, type:
 --8<-- "journey/code/62is-reset-the-text-lane-and-record-scoped-preparation-costs-01.rs" skip=49
 ```
 
-</details>
+**Result after `62is-reset-the-text-lane-and-record-scoped-preparation-costs`:** Reset and preparation accounting follow their declared resource scope. The browser frame connection follows in [62j](../../62j-frame-pass.md).
+
+---
 
 <a id="checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"></a>
 
 ### Step 30 of 37 · Prepare glyphs only when the witness changes (`62it-prepare-glyphs-only-when-the-witness-changes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/37 Visual Trace (62it-prepare-glyphs-only-when-the-witness-changes): Prepare glyphs only when the witness changes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepare glyphs only when the witness changes</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepare glyphs only whe…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepare glyphs only whe…</text>
 </svg>
-</div>
-
-- **Goal:** Skip text preparation when its complete frame witness is unchanged.
-- **Data Flow Trace:** `prepare glyphs only when the witness changes`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of prepare glyphs only when the witness changes.*)
 
 Use document/font/frame revisions to skip unchanged work. Prepare world planes, the viewport, overlay/anchored glyphs and plate inputs, then record the accepted witness.
 
-> **Self-Check Question:** *Which witness lets unchanged text skip preparation?*  
-> **Answer:** The accepted document, font and frame revisions together. A source edit, font replacement or changed projection invalidates that witness.
-
-- **What You Should See:** The owner records a witness only after preparing its inputs. [62j](../../62j-frame-pass.md) connects the frame pass.
-- **Hands-On Lab Experiment:** Compare the preparation witnesses for an unchanged frame, a camera change and a source edit. Predict which pass needs rebuilding.
-
-<details>
-<summary>Implementation 62it-prepare-glyphs-only-when-the-witness-changes: Prepare glyphs only when the witness changes</summary>
-
-Skip text preparation when its complete frame witness is unchanged.
-
-Data flow: prepare glyphs only when the witness changes.
+> **Check:** *Which witness lets unchanged text skip preparation?* — The accepted document, font and frame revisions together. A source edit, font replacement or changed projection invalidates that witness.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of prepare glyphs only when the witness changes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.rebuild_resources(ctx);
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4745,62 +3806,44 @@ After that block, type:
 --8<-- "journey/code/62it-prepare-glyphs-only-when-the-witness-changes-01.rs" skip=45
 ```
 
-</details>
+**Result after `62it-prepare-glyphs-only-when-the-witness-changes`:** The owner records a witness only after preparing its inputs. [62j](../../62j-frame-pass.md) connects the frame pass.
+
+---
 
 <a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>
 
 ### Step 31 of 37 · Draw the prepared text passes in order (`62iu-draw-the-prepared-text-passes-in-order`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/37 Visual Trace (62iu-draw-the-prepared-text-passes-in-order): Draw the prepared text passes in order</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">draw the prepared text passes in order</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/scene_text_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">draw the prepared text…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">draw the prepared text…</text>
 </svg>
-</div>
-
-- **Goal:** Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
-- **Data Flow Trace:** `draw the prepared text passes in order`
-- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of draw the prepared text passes in order.*)
 
 Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
 
-> **Self-Check Question:** *Why does text draw order distinguish anchored and overlay work?*  
-> **Answer:** Anchored text participates in scene depth; overlays must remain readable on top. Draw the prepared ranges in their declared phases rather than sharing one depth rule.
-
-- **What You Should See:** All text owners are assembled. Their placement and depth fixtures validate the boundary before [62j](../../62j-frame-pass.md) connects the frame.
-- **Hands-On Lab Experiment:** Trace the completed draw order for world-plane, anchored, nameplate and overlay text. Inspect the supplied numerical fixtures, then proceed to [62j](../../62j-frame-pass.md) to connect this lane to the browser frame.
-
-<details>
-<summary>Implementation 62iu-draw-the-prepared-text-passes-in-order: Draw the prepared text passes in order</summary>
-
-Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
-
-Data flow: draw the prepared text passes in order.
+> **Check:** *Why does text draw order distinguish anchored and overlay work?* — Anchored text participates in scene depth; overlays must remain readable on top. Draw the prepared ranges in their declared phases rather than sharing one depth rule.
 
 ### 1. `src/scene_text_gpu.rs`
 
 Add this part of draw the prepared text passes in order.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(())
-    }
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -4808,8 +3851,7 @@ After that block, type:
 --8<-- "journey/code/62iu-draw-the-prepared-text-passes-in-order-01.rs" skip=23
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -4817,77 +3859,46 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Keep the existing numerical regression fixtures as supplied validation.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        Ok(draws)
-    }
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/62iu-draw-the-prepared-text-passes-in-order-02.rs" skip=26
 ```
 
-</details>
+**Result after `62iu-draw-the-prepared-text-passes-in-order`:** All text owners are assembled. Their placement and depth fixtures validate the boundary before [62j](../../62j-frame-pass.md) connects the frame.
 
-</details>
+---
 
 <a id="checkpoint-62j-frame-pass"></a>
 
 ### Step 32 of 37 · Prepare the full text frame and load the scene depth (`62j-frame-pass`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/37 Visual Trace (62j-frame-pass): Prepare the full text frame and load the scene depth</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera and CSS density</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">text frame</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current lane preparation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour/depth load pass</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current lane preparation</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour/depth load pass</text>
 </svg>
-</div>
-
-- **Goal:** Prepare the full text frame and load the scene depth.
-- **Data Flow Trace:** `camera and CSS density → text frame → current lane preparation → colour/depth load pass`
-- **Files You Touch:** `src/renderer.rs` (*Prepare the complete current text frame and preserve already-rendered scene depth.*)
 
 Connect the current text lane to the existing lazy screen specimen. Supply physical/logical canvas facts and draw glyph coverage in a colour/depth load pass.
 
-> **Self-Check Question:** *Should the text load pass clear the CAD depth?*  
-> **Answer:** No. Anchored and world text must compare against the scene depth already drawn. Screen overlays and nameplates use their explicit presentation depth rules.
-
-- **Hands-On Lab Experiment:** Draw the earlier screen specimen through the full lane. Keep primary geometry and integer picks unchanged while supplying the same target format and sample count.
-
-<details>
-<summary>Implementation 62j-frame-pass: Prepare the full text frame and load the scene depth</summary>
-
-Prepare the full text frame and load the scene depth.
-
-Data flow: camera and CSS density → text frame → current lane preparation → colour/depth load pass.
+> **Check:** *Should the text load pass clear the CAD depth?* — No. Anchored and world text must compare against the scene depth already drawn. Screen overlays and nameplates use their explicit presentation depth rules.
 
 ### 1. `src/renderer.rs`
 
@@ -4895,8 +3906,7 @@ Prepare the complete current text frame and preserve already-rendered scene dept
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.widget.draw(&mut encoder,view);
@@ -4909,8 +3919,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -4926,8 +3934,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
@@ -4944,8 +3951,6 @@ Replace it with:
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4965,8 +3970,7 @@ Replace it with:
     pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -4978,8 +3982,6 @@ pub struct Renderer {
     pub device: wgpu::Device,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -4992,8 +3994,7 @@ pub struct Renderer {
     pub device: wgpu::Device,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5373,80 +4374,38 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62j-frame-pass-01.rs"
-```
-
-```text
---8<-- "journey/code/62j-frame-pass-02.rs"
-```
-
-```text
---8<-- "journey/code/62j-frame-pass-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-62k-lane-labels"></a>
 
 ### Step 33 of 37 · Merge original scene labels with the screen specimen (`62k-lane-labels`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/37 Visual Trace (62k-lane-labels): Merge original scene labels with the screen specimen</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible source labels and</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">overlays</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable label ids</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one lazy document</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reused shaping</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one lazy document</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reused shaping</text>
 </svg>
-</div>
-
-- **Goal:** Merge original scene labels with the screen specimen.
-- **Data Flow Trace:** `visible source labels and overlays → stable label ids → one lazy document → reused shaping`
-- **Files You Touch:** `src/renderer.rs` (*Adopt visible source-owned labels and presentation text in one cached lane.*)
 
 Keep presentation labels outside source identity and merge them with visible scene labels in one lazy lane. Changing placement or selection reuses shaped source words.
 
-> **Self-Check Question:** *Can the presentation specimen share a source row ID?*  
-> **Answer:** No. Its reserved presentation IDs remain outside allocated scene-row IDs. Original scene labels keep their own IDs, source words and eligibility.
-
-- **Hands-On Lab Experiment:** Compare source GUIDs, row IDs and reserved specimen IDs. Change selection and inspect shaping counts; remove all labels to release the lazy lane.
-
-<details>
-<summary>Implementation 62k-lane-labels: Merge original scene labels with the screen specimen</summary>
-
-Merge original scene labels with the screen specimen.
-
-Data flow: visible source labels and overlays → stable label ids → one lazy document → reused shaping.
+> **Check:** *Can the presentation specimen share a source row ID?* — No. Its reserved presentation IDs remain outside allocated scene-row IDs. Original scene labels keep their own IDs, source words and eligibility.
 
 ### 1. `src/renderer.rs`
 
@@ -5454,8 +4413,7 @@ Adopt visible source-owned labels and presentation text in one cached lane.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -5469,8 +4427,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5492,8 +4448,7 @@ Replace it with:
     pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
@@ -5505,8 +4460,6 @@ Replace it with:
     pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5519,8 +4472,7 @@ Replace it with:
     pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -5530,8 +4482,6 @@ Replace it with:
 
     pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -5545,8 +4495,7 @@ Replace it with:
     pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
@@ -5558,8 +4507,6 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -5572,8 +4519,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Renderer {
@@ -5583,8 +4529,6 @@ pub struct Renderer {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
 ```
-
-</details>
 
 Replace it with:
 
@@ -5600,8 +4544,7 @@ pub struct Renderer {
     pub queue: wgpu::Queue,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -5992,88 +4935,38 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62k-lane-labels-01.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-02.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-03.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-04.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-62l-picking"></a>
 
 ### Step 34 of 37 · Draw original text IDs through bounded readback (`62l-picking`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/37 Visual Trace (62l-picking): Draw original text IDs through bounded readback</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current camera text</text>
-    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preparation</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded integer pass</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original owner</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current derived bounds</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs, src/pick…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current derived bounds</text>
 </svg>
-</div>
-
-- **Goal:** Draw original text IDs through bounded readback.
-- **Data Flow Trace:** `current camera text preparation → bounded integer pass → original owner → current derived bounds`
-- **Files You Touch:** `src/renderer.rs` (*Connect bounded text IDs, current metrics and atomic accepted-font adoption.*) · `src/pick_gpu.rs` (*Draw existing text plate and plane integer IDs in the bounded pick window.*) · `src/pick_encode.rs` (*Draw existing text plate and plane integer IDs in the bounded pick window.*)
 
 Prepare text for the current camera before the bounded integer pass. Send the same cached plane and plate owners to that pass and refresh derived font bounds.
 
-> **Self-Check Question:** *Does a text hit identify one raster glyph?*  
-> **Answer:** No. The current plate identifies its original text row. Coverage and glyphs are derived display data; Face and Edge modes do not invent text subgeometry.
-
-- **Hands-On Lab Experiment:** Pick the inside of a plane and a centered nameplate, then lock it. Compare primary mesh allocations, repeated frame skips and unchanged original words.
-
-<details>
-<summary>Implementation 62l-picking: Draw original text IDs through bounded readback</summary>
-
-Draw original text IDs through bounded readback.
-
-Data flow: current camera text preparation → bounded integer pass → original owner → current derived bounds.
+> **Check:** *Does a text hit identify one raster glyph?* — No. The current plate identifies its original text row. Coverage and glyphs are derived display data; Face and Edge modes do not invent text subgeometry.
 
 ### 1. `src/renderer.rs`
 
@@ -6081,8 +4974,7 @@ Connect bounded text IDs, current metrics and atomic accepted-font adoption.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
@@ -6092,8 +4984,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
     pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
 ```
-
-</details>
 
 Replace it with:
 
@@ -6114,8 +5004,7 @@ Replace it with:
     pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
@@ -6127,8 +5016,6 @@ Replace it with:
 
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6144,8 +5031,7 @@ Replace it with:
     pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub struct Renderer {
@@ -6158,8 +5044,6 @@ pub struct Renderer {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
 ```
-
-</details>
 
 Replace it with:
 
@@ -6175,8 +5059,7 @@ pub struct Renderer {
     pub queue: wgpu::Queue,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -6576,35 +5459,13 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62l-picking-01.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-02.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-03.rs"
-```
-
-</details>
-
 ### 2. `src/pick_gpu.rs`
 
 Draw existing text plate and plane integer IDs in the bounded pick window.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         bytes.extend((request.mode as u32).to_ne_bytes()); bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
@@ -6615,8 +5476,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
-
-</details>
 
 Replace it with:
 
@@ -6630,12 +5489,10 @@ Replace it with:
         image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -6643,13 +5500,10 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
     }
-
 
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
@@ -6657,8 +5511,7 @@ Replace it with:
         if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
@@ -6670,7 +5523,6 @@ pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: 
 pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
 pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -6723,7 +5575,6 @@ impl Picker {
         if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
     }
 
-
     pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>) {
         assert!(self.active.is_none(), "Only one pick may be in flight");
         let request = queued.request; let window = request.window;
@@ -6768,58 +5619,9 @@ impl Picker {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62l-picking-04.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-05.rs"
-```
-
-</details>
-
 ### 3. `src/pick_encode.rs`
 
 Draw existing text plate and plane integer IDs in the bounded pick window.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -6851,73 +5653,38 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62l-picking-06.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-62m-whole-fonts"></a>
 
 ### Step 35 of 37 · Fetch missing whole fonts as one checked set (`62m-whole-fonts`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/37 Visual Trace (62m-whole-fonts): Fetch missing whole fonts as one checked set</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_fonts.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">subset coverage miss</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded font requests</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">complete font set</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">atomic adoption</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/text_fonts.rs, src/li…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete font set</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">atomic adoption</text>
 </svg>
-</div>
-
-- **Goal:** Fetch missing whole fonts as one checked set.
-- **Data Flow Trace:** `subset coverage miss → bounded font requests → complete font set → atomic adoption`
-- **Files You Touch:** `src/text_fonts.rs` (*Fetch and validate the current whole fonts without letting stale replies survive Close.*) · `src/lib.rs` (*Register the source component.*)
 
 Ask once when the subset lacks a character, fetch the three current whole fonts and adopt them atomically. An epoch prevents replies from a closed scene being reused.
 
-> **Self-Check Question:** *Can a partial or stale font reply replace current glyphs?*  
-> **Answer:** No. All fonts must arrive and validate together. Failed requests can retry; replies from an older inbox epoch are discarded after Close.
-
-- **Hands-On Lab Experiment:** Use Ω to trigger the whole fonts. Compare the bundled coverage result with the full Noto face, and inspect the 4 MiB per-file cap and epoch check.
-
-<details>
-<summary>Implementation 62m-whole-fonts: Fetch missing whole fonts as one checked set</summary>
-
-Fetch missing whole fonts as one checked set.
-
-Data flow: subset coverage miss → bounded font requests → complete font set → atomic adoption.
+> **Check:** *Can a partial or stale font reply replace current glyphs?* — No. All fonts must arrive and validate together. Failed requests can retry; replies from an older inbox epoch are discarded after Close.
 
 ### 1. `src/text_fonts.rs`
 
@@ -6933,74 +5700,44 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod scene_text_gpu;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/62m-whole-fonts-02.rs" skip=25
 ```
 
-</details>
+---
 
 <a id="checkpoint-62n-diagnostics"></a>
 
 ### Step 36 of 37 · Show current text sources metrics and preparation errors (`62n-diagnostics`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/37 Visual Trace (62n-diagnostics): Show current text sources metrics and preparation errors</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">font delivery</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current derived bounds</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">truthful diagnostics</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible error status</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">truthful diagnostics</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">visible error status</text>
 </svg>
-</div>
-
-- **Goal:** Show current text sources metrics and preparation errors.
-- **Data Flow Trace:** `font delivery → current derived bounds → truthful diagnostics → visible error status`
-- **Files You Touch:** `src/browser.rs` (*Connect epoch-guarded fonts, current source/resource diagnostics and visible text errors.*)
 
 Connect font delivery, source/GPU counters and the current preparation error to the viewer. Refresh derived bounds from current glyph metrics while retaining original source data.
 
-> **Self-Check Question:** *Do text errors require hiding the underlying CAD scene?*  
-> **Answer:** No. Keep the CAD scene usable and expose text errors. Diagnostics distinguish original sources, shaped runs, raster images, vertex capacities and actual world-plane texture bytes.
-
-- **Hands-On Lab Experiment:** Inspect original source placement beside the instance model. Verify whole-font adoption removes missing glyphs and Close clears source, atlas and plane allocations.
-
-<details>
-<summary>Implementation 62n-diagnostics: Show current text sources metrics and preparation errors</summary>
-
-Show current text sources metrics and preparation errors.
-
-Data flow: font delivery → current derived bounds → truthful diagnostics → visible error status.
+> **Check:** *Do text errors require hiding the underlying CAD scene?* — No. Keep the CAD scene usable and expose text errors. Diagnostics distinguish original sources, shaped runs, raster images, vertex capacities and actual world-plane texture bytes.
 
 ### 1. `src/browser.rs`
 
@@ -7008,8 +5745,7 @@ Connect epoch-guarded fonts, current source/resource diagnostics and visible tex
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         ..Default::default()
@@ -7019,8 +5755,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     frame.present();
     Ok(())
 ```
-
-</details>
 
 Replace it with:
 
@@ -7034,8 +5768,7 @@ Replace it with:
     Ok(())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
@@ -7045,8 +5778,6 @@ Replace it with:
     canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
     canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -7063,8 +5794,7 @@ Replace it with:
     canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         .get_element_by_id("canvas")
@@ -7075,8 +5805,6 @@ Replace it with:
     canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
     canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -7090,8 +5818,7 @@ Replace it with:
     canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -7101,8 +5828,6 @@ Replace it with:
         let number=editor.number_prompt([rect.width(),rect.height()]);
         if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -7118,8 +5843,7 @@ Replace it with:
         if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match command {
@@ -7130,8 +5854,6 @@ Replace it with:
                 Some(action)
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -7145,8 +5867,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     surface.configure(&device, &config);
@@ -7156,8 +5877,6 @@ Replace it with:
         device,
         queue,
 ```
-
-</details>
 
 Replace it with:
 
@@ -7171,8 +5890,7 @@ Replace it with:
         queue,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -7960,93 +6678,38 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62n-diagnostics-01.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-02.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-03.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-04.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-05.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-06.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-62o-labels"></a>
 
 ### Step 37 of 37 · Create pick move and delete the original scene labels (`62o-labels`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/37 Visual Trace (62o-labels): Create pick move and delete the original scene labels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/scene_label_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original text example</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current placement and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coverage</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original integer pick</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one reversible edit</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs, src/comman…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original integer pick</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one reversible edit</text>
 </svg>
-</div>
-
-- **Goal:** Create pick move and delete the original scene labels.
-- **Data Flow Trace:** `original text example → current placement and coverage → original integer pick → one reversible edit`
-- **Files You Touch:** `src/editor.rs` (*Connect original label examples through the existing scene transactions and command dock.*) · `src/commands.rs` (*Connect original label examples through the existing scene transactions and command dock.*) · `src/scene_label_tests.rs` (*Copy original-word/f64 placement, source sharing, layer/copy/delete/Undo/Close, bounds, rectangle and invalid-source regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual plane/anchor/billboard/nameplate depth, integer IDs, rounded styles, clip-window agreement, atomic fonts and resource-release checks.*)
 
 Connect plane, billboard, anchor and nameplate examples and copy the complete source/history and actual GPU checks. Keep source words intact through selection, Move, Delete and Undo.
 
-> **Self-Check Question:** *Does Delete erase only the atlas presentation?*  
-> **Answer:** No. Delete removes the original scene row as one history edit. Undo restores its stable identity and shared source; Close clears history and releases the source and display owners.
-
-- **What You Should See:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
-- **Hands-On Lab Experiment:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
-
-<details>
-<summary>Implementation 62o-labels: Create pick move and delete the original scene labels</summary>
-
-Create pick move and delete the original scene labels.
-
-Data flow: original text example → current placement and coverage → original integer pick → one reversible edit.
+> **Check:** *Does Delete erase only the atlas presentation?* — No. Delete removes the original scene row as one history edit. Undo restores its stable identity and shared source; Close clears history and releases the source and display owners.
 
 ### 1. `src/editor.rs`
 
@@ -8054,8 +6717,7 @@ Connect original label examples through the existing scene transactions and comm
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 self.history.clear();
@@ -8065,8 +6727,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
             Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
 ```
-
-</details>
 
 Replace it with:
 
@@ -8080,8 +6740,7 @@ Replace it with:
             Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     AddBox,
@@ -8091,8 +6750,6 @@ Replace it with:
     AddLine,
     AddPoint,
 ```
-
-</details>
 
 Replace it with:
 
@@ -8106,8 +6763,7 @@ Replace it with:
     AddPoint,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -8848,38 +7504,9 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62o-labels-01.rs"
-```
-
-```text
---8<-- "journey/code/62o-labels-02.rs"
-```
-
-</details>
-
 ### 2. `src/commands.rs`
 
 Connect original label examples through the existing scene transactions and command dock.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    ("Example Box", || Action::AddBox),
-    ("Example CAD",||Action::AddCad),
-    ("Example Surface",||Action::AddSurface),
-    ("Example Nested",||Action::AddNested),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -8887,8 +7514,7 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/62o-labels-03.rs"
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8902,10 +7528,7 @@ Copy this supplied file:
 --8<-- "journey/code/62o-labels-04.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8913,26 +7536,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod text_fonts;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/62o-labels-05.rs" skip=21
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -8940,47 +7550,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual plane/anchor/billboard/nameplate depth, integer IDs, rounded styles, clip-window agreement, atomic fonts and resource-release checks.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    renderer.request_pick([0.,0.],identity()).unwrap();assert_eq!(finish(&mut renderer).unwrap()[0],id.value());renderer.request_pick([-0.85,0.8],identity()).unwrap();assert!(finish(&mut renderer).is_none());assert_eq!(renderer.text_usage()[0],1);renderer.set_text(Vec::new()).unwrap();assert_eq!(renderer.text_usage(),[0;6]);assert_eq!(colour_pixels(&mut renderer),before);
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/62o-labels-06.rs" skip=377
 ```
 
-</details>
-
-</details>
+**Result after `62o-labels`:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 62o-labels
-npm --prefix ../session_tests run course -- check 62o-labels
-npm --prefix ../session_tests run course -- save 62o-labels
+npm --prefix ../session_tests run course -- dependencies 10.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 10.4
+npm --prefix ../session_tests run course -- save 10.4
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-![Recorded visual output for Lesson 10.4 (62o-labels)](../../../screenshots/journey/62o-labels-browser.png)
-
-Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
-
-- **Final Lesson Experiment:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
+Continue with [11.1 · Coverage-based screen-space outlines](../../consolidation/63-radius.md).

@@ -1,202 +1,93 @@
 # 15.2 · Profile collection and one surfacing transaction
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.2** (Redraft `8.8`) · **14 checkpoints (`78-copy-current-curve-collection-and-surfacing-recipes` → `78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`)** · **Study time: 7–14 h**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `78-copy-current-curve-collection-and-surfacing-recipes` → `78m-exercise-profiles-exact-surfaces-and-one-undo-transaction` (14 steps) · **Production source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../../src/app/walk/brep.rs)
 
-> **What You Will Learn & Build:** Copy current curve collection and surfacing recipes. By the final checkpoint (`78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`), you will exercise profiles exact surfaces and one undo transaction.
+> **Goal:** Exercise profiles exact surfaces and one undo transaction.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
-    <circle cx="115" cy="162" r="4" fill="#111111"/>
-    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
-    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
-    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
-    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
-
-    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
-    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
-
-    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
-    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
-    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
-    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 15.2 Pipeline Schematic: Profile collection and one surfacing transaction</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (14 Checkpoints: 78-copy-current-curve-collection-and-surfacing-recipes → 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original curves</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">current gather</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">recipes</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original surface or</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">solid</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original profiles</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Extrude and Revolve</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 15.2:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/lib.rs  ·  src/gather_draft.rs  ·  src/tool.rs  ·  src/primitive_geometry.rs  ·  src/editor.rs  ·  src/gather_registry.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">14 Checkpoints: 78-copy-current-curve-collection-and-surfacing-recipes → 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Rg32Uint ID Map</text>
+  <rect x="75" y="56" width="120" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="115" y1="56" x2="115" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="155" y1="56" x2="155" y2="156" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="90" x2="195" y2="90" stroke="#111111" stroke-width="1"/>
+  <line x1="75" y1="123" x2="195" y2="123" stroke="#111111" stroke-width="1"/>
+  <rect x="115" y="90" width="40" height="33" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="110" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">7, 3</text>
+  <text x="135" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">[owner_id, sub_id]</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. 256-Byte Readback</text>
+  <rect x="326" y="76" width="110" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="436" y="76" width="74" height="44" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="381" y="102" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Crop Row</text>
+  <text x="473" y="102" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Pad</text>
+  <text x="419" y="146" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">|-- 256 Bytes --|</text>
+  <text x="419" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">map_async(Read)</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Priority &amp; Ticket</text>
+  <rect x="614" y="64" width="180" height="32" rx="5" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="84" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. Point &gt; 2. Wire &gt; 3. Face</text>
+  <rect x="614" y="110" width="180" height="42" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
+  <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`78-copy-current-curve-collection-and-surfacing-recipes`](#checkpoint-78-copy-current-curve-collection-and-surfacing-recipes) | Copy current curve collection and surfacing recipes. | `src/lib.rs` | `original curves → current gather recipes → original surface or solid` |
-| **2** | [`78a-own-picked-originals-and-world-profile-copies`](#checkpoint-78a-own-picked-originals-and-world-profile-copies) | Own picked originals and world profile copies. | `src/gather_draft.rs`, `src/lib.rs` | `original selection and placement → world profile copies → pending recipe owner` |
-| **3** | [`78b-resolve-a-recipe-input-and-guard-picked-source-freshness`](#checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness) | Resolve a recipe input and guard picked source freshness. | `src/gather_draft.rs` | `ordered curve groups and answers → checked original owners → recipe input` |
-| **4** | [`78c-accept-curve-picks-and-geometric-answers-atomically`](#checkpoint-78c-accept-curve-picks-and-geometric-answers-atomically) | Accept curve picks and geometric answers atomically. | `src/gather_draft.rs` | `curve pick or point → candidate progress → checked build → adopted answers` |
-| **5** | [`78d-read-options-and-typed-batches-without-partial-results`](#checkpoint-78d-read-options-and-typed-batches-without-partial-results) | Read options and typed batches without partial results. | `src/gather_draft.rs` | `typed words or Enter → candidate options and answers → complete checked result` |
-| **6** | [`78e-constrain-distance-input-and-draw-lifted-profile-wires`](#checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires) | Constrain distance input and draw lifted profile wires. | `src/gather_draft.rs` | `recipe axis and cursor ray → checked distance point → temporary profile wires` |
-| **7** | [`78f-carry-gather-state-through-the-current-tool-owner`](#checkpoint-78f-carry-gather-state-through-the-current-tool-owner) | Carry gather state through the current tool owner. | `src/tool.rs`, `src/primitive_geometry.rs`, `src/editor.rs` | `recipe tool kind → current Draft prompts → original geometry adoption` |
-| **8** | [`78g-adopt-every-generated-original-in-one-history-transaction`](#checkpoint-78g-adopt-every-generated-original-in-one-history-transaction) | Adopt every generated original in one history transaction. | `src/editor.rs` | `checked recipe result → one history transaction → newly selected originals` |
-| **9** | [`78h-start-and-advance-the-recipe-through-the-existing-editor`](#checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor) | Start and advance the recipe through the existing Editor. | `src/editor.rs` | `checked initial words and selection → active gather → candidate answers` |
-| **10** | [`78i-route-typed-answers-and-axis-cursor-input`](#checkpoint-78i-route-typed-answers-and-axis-cursor-input) | Route typed answers and axis cursor input. | `src/editor.rs` | `current question → typed answer or axis cursor → checked recipe progress` |
-| **11** | [`78j-restore-selection-and-preserve-the-gather-lifecycle`](#checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle) | Restore selection and preserve the gather lifecycle. | `src/editor.rs` | `gather action and plane changes → pending recipe → completion or restored selection` |
-| **12** | [`78k-register-extrusion-revolution-and-browser-curve-picking`](#checkpoint-78k-register-extrusion-revolution-and-browser-curve-picking) | Register extrusion revolution and browser curve picking. | `src/gather_registry.rs`, `src/lib.rs`, `src/commands.rs` | `registered recipe command → whole-owner integer pick → gather highlight and diagnostic progress` |
-| **13** | [`78l-pick-original-profiles-through-the-browser-integer-pass`](#checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass) | Pick original profiles through the browser integer pass. | `src/browser.rs` | `bounded integer pick → original curve owner → ordered gather highlight` |
-| **14** | [`78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`](#checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction) | Exercise profiles exact surfaces and one undo transaction. | `src/gather_tests.rs`, `src/lib.rs` | `original profiles → Extrude and Revolve → history → original Save/Open` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-78-copy-current-curve-collection-and-surfacing-recipes"></a>
 
 ### Step 1 of 14 · Copy current curve collection and surfacing recipes (`78-copy-current-curve-collection-and-surfacing-recipes`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/14 Visual Trace (78-copy-current-curve-collection-and-surfacing-recipes): Copy current curve collection and surfacing recipes</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curves</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current gather recipes</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original surface or solid</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/lib.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current gather recipes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original surface or sol…</text>
 </svg>
-</div>
-
-- **Goal:** Copy current curve collection and surfacing recipes.
-- **Data Flow Trace:** `original curves → current gather recipes → original surface or solid`
-- **Files You Touch:** `src/lib.rs` (*Place this shared module beside its connected recipes using the existing registration.*)
 
 Copy the maintained questions, ordered pick progress, world inputs, exact extrusion and revolution builders with their fixtures.
 
-> **Self-Check Question:** *Does the generated display mesh replace the profile?*  
-> **Answer:** No. Profiles remain original scene rows. Builders return original surfaces or BReps, and their display meshes are derived separately.
-
-- **What You Should See:** Three copied and independently transformed original boxes remain visible while the shared gather owner connects. The final exercise creates a capped rectangular extrusion and an exact revolved surface from original profiles.
-- **Hands-On Lab Experiment:** Inspect current cap eligibility, rational circular cap trims, signed offsets and full versus partial revolution fixtures.
-
-<details>
-<summary>Implementation 78-copy-current-curve-collection-and-surfacing-recipes: Copy current curve collection and surfacing recipes</summary>
-
-Copy current curve collection and surfacing recipes.
-
-Data flow: original curves → current gather recipes → original surface or solid.
+> **Check:** *Does the generated display mesh replace the profile?* — No. Profiles remain original scene rows. Builders return original surfaces or BReps, and their display meshes are derived separately.
 
 ### 1. `src/lib.rs`
 
@@ -204,8 +95,7 @@ Place this shared module beside its connected recipes using the existing registr
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 mod shader_check;
@@ -219,8 +109,6 @@ pub mod extrude_geometry;
 pub mod revolve_geometry;
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -229,8 +117,7 @@ mod shader_check;
 mod cloud_shader_contract;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 mod transform_tests;
@@ -240,8 +127,6 @@ pub mod source_mesh_topology;
 
 #[cfg(target_arch="wasm32")]
 ```
-
-</details>
 
 Replace it with:
 
@@ -260,8 +145,7 @@ pub mod source_mesh_topology;
 #[cfg(target_arch="wasm32")]
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 #[cfg(test)]
@@ -1005,75 +889,40 @@ mod shader_check;
 mod cloud_shader_contract;
 ```
 
-</details>
+**Result after `78-copy-current-curve-collection-and-surfacing-recipes`:** Three copied and independently transformed original boxes remain visible while the shared gather owner connects. The final exercise creates a capped rectangular extrusion and an exact revolved surface from original profiles.
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78-copy-current-curve-collection-and-surfacing-recipes-04.rs"
-```
-
-```text
---8<-- "journey/code/78-copy-current-curve-collection-and-surfacing-recipes-06.rs"
-```
-
-```text
---8<-- "journey/code/78-copy-current-curve-collection-and-surfacing-recipes-08.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-78a-own-picked-originals-and-world-profile-copies"></a>
 
 ### Step 2 of 14 · Own picked originals and world profile copies (`78a-own-picked-originals-and-world-profile-copies`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/14 Visual Trace (78a-own-picked-originals-and-world-profile-copies): Own picked originals and world profile copies</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_draft.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original selection and placement</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world profile copies</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pending recipe owner</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_draft.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">world profile copies</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending recipe owner</text>
 </svg>
-</div>
-
-- **Goal:** Own picked originals and world profile copies.
-- **Data Flow Trace:** `original selection and placement → world profile copies → pending recipe owner`
-- **Files You Touch:** `src/gather_draft.rs` (*Own pending recipe answers, original allocations, placements and derived world profiles.*) · `src/lib.rs` (*Register the gather component.*)
 
 Retain the recipe, accepted answers, original selection, source allocations and placements beside derived world curve inputs.
 
-> **Self-Check Question:** *Can world curve conversion mutate a shared source?*  
-> **Answer:** No. Clone and place the builder input; retain the original source allocation and exact row placement for freshness checks.
-
-- **Hands-On Lab Experiment:** Compare the clamped world input with its original periodic curve. A profile placed at x10 is transformed once before building.
-
-<details>
-<summary>Implementation 78a-own-picked-originals-and-world-profile-copies: Own picked originals and world profile copies</summary>
-
-Own picked originals and world profile copies.
-
-Data flow: original selection and placement → world profile copies → pending recipe owner.
+> **Check:** *Can world curve conversion mutate a shared source?* — No. Clone and place the builder input; retain the original source allocation and exact row placement for freshness checks.
 
 ### 1. `src/gather_draft.rs`
 
@@ -1089,85 +938,48 @@ Create the file and type:
 
 Register the gather component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod revolve_geometry;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/78a-own-picked-originals-and-world-profile-copies-02.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness"></a>
 
 ### Step 3 of 14 · Resolve a recipe input and guard picked source freshness (`78b-resolve-a-recipe-input-and-guard-picked-source-freshness`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/14 Visual Trace (78b-resolve-a-recipe-input-and-guard-picked-source-freshness): Resolve a recipe input and guard picked source freshness</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered curve groups and answers</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked original owners</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">recipe input</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked original owners</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">recipe input</text>
 </svg>
-</div>
-
-- **Goal:** Resolve a recipe input and guard picked source freshness.
-- **Data Flow Trace:** `ordered curve groups and answers → checked original owners → recipe input`
-- **Files You Touch:** `src/gather_draft.rs` (*Extend the pending gather owner with checked current recipe behavior.*)
 
 Read ordered groups and answered steps, derive the current plane normal, and refuse a changed source before building.
 
-> **Self-Check Question:** *May an old world profile survive a placement edit?*  
-> **Answer:** Refuse it: its original allocation, world placement and visible unlocked eligibility must still match the captured source.
-
-- **Hands-On Lab Experiment:** Move a picked original through another owner, then submit a distance. Start again instead of building from stale world coordinates.
-
-<details>
-<summary>Implementation 78b-resolve-a-recipe-input-and-guard-picked-source-freshness: Resolve a recipe input and guard picked source freshness</summary>
-
-Resolve a recipe input and guard picked source freshness.
-
-Data flow: ordered curve groups and answers → checked original owners → recipe input.
+> **Check:** *May an old world profile survive a placement edit?* — Refuse it: its original allocation, world placement and visible unlocked eligibility must still match the captured source.
 
 ### 1. `src/gather_draft.rs`
 
 Extend the pending gather owner with checked current recipe behavior.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let row=scene.paths().iter().find(|row|row.id==id)?;Some(match &row.prepared.source{crate::chain::Source::Line(source)=>Geometry::Line(source.clone()),crate::chain::Source::Polyline(source)=>Geometry::Polyline(source.clone()),crate::chain::Source::Curve(source,_)=>Geometry::NurbsCurve(source.clone())})
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1175,73 +987,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/78b-resolve-a-recipe-input-and-guard-picked-source-freshness-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-78c-accept-curve-picks-and-geometric-answers-atomically"></a>
 
 ### Step 4 of 14 · Accept curve picks and geometric answers atomically (`78c-accept-curve-picks-and-geometric-answers-atomically`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/14 Visual Trace (78c-accept-curve-picks-and-geometric-answers-atomically): Accept curve picks and geometric answers atomically</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">curve pick or point</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">candidate progress</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked build</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">adopted answers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked build</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">adopted answers</text>
 </svg>
-</div>
-
-- **Goal:** Accept curve picks and geometric answers atomically.
-- **Data Flow Trace:** `curve pick or point → candidate progress → checked build → adopted answers`
-- **Files You Touch:** `src/gather_draft.rs` (*Extend the pending gather owner with checked current recipe behavior.*)
 
 Toggle a curve in the current ordered group. Stage point or distance answers and build before replacing the owner.
 
-> **Self-Check Question:** *Does a failed distance consume its question?*  
-> **Answer:** No. Keep previous progress, accepted answers and cursor. Zero extrusion remains retryable and creates no history.
-
-- **Hands-On Lab Experiment:** Pick two curves, pick the first again to remove it, and Enter. Compare a zero distance with a valid signed distance.
-
-<details>
-<summary>Implementation 78c-accept-curve-picks-and-geometric-answers-atomically: Accept curve picks and geometric answers atomically</summary>
-
-Accept curve picks and geometric answers atomically.
-
-Data flow: curve pick or point → candidate progress → checked build → adopted answers.
+> **Check:** *Does a failed distance consume its question?* — No. Keep previous progress, accepted answers and cursor. Zero extrusion remains retryable and creates no history.
 
 ### 1. `src/gather_draft.rs`
 
 Extend the pending gather owner with checked current recipe behavior.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn prompt(&self)->String{let step=self.current().map_or("complete",Step::prompt);format!("{} · {step} · Esc cancels",self.recipe.name)}
-    pub fn axis(&self)->Result<(Point,Vector),String>{Ok((self.recipe.axis)(&self.input()?))}
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1249,69 +1030,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/78c-accept-curve-picks-and-geometric-answers-atomically-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-78d-read-options-and-typed-batches-without-partial-results"></a>
 
 ### Step 5 of 14 · Read options and typed batches without partial results (`78d-read-options-and-typed-batches-without-partial-results`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/14 Visual Trace (78d-read-options-and-typed-batches-without-partial-results): Read options and typed batches without partial results</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed words or Enter</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">candidate options and answers</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete checked result</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">candidate options and a…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete checked result</text>
 </svg>
-</div>
-
-- **Goal:** Read options and typed batches without partial results.
-- **Data Flow Trace:** `typed words or Enter → candidate options and answers → complete checked result`
-- **Files You Touch:** `src/gather_draft.rs` (*Extend the pending gather owner with checked current recipe behavior.*)
 
 Resolve current options, typed points, finite numbers and distance vectors on a candidate owner before adopting any answer.
 
-> **Self-Check Question:** *How can Cap Off span two submissions?*  
-> **Answer:** Retain the compact Cap prefix, then resolve Off to its current option. Enter accepts a sufficiently populated curve group or a numeric default.
-
-- **Hands-On Lab Experiment:** Submit Cap, then Off, then -2. Try a bad axis-end/angle batch and verify the earlier axis start remains accepted.
-
-<details>
-<summary>Implementation 78d-read-options-and-typed-batches-without-partial-results: Read options and typed batches without partial results</summary>
-
-Read options and typed batches without partial results.
-
-Data flow: typed words or Enter → candidate options and answers → complete checked result.
+> **Check:** *How can Cap Off span two submissions?* — Retain the compact Cap prefix, then resolve Off to its current option. Enter accepts a sufficiently populated curve group or a numeric default.
 
 ### 1. `src/gather_draft.rs`
 
 Extend the pending gather owner with checked current recipe behavior.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let point=crate::tool_coords::checked(point).map_err(str::to_owned)?;let mut next=self.clone();let answer=match next.current(){Some(Step::Point(_))=>Answer::Point(Point::new(point[0],point[1],point[2])),Some(Step::Distance(_))=>{let(base,_)=next.axis()?;Answer::Vector(Vector::new(point[0]-base[0],point[1]-base[1],point[2]-base[2]))},_=>return Err("The current step needs a curve pick or a typed number".into())};next.progress.answer(next.recipe.steps,&mut next.answers,answer);let made=next.build()?;*self=next;Ok(made)
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1319,115 +1073,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/78d-read-options-and-typed-batches-without-partial-results-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires"></a>
 
 ### Step 6 of 14 · Constrain distance input and draw lifted profile wires (`78e-constrain-distance-input-and-draw-lifted-profile-wires`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/14 Visual Trace (78e-constrain-distance-input-and-draw-lifted-profile-wires): Constrain distance input and draw lifted profile wires</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_draft.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipe axis and cursor ray</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked distance point</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary profile wires</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_draft.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked distance point</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary profile wires</text>
 </svg>
-</div>
-
-- **Goal:** Constrain distance input and draw lifted profile wires.
-- **Data Flow Trace:** `recipe axis and cursor ray → checked distance point → temporary profile wires`
-- **Files You Touch:** `src/gather_draft.rs` (*Constrain current distance questions and derive temporary lifted profile wires.*)
 
 Find the cursor along the recipe axis and derive lifted profile outlines without inserting geometry or history.
 
-> **Self-Check Question:** *What if the camera ray follows the distance axis?*  
-> **Answer:** Its closest-axis calculation is unstable. Reject the point and keep the pending owner until a usable view or typed value arrives.
-
-- **Hands-On Lab Experiment:** Hover a valid extrusion distance, then cancel. The profiles stay unchanged and Undo still refers to the previous real edit.
-
-<details>
-<summary>Implementation 78e-constrain-distance-input-and-draw-lifted-profile-wires: Constrain distance input and draw lifted profile wires</summary>
-
-Constrain distance input and draw lifted profile wires.
-
-Data flow: recipe axis and cursor ray → checked distance point → temporary profile wires.
+> **Check:** *What if the camera ray follows the distance axis?* — Its closest-axis calculation is unstable. Reject the point and keep the pending owner until a usable view or typed value arrives.
 
 ### 1. `src/gather_draft.rs`
 
 Constrain current distance questions and derive temporary lifted profile wires.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{cplane::CPlane,gather_input::{Answer,Input,Made,Picked,Progress,Recipe,Step},scene::{Scene,ObjectId}};
-use session_rust::{Geometry,Point,Vector};
-#[derive(Clone)]
-pub struct Draft {pub recipe:&'static Recipe,pub choice:usize,pub progress:Progress,pub answers:Vec<Answer>,pub curves:Vec<(ObjectId,Picked)>,pub before:Vec<ObjectId>,pub frame:CPlane,pub typed:String,pub originals:Vec<(ObjectId,Geometry,session_rust::Xform)>}
-impl Draft {
-    pub fn new(recipe:&'static Recipe,text:&str,scene:&Scene,before:Vec<ObjectId>,frame:CPlane)->Result<Self,String>{
-        let words=text.split_whitespace().collect::<Vec<_>>();let(choice,answers)=crate::gather_input::read(recipe,&words)?;for answer in &answers{match answer{Answer::Point(p)=>{crate::tool_coords::checked([p[0],p[1],p[2]]).map_err(str::to_owned)?;},Answer::Vector(v)if(0..3).any(|i|!v[i].is_finite()||v[i].abs()>1e12)=>return Err("Distance vector exceeds the accepted range".into()),_=>{}}}let mut result=Self{recipe,choice,progress:Progress::new(recipe.steps,answers.len()),answers,curves:Vec::new(),before:before.clone(),frame,typed:String::new(),originals:Vec::new()};
-        for id in before{if scene.pick_id(id.value())==Some(id){if let Some(curve)=Self::world(scene,id){result.originals.push((id,Self::source(scene,id).unwrap(),scene.placement(id).unwrap()));result.curves.push((id,curve));}}}let rows=result.curves.iter().map(|(id,_)|id.value()).collect::<Vec<_>>();result.progress.preselect(recipe.steps,&rows);Ok(result)
-    }
-    pub fn current(&self)->Option<&'static Step>{self.recipe.steps.get(self.progress.step)}
-    pub fn world(scene:&Scene,id:ObjectId)->Option<Picked>{
-        let geometry=Self::source(scene,id)?;
-        crate::gather_input::picked(&geometry,&scene.placement(id)?)
-    }
-    pub fn source(scene:&Scene,id:ObjectId)->Option<Geometry>{
-        if let Some(row)=scene.lines().iter().find(|row|row.id==id){return Some(Geometry::Line(row.prepared.source.clone()))}
-        let row=scene.paths().iter().find(|row|row.id==id)?;Some(match &row.prepared.source{crate::chain::Source::Line(source)=>Geometry::Line(source.clone()),crate::chain::Source::Polyline(source)=>Geometry::Polyline(source.clone()),crate::chain::Source::Curve(source,_)=>Geometry::NurbsCurve(source.clone())})
-    }
-    pub fn valid(&self,scene:&Scene)->Result<(),String>{
-        for(id,source,place)in &self.originals{if !self.progress.picked().contains(&id.value()){continue}let current=Self::source(scene,*id).ok_or("Picked curve was removed")?;let same=match(source,current){(Geometry::Line(a),Geometry::Line(b))=>std::rc::Rc::ptr_eq(a,&b),(Geometry::Polyline(a),Geometry::Polyline(b))=>std::rc::Rc::ptr_eq(a,&b),(Geometry::NurbsCurve(a),Geometry::NurbsCurve(b))=>std::rc::Rc::ptr_eq(a,&b),_=>false};if !same||scene.placement(*id).is_none_or(|p|p.m!=place.m)||scene.pick_id(id.value())!=Some(*id){return Err("Picked curve changed; start again".into())}}Ok(())
-    }
-    pub fn input(&self)->Result<Input,String>{
-        let curves=self.progress.rows.iter().map(|rows|rows.iter().map(|row|self.curves.iter().find(|(id,_)|id.value()==*row).map(|(_,curve)|curve.clone()).ok_or_else(||"Picked source is missing".into())).collect::<Result<Vec<_>,String>>()).collect::<Result<Vec<_>,_>>()?;
-        let(x,y)=self.frame.axes();Ok(Input{curves,answers:self.answers[..self.progress.answered.min(self.answers.len())].to_vec(),choice:self.recipe.choices().nth(self.choice).unwrap_or(""),normal:x.cross(&y)})
-    }
-    pub fn build(&self)->Result<Option<Made>,String>{if self.progress.done(self.recipe.steps){(self.recipe.build)(&self.input()?).map(Some)}else{Ok(None)}}
-    pub fn prompt(&self)->String{let step=self.current().map_or("complete",Step::prompt);format!("{} · {step} · Esc cancels",self.recipe.name)}
-    pub fn axis(&self)->Result<(Point,Vector),String>{Ok((self.recipe.axis)(&self.input()?))}
-    pub fn pick(&mut self,scene:&Scene,id:Option<ObjectId>)->Result<Option<Made>,String>{
-        let id=id.ok_or("Nothing there · pick a line, polyline or curve")?;if scene.pick_id(id.value())!=Some(id){return Err("Pick a visible unlocked curve".into())}let mut next=self.clone();if !next.curves.iter().any(|(old,_)|*old==id){let curve=Self::world(scene,id).ok_or("Pick a line, polyline or curve")?;next.originals.push((id,Self::source(scene,id).unwrap(),scene.placement(id).unwrap()));next.curves.push((id,curve));}next.progress.pick(next.recipe.steps,id.value())?;let made=next.build()?;*self=next;Ok(made)
-    }
-    pub fn point(&mut self,point:[f64;3])->Result<Option<Made>,String>{
-        let point=crate::tool_coords::checked(point).map_err(str::to_owned)?;let mut next=self.clone();let answer=match next.current(){Some(Step::Point(_))=>Answer::Point(Point::new(point[0],point[1],point[2])),Some(Step::Distance(_))=>{let(base,_)=next.axis()?;Answer::Vector(Vector::new(point[0]-base[0],point[1]-base[1],point[2]-base[2]))},_=>return Err("The current step needs a curve pick or a typed number".into())};next.progress.answer(next.recipe.steps,&mut next.answers,answer);let made=next.build()?;*self=next;Ok(made)
-    }
-    pub fn text(&mut self,text:&str,fixed:Option<CPlane>)->Result<Option<Made>,String>{
-        crate::drawing_coords::set_plane(fixed);let mut next=self.clone();let words=text.split_whitespace().collect::<Vec<_>>();
-        if words.is_empty(){next.progress.next(next.recipe.steps,&mut next.answers)?;}else{
-            let mut index=0;while index<words.len(){
-                let typed=format!("{}{}",next.typed,crate::primitive_options::compact(words[index]));
-                if let Some(choice)=next.recipe.choices().position(|choice|crate::primitive_options::compact(choice)==typed){next.choice=choice;next.typed.clear();index+=1;continue}
-                if next.recipe.choices().any(|choice|crate::primitive_options::compact(choice).starts_with(&typed)){next.typed=typed;index+=1;continue}
-                if let Some((choice,count))=next.recipe.option_in(&words[index..]){next.choice=choice;next.typed.clear();index+=count;continue}
-                let step=next.current().ok_or("Extra input after the completed command")?;let answer=step.read(words[index])?;
-                match &answer{Answer::Point(point)=>{crate::tool_coords::checked([point[0],point[1],point[2]]).map_err(str::to_owned)?;},Answer::Vector(vector)if(0..3).any(|i|!vector[i].is_finite()||vector[i].abs()>1e12)=>return Err("Distance vector exceeds the accepted range".into()),_=>{}}
-                next.typed.clear();next.progress.answer(next.recipe.steps,&mut next.answers,answer);index+=1;
-            }
-        }let made=next.build()?;*self=next;Ok(made)
-    }
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1490,73 +1171,38 @@ impl Draft {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78e-constrain-distance-input-and-draw-lifted-profile-wires-01.rs"
-```
-
-```text
---8<-- "journey/code/78e-constrain-distance-input-and-draw-lifted-profile-wires-02.rs"
-```
-
-```text
---8<-- "journey/code/78e-constrain-distance-input-and-draw-lifted-profile-wires-03.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-78f-carry-gather-state-through-the-current-tool-owner"></a>
 
 ### Step 7 of 14 · Carry gather state through the current tool owner (`78f-carry-gather-state-through-the-current-tool-owner`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/14 Visual Trace (78f-carry-gather-state-through-the-current-tool-owner): Carry gather state through the current tool owner</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs, src/primitive_geometry.rs, src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipe tool kind</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current Draft prompts</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original geometry adoption</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/tool.rs, src/primitiv…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current Draft prompts</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original geometry adopt…</text>
 </svg>
-</div>
-
-- **Goal:** Carry gather state through the current tool owner.
-- **Data Flow Trace:** `recipe tool kind → current Draft prompts → original geometry adoption`
-- **Files You Touch:** `src/tool.rs` (*Carry current gather state and current prompts/options beside the existing drawing owner.*) · `src/primitive_geometry.rs` (*Adopt original NURBS surfaces without replacing them by display meshes.*) · `src/editor.rs` (*Carry recipe starts and original curve pick answers to Editor.*)
 
 Add the recipe kind and gather state to Draft, use current prompts/options, and insert original NURBS surfaces through the existing scene lane.
 
-> **Self-Check Question:** *Does an unfinished gathering command behave like a polyline?*  
-> **Answer:** No. Its curve groups and questions are owned separately. Close stays limited to drawing a polyline or curve.
-
-- **Hands-On Lab Experiment:** Compare the Extrude chips with the revolution axis prompts. Inspect original surface adoption beside existing BRep and curve adoption.
-
-<details>
-<summary>Implementation 78f-carry-gather-state-through-the-current-tool-owner: Carry gather state through the current tool owner</summary>
-
-Carry gather state through the current tool owner.
-
-Data flow: recipe tool kind → current Draft prompts → original geometry adoption.
+> **Check:** *Does an unfinished gathering command behave like a polyline?* — No. Its curve groups and questions are owned separately. Close stays limited to drawing a polyline or curve.
 
 ### 1. `src/tool.rs`
 
@@ -1564,8 +1210,7 @@ Carry current gather state and current prompts/options beside the existing drawi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         self.tool.build_on_plane(&world,self.frame)
@@ -1576,8 +1221,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn outline(&self)->Vec<[f64;3]> {
         let mut points=self.points.clone();if let Some(cursor)=self.cursor {points.push(cursor);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1591,8 +1234,7 @@ Replace it with:
         let mut points=self.points.clone();if let Some(cursor)=self.cursor {points.push(cursor);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 pub const MAX_POINTS: usize = 4096;
@@ -1607,8 +1249,6 @@ impl Draft {
         if self.plane_points.is_none() {if let Some(primitive)=&self.primitive {return primitive.prompt();}}
         let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1627,8 +1267,7 @@ impl Draft {
         let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Self::Polygon {sides} if points.len()==2=>crate::planar::points("polygon",plane,*sides,points).unwrap_or_default(),_=>points.to_vec()}
@@ -1638,8 +1277,6 @@ impl Draft {
         if let Self::Primitive(shape)=self {return shape.options.iter().map(|(label,line)|((*label).into(),(*line).into())).collect();}
         let mut buttons=vec![("Cancel".into(),"Escape".into())];
 ```
-
-</details>
 
 Replace it with:
 
@@ -1653,8 +1290,7 @@ Replace it with:
         let mut buttons=vec![("Cancel".into(),"Escape".into())];
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -1669,8 +1305,6 @@ impl Tool for Shape {
     fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
-
-</details>
 
 Replace it with:
 
@@ -1688,8 +1322,7 @@ impl Tool for Shape {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{marker::PreparedPoint, stroke::PreparedLine};
@@ -1813,46 +1446,9 @@ impl Draft {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78f-carry-gather-state-through-the-current-tool-owner-01.rs"
-```
-
-```text
---8<-- "journey/code/78f-carry-gather-state-through-the-current-tool-owner-02.rs"
-```
-
-```text
---8<-- "journey/code/78f-carry-gather-state-through-the-current-tool-owner-03.rs"
-```
-
-```text
---8<-- "journey/code/78f-carry-gather-state-through-the-current-tool-owner-04.rs"
-```
-
-</details>
-
 ### 2. `src/primitive_geometry.rs`
 
 Adopt original NURBS surfaces without replacing them by display meshes.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn insert(scene:&mut Scene,geometry:Geometry)->Result<ObjectId,&'static str> {
-    match geometry {
-        Geometry::BRep(source)=>scene.insert_cad(source),
-        Geometry::Mesh(source)=>scene.insert(crate::prepared::PreparedMesh::new((*source).clone())?),
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1864,88 +1460,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Carry recipe starts and original curve pick answers to Editor.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub enum Action {
-    StreamRefresh,
-    BeginTransformation(crate::transform_draft::Kind),
-    ScaleFactor(f64),RotateWorld{axis:crate::gizmo::Axis,degrees:f64},
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/78f-carry-gather-state-through-the-current-tool-owner-06.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-78g-adopt-every-generated-original-in-one-history-transaction"></a>
 
 ### Step 8 of 14 · Adopt every generated original in one history transaction (`78g-adopt-every-generated-original-in-one-history-transaction`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/14 Visual Trace (78g-adopt-every-generated-original-in-one-history-transaction): Adopt every generated original in one history transaction</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked recipe result</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history transaction</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">newly selected originals</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one history transaction</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">newly selected originals</text>
 </svg>
-</div>
-
-- **Goal:** Adopt every generated original in one history transaction.
-- **Data Flow Trace:** `checked recipe result → one history transaction → newly selected originals`
-- **Files You Touch:** `src/editor.rs` (*Connect original curve collection and one checked geometry transaction.*)
 
 Check source freshness, insert all generated originals as one transaction, and select the new rows after successful adoption.
 
-> **Self-Check Question:** *Does Undo remove only the last profile result?*  
-> **Answer:** No. One completed recipe inserts every result in one history transaction. Undo restores all earlier profile rows together.
-
-- **Hands-On Lab Experiment:** Extrude a placed rectangle and a line together. Verify the solid and ruled surface disappear with one Undo while both profiles remain.
-
-<details>
-<summary>Implementation 78g-adopt-every-generated-original-in-one-history-transaction: Adopt every generated original in one history transaction</summary>
-
-Adopt every generated original in one history transaction.
-
-Data flow: checked recipe result → one history transaction → newly selected originals.
+> **Check:** *Does Undo remove only the last profile result?* — No. One completed recipe inserts every result in one history transaction. Undo restores all earlier profile rows together.
 
 ### 1. `src/editor.rs`
 
 Connect original curve collection and one checked geometry transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let draft=self.draft.as_ref().ok_or("No transform tool is running")?;let mut next=draft.transform.clone().ok_or("No transform tool is running")?;
-        let outcome=next.text(text,draft.cursor,self.construction_plane).map_err(|message|self.primitive_failure(message))?;self.transform_outcome(next,outcome)
-    }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1953,70 +1509,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/78g-adopt-every-generated-original-in-one-history-transaction-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor"></a>
 
 ### Step 9 of 14 · Start and advance the recipe through the existing Editor (`78h-start-and-advance-the-recipe-through-the-existing-editor`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/14 Visual Trace (78h-start-and-advance-the-recipe-through-the-existing-editor): Start and advance the recipe through the existing Editor</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked initial words and selection</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">active gather</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">candidate answers</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">active gather</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">candidate answers</text>
 </svg>
-</div>
-
-- **Goal:** Start and advance the recipe through the existing Editor.
-- **Data Flow Trace:** `checked initial words and selection → active gather → candidate answers`
-- **Files You Touch:** `src/editor.rs` (*Connect original curve collection and one checked geometry transaction.*)
 
 Validate initial input before replacing the active owner. Reuse candidate point, text and pick paths for subsequent answers.
 
-> **Self-Check Question:** *Can an invalid Extrude start discard a pending Curve?*  
-> **Answer:** No. Read and build the candidate first. Invalid dimensions keep the earlier drawing owner and its accepted points.
-
-- **Hands-On Lab Experiment:** Begin Curve with one point, then try Extrude 0. Confirm the Curve owner survives. Cancel and select an original profile before Extrude.
-
-<details>
-<summary>Implementation 78h-start-and-advance-the-recipe-through-the-existing-editor: Start and advance the recipe through the existing Editor</summary>
-
-Start and advance the recipe through the existing Editor.
-
-Data flow: checked initial words and selection → active gather → candidate answers.
+> **Check:** *Can an invalid Extrude start discard a pending Curve?* — No. Read and build the candidate first. Invalid dimensions keep the earlier drawing owner and its accepted points.
 
 ### 1. `src/editor.rs`
 
 Connect original curve collection and one checked geometry transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let draft=self.draft.as_mut().ok_or("No gathering tool is running")?;draft.points=next.answers.iter().filter_map(|answer|if let crate::gather_input::Answer::Point(p)=answer{Some([p[0],p[1],p[2]])}else{None}).collect();draft.gather=Some(next);draft.cursor=None;draft.snapped=None;self.tool_status=draft.prompt();Ok(Change::View)
-    }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.transform.is_some()&&d.plane_points.is_none()){return self.transform_text(text);}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2024,54 +1552,38 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/78h-start-and-advance-the-recipe-through-the-existing-editor-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-78i-route-typed-answers-and-axis-cursor-input"></a>
 
 ### Step 10 of 14 · Route typed answers and axis cursor input (`78i-route-typed-answers-and-axis-cursor-input`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/14 Visual Trace (78i-route-typed-answers-and-axis-cursor-input): Route typed answers and axis cursor input</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current question</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed answer or axis cursor</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked recipe progress</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">typed answer or axis cu…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked recipe progress</text>
 </svg>
-</div>
-
-- **Goal:** Route typed answers and axis cursor input.
-- **Data Flow Trace:** `current question → typed answer or axis cursor → checked recipe progress`
-- **Files You Touch:** `src/editor.rs` (*Connect the current gather owner to existing input and history.*)
 
 Route current recipe options and numeric input to its owner; preserve normal drawing and construction-plane point routes.
 
-> **Self-Check Question:** *Must a curve-picking step accept free canvas points?*  
-> **Answer:** No. It takes integer original-owner picks. Distance takes its axis cursor; axis points retain the existing snap and world-coordinate rules.
-
-- **Hands-On Lab Experiment:** Compare picking a profile, typing a signed distance and typing a world-prefixed axis point under CPlane XZ.
-
-<details>
-<summary>Implementation 78i-route-typed-answers-and-axis-cursor-input: Route typed answers and axis cursor input</summary>
-
-Route typed answers and axis cursor input.
-
-Data flow: current question → typed answer or axis cursor → checked recipe progress.
+> **Check:** *Must a curve-picking step accept free canvas points?* — No. It takes integer original-owner picks. Distance takes its axis cursor; axis points retain the existing snap and world-coordinate rules.
 
 ### 1. `src/editor.rs`
 
@@ -2079,8 +1591,7 @@ Connect the current gather owner to existing input and history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
@@ -2092,8 +1603,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
@@ -2106,8 +1615,7 @@ Replace it with:
             ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -2117,8 +1625,6 @@ Replace it with:
         let from = self.draft.as_ref()?.points.last().copied();
         let hit = if self.snapping.objects {
 ```
-
-</details>
 
 Replace it with:
 
@@ -2132,8 +1638,7 @@ Replace it with:
         let hit = if self.snapping.objects {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     fn gather_text(&mut self,text:&str)->Result<Change,&'static str>{let mut next=self.draft.as_ref().and_then(|d|d.gather.clone()).ok_or("No gathering tool is running")?;next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;let made=next.text(text,self.construction_plane).map_err(|message|self.primitive_failure(message))?;self.gather_adopt(next,made)}
@@ -2143,8 +1648,6 @@ Replace it with:
 
         if self.draft.as_ref().is_some_and(|d|d.primitive.is_some() && d.plane_points.is_none()) {return self.primitive_text(text);}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2158,8 +1661,7 @@ Replace it with:
         if self.draft.as_ref().is_some_and(|d|d.primitive.is_some() && d.plane_points.is_none()) {return self.primitive_text(text);}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -2169,8 +1671,6 @@ Replace it with:
 
         let draft=self.draft.as_mut().ok_or("No point tool is running")?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -2184,8 +1684,7 @@ Replace it with:
         let draft=self.draft.as_mut().ok_or("No point tool is running")?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if self.plane_menu {return Some(crate::drawing_input::choice(text).ok_or("Choose XY, XZ, YZ, 3 Point, View or Cancel"));}
@@ -2195,8 +1694,6 @@ Replace it with:
             let words:Vec<_>=text.split_whitespace().collect();let primitive=draft.primitive.as_ref().unwrap();
             if text.trim().is_empty() || primitive.shape.option_in(&words).is_some() || words.first().is_some_and(|word|word.parse::<f64>().is_ok() || crate::drawing_coords::parse_world(word).is_some() || word.contains(',') || word.contains('<') || word.starts_with('@')) {return Some(Ok(Action::ToolText(text.to_owned())));}
 ```
-
-</details>
 
 Replace it with:
 
@@ -2210,8 +1707,7 @@ Replace it with:
             if text.trim().is_empty() || primitive.shape.option_in(&words).is_some() || words.first().is_some_and(|word|word.parse::<f64>().is_ok() || crate::drawing_coords::parse_world(word).is_some() || word.contains(',') || word.contains('<') || word.starts_with('@')) {return Some(Ok(Action::ToolText(text.to_owned())));}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -3201,83 +2697,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78i-route-typed-answers-and-axis-cursor-input-01.rs"
-```
-
-```text
---8<-- "journey/code/78i-route-typed-answers-and-axis-cursor-input-02.rs"
-```
-
-```text
---8<-- "journey/code/78i-route-typed-answers-and-axis-cursor-input-03.rs"
-```
-
-```text
---8<-- "journey/code/78i-route-typed-answers-and-axis-cursor-input-04.rs"
-```
-
-```text
---8<-- "journey/code/78i-route-typed-answers-and-axis-cursor-input-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle"></a>
 
 ### Step 11 of 14 · Restore selection and preserve the gather lifecycle (`78j-restore-selection-and-preserve-the-gather-lifecycle`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/14 Visual Trace (78j-restore-selection-and-preserve-the-gather-lifecycle): Restore selection and preserve the gather lifecycle</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">gather action and plane changes</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pending recipe</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">completion or restored selection</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/editor.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending recipe</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">completion or restored…</text>
 </svg>
-</div>
-
-- **Goal:** Restore selection and preserve the gather lifecycle.
-- **Data Flow Trace:** `gather action and plane changes → pending recipe → completion or restored selection`
-- **Files You Touch:** `src/editor.rs` (*Connect the current gather owner to existing input and history.*)
 
 Connect recipe actions, current plane updates and cancellation while keeping group input separate from ordinary polyline completion.
 
-> **Self-Check Question:** *Does Escape undo already created geometry?*  
-> **Answer:** A pending recipe creates nothing. Escape restores its earlier selection. Once built, use Undo to remove the single completed transaction.
-
-- **Hands-On Lab Experiment:** Begin Extrude from a selected profile, change CPlane, cancel, and compare selection, original placement and Redo.
-
-<details>
-<summary>Implementation 78j-restore-selection-and-preserve-the-gather-lifecycle: Restore selection and preserve the gather lifecycle</summary>
-
-Restore selection and preserve the gather lifecycle.
-
-Data flow: gather action and plane changes → pending recipe → completion or restored selection.
+> **Check:** *Does Escape undo already created geometry?* — A pending recipe creates nothing. Escape restores its earlier selection. Once built, use Undo to remove the single completed transaction.
 
 ### 1. `src/editor.rs`
 
@@ -3285,8 +2736,7 @@ Connect the current gather owner to existing input and history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             }
@@ -3297,8 +2747,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             Action::PickedMany { target, additive } => {
                 if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3312,8 +2760,7 @@ Replace it with:
                 if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let hit = self.snap_point(screen,size);
@@ -3324,8 +2771,6 @@ Replace it with:
                 }
                 if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3339,8 +2784,7 @@ Replace it with:
                 if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Action::ToolText(text)=>return self.tool_text(&text),
@@ -3357,8 +2801,6 @@ Replace it with:
                 if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
                 self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
 ```
-
-</details>
 
 Replace it with:
 
@@ -3379,8 +2821,7 @@ Replace it with:
                 self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
@@ -3390,8 +2831,6 @@ Replace it with:
                 let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
                 if let Some(draft)=self.draft.as_mut() {draft.frame=frame;draft.cursor=None;draft.snapped=None;}
 ```
-
-</details>
 
 Replace it with:
 
@@ -3405,8 +2844,7 @@ Replace it with:
                 if let Some(draft)=self.draft.as_mut() {draft.frame=frame;draft.cursor=None;draft.snapped=None;}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 
@@ -3416,8 +2854,6 @@ Replace it with:
                 if !factor.is_finite()||factor<=0.{return Err("Scale wants a finite factor above zero");}
                 let origin=self.gizmo_origin().unwrap_or([0.;3]);let delta=session_rust::Xform::scale_uniform(&session_rust::Point::new(origin[0],origin[1],origin[2]),factor);let ids=self.selected_objects();let target=self.selection().filter(|_|self.selected_part.is_some());return self.apply_transform(crate::transform_draft::Kind::Scale,&delta,&ids,target);
 ```
-
-</details>
 
 Replace it with:
 
@@ -3432,8 +2868,7 @@ Replace it with:
                 let origin=self.gizmo_origin().unwrap_or([0.;3]);let delta=session_rust::Xform::scale_uniform(&session_rust::Point::new(origin[0],origin[1],origin[2]),factor);let ids=self.selected_objects();let target=self.selection().filter(|_|self.selected_part.is_some());return self.apply_transform(crate::transform_draft::Kind::Scale,&delta,&ids,target);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -3447,8 +2882,6 @@ Replace it with:
         if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
         if change==Change::Scene { self.snap_index=None; }
 ```
-
-</details>
 
 Replace it with:
 
@@ -3466,8 +2899,7 @@ Replace it with:
         if change==Change::Scene { self.snap_index=None; }
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
@@ -4462,92 +3894,38 @@ mod tests {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-01.rs"
-```
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-02.rs"
-```
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-03.rs"
-```
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-04.rs"
-```
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-05.rs"
-```
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-06.rs"
-```
-
-```text
---8<-- "journey/code/78j-restore-selection-and-preserve-the-gather-lifecycle-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-78k-register-extrusion-revolution-and-browser-curve-picking"></a>
 
 ### Step 12 of 14 · Register extrusion revolution and browser curve picking (`78k-register-extrusion-revolution-and-browser-curve-picking`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/14 Visual Trace (78k-register-extrusion-revolution-and-browser-curve-picking): Register extrusion revolution and browser curve picking</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_registry.rs, src/lib.rs, src/commands.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">registered recipe command</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole-owner integer pick</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">gather highlight and diagnostic</text>
-    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">progress</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_registry.rs, s…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">whole-owner integer pick</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">gather highlight and di…</text>
 </svg>
-</div>
-
-- **Goal:** Register extrusion revolution and browser curve picking.
-- **Data Flow Trace:** `registered recipe command → whole-owner integer pick → gather highlight and diagnostic progress`
-- **Files You Touch:** `src/gather_registry.rs` (*Register maintained extrusion/revolution names and recipes.*) · `src/lib.rs` (*Register the gather component.*) · `src/commands.rs` (*Register maintained gather names and typed revolution alias.*)
 
 Add maintained recipe names and the revolution alias; use bounded integer picks for original curves and show picked groups without changing ordinary selection.
 
-> **Self-Check Question:** *Does Select Face change which profile is gathered?*  
-> **Answer:** The recipe needs original curve owners. During its curve groups, use whole-owner picks independently of the previous part selection mode.
-
-- **Hands-On Lab Experiment:** Run the browser contract: current registered names, capped and uncapped extrusion, invalid input, full-turn revolution and one Undo/Redo.
-
-<details>
-<summary>Implementation 78k-register-extrusion-revolution-and-browser-curve-picking: Register extrusion revolution and browser curve picking</summary>
-
-Register extrusion revolution and browser curve picking.
-
-Data flow: registered recipe command → whole-owner integer pick → gather highlight and diagnostic progress.
+> **Check:** *Does Select Face change which profile is gathered?* — The recipe needs original curve owners. During its curve groups, use whole-owner picks independently of the previous part selection mode.
 
 ### 1. `src/gather_registry.rs`
 
@@ -4563,16 +3941,6 @@ Create the file and type:
 
 Register the gather component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod gather_draft;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
@@ -4585,8 +3953,7 @@ Register maintained gather names and typed revolution alias.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -4600,8 +3967,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
     if name=="CPlane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
     if matches!(name,"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
 ```
-
-</details>
 
 Replace it with:
 
@@ -4620,8 +3985,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
     if matches!(name,"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 }
@@ -4632,8 +3996,6 @@ pub fn canonical(line: &str) -> String {
     matched(&words).map_or_else(|| line.trim().to_owned(), |(name, count)| {
         std::iter::once(name).chain(words[count..].iter().copied()).collect::<Vec<_>>().join(" ")
 ```
-
-</details>
 
 Replace it with:
 
@@ -4648,8 +4010,7 @@ pub fn canonical(line: &str) -> String {
         std::iter::once(name).chain(words[count..].iter().copied()).collect::<Vec<_>>().join(" ")
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 ];
@@ -4660,8 +4021,6 @@ pub fn names() -> Vec<&'static str> {
 
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
-
-</details>
 
 Replace it with:
 
@@ -4675,8 +4034,7 @@ pub fn names() -> Vec<&'static str> {
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::editor::Action;
@@ -4842,75 +4200,38 @@ pub fn parse(line: &str) -> Result<Command, String> {
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78k-register-extrusion-revolution-and-browser-curve-picking-03.rs"
-```
-
-```text
---8<-- "journey/code/78k-register-extrusion-revolution-and-browser-curve-picking-04.rs"
-```
-
-```text
---8<-- "journey/code/78k-register-extrusion-revolution-and-browser-curve-picking-05.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass"></a>
 
 ### Step 13 of 14 · Pick original profiles through the browser integer pass (`78l-pick-original-profiles-through-the-browser-integer-pass`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/14 Visual Trace (78l-pick-original-profiles-through-the-browser-integer-pass): Pick original profiles through the browser integer pass</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded integer pick</text>
-    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original curve owner</text>
-    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ordered gather highlight</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/browser.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original curve owner</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ordered gather highlight</text>
 </svg>
-</div>
-
-- **Goal:** Pick original profiles through the browser integer pass.
-- **Data Flow Trace:** `bounded integer pick → original curve owner → ordered gather highlight`
-- **Files You Touch:** `src/browser.rs` (*Route bounded whole-owner curve picks, temporary highlights, current prompts and gather diagnostics.*)
 
 Route the recipe’s curve groups through whole-owner integer picks, and highlight their ordered originals separately from ordinary selection.
 
-> **Self-Check Question:** *Does a profile pick create an ordinary selection edit?*  
-> **Answer:** No. The gather owner keeps its own ordered groups. Completed results become ordinary selection, and Escape restores the selection captured before starting.
-
-- **Hands-On Lab Experiment:** Pick profiles with the previous mode set to Select Face. Check gather diagnostics, ordered highlights, cancellation and the same behavior with touch.
-
-<details>
-<summary>Implementation 78l-pick-original-profiles-through-the-browser-integer-pass: Pick original profiles through the browser integer pass</summary>
-
-Pick original profiles through the browser integer pass.
-
-Data flow: bounded integer pick → original curve owner → ordered gather highlight.
+> **Check:** *Does a profile pick create an ordinary selection edit?* — No. The gather owner keeps its own ordered groups. Completed results become ordinary selection, and Escape restores the selection captured before starting.
 
 ### 1. `src/browser.rs`
 
@@ -4918,8 +4239,7 @@ Route bounded whole-owner curve picks, temporary highlights, current prompts and
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
@@ -4929,8 +4249,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
     canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4944,8 +4262,7 @@ Replace it with:
     canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         panel.number(number);
@@ -4959,8 +4276,6 @@ Replace it with:
         if let Err(error) = renderer.set_grid(editor.camera.grid) {
             report(error); return;
 ```
-
-</details>
 
 Replace it with:
 
@@ -4977,8 +4292,7 @@ Replace it with:
             report(error); return;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 else { editor.apply(action).map(Some).map_err(str::to_owned) }
@@ -4989,8 +4303,6 @@ Replace it with:
                 Ok(Some(Change::Scene)) => {
                     highlight_changed = true;
 ```
-
-</details>
 
 Replace it with:
 
@@ -5004,8 +4316,7 @@ Replace it with:
                     highlight_changed = true;
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         if let Some(action) = action {
@@ -5016,8 +4327,6 @@ Replace it with:
             if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5031,8 +4340,7 @@ Replace it with:
                 | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             Some(Action::Touch(actions))=> {
@@ -5043,8 +4351,6 @@ Replace it with:
                 }}Some(Action::Touch(applied))
             },
 ```
-
-</details>
 
 Replace it with:
 
@@ -5058,8 +4364,7 @@ Replace it with:
             },
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
                 None => None,
@@ -5069,8 +4374,6 @@ Replace it with:
                 Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
             }
 ```
-
-</details>
 
 Replace it with:
 
@@ -5084,8 +4387,7 @@ Replace it with:
             }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             match renderer.take_pick(editor.camera.uniform()) {
@@ -5096,8 +4398,6 @@ Replace it with:
                     else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
                 },
 ```
-
-</details>
 
 Replace it with:
 
@@ -5112,8 +4412,7 @@ Replace it with:
                 },
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::background::Background;
@@ -5949,99 +5248,40 @@ fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 }
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-01.rs"
-```
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-02.rs"
-```
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-03.rs"
-```
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-04-selection-refresh.rs"
-```
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-05.rs"
-```
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-06.rs"
-```
-
-```text
---8<-- "journey/code/78l-pick-original-profiles-through-the-browser-integer-pass-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"></a>
 
 ### Step 14 of 14 · Exercise profiles exact surfaces and one undo transaction (`78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/14 Visual Trace (78m-exercise-profiles-exact-surfaces-and-one-undo-transaction): Exercise profiles exact surfaces and one undo transaction</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gather_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original profiles</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Extrude and Revolve</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">history</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original Save/Open</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gather_tests.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">history</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original Save/Open</text>
 </svg>
-</div>
-
-- **Goal:** Exercise profiles exact surfaces and one undo transaction.
-- **Data Flow Trace:** `original profiles → Extrude and Revolve → history → original Save/Open`
-- **Files You Touch:** `src/gather_tests.rs` (*Copy integrated current gather/profile/history/options/freshness/SaveOpen fixtures.*) · `src/lib.rs` (*Register the gather component.*)
 
 Copy integrated original-profile fixtures, then create the rendered solid and exact revolved surface through registered commands.
 
-> **Self-Check Question:** *What must Save keep after revolution?*  
-> **Answer:** Retain the original rational surface controls and knots, source and row identity, original profiles and placed document data.
+> **Check:** *What must Save keep after revolution?* — Retain the original rational surface controls and knots, source and row identity, original profiles and placed document data.
 
-- **What You Should See:** A capped extrusion and an exact revolved surface retain original profiles. One completed recipe inserts all its results together. Current options, cancellation, invalid inputs, original source freshness and exact archives remain checked.
-- **Hands-On Lab Experiment:** Type Close, CPlane XY, Polyline Rectangle w-2,0,0 w-1,1,0, Select All, Extrude 1.5, Line w1.9,0,0 w1.9,0,1.5, Select Next, Nurbs Surface Revolve w1.5,0,0 w1.5,0,1, View Isometric, Select None and Fit, with spaces after Extrude. Try Cap Off, an invalid distance, Escape, Undo/Redo and Save/Open.
-
-<details>
-<summary>Implementation 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction: Exercise profiles exact surfaces and one undo transaction</summary>
-
-Exercise profiles exact surfaces and one undo transaction.
-
-Data flow: original profiles → Extrude and Revolve → history → original Save/Open.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6055,10 +5295,7 @@ Copy this supplied file:
 --8<-- "journey/code/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-01.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -6066,47 +5303,28 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the gather component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod gather_registry;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-02.rs" skip=26
 ```
 
-</details>
-
-</details>
+**Result after `78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`:** A capped extrusion and an exact revolved surface retain original profiles. One completed recipe inserts all its results together. Current options, cancellation, invalid inputs, original source freshness and exact archives remain checked.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction
-npm --prefix ../session_tests run course -- check 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction
-npm --prefix ../session_tests run course -- save 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction
+npm --prefix ../session_tests run course -- dependencies 15.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 15.2
+npm --prefix ../session_tests run course -- save 15.2
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-A capped extrusion and an exact revolved surface retain original profiles. One completed recipe inserts all its results together. Current options, cancellation, invalid inputs, original source freshness and exact archives remain checked.
-
-- **Final Lesson Experiment:** Type Close, CPlane XY, Polyline Rectangle w-2,0,0 w-1,1,0, Select All, Extrude 1.5, Line w1.9,0,0 w1.9,0,1.5, Select Next, Nurbs Surface Revolve w1.5,0,0 w1.5,0,1, View Isometric, Select None and Fit, with spaces after Extrude. Try Cap Off, an invalid distance, Escape, Undo/Redo and Save/Open.
-
-Continue with [Lofts, rail sweeps and network foundations](../../consolidation/79-retain-current-loft-section-order-and-degree-options.md).
+Continue with [15.3 · Lofts, rail sweeps and network foundations](../../consolidation/79-retain-current-loft-section-order-and-degree-options.md).

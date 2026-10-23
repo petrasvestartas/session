@@ -1,221 +1,89 @@
 # 11.1 · Coverage-based screen-space outlines
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.1** (Redraft `6.10`) · **10 checkpoints (`63-radius` → `63h-outline`)** · **Study time: 5–10 h**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Checkpoints:** `63-radius` → `63h-outline` (10 steps) · **Production source:** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs) · [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl) · [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl) · [app/cloud_query.rs](../../../../src/app/cloud_query.rs)
 
-> **What You Will Learn & Build:** Measure outline width in CSS pixels. By the final checkpoint (`63h-outline`), you will check real contours widths reuse picks and cleanup.
+> **Goal:** Check real contours widths reuse picks and cleanup.
 
-## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
+## 1. Visual WebGPU Schematic
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
     </pattern>
-  </defs>
-  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
-    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
-    <!-- Outer CCW loop square -->
-    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
-    <!-- Inner CW hole loop circle (white cutout!) -->
-    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
-    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
-    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
-    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
-
-    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
-    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
-    <!-- Curved 3D patch shape -->
-    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
-    <!-- Elliptical 3D bore hole cutout in white -->
-    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
-    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
-    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
-
-    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
-    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
-    <!-- Smooth curve on left -->
-    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
-    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
-    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
-    <!-- Sharp crease corner on right -->
-    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
-    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
-    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
-    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
-    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
-    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
-    
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
     </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 11.1 Pipeline Schematic: Coverage-based screen-space outlines</text>
-  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (10 Checkpoints: 63-radius → 63h-outline)</text>
-  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
-  
-    
-    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">CSS radius</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">physical density</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded sorted taps</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">shared coverage</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">width</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual pixels and</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">alpha</text>
-    
-    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 11.1:</text>
-    <text x="235" y="177" font-size="11" fill="#111111">src/outline_math.rs  ·  src/lib.rs  ·  src/outline.wgsl  ·  src/outline_mask.wgsl  ·  src/outline_gpu.rs  ·  src/gpu_mesh.rs</text>
-    <text x="32" y="194" font-size="10.5" fill="#111111">10 Checkpoints: 63-radius → 63h-outline — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
+  <rect x="2" y="2" width="836" height="216" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="20" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="135" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">1. Trimmed B-Rep (u,v)</text>
+  <rect x="55" y="60" width="160" height="96" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+  <circle cx="135" cy="108" r="24" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="135" y="112" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Hole</text>
+  <text x="135" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Outer + Inner Loops</text>
+  <line x1="250" y1="110" x2="298" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="304" y="20" width="230" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="419" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">2. Crease Split</text>
+  <polyline points="338,144 419,98 500,144" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="419" cy="98" r="4.5" fill="#111111"/>
+  <line x1="419" y1="98" x2="386" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <line x1="419" y1="98" x2="452" y2="56" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text x="372" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N1</text>
+  <text x="458" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#111111">N2</text>
+  <text x="419" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Sharp Edge Normals</text>
+  <line x1="534" y1="110" x2="582" y2="110" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="588" y="20" width="232" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text x="704" y="42" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#111111">3. Sub-ID Pick</text>
+  <polygon points="650,74 758,74 780,138 628,138" fill="url(#hatch)" stroke="#111111" stroke-width="2.5"/>
+  <text x="704" y="112" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[brep, face_2]</text>
+  <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Face &amp; Edge IDs</text>
 </svg>
-</div>
 
-## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
-
-Before writing code, review how the three layers in this chapter talk to each other:
-
-| Layer | Construct | Plain-English Explanation for Students |
+| Layer | Construct | Role |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
-
-## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
-
-| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
-| ---: | :--- | :--- | :--- | :--- |
-| **1** | [`63-radius`](#checkpoint-63-radius) | Measure outline width in CSS pixels. | `src/outline_math.rs`, `src/lib.rs` | `CSS radius → physical density → bounded sorted taps → shared coverage width` |
-| **2** | [`63a-coverage`](#checkpoint-63a-coverage) | Write bounded contour sampling and black-alpha composition. | `src/outline.wgsl`, `src/outline_mask.wgsl` | `original solid transforms → visible R8 coverage → coarse search → black alpha` |
-| **3** | [`63aa-pool-and-dilate-a-conservative-outline-mask`](#checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask) | Accelerate bounded contour sampling with conservative coarse coverage. | `src/outline.wgsl` | `solid coverage → block maximum → neighboring-block dilation → skip empty contour work` |
-| **4** | [`63b-resources`](#checkpoint-63b-resources) | Own and count the derived outline textures. | `src/outline_gpu.rs`, `src/lib.rs` | `derived textures → owning masks → allocated bytes → explicit release` |
-| **5** | [`63c-pipelines`](#checkpoint-63c-pipelines) | Create the mask and fullscreen pipeline layouts. | `src/outline_gpu.rs` | `original vertex layout → depth mask pipeline → fullscreen pipeline → alpha blending` |
-| **6** | [`63d-bindings`](#checkpoint-63d-bindings) | Build bounded mask and tap bindings. | `src/outline_gpu.rs` | `texture layouts → bounded parameter buffers → current shader → reusable pipelines` |
-| **7** | [`63e-reuse`](#checkpoint-63e-reuse) | Reuse masks while camera selection and density stay unchanged. | `src/outline_gpu.rs` | `viewport and density → prepared masks → radius-keyed taps → invalidated frame key` |
-| **8** | [`63f-union`](#checkpoint-63f-union) | Outline the visible union without internal seams. | `src/gpu_mesh.rs`, `src/outline_gpu.rs` | `selected solids → depth-visible union → outside alpha → black load pass` |
-| **9** | [`63g-composite`](#checkpoint-63g-composite) | Connect a lazy silhouette owner to the renderer. | `src/renderer.rs` | `whole selection → lazy owner → black silhouette → immediate release` |
-| **10** | [`63h-outline`](#checkpoint-63h-outline) | Check real contours widths reuse picks and cleanup. | `src/outline_gpu.rs`, `src/renderer.rs`, `src/outline_math_tests.rs`, `src/lib.rs` | `actual pixels and alpha → original picks and topology → cache reuse → resource cleanup` |
-
 ---
 
-## 4. Step-by-Step Coding Notebook (Concept + Implementation)
-
-Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
+## 2. Complete Code Overview (All Steps Open)
 
 <a id="checkpoint-63-radius"></a>
 
 ### Step 1 of 10 · Measure outline width in CSS pixels (`63-radius`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/10 Visual Trace (63-radius): Measure outline width in CSS pixels</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_math.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">CSS radius</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical density</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded sorted taps</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared coverage width</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_math.rs, src/…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded sorted taps</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared coverage width</text>
 </svg>
-</div>
-
-- **Goal:** Measure outline width in CSS pixels.
-- **Data Flow Trace:** `CSS radius → physical density → bounded sorted taps → shared coverage width`
-- **Files You Touch:** `src/outline_math.rs` (*Convert the current production CSS radius and build bounded nearest-first coverage taps.*) · `src/lib.rs` (*Register the source component.*)
 
 Convert one production CSS radius to physical pixels and sort bounded coverage taps nearest first. Flat and curved solids use the same screen-space rule.
 
-> **Self-Check Question:** *Should a smooth cylinder get a different outline radius from a box?*  
-> **Answer:** No. Their visible coverage differs, but both use the same CSS radius and tap weights. Physical resolution changes with density; geometry size does not set screen ink width.
-
-- **What You Should See:** The selected original scene label and blue CAD bore remain visible. Select the CAD whole object after the compositor connects to see its silhouette.
-- **Hands-On Lab Experiment:** Compare densities 1, 1.5 and 2. Check the 12-physical-pixel cap, 512-tap bound and decreasing tap weights.
-
-<details>
-<summary>Implementation 63-radius: Measure outline width in CSS pixels</summary>
-
-Measure outline width in CSS pixels.
-
-Data flow: CSS radius → physical density → bounded sorted taps → shared coverage width.
+> **Check:** *Should a smooth cylinder get a different outline radius from a box?* — No. Their visible coverage differs, but both use the same CSS radius and tap weights. Physical resolution changes with density; geometry size does not set screen ink width.
 
 ### 1. `src/outline_math.rs`
 
@@ -231,79 +99,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(test)]
-mod scene_label_tests;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/63-radius-02.rs" skip=36
 ```
 
-</details>
+**Result after `63-radius`:** The selected original scene label and blue CAD bore remain visible. Select the CAD whole object after the compositor connects to see its silhouette.
+
+---
 
 <a id="checkpoint-63a-coverage"></a>
 
 ### Step 2 of 10 · Convolve solid coverage into external contour ink (`63a-coverage`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/10 Visual Trace (63a-coverage): Convolve solid coverage into external contour ink</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline.wgsl, src/outline_mask.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original solid transforms</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible R8 coverage</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coarse search</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">black alpha</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline.wgsl, src/out…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">coarse search</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">black alpha</text>
 </svg>
-</div>
-
-- **Goal:** Write bounded contour sampling and black-alpha composition.
-- **Data Flow Trace:** `original solid transforms → visible R8 coverage → coarse search → black alpha`
-- **Files You Touch:** `src/outline.wgsl` (*Type the bounded contour predicate and separate composition entry points.*) · `src/outline_mask.wgsl` (*Transform the original solid vertices and write only depth-visible coverage.*)
 
 Read center coverage and conservatively skip pixels whose coarse neighborhood is empty.
 
 Visit a bounded list of preweighted taps, keeping the strongest nearby coverage. Suppress the solid interior with one minus center coverage. The selected and ordinary masks retain separate radius witnesses; take their maximum before black-alpha composition so overlap is not blended twice.
 
-The mask shader writes derived solid coverage. The next lesson supplies conservative pooling and dilation; the existing resource and pipeline lessons then connect this shader to the browser frame.
-
-> **Self-Check Question:** *Why must contour ink exclude the source solid’s covered interior?*  
-> **Answer:** The mask describes the solid; the contour describes nearby uncovered pixels. Multiply sampled coverage by one minus center coverage, then compose the contour once.
-
-- **What You Should See:** The contour and composition entries are written, with the original geometry picture unchanged during preparation.
-- **Hands-On Lab Experiment:** Trace a covered interior pixel, an uncovered pixel beside an edge, and an empty distant pixel through coverage_at. Predict each output and identify the maximum number of texture reads.
-
-<details>
-<summary>Implementation 63a-coverage: Convolve solid coverage into external contour ink</summary>
-
-Write bounded contour sampling and black-alpha composition.
-
-Data flow: original solid transforms → visible R8 coverage → coarse search → black alpha.
+> **Check:** *Why must contour ink exclude the source solid’s covered interior?* — The mask describes the solid; the contour describes nearby uncovered pixels. Multiply sampled coverage by one minus center coverage, then compose the contour once.
 
 ### 1. `src/outline.wgsl`
 
@@ -325,87 +162,46 @@ Create the file and type:
 --8<-- "journey/code/63a-coverage-02.rs"
 ```
 
-</details>
+**Result after `63a-coverage`:** The contour and composition entries are written, with the original geometry picture unchanged during preparation.
+
+---
 
 <a id="checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask"></a>
 
 ### Step 3 of 10 · Pool and dilate a conservative outline mask (`63aa-pool-and-dilate-a-conservative-outline-mask`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/10 Visual Trace (63aa-pool-and-dilate-a-conservative-outline-mask): Pool and dilate a conservative outline mask</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline.wgsl</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">solid coverage</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">block maximum</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">neighboring-block dilation</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">skip empty contour work</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline.wgsl</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">neighboring-block dilat…</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">skip empty contour work</text>
 </svg>
-</div>
-
-- **Goal:** Accelerate bounded contour sampling with conservative coarse coverage.
-- **Data Flow Trace:** `solid coverage → block maximum → neighboring-block dilation → skip empty contour work`
-- **Files You Touch:** `src/outline.wgsl` (*Pool and dilate coverage without losing a possible contour hit.*)
 
 Pool each block with a maximum, then dilate by the neighboring blocks.
 
 The resulting mask conservatively marks where contour taps may encounter solid coverage. Clamp border reads and skip out-of-size pooled coordinates. This changes the amount of sampling work without changing the original CAD surface or the final coverage rule.
 
-> **Self-Check Question:** *Why can the coarse mask use a maximum rather than an average?*  
-> **Answer:** A maximum preserves any covered source pixel. An average could erase a small feature and incorrectly skip its outline work.
-
-- **What You Should See:** The completed shader contains contour, composition, pooling and dilation entry points; the following existing resource lessons connect them.
-- **Hands-On Lab Experiment:** Predict pooled and dilated values for a block containing one covered pixel, an empty block beside it, and an odd viewport edge. Explain why a mean would violate the early-out contract.
-
-<details>
-<summary>Implementation 63aa-pool-and-dilate-a-conservative-outline-mask: Pool and dilate a conservative outline mask</summary>
-
-Accelerate bounded contour sampling with conservative coarse coverage.
-
-Data flow: solid coverage → block maximum → neighboring-block dilation → skip empty contour work.
+> **Check:** *Why can the coarse mask use a maximum rather than an average?* — A maximum preserves any covered source pixel. An average could erase a small feature and incorrectly skip its outline work.
 
 ### 1. `src/outline.wgsl`
 
 Pool and dilate coverage without losing a possible contour hit.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-fn fs_alpha(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
-    return vec4<f32>(coverage_at(position.xy), 0.0, 0.0, 1.0);
-}
-
-@fragment
-fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
-    let alpha = textureLoad(mask, vec2<i32>(position.xy), 0).r;
-
-    if (alpha <= 0.0) {
-        discard;
-    }
-
-    return vec4<f32>(0.0, 0.0, 0.0, alpha);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -449,69 +245,40 @@ fn fs_dilate(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Result after `63aa-pool-and-dilate-a-conservative-outline-mask`:** The completed shader contains contour, composition, pooling and dilation entry points; the following existing resource lessons connect them.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/63aa-pool-and-dilate-a-conservative-outline-mask-01.wgsl"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-63b-resources"></a>
 
 ### Step 4 of 10 · Own and count the derived outline textures (`63b-resources`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/10 Visual Trace (63b-resources): Own and count the derived outline textures</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived textures</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owning masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">allocated bytes</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs, src/l…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">allocated bytes</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">explicit release</text>
 </svg>
-</div>
-
-- **Goal:** Own and count the derived outline textures.
-- **Data Flow Trace:** `derived textures → owning masks → allocated bytes → explicit release`
-- **Files You Touch:** `src/outline_gpu.rs` (*Own R8 images, frame keys, pipeline state and the reusable fullscreen preparation pass.*) · `src/lib.rs` (*Register the source component.*)
 
 Keep full-size coverage and alpha alongside two coarse masks. Count actual textures and retained parameter buffers; dropping an image destroys its GPU texture.
 
-> **Self-Check Question:** *Does a zero live draw count mean no GPU allocation remains?*  
-> **Answer:** No. Reserved textures and buffers still occupy memory. Report their actual bytes while owned; dropping the complete lazy outline owner releases those allocations.
-
-- **Hands-On Lab Experiment:** Compare full and coarse dimensions. Pooling rounds up at the right and bottom edges, including a viewport smaller than one block.
-
-<details>
-<summary>Implementation 63b-resources: Own and count the derived outline textures</summary>
-
-Own and count the derived outline textures.
-
-Data flow: derived textures → owning masks → allocated bytes → explicit release.
+> **Check:** *Does a zero live draw count mean no GPU allocation remains?* — No. Reserved textures and buffers still occupy memory. Report their actual bytes while owned; dropping the complete lazy outline owner releases those allocations.
 
 ### 1. `src/outline_gpu.rs`
 
@@ -527,88 +294,48 @@ Create the file and type:
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod outline_math;
-```
-
-</details>
-
 After that block, type:
 
 ```rust
 --8<-- "journey/code/63b-resources-02.rs" skip=23
 ```
 
-</details>
+---
 
 <a id="checkpoint-63c-pipelines"></a>
 
 ### Step 5 of 10 · Create the mask and fullscreen pipeline layouts (`63c-pipelines`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/10 Visual Trace (63c-pipelines): Create the mask and fullscreen pipeline layouts</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original vertex layout</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth mask pipeline</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fullscreen pipeline</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">alpha blending</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fullscreen pipeline</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">alpha blending</text>
 </svg>
-</div>
-
-- **Goal:** Create the mask and fullscreen pipeline layouts.
-- **Data Flow Trace:** `original vertex layout → depth mask pipeline → fullscreen pipeline → alpha blending`
-- **Files You Touch:** `src/outline_gpu.rs` (*Create compatible mask and fullscreen pipelines without reallocating primary geometry.*)
 
 Bind original mesh positions for the depth-visible mask. Fullscreen stages read R8 textures; only the final black-alpha pass blends with scene colour.
 
-> **Self-Check Question:** *Should the mask pipeline replace the primary colour or integer pipeline?*  
-> **Answer:** No. It reuses original vertex buffers and compatible view/object bindings for a derived pass. The primary colour draw and integer ownership remain intact.
-
-- **Hands-On Lab Experiment:** Check the 24-byte vertex stride and forward LessEqual comparison. Compare the R8 preparation target with the scene-colour alpha-blended target.
-
-<details>
-<summary>Implementation 63c-pipelines: Create the mask and fullscreen pipeline layouts</summary>
-
-Create the mask and fullscreen pipeline layouts.
-
-Data flow: original vertex layout → depth mask pipeline → fullscreen pipeline → alpha blending.
+> **Check:** *Should the mask pipeline replace the primary colour or integer pipeline?* — No. It reuses original vertex buffers and compatible view/object bindings for a derived pass. The primary colour draw and integer ownership remain intact.
 
 ### 1. `src/outline_gpu.rs`
 
 Create compatible mask and fullscreen pipelines without reallocating primary geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-  pass.draw(0..3, 0..1);
-}
-```
-
-</details>
 
 After that block, type:
 
@@ -616,74 +343,42 @@ After that block, type:
 --8<-- "journey/code/63c-pipelines-01.rs" skip=27
 ```
 
-</details>
+---
 
 <a id="checkpoint-63d-bindings"></a>
 
 ### Step 6 of 10 · Build bounded mask and tap bindings (`63d-bindings`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/10 Visual Trace (63d-bindings): Build bounded mask and tap bindings</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">texture layouts</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded parameter buffers</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current shader</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reusable pipelines</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current shader</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reusable pipelines</text>
 </svg>
-</div>
-
-- **Goal:** Build bounded mask and tap bindings.
-- **Data Flow Trace:** `texture layouts → bounded parameter buffers → current shader → reusable pipelines`
-- **Files You Touch:** `src/outline_gpu.rs` (*Build explicit current shader bindings and fixed parameter capacity.*)
 
 Create explicit texture layouts, a 16-byte radius uniform and one fixed 8208-byte sorted-tap buffer. Keep pipelines reusable for the lazy outline owner.
 
-> **Self-Check Question:** *Why is the sorted-tap buffer larger than the used tap count?*  
-> **Answer:** It has fixed capacity for 512 sixteen-byte taps and a sixteen-byte header. The shader reads the live count, while diagnostics report the complete allocation.
-
-- **Hands-On Lab Experiment:** Match each shader group to its layout. The two search bindings share the same selected union mask, so the optional second production channel stays inactive.
-
-<details>
-<summary>Implementation 63d-bindings: Build bounded mask and tap bindings</summary>
-
-Build bounded mask and tap bindings.
-
-Data flow: texture layouts → bounded parameter buffers → current shader → reusable pipelines.
+> **Check:** *Why is the sorted-tap buffer larger than the used tap count?* — It has fixed capacity for 512 sixteen-byte taps and a sixteen-byte header. The shader reads the live count, while diagnostics report the complete allocation.
 
 ### 1. `src/outline_gpu.rs`
 
 Build explicit current shader bindings and fixed parameter capacity.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-impl Outline {
-}
-fn raster(
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -691,74 +386,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/63d-bindings-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-63e-reuse"></a>
 
 ### Step 7 of 10 · Reuse masks while camera selection and density stay unchanged (`63e-reuse`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/10 Visual Trace (63e-reuse): Reuse masks while camera selection and density stay unchanged</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">viewport and density</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared masks</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">radius-keyed taps</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">invalidated frame key</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">radius-keyed taps</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">invalidated frame key</text>
 </svg>
-</div>
-
-- **Goal:** Reuse masks while camera selection and density stay unchanged.
-- **Data Flow Trace:** `viewport and density → prepared masks → radius-keyed taps → invalidated frame key`
-- **Files You Touch:** `src/outline_gpu.rs` (*Prepare exact-size derived targets, bounded tap bytes and truthful resource counters.*)
 
 Allocate masks only when viewport size or coarse block changes. Upload the tap table only when physical radius changes; keep an explicit revision for scene and selection edits.
 
-> **Self-Check Question:** *Can an unchanged camera alone prove a cached outline is current?*  
-> **Answer:** No. Geometry, visibility and whole selection can change without moving the camera. Include their explicit revision, physical size and density in the reuse key.
-
-- **Hands-On Lab Experiment:** Read allocated-byte counters before and after a same-size preparation. Compare a camera change with a whole-selection change and a density change.
-
-<details>
-<summary>Implementation 63e-reuse: Reuse masks while camera selection and density stay unchanged</summary>
-
-Reuse masks while camera selection and density stay unchanged.
-
-Data flow: viewport and density → prepared masks → radius-keyed taps → invalidated frame key.
+> **Check:** *Can an unchanged camera alone prove a cached outline is current?* — No. Geometry, visibility and whole selection can change without moving the camera. Include their explicit revision, physical size and density in the reuse key.
 
 ### 1. `src/outline_gpu.rs`
 
 Prepare exact-size derived targets, bounded tap bytes and truthful resource counters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    self.key = None;
-  }
-}
-fn raster(
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -766,73 +429,42 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/63e-reuse-01.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-63f-union"></a>
 
 ### Step 8 of 10 · Outline the visible union without internal seams (`63f-union`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/10 Visual Trace (63f-union): Outline the visible union without internal seams</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/outline_gpu.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected solids</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth-visible union</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">outside alpha</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">black load pass</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/gpu_mesh.rs, src/outl…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">outside alpha</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">black load pass</text>
 </svg>
-</div>
-
-- **Goal:** Outline the visible union without internal seams.
-- **Data Flow Trace:** `selected solids → depth-visible union → outside alpha → black load pass`
-- **Files You Touch:** `src/gpu_mesh.rs` (*Read whole-selection state from the existing uploaded object uniform.*) · `src/outline_gpu.rs` (*Encode visible selected coverage, cached alpha and a black compositor after geometry ink.*)
 
 Draw all whole-selected solids into one depth-visible mask, then pool, dilate and search outside that union. The black pass loads colour after surface and source-edge ink.
 
-> **Self-Check Question:** *Should two touching selected objects have an outline along their shared join?*  
-> **Answer:** No. A union silhouette surrounds visible coverage, including real holes. Internal tessellation and shared solid joins remain inside the coverage and contribute no outline alpha.
-
-- **Hands-On Lab Experiment:** Compare touching boxes, a smooth cylinder and a block with a bore. Keep the bore center open and its inner contour black; leave original mesh/BRep topology untouched.
-
-<details>
-<summary>Implementation 63f-union: Outline the visible union without internal seams</summary>
-
-Outline the visible union without internal seams.
-
-Data flow: selected solids → depth-visible union → outside alpha → black load pass.
+> **Check:** *Should two touching selected objects have an outline along their shared join?* — No. A union silhouette surrounds visible coverage, including real holes. Internal tessellation and shared solid joins remain inside the coverage and contribute no outline alpha.
 
 ### 1. `src/gpu_mesh.rs`
 
 Read whole-selection state from the existing uploaded object uniform.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
-    pub fn settings_bytes(&self) -> u64 { self.model.size() }
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -844,76 +476,44 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Encode visible selected coverage, cached alpha and a black compositor after geometry ink.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-  }
-}
-fn raster(
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/63f-union-02.rs"
 ```
 
-</details>
+---
 
 <a id="checkpoint-63g-composite"></a>
 
 ### Step 9 of 10 · Connect a lazy silhouette owner to the renderer (`63g-composite`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/10 Visual Trace (63g-composite): Connect a lazy silhouette owner to the renderer</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole selection</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy owner</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">black silhouette</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">immediate release</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/renderer.rs</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">black silhouette</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">immediate release</text>
 </svg>
-</div>
-
-- **Goal:** Connect a lazy silhouette owner to the renderer.
-- **Data Flow Trace:** `whole selection → lazy owner → black silhouette → immediate release`
-- **Files You Touch:** `src/renderer.rs` (*Connect whole-object silhouette invalidation, lazy compositing, current allocation counters and immediate owner release.*)
 
 Create the outline owner only when a whole solid is selected. Invalidate it on scene or selection edits, composite before widgets and text, and drop it immediately on deselection or Close.
 
-> **Self-Check Question:** *Should selecting one source face expand its highlight to the whole solid silhouette?*  
-> **Answer:** No. Partial face and edge highlights keep their local footprint. This pass follows whole-object selection only; the earlier locality regression remains unchanged.
-
-- **Hands-On Lab Experiment:** Select a whole CAD object, then deselect it. Compare derived bytes, primary upload counts and stable original IDs; repeat an unchanged frame to inspect the skip counter.
-
-<details>
-<summary>Implementation 63g-composite: Connect a lazy silhouette owner to the renderer</summary>
-
-Connect a lazy silhouette owner to the renderer.
-
-Data flow: whole selection → lazy owner → black silhouette → immediate release.
+> **Check:** *Should selecting one source face expand its highlight to the whole solid silhouette?* — No. Partial face and edge highlights keep their local footprint. This pass follows whole-object selection only; the earlier locality regression remains unchanged.
 
 ### 1. `src/renderer.rs`
 
@@ -921,8 +521,7 @@ Connect whole-object silhouette invalidation, lazy compositing, current allocati
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.markers.draw(&mut pass);
@@ -932,8 +531,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.text_error.borrow_mut().take();
         if let Some(lane)=self.text.borrow_mut().as_mut() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -949,8 +546,7 @@ Replace it with:
         if let Some(lane)=self.text.borrow_mut().as_mut() {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
@@ -960,8 +556,6 @@ Replace it with:
 
     pub fn stats(&self) -> [usize; 4] {
 ```
-
-</details>
 
 Replace it with:
 
@@ -976,8 +570,7 @@ Replace it with:
     pub fn stats(&self) -> [usize; 4] {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -994,8 +587,6 @@ Replace it with:
         if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1018,8 +609,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         }
@@ -1028,8 +618,6 @@ Replace it with:
         if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
     }
 ```
-
-</details>
 
 Replace it with:
 
@@ -1042,8 +630,7 @@ Replace it with:
     }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
@@ -1053,8 +640,6 @@ Replace it with:
         self.preview.set(&self.device, None).expect("Empty tool preview");
         self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
 ```
-
-</details>
 
 Replace it with:
 
@@ -1068,8 +653,7 @@ Replace it with:
         self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
         let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
@@ -1080,8 +664,6 @@ Replace it with:
             settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
         renderer.set_scene(scene, None);
 ```
-
-</details>
 
 Replace it with:
 
@@ -1095,8 +677,7 @@ Replace it with:
         renderer.set_scene(scene, None);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1106,8 +687,6 @@ pub struct Renderer {
     text_error:std::cell::RefCell<Option<String>>,
     full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
 ```
-
-</details>
 
 Replace it with:
 
@@ -1121,8 +700,7 @@ pub struct Renderer {
     full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Complete updated block reference:**
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
@@ -1533,100 +1111,40 @@ fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate:
 fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/63g-composite-01.rs"
-```
-
-```text
---8<-- "journey/code/63g-composite-02.rs"
-```
-
-```text
---8<-- "journey/code/63g-composite-03.rs"
-```
-
-```text
---8<-- "journey/code/63g-composite-04.rs"
-```
-
-```text
---8<-- "journey/code/63g-composite-05.rs"
-```
-
-```text
---8<-- "journey/code/63g-composite-06.rs"
-```
-
-```text
---8<-- "journey/code/63g-composite-07.rs"
-```
-
-</details>
-
-</details>
+---
 
 <a id="checkpoint-63h-outline"></a>
 
 ### Step 10 of 10 · Check real contours widths reuse picks and cleanup (`63h-outline`)
 
-<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
-<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#111111"/>
+    </pattern>
   </defs>
-  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/10 Visual Trace (63h-outline): Check real contours widths reuse picks and cleanup</text>
-  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs, src/renderer.rs, src/outline_math_tests.rs, src/lib.rs</text>
-  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
-  
-    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual pixels and alpha</text>
-    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original picks and</text>
-    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">topology</text>
-    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cache reuse</text>
-    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">resource cleanup</text>
-    
+  <rect x="2" y="2" width="836" height="60" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">src/outline_gpu.rs, src/r…</text>
+  <line x1="256" y1="32" x2="294" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="300" y="12" width="240" height="40" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+  <text x="420" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cache reuse</text>
+  <line x1="540" y1="32" x2="578" y2="32" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">resource cleanup</text>
 </svg>
-</div>
-
-- **Goal:** Check real contours widths reuse picks and cleanup.
-- **Data Flow Trace:** `actual pixels and alpha → original picks and topology → cache reuse → resource cleanup`
-- **Files You Touch:** `src/outline_gpu.rs` (*Copy the test-only actual-alpha readback accessor.*) · `src/renderer.rs` (*Copy test-only R8 alpha readback with bounded row pitch and wait.*) · `src/outline_math_tests.rs` (*Copy the current production radius, tap capacity and order regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual joined-solid, occlusion, curved/flat density, bore-contour, source/pick/reuse/release regressions.*) · `src/browser.rs` (*Expose actual outline allocation, rebuild, skip and compositor draw counters.*)
 
 Copy the actual GPU silhouette regressions and connect browser diagnostics. Verify both original source lanes and two CSS densities before calling silhouette acceptance complete.
 
-> **Self-Check Question:** *Does a native software-GPU check establish smooth Lenovo rotation?*  
-> **Answer:** No. It establishes rendered behavior and source/resource invariants. Fresh browser acceptance and same-hardware full-floor and dome timing remain separate required checks.
+> **Check:** *Does a native software-GPU check establish smooth Lenovo rotation?* — No. It establishes rendered behavior and source/resource invariants. Fresh browser acceptance and same-hardware full-floor and dome timing remain separate required checks.
 
-- **What You Should See:** Type Close, Example CAD, Fit and View Isometric, then Select Next. The selected CAD solid has black outer and bore contours. Whole selection creates derived outline resources; deselection and Close drop them. Repeat an unchanged frame to reuse coverage, and compare curved and flat solids at both CSS densities.
-- **Hands-On Lab Experiment:** Type Close, Example CAD, Fit and View Isometric, then Select Next. Inspect the black outer and bore contours. Deselect, select a source face, and confirm its highlight remains local.
-
-<details>
-<summary>Implementation 63h-outline: Check real contours widths reuse picks and cleanup</summary>
-
-Check real contours widths reuse picks and cleanup.
-
-Data flow: actual pixels and alpha → original picks and topology → cache reuse → resource cleanup.
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1634,30 +1152,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy the test-only actual-alpha readback accessor.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    }),
-    multisample: Default::default(),
-    multiview_mask: None,
-    cache: None,
-  })
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/63h-outline-01.rs" skip=95
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1665,26 +1166,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy test-only R8 alpha readback with bounded row pitch and wait.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/63h-outline-02.rs" skip=94
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1698,10 +1186,7 @@ Copy this supplied file:
 --8<-- "journey/code/63h-outline-03.rs"
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1709,26 +1194,13 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-
-pub mod outline_gpu;
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/63h-outline-04.rs" skip=22
 ```
 
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
+**Supplied validation fixture:**
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
@@ -1736,39 +1208,15 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Copy actual joined-solid, occlusion, curved/flat density, bore-contour, source/pick/reuse/release regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    assert!(changed>50);renderer.request_pick([-0.0625,0.],identity()).unwrap();assert_eq!(finish(&mut renderer).unwrap()[0],id.value());renderer.request_pick([0.125,0.],identity()).unwrap();assert!(finish(&mut renderer).is_none());
-}
-```
-
-</details>
-
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/63h-outline-05.rs" skip=235
 ```
 
-</details>
-
 ### 6. `src/browser.rs`
 
 Expose actual outline allocation, rebuild, skip and compositor draw counters.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1776,29 +1224,22 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/63h-outline-06.rs"
 ```
 
-</details>
+**Result after `63h-outline`:** Type Close, Example CAD, Fit and View Isometric, then Select Next. The selected CAD solid has black outer and bore contours. Whole selection creates derived outline resources; deselection and Close drop them. Repeat an unchanged frame to reuse coverage, and compare curved and flat solids at both CSS densities.
 
 ---
 
-## 5. Build, Verify, and Save Your Checkpoint
-
-Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
+## 3. Build, Verify & Save
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 63h-outline
-npm --prefix ../session_tests run course -- check 63h-outline
-npm --prefix ../session_tests run course -- save 63h-outline
+npm --prefix ../session_tests run course -- dependencies 11.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 11.1
+npm --prefix ../session_tests run course -- save 11.1
 ```
 
-Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
+Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
-## 6. Lesson Summary & Expected Visual Result
-
-Type Close, Example CAD, Fit and View Isometric, then Select Next. The selected CAD solid has black outer and bore contours. Whole selection creates derived outline resources; deselection and Close drop them. Repeat an unchanged frame to reuse coverage, and compare curved and flat solids at both CSS densities.
-
-- **Final Lesson Experiment:** Type Close, Example CAD, Fit and View Isometric, then Select Next. Inspect the black outer and bore contours. Deselect, select a source face, and confirm its highlight remains local.
-
-Continue with [Validated original cloud columns and placed owners](../../consolidation/64-nodes.md).
+Continue with [11.2 · Validated original cloud columns and placed owners](../../consolidation/64-nodes.md).
