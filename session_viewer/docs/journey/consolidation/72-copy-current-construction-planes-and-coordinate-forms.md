@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Draw original points, lines and polylines in a chosen frame with exact typed coordinates and one final transaction.
+
+## Ownership and data flow
+
+Coordinate parsing distinguishes explicit world, plane, relative and polar forms using a fixed current context. Collect accepted original points separately from temporary preview strokes. Screen clicks intersect a stable construction plane; changing the plane validates the new frame without rewriting already accepted world points. A separate three-point chooser owns its own draft. Typed batches validate completely before adoption; Enter/closure produces one original geometry and one Undo entry. Grid/object/self-start snapping uses the current construction frame while cancellation retires all unfinished state.
+
+## The maintained implementation
+
+app/coords.rs and app/cplane.rs implement maintained coordinate/frame math. app/command/tool.rs, gather.rs and state/drawing.rs own drafts, accepted points, previews and commit routing. The maintained grid plane changes only through an explicit construction-plane action; this lesson supplies the input boundary, not acceptance of whole-scene reload/grid behavior.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/walk/sheet.rs](../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs), [app/stream.rs](../../../src/app/stream.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/coords.rs](../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../src/app/deform.rs).
+
 ## <a id="checkpoint-72-copy-current-construction-planes-and-coordinate-forms"></a>1. Place coordinates in the selected plane
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

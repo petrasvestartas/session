@@ -58,6 +58,20 @@
 </svg>
 </div>
 
+Reconstruct surface context from actual depth and produce bounded ambient/contact shading through the maintained pass dependencies.
+
+## Ownership and data flow
+
+Source contact radius and normals are weakly cached properties, not reasons to retain editable sources indefinitely. Viewing rays reconstruct original surfaces; reduced depth/radius/normal targets feed bounded horizon and cosine-weighted visibility sampling. Bilateral filters respect surface discontinuities, invalid history is rejected and full-resolution reconstruction uses valid current samples. Atomics collect bounded correction work, and one black-alpha composite applies the contact result after faces. Preparation, filter history and resource keys distinguish a changed camera from unchanged geometry.
+
+## The maintained implementation
+
+engine/gpu/ssao.rs and ssao/pipelines.rs own maintained preparation/filter/composite passes. src/shaders/ssao.wgsl, ambient_depth.wgsl and ambient_composite.wgsl are the actual algorithm sources; engine/gpu/render.rs invokes after_faces hooks before ink. The course instruction must converge to those shader algorithms rather than treating a simplified alternate ambient formula as final.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-90-copy-maintained-original-contact-radius"></a>1. Derive contact radius
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

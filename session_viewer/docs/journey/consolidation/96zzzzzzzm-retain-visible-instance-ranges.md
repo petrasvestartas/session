@@ -48,14 +48,146 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Original display controls a…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Complete Production Parity</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Production Integration</text>
   <rect x="882" y="52" width="188" height="38" rx="5" fill="#dcfce7" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="75" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Physical Grid + Instances</text>
   <rect x="882" y="100" width="188" height="38" rx="5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="123" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ 100% session_viewer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="123" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Verification in progress</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Draw CAD wire curves</text>
 </svg>
 </div>
+
+Control what the viewer draws without changing the original document. This lesson connects family visibility, pen and glyph sizing, Plane frames and Matrix cells to their retained GPU owners.
+
+## Ownership and data flow
+
+A display control changes presentation, selection eligibility and dependent caches while retaining the original sources. Keep visible instance and member ranges current when a family is hidden or shown. Each point, line, curve, mesh edge, control and CAD wire must still reach its own drawing lane and original selection owner.
+
+The final runnable learner checkpoint is `96zzzzzzzq-draw-original-cad-wire-curves`. It integrates the production Plane, glyph, sphere, Matrix and joined/vector programs with compact original-owner tables. The maintained-browser comparison `97-finish-with-the-maintained-browser-runtime` remains a separate reference. The supporting records below distinguish native results from browser acceptance, which remains incomplete.
+
+## The maintained implementation
+
+engine/gpu/view.rs owns maintained show_points/show_lines/show_mesh_edges/markers and other settings; state.rs and app/command/mod.rs route current controls. app/walk/brep.rs and brep_edges.rs preserve original CAD borders/isoline display, and scene_instances.rs retains actual visible member ownership. Current production Scene defaults are Attributes Off and Interactions On (`attributes=false`, `interactions=true`), matching the historical course defaults. Original line and curve paths use the complete production ribbon program, joins and arrow closures. Cloud splat/resolve and LOD comparisons preserve source identities, including placed instances and sources above two million points. Ordinary Plane, Matrix, point glyph and mesh-marker lanes use their production layouts and algorithms. Printed fills retain their separate read-only depth behavior. The following sections explain presentation scheduling and held-grid/reload behavior; the progress plan distinguishes focused native checks from complete browser acceptance.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
+
+## Ordered input and presentation
+
+Apply every input event to the document and camera in order. Request one animation frame to present the latest state after the previous GPU submission completes. A burst of wheel or resize events therefore changes the camera immediately while sharing one pending presentation. This keeps source geometry and its GPU buffers resident during navigation.
+
+The runtime owns that pending frame. Suspending the page cancels its callback while retaining one dirty frame for resumption; final disposal cancels it permanently. Late input and GPU completion callbacks cannot revive a disposed runtime. Stop final pagehide before preview uploads, retain cancellation state for a cached page, and check the runtime identity before deferred teardown.
+
+Native scheduler tests and the unchanged focused browser check pass ordered input, one pending frame and final disposal without late submissions. This focused result does not complete the remaining browser checks.
+
+### Measured scheduling behavior
+
+**Supporting measurements.** Use these observations to check how scheduling behaves; they do not promise faster individual frames.
+
+The [source-bound WARP record](../release/runtime-performance-review.json) compares the same small two-triangle demo and default grid/UI at 900 by 760, DPR 1. It records one fresh process per version and six warm wheel interactions.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| First frame ready | 11.772 s | 11.094 s |
+| Median input to presentation start | 14.60 ms | 34.15 ms |
+| Median warm frame submission to fence callback | 11.10 ms | 14.05 ms |
+| Burst upload writes / new buffers and textures | 283,136 bytes / 0 | 5,056 bytes / 0 |
+| Idle submissions | 0 | 0 |
+
+The resize/wheel burst falls from 56 frames and 112 submissions to one frame and two submissions. Individual interaction timings do not consistently improve. This small observation set does not establish a steady-frame speedup, CAD performance or hardware FPS. Queue fence timings include submission, prior queue work and callback scheduling, rather than isolated GPU execution. The record retains raw observations, exact settings and source identities; the initial failed disposal run remains separate historical evidence.
+
+The learner library keeps the maintained viewer in a development dependency for reference comparisons. Its normal native runtime does not depend on that reference application.
+
+## Reload and the shown grid
+
+Prepare a replacement document separately, then publish its source into the current editor. Keep the camera that exists at publication time, including motion made while loading. A captured camera from the start of a request is already stale if the user has navigated. Initial opening and an explicit Fit command retain their separate framing behavior.
+
+Treat the shown base grid as a held world plane. `Construction Plane View` resolves the current view once; later view changes leave that plane fixed. Drawing tools can still use a view-following construction plane. Store the held frame in double precision and subtract the floating origin before converting its translation to GPU floats. Reapplying the same plane makes no GPU update, and an incomplete or cancelled plane command keeps the previous frame.
+
+**Supporting native evidence.** Four focused course tests pass. The maintained viewer's actual GPU grid frames also agree exactly near the origin, at a 10¹²-unit world offset, and after returning. Removing the fractional offset changes 1,020 pixels. The [reload/grid browser record](../release/reload-grid-browser-review.json) now accepts all four maintained/course route/live cases, including the latest camera during held loads and explicitly held construction-plane behavior. This is behavioral acceptance, separate from native pixel equality and global release acceptance.
+
+The two native 256 × 256 frames below show the fractional grid and its zero-offset control. The near, far and return fractional frames have identical image hashes; [source and settings provenance](../release/grid-native-review.json) records the original double-precision plane and anchored camera matrices. This is a grid precision check, separate from moving the browser camera during reload.
+
+![Native held grid preserves the fractional origin near and far from the world origin](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png)
+
+![Native grid with the fractional origin removed shows the changed axis positions](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png)
+
+## Pens, points and printed fills
+
+Keep presentation settings separate from source geometry. A pen width changes ribbon coverage; the production ribbon computes its AA analytically. The `aa` setting controls glyph feathering. Mesh edges and ordinary lines have separate visibility switches, while both keep original owner addresses for selection.
+
+Contact polygons use the production joined outline walk. Its packed face normal and contact colour tag give the boundary the same depth layer as the red fill. Reusing ordinary mesh-edge rows misses that relationship when projected-triangle storage falls back.
+
+An explicitly sized Point uses the production glyph's physical-pixel diameter: a width of 12 remains 12 pixels at DPR 1 and 2. Selection changes its colour without enlarging its disc. Editable control handles retain their separate interaction sizing policy. Cloud scale, EDL and LOD change cloud presentation while retaining stored coordinates and point IDs.
+
+**Supporting Point evidence.** Eight native production/course comparisons match every pixel across DPR 1/2, one/four samples and selection. The [Point comparison record](../release/point-native-review.json) retains the original source, archive and GPU settings.
+
+![Original Point keeps its authored physical-pixel diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-unselected-native-4x.png)
+
+![Selected Point changes colour without increasing its diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-selected-native-4x.png)
+
+A mesh with exactly one zero line width is a printed fill. Draw its colour with read-only depth so it cannot hide an original line or take ownership of a physical triangle. Instance tint alpha multiplies the alpha emitted by the kernel's render vertices. Preserve the original source colour independently: the kernel currently emits opaque object-colour vertices even when that source colour stores alpha. Printed lettering has its own place after mesh spheres and before point glyphs.
+
+**Supporting mesh evidence.** The figures below use the actual production edge walk, facing words and pen rows. All eight native full-frame production/course comparisons match exactly across DPR 1/2, one/four samples and selection at the recorded original placement. With outlines disabled, selection retains the production yellow without adding a separate black contour. The [native comparison record](../release/mesh-native-review.json) contains the original bytes, pose, settings and source hashes; browser and subpart-picking acceptance remain separate.
+
+![Unselected native mesh uses the production black border and blue fill](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png)
+
+![Selected native mesh matches production yellow with outlines disabled](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png)
+
+The original Plane keeps its authored frame separate from its display half-size. Changing the display size must retain that frame; a mirrored, nonuniformly scaled placement must retain its placed axes.
+
+**Supporting Plane evidence.** The [plain Plane record](../release/plane-plain-native-review.json) and [placed Plane record](../release/plane-placed-native-review.json) each contain 16 exact native full-frame production/course pairs across DPR 1/2, one/four samples, half-sizes 50/100 and selection. Both retain original source bytes, archive, settings and complete frame results.
+
+![Mirrored and nonuniformly scaled original Plane preserves its placed axes](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-native-4x.png)
+
+![Selected original Plane retains the same placed frame at a larger display size](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png)
+
+**Supporting covered Plane evidence.** The [generated covered Plane record](../release/plane-generated-covered-native-review.json) adds 16 exact native production/course pairs with an opaque blue lid. The axes remain visible over the lid in both renderers. This records their matching display behavior; it does not establish covered-owner picking. The [generated printed-fill record](../release/plane-generated-print-native-review.json) and [retained original covered-source record](../release/plane-original-covered-matrix-native-review.json) each add another 16 exact native pairs. All five declared Plane matrices now pass 80/80 full-frame comparisons. Generated and historical source bytes remain distinct; covered/printed cases make no owner-pick or browser acceptance claim.
+
+![Unselected covered Plane axes remain visible over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-course.png)
+
+![Unselected covered Plane axes remain visible over the blue lid in production](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-production.png)
+
+![Selected covered Plane retains its axes over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-selected-course.png)
+
+![Selected covered Plane retains its axes over the blue lid in production](../../screenshots/journey/review/96zzzzzzzq-plane-covered-selected-production.png)
+
+## Matrix cells and titles
+
+The final checkpoint also imports the current production Matrix program and its 16-word header plus three words per cell. Component-backed rows retain the original GUID, values and placement through archive reload. Cells run along +X and rows along -Y; nonzero values use procedural digits rounded to three decimals, while zero cells omit digits. Object picks select the whole Matrix, and selected borders use the production yellow. The world-plane title has its own text identity and lifetime, with no background plate.
+
+The full composed shader includes the maintained scene, clipping and ink-visibility code. Keep the Matrix values and original ownership independent of these display programs.
+
+**Supporting Matrix evidence.** Eight native production/course comparisons match every pixel of the complete frame, including the independent title, at display densities one and two, one and four samples, and with selection cleared or active. The [native comparison record](../release/matrix-native-review.json) and [browser behavior record](../release/matrix-browser-review.json) retain the source, camera, archive and image hashes. All six browser cases pass selection, original-owner picking, display controls, save/reopen and the return from four samples to one.
+
+The native WARP fixture uses a 320 by 240 logical viewport, values [-2, 1.2, 5; 0, 1.005, 5], cell size 0.3 and original placement (-0.3, 0.2, -0.4), with a fixed orthographic camera. Zero has no numeric glyph; the separate title has no plate. The figures below show the course at display density two and four samples; their complete images are identical to the corresponding production captures.
+
+**Unselected original Matrix, four samples at display density two.**
+
+![Native Matrix value colours, procedural digits, empty zero and plate-less title](../../screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png)
+
+**Whole-object selection, four samples: yellow borders preserve cell contents.**
+
+![Native selected Matrix with yellow borders and unchanged cell digits](../../screenshots/journey/review/96zzzzzzzq-matrix-paired-selected-course-dpr2-msaa4.png)
+
+Hide the Matrix cells to see the title's independent lifetime. It remains visible and pickable as its own text object. Saving and reopening retains both the original Matrix values and placement and the separate title source.
+
+![Browser Matrix title remains visible when cells are hidden](../../screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr1.png)
+
+## Native family controls
+
+Visibility controls retain the original source while changing the lanes submitted for drawing. The [native family-control record](../release/ink-family-controls-native-review.json) contains 14 exact production/course full-frame pairs: mixed CAD with lines hidden or mesh edges hidden, plus open arrowed, closed headless and placed selected joined strokes. The joined cases cover the recorded display densities and sample counts. This evidence uses fixed widths, AA and camera settings; it does not establish clipping sweeps, browser behavior or production owner picking.
+
+![Mixed CAD with ordinary lines hidden retains the other visible families](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-lines.png)
+
+![Mixed CAD with mesh edges hidden retains the other visible families](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-edges.png)
+
+![Open joined stroke retains its arrowed ends at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-open-dpr2-msaa4.png)
+
+![Closed joined stroke has no endpoint arrows at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-closed-dpr2-msaa4.png)
+
+![Placed selected joined stroke retains its joins at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-placed-selected-dpr2-msaa4.png)
 
 ## <a id="checkpoint-96zzzzzzzm-retain-visible-instance-ranges"></a>1. Retain visible instance ranges
 

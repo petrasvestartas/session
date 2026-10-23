@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Pick and edit the selected original’s real controls while keeping rational and Element ownership intact.
+
+## Ownership and data flow
+
+A control key identifies family plus original address: sparse vertex, curve/control or surface/u/v. World control coordinates are computed once and reused by markers and display nets. Controls stay scoped to one current original parent, with a shared visible/pick style. An edit previews source-derived geometry, validates the complete original candidate and commits once; rebuilding an Element preserves its owner and other original metadata instead of replacing it with an anonymous mesh.
+
+## The maintained implementation
+
+app/selection.rs ControlId and Controls carry maintained family addresses and precise world positions; app/deform.rs resolves actual original edits. state/edit.rs and drag.rs own previews; engine/gpu/glyphs.rs draws control markers. The course marker lane is staged wherever it differs from production glyph attributes and coverage.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/session_io.rs](../../../src/app/session_io.rs), [app/command/mod.rs](../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/scene.rs](../../../src/app/scene.rs), [app/selection.rs](../../../src/app/selection.rs), [app/deform.rs](../../../src/app/deform.rs), [app/walk/mod.rs](../../../src/app/walk/mod.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96za-address-original-controls-with-family-keys"></a>1. Address controls with family keys
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

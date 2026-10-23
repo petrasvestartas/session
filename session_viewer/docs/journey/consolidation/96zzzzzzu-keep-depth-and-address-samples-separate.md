@@ -48,14 +48,28 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Coherent multisampling and…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Complete Production Parity</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Production Integration</text>
   <rect x="882" y="52" width="188" height="38" rx="5" fill="#dcfce7" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="75" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Physical Grid + Instances</text>
   <rect x="882" y="100" width="188" height="38" rx="5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="123" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ 100% session_viewer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="123" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Verification in progress</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Choose bounded frame qual…</text>
 </svg>
 </div>
+
+Retarget every frame consumer to compatible colour, depth and primitive-address samples while reusing unchanged pipelines.
+
+## Ownership and data flow
+
+Depth and integer physical addresses are distinct attachments with the same selected sample count; resolve colour in the canvas format and keep appropriate single/multisample views plus placeholders. A sample-count/size/format change retargets surface, ink, overlays, cap crossing, cloud resolve/query, text, outlines and ambient resources coherently. Variant caches key actual layouts/source/target/sample facts and reuse unchanged pipelines; bounded quality chooses supported 1x/4x from physical pixel/device policy. A successful per-lane compile does not prove the whole retargeted frame.
+
+## The maintained implementation
+
+engine/gpu/targets.rs owns Depth32Float, optional MSAA colour and Rg16Uint primitive attachments, with 1x/4x placeholders. engine/pipelines/mod.rs Cache/Target and build.rs expanded shader sources identify variants; frame.rs provides exact shared bindings. Production budgets differ by device type and disable unforced MSAA at high pixel scale. ssao/pipelines.rs, text.rs, splat.rs and clip.rs retain their own current target dependencies.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
 
 ## <a id="checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate"></a>1. Keep depth and address samples separate
 

@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Collect typed or clicked shape dimensions atomically and create kernel solids through existing scene/history ownership.
+
+## Ownership and data flow
+
+One answer owner holds the question sequence, checked frame, current representation and original f64 values. Validate each candidate before changing accepted answers; a typed batch either advances coherently or reports a detailed error. Height clicks use the normal axis instead of accidentally closing a point collector. Temporary wires visualize the pending recipe; only the last accepted answer builds and inserts original geometry once. Plane changes synchronize a valid question frame, cancellation drops previews, and event-time-aware click ownership distinguishes small quick drift from dragging.
+
+## The maintained implementation
+
+app/command/tool/shape.rs owns Answer/Ask/Frame and shape recipes; app/command/tool/gather.rs and state/drawing.rs route current input. Maintained verbs such as box.rs, pyramid.rs, block_with_hole.rs and quad_sphere.rs create original kernel geometry; BRep versus Mesh choice is explicit. The final cylinder/cone/sphere helpers stage the round families continued next.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/walk/sheet.rs](../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs), [app/stream.rs](../../../src/app/stream.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/coords.rs](../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../src/app/deform.rs).
+
 ## <a id="checkpoint-74-copy-current-solid-geometry-and-question-definitions"></a>1. Add the remaining regular kernel solids
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

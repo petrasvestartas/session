@@ -62,6 +62,20 @@
 </svg>
 </div>
 
+Evaluate original parent chains once and preserve local frames when displaying or saving nested sources.
+
+## Ownership and data flow
+
+Resolve source ancestry with cycle/bounds checks and cache canonical models per document rather than walking the same parent chain for every consumer. Retain original local, parent and world transforms distinctly; connect all geometry families to the same cached placement result. Save writes original nested local frames, not flattened world coordinates. Rotated and mirrored fixtures reveal multiplication-order and normal-orientation errors that translation-only examples conceal.
+
+## The maintained implementation
+
+app/hierarchy.rs, app/scene.rs placement and app/walk/mod.rs provide maintained tree/placement context. app/scene_instances.rs composes InstanceRef with definition placement; app/session_io.rs retains original Session trees and FileDoc.place. The teaching canonical-cache helpers are staged; do not infer identically named production fields.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/scene_instances.rs](../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs).
+
 ## <a id="checkpoint-70-evaluate-source-ancestry-once-per-document"></a>1. Evaluate source ancestry once per document
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

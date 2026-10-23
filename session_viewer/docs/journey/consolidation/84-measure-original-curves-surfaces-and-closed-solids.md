@@ -59,6 +59,20 @@
 </svg>
 </div>
 
+Report original dimensions/volume without editing history, and prepare topology-preserving Trim/Explode operations.
+
+## Ownership and data flow
+
+Closed-solid volume requires valid orientation/closedness rather than accepting every surface. Temporary distance marks own world points, cached strokes and labels without source-pick IDs, ending on the next command, cancellation or changed rows. Original box frames persist precisely. The remaining algorithms prepare curve crossings, planar BRep/mesh cuts, retained face groups and rebuilt topology, plus original boundary sampling for selection. Explode extracts supported original families and preserves edge/pcurve ownership instead of substituting arbitrary display triangles.
+
+## The maintained implementation
+
+app/command/verbs/measure.rs owns Mark and borrowed measurement targets; volume.rs and length_bounding_box.rs report source measures. trim/parts.rs and explode.rs prepare actual original pieces, while sheet_query and display overlays remain outside document history. Command integration follows in the next lesson.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../src/app/walk/frames.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-84-measure-original-curves-surfaces-and-closed-solids"></a>1. Measure closed-solid volume
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

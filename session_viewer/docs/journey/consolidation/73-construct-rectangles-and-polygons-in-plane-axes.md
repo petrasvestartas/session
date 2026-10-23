@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Construct rectangles/polygons in plane axes and prepare reusable right-handed frames and kernel solid builders.
+
+## Ownership and data flow
+
+Two accepted original points determine plane-axis dimensions and a closed polyline. Bound generated point counts and finite values; polygon sides belong to the current draft and preview is a temporary full boundary. World-prefixed replay preserves multiword command meaning. Solid foundation helpers then describe questions, dimensions and right-handed frames, sample temporary wires and validate sizes before building placed kernel boxes, pyramids, holed blocks and regular polyhedra. These helpers do not yet wire every solid question into browser input.
+
+## The maintained implementation
+
+app/command/tool/shape.rs defines Frame, Ask, Kind and checked shape recipes; app/command/verbs registers original constructors. Source geometry remains session_rust Geometry, with preview wires derived from the pending recipe. The next lesson connects reusable builders to one answer/commit owner.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/walk/sheet.rs](../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs), [app/stream.rs](../../../src/app/stream.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/coords.rs](../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../src/app/deform.rs).
+
 ## <a id="checkpoint-73-construct-rectangles-and-polygons-in-plane-axes"></a>1. Construct rectangles and polygons in plane axes
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

@@ -405,14 +405,15 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight ordinary ribbon pairs and thirty-two actual resident Sheet ingress pairs matched full frames; broader joined/CAD browser acceptance is separate.",
+        "acceptedScope": "Eight ordinary ribbon pairs, four headed-Line pairs and 32 resident Sheet ingress pairs retain their recorded scope. Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim.",
         "records": [
           "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
           "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
-          "release/cad-selected-native-review.json"
+          "release/cad-selected-native-review.json",
+          "release/ink-family-controls-native-review.json"
         ],
         "remainingAcceptance": [
-          "Complete joined/headed/CAD width, AA, clipping, visibility and display-toggle controls against actual production.",
+          "Verify only the still-unproven width/AA/clipping and other named display controls against actual production. The 14 accepted joined/CAD visibility pairs are complete and must not be repeated merely to fill a Cartesian profile.",
           "Run complete cad-wire callback with user-approved outlines-off production-yellow/zero-black contract; preserve other source/archive/pick assertions."
         ],
         "chapterBrowserEntries": [
@@ -553,14 +554,15 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "One selected canonical wire archive matches actual production full RGBA; original archive and course Object picks are checked. Production picks and control-point checks are excluded. PASS 5/5 actual production/course full-RGBA native CAD baseline pairs at97d: wire,mixed,bore,hole-face,surface;31.945s,750256128B. DPR1,samples1,unselected,all families; mirrored/nonuniform placements and original source/archive/course Object-pick checks retained. Five figures inspected. Named display controls and browser acceptance remain pending; the supported60-case Cartesian matrix is not an automatic requirement. Public release/cad-baseline-native-review.json.",
+        "acceptedScope": "One selected canonical wire archive matches actual production full RGBA; original archive and course Object picks are checked. Production picks and control-point checks are excluded. PASS 5/5 actual production/course full-RGBA native CAD baseline pairs at97d: wire,mixed,bore,hole-face,surface;31.945s,750256128B. DPR1,samples1,unselected,all families; mirrored/nonuniform placements and original source/archive/course Object-pick checks retained. Five figures inspected. Named display controls and browser acceptance remain pending; the supported60-case Cartesian matrix is not an automatic requirement. Public release/cad-baseline-native-review.json. Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim.",
         "records": [
           "release/cad-selected-native-review.json",
-          "release/cad-baseline-native-review.json"
+          "release/cad-baseline-native-review.json",
+          "release/ink-family-controls-native-review.json"
         ],
         "remainingAcceptance": [
           "Run complete cad-wire callback with user-approved outlines-off production-yellow/zero-black contract; preserve other source/archive/pick assertions.",
-          "Complete named CAD family/display controls,source ownership and unchanged cad-wire browser acceptance beyond the accepted five DPR1/sample1 unselected native baselines; the hole-face image alone does not prove opaque depth occlusion or curved isoline continuity.",
+          "Complete unsupported CAD width/AA/clipping, source-ownership and actual browser controls beyond the accepted five native baselines and two mixed-family visibility states. Native image equality does not assert production owner-picking, opaque depth occlusion or curved-isoline continuity.",
           "Run the chapter15 network callback and inspect interior curve continuity rather than relying on aggregate pixel counts."
         ],
         "chapterBrowserEntries": [
@@ -1156,11 +1158,12 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract.",
+        "acceptedScope": "Historical a45 native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract. The current 14-pair ink record adds two independent CAD family states and three representative joined/selection/placement specimens; it does not close finite sag/tolerance, arbitrary clipping or triangle-tile contracts.",
         "records": [
           "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
           "../../target/course-windows-20261018/cloud-ink-production-after.json",
-          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json"
+          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
+          "release/ink-family-controls-native-review.json"
         ],
         "remainingAcceptance": [
           "Run chapter17 caps and chapter20 slot/arena callbacks, including hidden/reenabled families and original source picks.",
@@ -21676,18 +21679,45 @@
       "scope": "Authoring/reconstruction/structure only; docs layout screenshots are not viewer feature acceptance."
     },
     "native": {
-      "status": "passed-at-recorded-source",
-      "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
-      "passed": 1059,
+      "status": "passed-final-native-integration",
+      "fingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+      "passed": 1060,
       "failed": 0,
       "ignored": 0,
-      "publicStatus": "consolidation/current-state.json",
-      "resources": "../../target/course-windows-20261018/integrated-full-native-source-freeze.json",
-      "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
-      "elapsedSeconds": 1468.642,
-      "peakJobCommitBytes": 1480597504,
-      "currentDelta": "Historicala45 full1059 and96y831 retain their source bindings. Current97d includes hierarchy and TextPlane4x changes; one final integrated native regression remains pending. Matrix8/8 current native pairs are complete.",
-      "currentFinalAcceptance": "Matrix native8/8 exact at97d with inspected figures; full final native/inventory acceptance pending.96y831 and a45full1059 retain recorded source bindings.",
+      "filtered": 0,
+      "record": "release/native-97d-integration-review.json",
+      "elapsedSeconds": 1385.144,
+      "peakJobCommitBytes": 1512873984,
+      "currentFinalAcceptance": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains.",
+      "historical1059": {
+        "status": "passed-at-recorded-source",
+        "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+        "passed": 1059,
+        "failed": 0,
+        "ignored": 0,
+        "publicStatus": "consolidation/current-state.json",
+        "resources": "../../target/course-windows-20261018/integrated-full-native-source-freeze.json",
+        "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
+        "elapsedSeconds": 1468.642,
+        "peakJobCommitBytes": 1480597504,
+        "currentDelta": "Historicala45 full1059 and96y831 retain their source bindings. Current97d includes hierarchy and TextPlane4x changes; one final integrated native regression remains pending. Matrix8/8 current native pairs are complete.",
+        "currentFinalAcceptance": "Matrix native8/8 exact at97d with inspected figures; full final native/inventory acceptance pending.96y831 and a45full1059 retain recorded source bindings.",
+        "cadBaseline": {
+          "status": "passed-bounded-native-baseline",
+          "passed": 5,
+          "total": 5,
+          "elapsedSeconds": 31.945,
+          "peakJobCommitBytes": 750256128,
+          "record": "release/cad-baseline-native-review.json",
+          "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
+        },
+        "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
+        "inkControls": {
+          "record": "release/ink-family-controls-native-review.json",
+          "status": "passed-scoped-native-14-pairs",
+          "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23"
+        }
+      },
       "cadBaseline": {
         "status": "passed-bounded-native-baseline",
         "passed": 5,
@@ -21697,6 +21727,11 @@
         "record": "release/cad-baseline-native-review.json",
         "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
       },
+      "inkControls": {
+        "record": "release/ink-family-controls-native-review.json",
+        "status": "passed-scoped-native-14-pairs",
+        "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23"
+      },
       "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending."
     },
     "browser": {
@@ -21705,7 +21740,7 @@
       "performanceCategoriesMeasured": 5,
       "scope": "Small two-triangle demo, Windows WARP/Chrome145, one fresh process per version, six warm wheel samples. Submission-to-fence is GPU completion evidence, not compositor/FPS timing; no broad speedup claim.",
       "currentFinalAcceptance": "Optimized97d bundle passes182.487s; Matrix corrected97d browser6/6 passes599.714s/993091584B with all24unique PNGs individually reviewed. Full final canonicalcallback and other named historical callbacks remain pending. Reload/grid4/4 passes75.783s/626356224B with inspected captures; no cross-runtime pixel-parity claim.",
-      "historical94c": "Retained full-run failure:1547.193s/1133228032B at layers.cjs33, Escape cleared the selected Hide target. User approved four corrections in layers/delete-selection/labels; all affected bodies now pass focused checks. Complete94c callback retest remains pending.",
+      "historical94c": "Full 94c remains unaccepted: last run reached sheets.cjs:33 and failed after 2171.988 s. Focused Sheets v3 then passed all original assertions in 113.034 s; first metadata selection took 58.3313 s on WARP, exceeding the default 30 s. Current focused comparison tail is diagnostic only.",
       "historicalFixtures": {
         "accepted": 1,
         "total": 4,
@@ -21749,6 +21784,13 @@
         "elapsedSeconds": 75.783,
         "peakJobCommitBytes": 626356224,
         "record": "release/reload-grid-browser-review.json"
+      },
+      "warpBudget": {
+        "scope": "Opt-in external WARP diagnostic/retry budget; no frozen callback or explicit operation timeout edited.",
+        "contextDefaultMs": 120000,
+        "outerGuardSeconds": 7200,
+        "evidence": "target/course-windows-20261018/94c-sheets-focused-v3/report.json",
+        "meaning": "The 58.3313 s software pick explains the default-30 s failure; it is not a performance target or full canonical acceptance."
       }
     },
     "maintainedOptimizedBuild": {
@@ -21979,12 +22021,12 @@
         {
           "id": "joined-production-controls",
           "requirement": "Actualproduction joined/headed/CAD width/AA/clipping/visibility controls.",
-          "next": "Review exactnamedcontrols covered by these and17callbackassertions. Select only truly missingexistingwitness mode; optional joined20/selected24 profiles are capabilities, not mandatory44jobs."
+          "next": "The two CAD family states and three representative joined jobs are accepted in ink-family-controls-native-review.json. Do not repeat those 14 pairs. Reconcile only unsupported width/AA/clipping and actual browser requirements with source/proof before defining further work."
         },
         {
           "id": "cross-family-production-control-proof",
           "requirement": "Materials/lighting,markers/normals,finite/depth,ambient,transparency/Xray andcloud/textstreamcontrols are grouped in existingrows but no exactremainingnativeCartesianmatrix is declared.",
-          "next": "Reconcile actualsource/pair/assertions before inventing additionalnativefixtures. No newcontrols or allfamilyproduct."
+          "next": "Retain accepted native14 ink controls and all prior scoped pairs. Existing source-faces, mesh-marker and quality callbacks still cover named controls; unsupported material/lighting/finite/transparent tuples need precise proof review, not a new Cartesian job queue."
         },
         {
           "id": "legible-isolines",
@@ -22002,18 +22044,45 @@
         "evidence": "target/course-windows-20261018/canonical-94c-phase-native-v1-browser.log",
         "diagnosticLimit": "Canonical catch captures the original page after the failing child context closes. Its image does not show the failing child-page click; focused child-state capture is next.",
         "phaseReuse": "Successful native800/frame and unchanged WASM/web evidence remains valid; no rebuild is required for this browser diagnosis."
-      }
+      },
+      "acceptedNativeInkControls": {
+        "record": "release/ink-family-controls-native-review.json",
+        "pairs": 14,
+        "jobs": 5,
+        "elapsedSeconds": 201.558,
+        "peakJobCommitBytes": 963235840,
+        "uniqueFramesReviewed": 14,
+        "decodedImages": 28,
+        "remaining": "Unsupported width/AA/clipping/material/production-picking and browser contracts stay open; optional full Cartesian profiles are not required."
+      },
+      "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
+      "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs"
     },
-    "docsCurrent": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
+    "docsCurrent": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
     "readerCompilerProof": {
-      "status": "Prepared, not executed",
+      "status": "Compiler-only lane:9/101 endpoints,18/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
       "excludedEndpoints": 10,
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
-      "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites."
+      "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
+      "successfulEndpoints": 9,
+      "remainingEndpoints": 92,
+      "successfulPhases": 18,
+      "record": "docs/journey/release/reader-compilation-review.json"
+    },
+    "lateChapterTeaching": {
+      "status": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+      "restoration": "release/late-chapter-teaching-restoration.json",
+      "visualReview": "release/late-chapter-visible-review.json"
+    },
+    "browserInputCorrections": {
+      "approved": true,
+      "applied": true,
+      "record": "release/warp-browser-wait-review.json",
+      "fullCanonicalAcceptance": "pending"
     }
   }
 }

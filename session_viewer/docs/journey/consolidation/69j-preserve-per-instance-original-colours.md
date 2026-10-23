@@ -62,6 +62,20 @@
 </svg>
 </div>
 
+Draw independent definition owners and reuse a CAD preparation only when its source shape and rigid frame permit it.
+
+## Ownership and data flow
+
+Per-instance colours and integer owners remain independent even when face buffers are shared. Batch draw records carry bounded member identities. Rigid-frame extraction and a packed original shape key determine reusable sampled CAD values; replay transforms those values into the new frame. Source validity, key size and document-preparation scope limit reuse, and actual colour/pick witnesses compare replay with the original walk. This cache is derived work, not a new editable source definition.
+
+## The maintained implementation
+
+app/scene_instances.rs owns definition batches; engine/gpu/instanced.rs updates only touched slot ranges. app/walk/brep_shapes.rs owns maintained geometric walk recording/replay and app/walk/brep.rs uses it. A repeated shape cache and an explicit source instance are different sharing mechanisms with distinct original identities.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/scene_instances.rs](../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs).
+
 ## <a id="checkpoint-69j-preserve-per-instance-original-colours"></a>1. Preserve per-instance colours
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

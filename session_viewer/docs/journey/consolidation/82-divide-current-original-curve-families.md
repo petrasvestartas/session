@@ -59,6 +59,20 @@
 </svg>
 </div>
 
+Divide source geometry with current original cutters and insert sibling pieces through one history boundary.
+
+## Ownership and data flow
+
+Split owns target plus a toggled set of eligible original cutters. Convert each cutter through target-inverse × cutter-placement, reject singular/stale inputs and prepare every result before adopting siblings beside the original parent. Curve pieces inherit appropriate source properties and fresh identities; face splitting preserves a joined solid when that is the selected operation. Temporary highlights and cutter confirmation are presentation only; cancellation does not consume a history entry.
+
+## The maintained implementation
+
+app/splitting.rs transforms original cutters into target coordinates and restricts supported source families/selected BRep faces. app/command/verbs/split.rs and command/tool/cut.rs own maintained collection and confirmation; app/scene.rs owns the final document transaction.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../src/app/walk/frames.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-82-divide-current-original-curve-families"></a>1. Divide curves and joined faces
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

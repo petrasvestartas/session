@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Keep original coordinates precise by converting units and subtracting one shared f64 origin before GPU packing.
+
+## Ownership and data flow
+
+Camera target/distance are in metres while source geometry retains its declared units. Keep original placement translation in f64, derive anchor-relative GPU records and use the same origin for lines, highlights, controls, clouds, sheets, text and temporary overlays. Apply local source placement before discarding precision, and build the construction grid from its actual world frame. A rebase is a render-coordinate change, not a source edit or command that changes the world plane.
+
+## The maintained implementation
+
+camera.rs Unit converts scene units to metres; origin/view_proj_anchored expose actual scene-relative projection. engine/gpu/objects.rs retains f64 translations and Rebase state, with throttled anchor movement; frame.rs carries line.anchor. Original sources and document history remain world-coordinate owners.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [camera.rs](../../../src/camera.rs), [state.rs](../../../src/state.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../src/app/cplane.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzy-prepare-unit-aware-anchored-camera-space"></a>1. Prepare unit-aware anchored camera space
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

@@ -4,19 +4,22 @@
 
 ## Current completion stages - 2026-10-23
 
+- [x] Applied the three approved browser input corrections: visible command-field click and two physical Escape cancellations. All assertions retained; focused candidates pass at DPR 1/2. Full canonical replay remains pending.
+
 - [x] Authored route: 22/22 chapters, 111 reader lessons and 1,361 preserved checkpoints; all 22 authoring tests and structure checks pass.
 - [x] Historical native proof: 1,059/1,059 tests pass at a45. [Source and reuse boundary](release/native-final-source-review.json).
 - [x] Current hierarchy ownership fix: original editing targets and complete display membership are separate; focused native feature tests pass 2/2.
-- [ ] Current97d4a9ff final native acceptance: hierarchy changes remain and TextPlane4x now uses production pixel-center interpolation. Matrix native8/8 and CAD baseline5 now pass; fresh integrated final native verification remains pending.
+- [x] Final native integration passes at current97d: **1,060/1,060**, zero failures or ignored tests; 1385.144 s, peak 1512873984 B. [Source-bound review](release/native-97d-integration-review.json). Browser and release acceptance remain separate.
 - [x] Current97d optimized WASM/browser bundle passes:182.487s,1,374,347,264B. Reuse this source-matching build; final canonical browser acceptance remains separate.
 - [x] Five performance categories measured on the same small demo; ordered input, idle and disposal checks pass at 63acaf79. [Measurements and limits](release/runtime-performance-review.json).
 - [x] All 80 Plane native RGBA pairs pass across plain, placed, generated covered, generated print and retained-original covered matrices. These results make no owner-pick or browser claim.
-- [x] Combined docs v7 built-source review passes:15 decoded images,12 inspected screenshots,111 links,Gemini SVG,evidence navigation and desktop/phone layout. Subsequent v8 wording build passes111.033s. These proofs retain their built-source scope.
+- [x] Native ink controls pass 14/14 exact production/course pairs in 201.558 s / 963,235,840 B: two mixed-CAD family states and three representative joined-stroke cases. All 14 unique frames inspected, 28 PNGs decoded. [Record and limits](release/ink-family-controls-native-review.json). Width/AA/clipping, browser and production owner-picking remain open.
+- [x] Built-source docs review: v7 retains 15 decoded lesson images and 12 inspected views. The v9 docs-only build passes 118.91 s / 1,944,616,960 B; changed contents/roadmap v2 passes 111 links and three original-resolution views. Measured CSS widths are 853/260 at 1280/390 captured pixels. Current Gemini edits and combined-book handoff remain deferred.
 - [x] Portable Windows maintained build and optimized bundle pass; Linux/macOS Bash dispatch is retained.
 - [x] Both production-aligned harness corrections are approved and applied: additive selection retains existing owners, and selected CAD with outlines off matches production yellow without a black core.
 - [x] Focused approved multi-selection WARP check passes at DPR1/2 and both projections; 94.869 s, peak 758,722,560 B.
 - [x] Four selection-preserving shortcut corrections are approved/applied. Actual layers/labels bodies and shared delete helper pass focused DPR1/2 checks:143.238s,780,898,304B.
-- [ ] Complete94c and final enclosing callbacks; focused affected-module success does not replace the enclosing callback or its recursive prerequisite assertions.
+- [ ] Complete 94c and final enclosing callbacks. Focused Sheets v3 passes all original assertions in 113.034 s; first metadata selection takes 58.3313 s on WARP, explaining the 30 s default failure. The current comparison-tail diagnostic is not canonical acceptance. An opt-in external 120 s context default / 7200 s outer guard leaves explicit operation timeouts and frozen files unchanged.
 - [x] Current 96y native phase passes 831/831 with zero failures or ignored tests (74.61 s test execution). The prior 830-test pass remains historical.
 - [x] Current96y WASM, optimized web and inspected native WARP frame pass alongside831/831 native tests.
 - [x] The live-count correction has explicit approval and is applied: expected2/1/2/2 and all original-owner behavior assertions remain; Undo/Redo memory accounting is unchanged. [Source review](release/feature-owner-count-contract-review.json).
@@ -32,10 +35,19 @@
 - [ ] Chapter19 still requires96h inventory callback despite96y complete browser PASS.
 - [ ] Chapter visual queue: eleven pending canonical entry callbacks across chapters11 and13-20;96y has passed. With distinct94c/96v fixture entries, thirteen historical callbacks remain; recursive prerequisites run through their owning callback once.
 - [ ] Complete the17remaining finite feature checklists, including CAD,joined/vector,owner-pick and display/browser requirements. Matrix is 1/18 complete; 17 partial.
-- [ ] Rebuild and visibly review current docs after these progress edits and the new Gemini chapter01 source. Defer current combined-book acceptance and handoff; preserve v7/v8 built-source proof.
+- [x] Rebuilt and reviewed restored chapters 11–22: all 59 introductions, 111 contents links and 20 original-resolution views, including the Matrix figure on desktop and phone. [Visible review](release/late-chapter-visible-review.json).
+- [ ] Complete Gemini's chapters 1–10 handoff and review the final combined book after its active edits finish.
 - [ ] Final release gates: 0/5 closed.
 
-- [ ] Current94c full browser callback:sheet metadata selection timed out at `sheets.cjs:33` after2171.988s,peak1,682,427,904B. Earlier shortcut/hierarchy/cloud prerequisites progressed; focused child-page diagnosis is next. Successful native800/frame and unaffectedWASM/web evidence is retained.
+- [ ] Full canonical 94c replay is prepared. The measured WARP wait and later input failures are diagnosed; all three input corrections are approved/applied with every assertion retained. Preserve the earlier failure and reuse matching native800/frame/WASM/web proof.
+
+Native ink figures: [CAD without lines](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-lines.png), [CAD without edges](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-edges.png), [open joined stroke](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-open-dpr2-msaa4.png), [closed joined stroke](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-closed-dpr2-msaa4.png), [placed selected stroke](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-placed-selected-dpr2-msaa4.png).
+
+The [WARP wait record](release/warp-browser-wait-review.json) preserves the measured 58.331-second pick, unchanged assertions and the opt-in launcher setting. The helper itself is tracked in `session_tests/scripts/course/warp-browser-timeout.cjs`.
+
+- [x] Restored authored introductions in 59 lessons (chapters 11–22), preserving formatted code and diagrams. Lesson 22.6 includes 15 restored figures and five accepted native-control figures. [Restoration proof](release/late-chapter-teaching-restoration.json). Docs build and scoped browser review pass. [Visible review](release/late-chapter-visible-review.json).
+
+- [x] Compiler-only lane: 9/101 endpoints and 18/202 phases pass; 92 endpoints remain. Native tests/examples are typechecked but not executed. [Shared compiler proof](release/reader-compilation-review.json).
 
 ### Active validation queue
 
@@ -47,7 +59,7 @@ There are **18 distinct source-specific callback entries**:13historical entries,
 
 All1,361checkpoint reconstructions remain preserved and checked. The old ignored plan's purported exact user quote, "Compile every runnable checkpoint from its canonical snippets" is absent from the saved plan. Its unconditional1,361fresh four-phase/1,173full-native-suite queue was agent-generated and is inactive; historical records remain preserved. Required source-specific lesson/feature checks still need truthful matching proof. The previous 24 to 48 hour estimate is withdrawn pending the finite scope audit.
 
-The remaining native scope reviews are joined production controls, cross-family production-control proof, and legible NURBS isolines. ExistingCAD5,Plane80,Matrix8,Sheet32 and other accepted witnesses are retained. Input imports alone do not prove parent assertions executed: mesh-markers calls selected exported helpers, so source-faces default entry remains required. First run the named existing callback assertions and audit actual supported controls; do not turn optionalCAD60/joined44 runner capacities into mandatory Cartesian matrices. Camera's original three requirements have nativePlane/reload/frame proof, but its newer owner-pick/browser wording needs precise production-contract reconciliation before that feature is closed.
+The remaining native scope reviews are joined production controls, cross-family production-control proof, and legible NURBS isolines. Existing CAD 5, native ink controls 14, Plane 80, Matrix 8, Sheet 32 and other accepted witnesses are retained. The two CAD family-toggle states and three representative joined cases are finished; do not repeat them as part of an optional Cartesian profile. Input imports alone do not prove parent assertions executed: mesh-markers calls selected exported helpers, so source-faces default entry remains required. First run the named existing callback assertions and audit actual supported controls; do not turn optionalCAD60/joined44 runner capacities into mandatory Cartesian matrices. Camera's original three requirements have nativePlane/reload/frame proof, but its newer owner-pick/browser wording needs precise production-contract reconciliation before that feature is closed.
 
 94c's two changed native diagnostic lines are excluded from its WASM dependency graph. Reuse the original57.334sWASM and152.536soptimized-web phases with their original bindings; current94c native800/800 passes (188.26s guarded,87.26s tests), and its fresh WARP frame is inspected (SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8). Complete canonical94c browser acceptance remains pending. Do not replace a stale global signature or rerun an unchanged bundle merely for bookkeeping.
 

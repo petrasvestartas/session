@@ -1,0 +1,170 @@
+{
+  "recordedUtc": "2026-10-23T19:11:25.995Z",
+  "status": "PASS:unchanged focused sheet assertions with explicit software-GPU wait configuration; full callback pending",
+  "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
+  "sourceFingerprint": "3f02a2d827ccc8944516c54f51ffec80739b95fa626a975906d664c43a0f793e",
+  "fixture": {
+    "segments": 25032,
+    "pbSha256": "67c8fd944846e83310e84db85f32dce2bf76e18c39069e99931ea0f20728407b",
+    "pbBytes": 1502023,
+    "metadataSha256": "1b2867992d961bd63dd1742e55bf078485279981797d31810256198cf35d3eb8",
+    "metadataBytes": 174
+  },
+  "canonicalSources": {
+    "sheets": {
+      "path": "docs/journey/checks/browser/sheets.cjs",
+      "sha256": "d2c1fe32f287fe3c998ae853db76d639321aef05010d8dfe9c9639667fe13d1a"
+    },
+    "capture": {
+      "path": "docs/capture_journey.cjs",
+      "sha256": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9"
+    },
+    "unchanged": true
+  },
+  "observation": {
+    "trustedClickPerfMs": 18517.19999998808,
+    "firstConfirmedMetadataPerfMs": 76848.5,
+    "firstPickCompletionMs": 58331.3,
+    "failedImplicitTimeoutMs": 30000,
+    "successfulDiagnosticTimeoutMs": 120000,
+    "meaning": "The GPU pick remained active when the30swaitexpired; same original source and assertions completed at58.3313s on Windows WARP. This is not a renderer repair."
+  },
+  "checks": [
+    {
+      "name": "original30sdefault",
+      "resources": "target/course-windows-20261018/94c-sheets-focused-v2.resources.json",
+      "sha256": "33a313b684b7df634810f88809fc690868b6dd851a4f31f80252a850c2bb75d4",
+      "exitCode": 1,
+      "elapsedSeconds": 74.927
+    },
+    {
+      "name": "explicit120sdiagnostic",
+      "resources": "target/course-windows-20261018/94c-sheets-focused-v3.resources.json",
+      "sha256": "dfd6f203d454c557f600c8a94e3ae5b2462654bfd4046a14d1bd5a3d2fc4b81e",
+      "exitCode": 0,
+      "elapsedSeconds": 113.034,
+      "peakJobCommitBytes": 738426880,
+      "allOriginalSheetAssertions": true
+    }
+  ],
+  "configuration": {
+    "preload": "session_tests/scripts/course/warp-browser-timeout.cjs",
+    "sha256": "f522220cc1409c035020eb9f0a977b68beb254b64ce76d14b614efd88c19faf4",
+    "activation": "Node --require plus VIEWER_WARP_ACTION_TIMEOUT_MS=120000; absent variable leaves behavior unchanged.",
+    "implicitContextTimeoutMs": 120000,
+    "explicitOperationTimeouts": "Unchanged and authoritative.",
+    "navigation": "Context default also supplies the navigation fallback when no explicit navigation/default timeout is set.",
+    "outerBrowserBudgetSeconds": 7200,
+    "memoryMiB": 6144,
+    "processors": 2,
+    "concurrency": 1,
+    "previousSha256": "278a7a1aeb69ed91362b96aa0be6ee3a62c64c67dc856c06c8c86ebd38eb2859",
+    "hashUpdate": "The tracked helper now logs configuration with console.log instead of console.error. Replacing only that token reconstructs the previous recorded SHA exactly; timeout setup and activation are unchanged. Original focused evidence retains its recorded helper/source scope."
+  },
+  "scope": "Focused WARP wait diagnosis and measurement-input candidates only. Full 94c remains unaccepted. Candidate diagnostic passes do not repair the failed tail or replace its enclosing canonical callback. Canonical checker/fixture/assertion files retain their recorded bytes; the tracked helper console correction changes reporting only. No hardware latency or final release acceptance.",
+  "validatedUtc": "2026-10-23T19:47:38.952728+00:00",
+  "focusedSheetEvidence": {
+    "status": "passed-focused-only",
+    "report": "target/course-windows-20261018/94c-sheets-focused-v3/report.json",
+    "reportSha256": "b9d2753d26ec4c1638423adabc854f1daa6bcfa304b836049e9b13749739168a",
+    "resources": "target/course-windows-20261018/94c-sheets-focused-v3.resources.json",
+    "resourcesSha256": "dfd6f203d454c557f600c8a94e3ae5b2462654bfd4046a14d1bd5a3d2fc4b81e",
+    "elapsedSeconds": 113.034,
+    "firstMetadataPickMs": 58331.3,
+    "canonicalAcceptance": false,
+    "scope": "All original Sheets body assertions and original fixture pass with a 120 s context default. The earlier nested-placement prerequisite chain is skipped; this is not full 94c acceptance."
+  },
+  "tailDiagnostic": {
+    "status": "focused-tail-failed",
+    "report": "target/course-windows-20261018/94c-tail-focused-v1/report.json",
+    "reportSha256": "4834d2e5a303c3ebd9980296a6471ff40d5560f1a3ff9fc90e3cc8ea49754095",
+    "resources": "target/course-windows-20261018/94c-tail-focused-v1.resources.json",
+    "resourcesSha256": "f2729c1df5394950128c420968ef1be6aaaf2bc282e41754a7142881e6e07d3f",
+    "exitCode": 1,
+    "elapsedSeconds": 436.574,
+    "canonicalAcceptance": false,
+    "failure": "After passing Sheets, the focused tail failed in measure.cjs:18: typed Escape was rejected by the unchanged command-history assertion while the actual history retained @3,4 / Tool cancelled. Preserved as failed diagnostic evidence."
+  },
+  "measurementCandidates": [
+    {
+      "status": "passed-focused-candidate-only",
+      "density": 1,
+      "report": "target/course-windows-20261018/94c-completed-measurement-candidates-v1/report.json",
+      "reportSha256": "e910268060b7a8e1e81d8351b10907ffc3652f239806406a90aa968e1b2b5b40",
+      "resources": "target/course-windows-20261018/94c-completed-measurement-candidates-v1.resources.json",
+      "resourcesSha256": "fb57aad3f66b175077891c2fa7a2d058d33a873fe76c543cd4ba401a7afcceff",
+      "elapsedSeconds": 54.186,
+      "peakJobCommitBytes": 705867776,
+      "completedBodies": [
+        "measure",
+        "current-commands"
+      ],
+      "originalCallbackSha256": {
+        "docs/journey/checks/browser/measure.cjs": "1cd6a561e587bc7b88b984f5e582cc8224d05f420e665c5c249106d968e88ffc",
+        "docs/journey/checks/browser/current-commands.cjs": "d46a67b5020d34b1deb460e1a1bf7aff426ef67dfb2241e36365a39f082fc7a5"
+      },
+      "canonicalAcceptance": false,
+      "scope": "Focused measure/current-commands bodies. All original assertions retained. Candidate changes only the final completed-measurement Escape input at each selected body. NOT canonical acceptance.",
+      "setup": "The omitted Sheets prerequisite leaves Layers Off; this inherited UI state was reconstructed. Candidate input changes and skipped prerequisites are diagnostic only; no canonical completion is claimed."
+    },
+    {
+      "status": "passed-focused-candidate-only",
+      "density": 2,
+      "report": "target/course-windows-20261018/94c-completed-measurement-candidates-dpr2-v1/report.json",
+      "reportSha256": "0e9013f8a64b1d186377f380bba8315d56906915f6d678c69e066b2de67118aa",
+      "resources": "target/course-windows-20261018/94c-completed-measurement-candidates-dpr2-v1.resources.json",
+      "resourcesSha256": "a8727e067aa38e2eb470575436391aca219f9eff1c06e08b0969e07ccf1ec2ed",
+      "elapsedSeconds": 62.054,
+      "peakJobCommitBytes": 760950784,
+      "completedBodies": [
+        "measure",
+        "current-commands"
+      ],
+      "originalCallbackSha256": {
+        "docs/journey/checks/browser/measure.cjs": "1cd6a561e587bc7b88b984f5e582cc8224d05f420e665c5c249106d968e88ffc",
+        "docs/journey/checks/browser/current-commands.cjs": "d46a67b5020d34b1deb460e1a1bf7aff426ef67dfb2241e36365a39f082fc7a5"
+      },
+      "canonicalAcceptance": false,
+      "scope": "Focused measure/current-commands bodies. All original assertions retained. Candidate changes only the final completed-measurement Escape input at each selected body. NOT canonical acceptance.",
+      "setup": "The omitted Sheets prerequisite leaves Layers Off; this inherited UI state was reconstructed. Candidate input changes and skipped prerequisites are diagnostic only; no canonical completion is claimed."
+    }
+  ],
+  "hashValidation": {
+    "status": "passed",
+    "canonicalSources": 2,
+    "recordedResourceFiles": 2,
+    "fixtureFiles": 2,
+    "focusedAndCandidateReportsAndResources": 8,
+    "trackedHelperShaCorrected": true,
+    "problems": []
+  },
+  "approvedInputCorrections": {
+    "approved": true,
+    "applied": true,
+    "recordedUtc": "2026-10-23T20:07:02.388Z",
+    "userAnswer": "Apply all three input corrections",
+    "files": [
+      {
+        "path": "docs/capture_journey.cjs",
+        "priorSha256": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9",
+        "appliedSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733"
+      },
+      {
+        "path": "docs/journey/checks/browser/measure.cjs",
+        "priorSha256": "1cd6a561e587bc7b88b984f5e582cc8224d05f420e665c5c249106d968e88ffc",
+        "appliedSha256": "e5fb055a67a9680ad5f61ade91a6c3bb5f15827ee5f9baeda6c97753e5fcdbb2"
+      },
+      {
+        "path": "docs/journey/checks/browser/current-commands.cjs",
+        "priorSha256": "d46a67b5020d34b1deb460e1a1bf7aff426ef67dfb2241e36365a39f082fc7a5",
+        "appliedSha256": "6d93869562f32680ed66210016ee883513d2f3086da1a3eb261a970f356e1b48"
+      }
+    ],
+    "changes": [
+      "Click the visible lower edge of the command field to avoid the overlapping Layers panel.",
+      "Use physical Escape for two completed-measurement cancellations."
+    ],
+    "preserved": "Every original assertion and all active-tool typed Escape checks remain unchanged.",
+    "evidenceScope": "Both focused bodies passed at DPR1 and DPR2 before application. Complete canonical94c/browser acceptance remains pending. Native/WASM/web runtime inputs are unchanged."
+  }
+}

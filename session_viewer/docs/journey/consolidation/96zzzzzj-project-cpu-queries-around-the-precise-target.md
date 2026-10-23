@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Make rectangles, lasso, handles and asynchronous picks agree with the current anchored frame.
+
+## Ownership and data flow
+
+CPU queries subtract the precise target/origin before projecting source world coordinates. Label polygons, rectangle/lasso selection and handle math share that convention. An asynchronous pick records the origin that produced its pixels; a rebase invalidates that semantic result and retries with the latest cursor rather than decoding an old address in a new frame. Derived caches retain source/view/origin witnesses so refresh updates every dependent input coherently.
+
+## The maintained implementation
+
+camera.rs ray and projection methods operate in actual scene units; state/box_select.rs and app/gesture own current query input. objects.rs Rebase reports moved/pending origin state and engine/gpu/pick.rs owns active readback resources. Course origin-stamped ticket types explicitly stage the invalidation contract; production names and completion guards remain authoritative.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [camera.rs](../../../src/camera.rs), [state.rs](../../../src/state.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../src/app/cplane.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzj-project-cpu-queries-around-the-precise-target"></a>1. Project CPU queries around the precise target
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

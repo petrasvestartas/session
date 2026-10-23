@@ -61,6 +61,20 @@
 </svg>
 </div>
 
+Connect the derived tile index to visibility while preserving the maintained ink geometry and its original identities.
+
+## Ownership and data flow
+
+The tile index answers finite-surface visibility, not source ownership or stroke shape. Camera/model and resource witnesses bind current projected geometry before either colour or first integer pick. Surface writers and sampled ink use separate depth ownership; opaque, ink and cloud composition remain explicit. Colour/pick paths must share actual source shape, crop coordinates, clipping and selected-owner rules, and release bindings with their buffers. The retained early centre-line predicate and local stroke/chain AA fragments are staged instructional code.
+
+## The maintained implementation
+
+src/shaders/ink_visibility.wgsl owns the maintained finite predicate, while ribbon.wgsl, vector.wgsl and arrow.wgsl own production shaft/join/head geometry and filtering. engine/gpu/segments.rs and vectors.rs pack actual neighbour/vector rows; engine/gpu/render.rs orders tiles, points, faces, ambient/outline hooks, ink, pending picks and widget/panels. The old finite-ink snippets are being reconciled against those exact algorithms; this consolidation makes no current shape, AA or pixel-parity claim.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-86s-test-visibility-at-the-original-center-line"></a>1. Test visibility at the center line
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

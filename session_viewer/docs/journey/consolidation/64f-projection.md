@@ -60,6 +60,20 @@
 </svg>
 </div>
 
+Choose original source runs for the current projection and render the maintained integer-centred point-disc and EDL path.
+
+## Ownership and data flow
+
+LodWalk converts placed spacing to projected pixels and refines while it exceeds the cutoff; selected parent/child runs retain source addresses and finest spacing propagates upward. With no octree, cutoff ≤0, or fewer than 2,000,000 resident points, select draws every resident point. Record building packs 40 exact words into each 160-byte SplatRecord, shares the 4096-record budget and maps each chosen run to resident GPU columns. The point pass caches nearest depth/colour until its frame facts change, then resolves shared colour/depth and integer identities. Source uploads stay shared across independently placed rows.
+
+## The maintained implementation
+
+engine/gpu/lod.rs owns LodWalk, projected_spacing and radius_factor; engine/gpu/splat.rs owns SplatRecord and cached targets; src/shaders/splat.wgsl and splat_resolve.wgsl are the actual production kernels. Pixel centres are integer converted projected coordinates, radius is clamp(k × frame-height / clip.w, minimum, 8), and fragments use integer pixel distance against radius squared. Four-neighbour EDL uses log_depth(d) = -log2(max(d, 1e-7)), sums positive neighbour differences and multiplies colour by max(exp(-sum × 75 × strength), 0.25). Current course and production share these kernels. The historical 1681-point fixture bypasses LOD below 2M. Subsequent production extraction passed eight matched DPR/sample/EDL comparisons. Eighteen actual production/course LOD comparisons used the original 2,000,064-point source, including mirrored and nonuniform placements. Twelve focused cloud/Line controls pass after the shared visibility correction. These bounded endpoint results do not establish current complete display-group or browser acceptance; earlier instructional checkpoints retain their own source and validation contracts.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../src/app/cloud_query.rs).
+
 ## <a id="checkpoint-64f-projection"></a>1. Measure point spacing in the current projection
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

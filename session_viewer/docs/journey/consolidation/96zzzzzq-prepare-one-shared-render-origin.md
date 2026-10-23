@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Adopt one render origin across the actual browser frame without introducing independent callback state.
+
+## Ownership and data flow
+
+One runtime owner coordinates origin refresh, frame matrices and the resulting GPU record updates. Owned wakes request a frame when pending asynchronous work finishes; a stale callback must not reinstall a closed document or recompute only half the derived state. Rendering and CPU queries borrow the same current camera/origin witness while source history remains independent. This endpoint connects the staged origin to the browser before the following depth-convention migration.
+
+## The maintained implementation
+
+state.rs owns the maintained Camera, Scene and Gpu; lib.rs owns winit App/event delivery, while objects.rs retains actual anchor state and State supplies frame inputs. The learner browser.rs listener/runtime structure remains staged rather than an alternative final application owner.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [camera.rs](../../../src/camera.rs), [state.rs](../../../src/state.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../src/app/cplane.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzq-prepare-one-shared-render-origin"></a>1. Prepare one shared render origin
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

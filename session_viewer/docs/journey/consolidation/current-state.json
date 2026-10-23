@@ -35,13 +35,13 @@
     "printedFills": "HISTORICAL PASS: printed-fill tests passed within the a45 learner1059/1059 suite. Generated-print and retained-original Plane matrices also have bounded native RGBA evidence. Current full native, owner-pick and browser/display-family acceptance remain separate.",
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
-    "nativeFullCurrent": "HISTORICAL1059/1059 PASS at a45; source/resource bindings unchanged. Current97d includes later native hierarchy and TextPlane4x changes; full final native acceptance pending.",
-    "nativeSourceAfterDisposal": "Historicala45 full1059 and96y831 retain their source bindings. Current97d includes hierarchy and TextPlane4x changes; one final integrated native regression remains pending. Matrix8/8 current native pairs are complete.",
+    "nativeFullCurrent": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains.",
+    "nativeSourceAfterDisposal": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains. Historical a45/1059 and96y/831 proofs retain their original source bindings.",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
-    "docsCurrent": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
+    "docsCurrent": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
     "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
@@ -54,10 +54,10 @@
     "windowsTooling": "PASS: guarded argument transport,root completion/descendant cleanup,docs lock,and memory override regressions. Two CPUs/one heavy job;2GiB default,4GiB builds,6GiB software-browser override. Windows has no separate zero-swap quota.",
     "currentCheckpointInventory": "Checkpoint acceptance requires matching source, fixtures and checker. Current97d changes TextPlane runtime inputs; neither c54 build nor earlier1059 native/browser results are rebound.",
     "historical94cVerification": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
-    "publicProgress": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
+    "publicProgress": "PASS at v9 built source: changed contents/roadmap v2, 111 links and three individually inspected original-resolution views. Actual CSS viewports 853/260 at 1280/390 captured pixels; later progress edits retain a separate publication obligation.",
     "cadSelectionDiagnostic": "PASS: one exact canonical wire archivec5ae22c6/embedded PB816e9f38 selected native pair,0 RGBA differences,0 black/372 yellow pixels; source/archive/course Object-pick checks pass. The production-aligned outlines-off yellow/zero-black browser assertion is user-approved and applied. Full CAD browser acceptance remains pending.",
-    "docsAfterGemini": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
-    "historical94cBrowser": "Retained full-run failure:1547.193s/1133228032B at layers.cjs33, Escape cleared the selected Hide target. User approved four corrections in layers/delete-selection/labels; all affected bodies now pass focused checks. Complete94c callback retest remains pending.",
+    "docsAfterGemini": "Gemini is still editing chapters1–10. Preserve its ownership and original built-source proofs. Current59 restored late lessons have scoped publication acceptance; no current combined-book or Gemini handoff acceptance.",
+    "historical94cBrowser": "Full 94c remains unaccepted: last run reached sheets.cjs:33 and failed after 2171.988 s. Focused Sheets v3 then passed all original assertions in 113.034 s; first metadata selection took 58.3313 s on WARP, exceeding the default 30 s. Current focused comparison tail is diagnostic only.",
     "maintainedWindowsHook": "PASS: portableNode Windows docs prehook and maintained optimized bundle; maintained-grid-web-tools.resources.json exit0. Cargo lock unchanged; matching wasm-bindgen0.2.128 fetched. Linux/macOS dispatch retains Bash but not executed here.",
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
@@ -82,7 +82,12 @@
     "reloadGrid": "PASS 4/4 maintained/course by route/live reload-grid browser cases at current97d: 75.783s,626356224B. Conditional Ctrl+A helper is approved and applied; supported view:top and valid near-cap origin fixtures corrected. All camera, deferred-load, grid-command, collinear-error and far-coordinate assertions retained. Four saved images individually inspected; no cross-runtime pixel-parity or visible far-grid claim. Public release/reload-grid-browser-review.json.",
     "proportionalValidation": "Saved plan section4 applied: focused affected behavior first, fullsuite only integration boundaries/finalfreeze, prose-only docs checks, exact relevant-input reuse. Old agent-generated all-history mandates and false exactquote are inactive; original records remain preserved.",
     "cadBaselineNative": "PASS 5/5 actual production/course full-RGBA native CAD baseline pairs at97d: wire,mixed,bore,hole-face,surface;31.945s,750256128B. DPR1,samples1,unselected,all families; mirrored/nonuniform placements and original source/archive/course Object-pick checks retained. Five figures inspected. Named display controls and browser acceptance remain pending; the supported60-case Cartesian matrix is not an automatic requirement. Public release/cad-baseline-native-review.json.",
-    "remainingFeatureAudit": "Inputrequire closure is not executionclosure. mesh-markers39-file dependencygraph calls exportedfeaturehelpers;96zzzzzzm source-faces DEFAULTentry executes fullcontact/shared-view/surface-controls/isometric networkcontinuity prerequisites. Additionalqualityentry checks MSAA/lifecycle. No furtherfeaturecompleteclaim; Camera latestownerpick scope still needs exactproductioncontract."
+    "remainingFeatureAudit": "Inputrequire closure is not executionclosure. mesh-markers39-file dependencygraph calls exportedfeaturehelpers;96zzzzzzm source-faces DEFAULTentry executes fullcontact/shared-view/surface-controls/isometric networkcontinuity prerequisites. Additionalqualityentry checks MSAA/lifecycle. No furtherfeaturecompleteclaim; Camera latestownerpick scope still needs exactproductioncontract.",
+    "nativeInkControls": "PASS: Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim. Public release/ink-family-controls-native-review.json.",
+    "sheetsFocused": "PASS focused Sheets v3: all original assertions and fixtures, including source-axis metadata and held Close response, pass in 113.034 s. First metadata pick took 58.3313 s on WARP; this explains the 30 s context-default failure. Presheet nested-placement prerequisites were deliberately omitted, so this is not full 94c acceptance. Frozen files unchanged.",
+    "warpContextBudget": "Opt-in external WARP context default 120 s and outer guard 7200 s are being recorded for bounded retries; all explicit operation timeouts and frozen assertions remain unchanged. No canonical pass is inferred from a larger budget.",
+    "lateChapterTeaching": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+    "browserInputCorrections": "APPROVED/APPLIED:three input sites, all assertions retained; focused DPR1/2 candidate proof is separate from pending full canonical94c acceptance."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -93,14 +98,19 @@
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
   "currentDefects": [
-    "Current94c full callback reached drawing-sheet selection and timed out at sheets.cjs:33 after2171.988s. Earlier shortcut/hierarchy/cloud checks progressed successfully; exact child selection/metadata state needs focused capture. No build phase is invalidated.",
+    "Approved three-site browser input correction is applied: visible command-field lower-edge click plus physical Escape for two completed measurements. All assertions retained. Focused candidates passed at DPR1/2; complete canonical94c replay remains pending. Native/WASM/web build inputs remain unchanged.",
     "96y fixture callback passes;96h and96v callbacks remain pending. Chapter19 is not complete because its96h inventory entry remains open.",
     "All80 Plane native RGBA pairs pass within recorded scopes; owner-pick/browser/full display-family acceptance remains open.",
-    "Final integrated native suite, remaining historical/canonical callbacks and17 partial feature checklists remain pending. Current97d optimized web,Matrix finite acceptance,reload/grid4/4 and CAD baseline5 pass within their scopes. Current combined-book acceptance/handoff is deferred for new Gemini chapter01 and progress edits; v7/v8 proof retains its built-source scope.",
+    "Final native1060/1060 and scoped restored59-lesson docs/browser review pass at their recorded inputs. Remaining compiler phases, historical/canonical browser callbacks and17 partial features remain open. Gemini1–10 handoff/current combined-book acceptance is deferred.",
     "Matrix is1/18 complete;17 features remain partial and global release0/5. CAD baseline5 does not accept all named controls/browser checks; all80 Plane native pairs do not accept original owner-pick/browser/full controls."
   ],
-  "onlyHeavy": null,
-  "next": "Publish/review current root docs checkpoint; diagnose the94c sheet metadata selection using the unchanged fixture and child-page state. Continue the18source-specific callbacks and bounded101reader compiler lane; currentacceptedMatrix/Plane80/CAD5/reload4 scopes remain separate. Preserve ongoingGemini ownership.",
+  "onlyHeavy": {
+    "task": "Publish updated progress wording, then full canonical94c browser replay",
+    "status": "publication build next; no concurrent heavy jobs",
+    "memoryLimitMiB": 4096,
+    "processors": 2
+  },
+  "next": "Finish the current focused 94c tail before another long canonical replay. Preserve the unchanged frozen callbacks; use the recorded opt-in WARP context budget without changing explicit operation timeouts. Retain accepted native ink controls 14, CAD 5, Plane 80, Matrix and reload 4. Continue the named remaining callbacks and exact unsupported controls; defer combined-book handoff while Gemini edits.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -145,7 +155,7 @@
         "remaining": "Final integrated browser proof and final rerun after display-control integration; both original 2M GPU checks and eighteen production LOD pairs pass"
       },
       "joinedVectorSheets": {
-        "status": "Resident Sheet ingress32/32, headed Line4/4 and all80 Plane native RGBA pairs pass within their recorded scopes. Complete family controls, owner-pick and browser acceptance remain open."
+        "status": "Resident Sheet ingress 32, headed Line 4, Plane 80 and current native ink controls 14 pass within recorded scopes. Width/AA/clipping, production owner-picking and browser/family requirements remain open."
       },
       "featuresComplete": 1,
       "featuresTotal": 18,
@@ -176,7 +186,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Current97d optimized web,finite Matrix native/browser acceptance,reload/grid4/4 and CAD baseline5 pass within recorded scopes.17 partial features remain; final integrated native/canonical/reader-proof/current-docs release gates0/5.",
+      "status": "Current97d native1060/1060 and optimized web pass. Matrix finite feature, reload/grid4/4, CAD baseline5 and native ink controls14 pass within scope. Seventeen partial features, compiler proof, source-specific browser callbacks and final publication gates remain open.",
       "gatesDone": 0,
       "gatesTotal": 5
     }
@@ -214,21 +224,23 @@
   "coordination": {
     "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
     "integrator": "Chapters11–22, runtime, shared metadata, builds, validation and Git integration.",
-    "geminiLatestCommit": "72303aa4, including d03afa09 and253ec420: Gemini first-ten chapter ownership preserved. v7 built-source review and v8 wording build pass within their saved scopes; new chapter01 edits require rebuilding and visible review before current combined-book handoff.",
+    "geminiLatestCommit": "bc861507 reformats all111 lessons and changes docs presentation. That commit and first-ten chapter ownership are preserved. Root restored59 authored introductions additively in chapters11–22 without changing formatted checkpoint code. Current combined-book acceptance requires rebuilt visible review and Gemini handoff; prior v7/v9 reviews keep their original built-source scopes.",
     "activeAgents": {
-      "browser_startup_memory": "Reconciles source/progress bindings in production map,current state,roadmap and native source review; no heavy jobs.",
+      "browser_startup_memory": "Prepares remaining canonical callback inputs and maintained97/finalCAD build-reuse audits; no heavy jobs.",
       "plane_completion": "Completed bounded native Matrix,CAD baseline5 and reload/grid evidence/image reviews; updating four public progress files only. No heavy job ownership.",
-      "chapter_browser_queue": "Owns only current proportional validation queue and finite Matrix closure in four public progress files; no heavy jobs."
+      "chapter_browser_queue": "Audits chapters11-22 prose and prepares additive restoration of missing teaching material; no heavy jobs."
     }
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Latest checkpoint pushed with Gemini work preserved. Current proportional-queue/Matrix-closure metadata edits await next publication.",
+    "status": "Latest checkpoint pushed; subsequent native14/budget/progress metadata edits await publication.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "d9e90bb3",
-    "parentCommit": "8a274ab",
+    "sessionCommit": "3100a081",
+    "parentCommit": "fdf8ba4",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
-    "geminiHead": "45aa"
+    "geminiHead": "45aa",
+    "geminiAncestor": "d38f11f3",
+    "geminiStatus": "User confirmed Gemini is still editing chapters 1-10; preserve all concurrent changes and defer combined-book acceptance."
   },
   "recovery": {
     "completedAt": "2026-10-23T08:50:38.128521+00:00",
@@ -297,6 +309,35 @@
       ],
       "record": "release/reload-grid-browser-review.json",
       "status": "PASS complete4/4; no pending harness choice."
+    },
+    "completedMeasurementInput": {
+      "approved": true,
+      "applied": true,
+      "recordedUtc": "2026-10-23T20:07:02.388Z",
+      "userAnswer": "Apply all three input corrections",
+      "files": [
+        {
+          "path": "docs/capture_journey.cjs",
+          "priorSha256": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9",
+          "appliedSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733"
+        },
+        {
+          "path": "docs/journey/checks/browser/measure.cjs",
+          "priorSha256": "1cd6a561e587bc7b88b984f5e582cc8224d05f420e665c5c249106d968e88ffc",
+          "appliedSha256": "e5fb055a67a9680ad5f61ade91a6c3bb5f15827ee5f9baeda6c97753e5fcdbb2"
+        },
+        {
+          "path": "docs/journey/checks/browser/current-commands.cjs",
+          "priorSha256": "d46a67b5020d34b1deb460e1a1bf7aff426ef67dfb2241e36365a39f082fc7a5",
+          "appliedSha256": "6d93869562f32680ed66210016ee883513d2f3086da1a3eb261a970f356e1b48"
+        }
+      ],
+      "changes": [
+        "Click the visible lower edge of the command field to avoid the overlapping Layers panel.",
+        "Use physical Escape for two completed-measurement cancellations."
+      ],
+      "preserved": "Every original assertion and all active-tool typed Escape checks remain unchanged.",
+      "evidenceScope": "Both focused bodies passed at DPR1 and DPR2 before application. Complete canonical94c/browser acceptance remains pending. Native/WASM/web runtime inputs are unchanged."
     }
   },
   "validationQueue": {
@@ -378,7 +419,9 @@
     "pendingIntegrationActions": [
       {
         "id": "final-native-and-compiler-proof",
-        "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match."
+        "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match.",
+        "nativeStatus": "done1060/1060",
+        "nativeRecord": "release/native-97d-integration-review.json"
       },
       {
         "id": "final-canonical-browser",
@@ -467,12 +510,12 @@
       {
         "id": "joined-production-controls",
         "requirement": "Actualproduction joined/headed/CAD width/AA/clipping/visibility controls.",
-        "next": "Review exactnamedcontrols covered by these and17callbackassertions. Select only truly missingexistingwitness mode; optional joined20/selected24 profiles are capabilities, not mandatory44jobs."
+        "next": "The two CAD family states and three representative joined jobs are accepted in ink-family-controls-native-review.json. Do not repeat those 14 pairs. Reconcile only unsupported width/AA/clipping and actual browser requirements with source/proof before defining further work."
       },
       {
         "id": "cross-family-production-control-proof",
         "requirement": "Materials/lighting,markers/normals,finite/depth,ambient,transparency/Xray andcloud/textstreamcontrols are grouped in existingrows but no exactremainingnativeCartesianmatrix is declared.",
-        "next": "Reconcile actualsource/pair/assertions before inventing additionalnativefixtures. No newcontrols or allfamilyproduct."
+        "next": "Retain accepted native14 ink controls and all prior scoped pairs. Existing source-faces, mesh-marker and quality callbacks still cover named controls; unsupported material/lighting/finite/transparent tuples need precise proof review, not a new Cartesian job queue."
       },
       {
         "id": "legible-isolines",
@@ -481,16 +524,6 @@
       }
     ],
     "finiteAudit": "target/course-windows-20261018/remaining17-finite-feature-audit.json",
-    "readerCompilerProof": {
-      "status": "Prepared, not executed",
-      "readerEndpoints": 111,
-      "compilerOnlyEndpoints": 101,
-      "maximumCompilerPhases": 202,
-      "excludedEndpoints": 10,
-      "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
-      "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
-      "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites."
-    },
     "latest94cBrowserAttempt": {
       "status": "FAILED; preserved, not accepted",
       "seconds": 2171.988,
@@ -500,6 +533,41 @@
       "evidence": "target/course-windows-20261018/canonical-94c-phase-native-v1-browser.log",
       "diagnosticLimit": "Canonical catch captures the original page after the failing child context closes. Its image does not show the failing child-page click; focused child-state capture is next.",
       "phaseReuse": "Successful native800/frame and unchanged WASM/web evidence remains valid; no rebuild is required for this browser diagnosis."
+    },
+    "acceptedNativeInkControls": {
+      "record": "release/ink-family-controls-native-review.json",
+      "pairs": 14,
+      "jobs": 5,
+      "elapsedSeconds": 201.558,
+      "peakJobCommitBytes": 963235840,
+      "uniqueFramesReviewed": 14,
+      "decodedImages": 28,
+      "remaining": "Unsupported width/AA/clipping/material/production-picking and browser contracts stay open; optional full Cartesian profiles are not required."
+    },
+    "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
+    "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs",
+    "readerCompilerProof": {
+      "status": "Compiler-only lane:9/101 endpoints,18/202 phases passed",
+      "readerEndpoints": 111,
+      "compilerOnlyEndpoints": 101,
+      "maximumCompilerPhases": 202,
+      "excludedEndpoints": 10,
+      "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
+      "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
+      "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
+      "successfulEndpoints": 9,
+      "remainingEndpoints": 92,
+      "successfulPhases": 18,
+      "record": "docs/journey/release/reader-compilation-review.json"
+    },
+    "latest94cTailAttempt": {
+      "status": "failed-historical-command-echo-assertion",
+      "elapsedSeconds": 436.574,
+      "peakJobCommitBytes": 739971072,
+      "location": "measure.cjs:18",
+      "measurement": "null",
+      "measurementGpuBytes": 0,
+      "reason": "Completed-measurement typed Escape clears state but historical Panel history prefix differs. Active-tool typed Escape coverage is retained; no canonical edits yet."
     }
   }
 }

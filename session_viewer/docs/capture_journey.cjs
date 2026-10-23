@@ -38,7 +38,7 @@ async function focusCommand(page) {
     assert(control, 'The actual egui command field must be drawn');
     const box = await page.locator('canvas').boundingBox();
     const [left, top, right, bottom] = control.rect;
-    await page.mouse.click(box.x + (left + right) / 2, box.y + (top + bottom) / 2);
+    await page.mouse.click(box.x + (left + right) / 2, box.y + bottom - 2);
     await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).focused);
 }
 

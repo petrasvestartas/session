@@ -1,0 +1,393 @@
+{
+  "status": "PASS:59 additive prose restorations; formatted code and current diagrams retained",
+  "recordedUtc": "2026-10-23T19:55:05.206Z",
+  "scope": "Chapters11–22 only; chapters1–10 remain under Gemini ownership.",
+  "baselineCommit": "3100a081",
+  "formattingCommit": "bc861507",
+  "method": "Restore authored teaching introductions after the current top diagram. Keep every preexisting prefix and checkpoint-body byte, including all formatted code fences. Correct the stale reload statement and add the accepted native-control figures to22.6. After restoration, qualify12 diagram outcome labels across six chapter22 pages; diagram geometry and all checkpoint code remain unchanged.",
+  "figuresInLesson22_6": {
+    "restored": 15,
+    "added": 5,
+    "total": 20
+  },
+  "runtimeInputsChanged": false,
+  "visualAcceptance": "Pending current docs build and changed-page browser review. Prior v7/v9 evidence remains bound to its recorded source; restoration is attributed to3100 and does not claim byte identity with v7.",
+  "localManifest": {
+    "path": "target/course-windows-20261018/late-chapter-intro-restoration/manifest.json",
+    "sha256": "909f3d54e888276ee8ee03c7b0176b586f68d780cd5d446bd6e2d5f7b5733e89"
+  },
+  "pages": [
+    {
+      "path": "docs/journey/consolidation/63-radius.md",
+      "beforeSha256": "0a0ad5f3e7730bcd1e632283f773280157a494576f192d91ff5546c96ad76eec",
+      "afterSha256": "949b67d7a7cf464fb2261c137da9f676c4148a7fdf9f9a200643a6b246908a4a",
+      "unchangedCheckpointBodySha256": "3208342bb1dfedcdf7f00d20ecfc218bdb890db461395c5d92be1f2ce2a5d41f"
+    },
+    {
+      "path": "docs/journey/consolidation/64-nodes.md",
+      "beforeSha256": "a6d4b0f7ac1e5663b452363dd6fa188a531e8af797bdfcfffba57adb4cc45e5b",
+      "afterSha256": "fe776f934338a277752d2f44af5983db6b1ad3ec367247e28d27811cb381652d",
+      "unchangedCheckpointBodySha256": "8057bdbe5b15c81357c871f8f49302a9990fae1579fc598160428c74dfbd8102"
+    },
+    {
+      "path": "docs/journey/consolidation/64f-projection.md",
+      "beforeSha256": "88a3e30e58d7a809bd1385c8eed24f3fee6c9456b2c01c35811f627ec611e91b",
+      "afterSha256": "7469eafbc1e76343076e08eaaf37c6f69e9188c55fcf3fdd189b9e00f330f566",
+      "unchangedCheckpointBodySha256": "2743c66e7f729dbb19e66e4e795211ce1127c2e1b9af272541a91830b920f3d1"
+    },
+    {
+      "path": "docs/journey/consolidation/65-originals.md",
+      "beforeSha256": "fb27a2455e7b3534c7df5ca6cc3fa22e3a7de5e83f63f5f35754b55ad94da8ec",
+      "afterSha256": "f10cba38970c260349db160b1ef1eea5056e200b30c7baaca0eff3f068db123c",
+      "unchangedCheckpointBodySha256": "13ae49e39648f80277a0970d51e7ea59d7519f9c8f8133376007bcb38e13ed0c"
+    },
+    {
+      "path": "docs/journey/consolidation/66-read-scene-manifests.md",
+      "beforeSha256": "f3ead477d0f17ad4c28d35cfd6dd0f46b4a37ddf1a0a9155a3e2da62c949aade",
+      "afterSha256": "12f98a69068fdb7eebfa40ad983b018a0baf4a6d3b4741d93bcc1eea65f78c3d",
+      "unchangedCheckpointBodySha256": "dc04a11a2a1e6ea598cc92dce9f24b00a22dcf262613112fc38fc93d2dc60517"
+    },
+    {
+      "path": "docs/journey/consolidation/67-supply-checked-array-layout-readers.md",
+      "beforeSha256": "cfeae8251b954170e1d14dcd12625a9a0d072a23e8fab4379ad45c2fd995d531",
+      "afterSha256": "f9ba25ffee9b640c3a5edffc24807dad9cb126a7dcce96ba22e133d1cdd267c6",
+      "unchangedCheckpointBodySha256": "6a33fbe86b3bf129b981a2c47b91e8ebbbf141bb3fe7880be2f39e851b72700b"
+    },
+    {
+      "path": "docs/journey/consolidation/66za-own-original-range-read-permits.md",
+      "beforeSha256": "936149aa8762087f99dd3bdeff9a30a5034c1b7a42b8ac08830fb2a7edd943f3",
+      "afterSha256": "80fcbad17943a47b870cd8b1af3f9a60d0e282619307982ea768a163e3cc5492",
+      "unchangedCheckpointBodySha256": "c00a22a38e161fbf226512ff1e6fddbfb4e412eab8680e553d82b1bcb434199a"
+    },
+    {
+      "path": "docs/journey/consolidation/68-reserve-page-bytes-before-reading.md",
+      "beforeSha256": "24d8a19e12fd3cfbd96c773da4626ab2434db4175eac530d08e38891a25d8c67",
+      "afterSha256": "180549841b182f14c8b24769a85c7319a2f187d70ae27527a47fdbab35840e2c",
+      "unchangedCheckpointBodySha256": "25d578d0164d1475eca4e2e4fbdf66311c4955e19849ee46da8b0ee6fa0bfb9b"
+    },
+    {
+      "path": "docs/journey/consolidation/69-validate-original-definition-references.md",
+      "beforeSha256": "302144dd9bc62238b177f0d3767b01b4bcf45d104d7e4e06c8339d4636088e08",
+      "afterSha256": "7343efea8a046faa2aedafdc418702f116420cb3d0cc4c97ab96f9a17b2cf71d",
+      "unchangedCheckpointBodySha256": "0c8ccbc7b37e34c40a51751b6b228f9579d238651e9ccd388e226e85fd9aaae3"
+    },
+    {
+      "path": "docs/journey/consolidation/69j-preserve-per-instance-original-colours.md",
+      "beforeSha256": "51a83891dd02f0fafb693f0192a3b9de1ee102fcbf76074b63de0ef45239719e",
+      "afterSha256": "ab53a56789584625dd1561ba37ff4793f876a69b8e3084c10e1c01169fe470ab",
+      "unchangedCheckpointBodySha256": "8f823356059fee72ff9c1dba6c71a5293b7f6c0c3c355ad52cb1679902c9179e"
+    },
+    {
+      "path": "docs/journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
+      "beforeSha256": "9c8dcb6ebc2cc3d9de51ec9c3001d638f173ab63034d786c910bd7a61e356eb1",
+      "afterSha256": "3175c44e3d86f56ac40dfd166e3612803259350033e945339e6384355b54b285",
+      "unchangedCheckpointBodySha256": "a7fecc573c25380803ad6143f14dbf354f17eb479d4637a8c2b6ae6cf34a464b"
+    },
+    {
+      "path": "docs/journey/consolidation/70za-read-original-sheet-metadata-records.md",
+      "beforeSha256": "fa66fbb2e736335cbc61e14ca4cd4eaf4f9675618ce38c777cc5c60027db495c",
+      "afterSha256": "e17d4f4964fc76cd7bb48fdac76739ff8a00fe5ef6984f68727b7a76c1934664",
+      "unchangedCheckpointBodySha256": "31bd19381515192b2ab5362fe1ead6e889bd4a6c426ac177ce746c779e249703"
+    },
+    {
+      "path": "docs/journey/consolidation/71-read-original-sheet-entity-metadata.md",
+      "beforeSha256": "4c76d4dd789d03a4b556bf8c3295686ea0a84467923d2950e595dafcd27e434c",
+      "afterSha256": "28897ac0b6916503bf48c44cd4e8f78bf1e0f6681facfc9d6fa2a4c3d5392fdb",
+      "unchangedCheckpointBodySha256": "2bf01de4a535c734aef787de6aafecf25c9e8eb12b64332c8067327bdbc5fef0"
+    },
+    {
+      "path": "docs/journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md",
+      "beforeSha256": "71a0ab9886caac4b35bbae591f2ae090b634c763db5ee2cd17db8068aa7cba27",
+      "afterSha256": "5327cfb51c0c21da9c69a5f252a032092edfb6b6d17d93a74a1f7b53cdde6d7f",
+      "unchangedCheckpointBodySha256": "523b2f418ad3312d242165fe36f759269a176181f3004906805104bb78009b90"
+    },
+    {
+      "path": "docs/journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md",
+      "beforeSha256": "047489d053b0f64e9e3d5aa0cb6a475fc04d73f59a2b16e9e966fe951f1be4f4",
+      "afterSha256": "864573b1e24bd7aa35a26f85186bb645e57d7c4c1f0a5d34a5cc3fe430241877",
+      "unchangedCheckpointBodySha256": "d2160cfa70cd228e4787ecef74b6e9a99df77c113f6784bda91102dc7e7d1d23"
+    },
+    {
+      "path": "docs/journey/consolidation/74-copy-current-solid-geometry-and-question-definitions.md",
+      "beforeSha256": "682a377a35e9bbe6beefd6384c14bb5cf8cdc2214d027d1fcaa1005d9afb40ed",
+      "afterSha256": "dcf99d221297eb68837a48b6c83074c4d01dbd81ba2781650a911173b7434b20",
+      "unchangedCheckpointBodySha256": "6f8f64de307aa8f46d238c8aa236a83bca6fb66e9050a759deb4e00670465308"
+    },
+    {
+      "path": "docs/journey/consolidation/75-reuse-current-round-solid-builders.md",
+      "beforeSha256": "d167d0ad72289a784b6d76ad1ad06b8023900c0619b6192449288ca90d94609c",
+      "afterSha256": "08951d648d219c9e86cf7afe5544026e38c9a65fcac6ee855d7b879ecdd80568",
+      "unchangedCheckpointBodySha256": "4cfa28b493c25b96f9d3b06d98226fda4414776167bd5f4327ebbdf40502106b"
+    },
+    {
+      "path": "docs/journey/consolidation/76-copy-exact-planar-curve-definitions.md",
+      "beforeSha256": "fe269a8756270775f968e4f279492da929984ced32d9ceab3ecf56fc4917ec3a",
+      "afterSha256": "76d3649e3beafe4ce579c4b2cc0f77ec1fa046878fe3de0a300742186f447cb0",
+      "unchangedCheckpointBodySha256": "568fc09830267719393a497d530a4aa5af27bd11c522ce968e3db3efe5c2b457"
+    },
+    {
+      "path": "docs/journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms.md",
+      "beforeSha256": "51706d7eac64e737c0f16274a47f1f50f74eaacc6dba459558a92828843e1d39",
+      "afterSha256": "594a788c10b33eecbf7e8f26c72ac94aad34805f4639c97d5316f8a31f72ad7d",
+      "unchangedCheckpointBodySha256": "c8c816f64fc3827fd681445d536410c80a24bcc212c6e5e3000c9a9aa8cad6ce"
+    },
+    {
+      "path": "docs/journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md",
+      "beforeSha256": "2c589e68cb70c273eb63902215951b2015443b2405930e3700e46dd751bc43f0",
+      "afterSha256": "552675b9994685d1a87d99ac3520c2db908046ed3c2e86700fc19ac2086b1431",
+      "unchangedCheckpointBodySha256": "27e9430cbdcb8296591b9907e8efce6634bb76bf4176f8f6c5d9dddcc5d80a09"
+    },
+    {
+      "path": "docs/journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md",
+      "beforeSha256": "e6c9f73437a01a3e93988158f56dd7f27a6ffa655d0cf05ebc77b82cffc0e1e7",
+      "afterSha256": "0c688f0802f608ffb06a9b437922187ce89223de1e8407a619b8977c48c6758b",
+      "unchangedCheckpointBodySha256": "242bcb01e15b7bad4091f78afb50644a88da202f287ee9b6c5ecf8028299bc4b"
+    },
+    {
+      "path": "docs/journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md",
+      "beforeSha256": "c74d4abe01e31aaaf13c0f92f68ef44c077a5a019ad1d7ee4e0fead1b8cab707",
+      "afterSha256": "61de3e3d83f347fe41fb87e64d82b56544dfdb7853c542025fe2c8f009bd93a9",
+      "unchangedCheckpointBodySha256": "02e907365625635dc585583054df9bddde8c6d2f2c69bd2c0d6eafb85933f8d7"
+    },
+    {
+      "path": "docs/journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md",
+      "beforeSha256": "0902cfbac437ca3925a2e772f0b404a0e9b79dddd9727ff48787f75a3f5f7ab2",
+      "afterSha256": "c438eda371c8bdfa83717f1a168140872c20e60602c527a4199731e3d6aaf164",
+      "unchangedCheckpointBodySha256": "767d41ce8b6935e39d6c0297d960c40c3cd51effca578a6781fa6ddb0119037d"
+    },
+    {
+      "path": "docs/journey/consolidation/82-divide-current-original-curve-families.md",
+      "beforeSha256": "02f22619407e94faa0e0bf0857047f838ca16b35583f859f90b4f17ffd2cbc5f",
+      "afterSha256": "aea4fd7911a1ec71ac6767e9c18bb5d4f94b10233f823d9fdf2259f037325199",
+      "unchangedCheckpointBodySha256": "b63024593a579fe0a3631aee139912d2afca1076dcfc755821c0eb4d9603fc6c"
+    },
+    {
+      "path": "docs/journey/consolidation/83-split-original-faces-without-separating-the-solid.md",
+      "beforeSha256": "6109a2bfa95a8e16123d32a1684ea93f686b71732d460df552fa06fd9bb34819",
+      "afterSha256": "d5bd9afcb8156ffe4a1a59fc6cb6da3b18ca15537ca7eadf905c4db8116e76f7",
+      "unchangedCheckpointBodySha256": "81b11ed1f3dc6a69e0d3fa248e45db147db7cb51f488a6e12b8e05c255e33744"
+    },
+    {
+      "path": "docs/journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md",
+      "beforeSha256": "bfa1a501b06e6aabd79119f2fd833359ab4704426d84c0993dcb67b4940ad461",
+      "afterSha256": "77ba9d9be1db42b79614f3d3348cc492d1214f7558e0bcce32f73a5c266737d5",
+      "unchangedCheckpointBodySha256": "62af6ea2414bcf979a69c34781449a05132535b828e1db3c3013eced21f51dad"
+    },
+    {
+      "path": "docs/journey/consolidation/85-copy-current-original-command-recipes.md",
+      "beforeSha256": "562309dd15620a05e2d9dfe840605d1d4dc2306253ebd7a10e3f4f99838460e3",
+      "afterSha256": "2614c5165276c52e0bc7b16c90be29cf2565d78e694d9c5366ed4564be432449",
+      "unchangedCheckpointBodySha256": "78d12ac41c8dd0c5e6e9d9cd4c5a8218b80f4cd65387991913a7649d2cabebe1"
+    },
+    {
+      "path": "docs/journey/consolidation/86-copy-finite-tile-allocation-rules.md",
+      "beforeSha256": "58112ae3ce8295ac2fc54330a9f469ab8ee17152265e975ca15b60b25d43b6f4",
+      "afterSha256": "1a66a67f565f878cc9504779703792e31aca1b48160b7e7b79999cf825c8eced",
+      "unchangedCheckpointBodySha256": "e8b4f411c9b2a7fb2f650713e1193cb972d05fe929abbd15f20511a9edb27975"
+    },
+    {
+      "path": "docs/journey/consolidation/86s-test-visibility-at-the-original-center-line.md",
+      "beforeSha256": "06faee66fe31d489f2ae07cc52d8a1ee3efe1a975c6473903d30f9b88d7ef80c",
+      "afterSha256": "5ebda86f7f397e057a0c651e17731b8d04c8804f4605cac34454f04f7d20c9e8",
+      "unchangedCheckpointBodySha256": "224c4c9b352e4852d94e21bd138172f7e21b6863f831fb922512b0af6a8bd283"
+    },
+    {
+      "path": "docs/journey/consolidation/87-copy-current-original-plane-modes.md",
+      "beforeSha256": "73f1119ae27b3eee0e75d4ab129e6fde2aaba479eea494fff4955541011b7a4c",
+      "afterSha256": "f3ab27a7e122159dcdba62dc68aaa655102d2bd742edb6b9c888cb650dc58b86",
+      "unchangedCheckpointBodySha256": "18cbe6cdf8f85589455f8060462cc4e1d8e15f28f596f9d9df816498c7f5d229"
+    },
+    {
+      "path": "docs/journey/consolidation/88-copy-original-closedness-and-winding.md",
+      "beforeSha256": "d4fc4dea3d048a530f5169f7450c0a71e3ba3fc77def4267a40c0945b187f929",
+      "afterSha256": "ceab1bc88cbdf953974c352274518184a607dfa350df0c42e92d8b3ba44b18a9",
+      "unchangedCheckpointBodySha256": "7115f416b3f4f87027ad72ae02d38e76a285a3d794e6338abd73969f827c0af6"
+    },
+    {
+      "path": "docs/journey/consolidation/89-copy-density-scaled-depth-reduction.md",
+      "beforeSha256": "08baa4fb592f87ae5bfd2a501433ca74d0f096ebb42292610786adaf05bcc7de",
+      "afterSha256": "32255c301d51204ba6f20862a12e06767c364d48ba0a97605e885969112046c8",
+      "unchangedCheckpointBodySha256": "31b7dc5f119118652e4e4b18e1c3f1e4407cd829bf781d941a6eea1a7105a64a"
+    },
+    {
+      "path": "docs/journey/consolidation/90-copy-maintained-original-contact-radius.md",
+      "beforeSha256": "c13f75bf9994f0f2405b9d619265ba708438dcda78a6ccafd7e28b1572b4f373",
+      "afterSha256": "648148a91d40beb8506c82c71dda08717da2936c9769cea3a091a5c0661ac6e3",
+      "unchangedCheckpointBodySha256": "88c89e06988d8b0f8b28872560c3f9a29ff7cbbf6b8936888abf85595e1eac52"
+    },
+    {
+      "path": "docs/journey/consolidation/91-include-visible-section-coverage.md",
+      "beforeSha256": "66fc76ed5d4be135bce5752639bb0fac448104d6a670f0f0483012aa82a5c10b",
+      "afterSha256": "e68c16ba78c0c6ba25d785d5ee9632998860debf502344f66b8b7c237bc01070",
+      "unchangedCheckpointBodySha256": "7a62f945715cb37edbed47500d0be9d21f10e9954513867807b64daf18967196"
+    },
+    {
+      "path": "docs/journey/consolidation/92-link-current-wood-element-builders.md",
+      "beforeSha256": "003803eee053811419087236bc1ec1949802e4610eb663b5e01a5470278d1dd9",
+      "afterSha256": "0a9bc7f1c531f922a353fca6033c995aa4f74b399929499952fcb91063fcb682",
+      "unchangedCheckpointBodySha256": "246e893a4910177f0d424b9534ffc54c86b65d88de45adcc37dd887507830701"
+    },
+    {
+      "path": "docs/journey/consolidation/93-classify-original-solids-independently-of-clipping.md",
+      "beforeSha256": "15357557efd62c3a7b69e344d9f121cd7a03555988955a825d982ed45227813d",
+      "afterSha256": "3e069c686162dd819250f9ff9ec13cae994da71a55256ca5f4671431c102b0e6",
+      "unchangedCheckpointBodySha256": "2c0fb4ad9a8085ed06d70c88b7c33a1078dd109ac89d2c4a0c01b7647087a826"
+    },
+    {
+      "path": "docs/journey/consolidation/94-declare-the-rendering-comparison-contract.md",
+      "beforeSha256": "4a5a33a8f7c38b4fcc0e049bf807db84b46fb06147dfccc78d3ec9b564f575b7",
+      "afterSha256": "0638464b724dcbcf1976ffc2bbf562c3a20ff4f5faf5712eb12c32e747af880c",
+      "unchangedCheckpointBodySha256": "d794c96e364360ac5297c97dc6b81a2934394530c7b4aa49e59863ff100957d1"
+    },
+    {
+      "path": "docs/journey/consolidation/95-record-comparable-large-scene-conditions.md",
+      "beforeSha256": "3a67f088e8f9d7869c68e95b122f7c6ac4019b2b4739f4810f42503119ef1246",
+      "afterSha256": "25edf7c42b794b2a22cbd273d76b0d5435222744f1cb9342f75ecef8e2c10566",
+      "unchangedCheckpointBodySha256": "4e0d6edaedda065e71f11bdc163c6c959065fed8abc12ad59c2d08f855ff16e1"
+    },
+    {
+      "path": "docs/journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md",
+      "beforeSha256": "21312c337ac46eebb9d691584f90b709aec62be9cde04d242db0e6db1dc887c1",
+      "afterSha256": "ed0a166ff16643ebb89da5ffb7ee1368a398e9f6bc9f098445c7747204b48c36",
+      "unchangedCheckpointBodySha256": "dc6c68c76693aab8bdf7d64ee31acd8882619ef3d30cb98b78cd4adefad2a739"
+    },
+    {
+      "path": "docs/journey/consolidation/96i-separate-own-and-hosted-element-features.md",
+      "beforeSha256": "c3faf61ba97c2716f3cbbc0e4d4e70268a6a099fe6cfbdce92bd9c6ff215d404",
+      "afterSha256": "549c39ec9c888e02de1c692148cb858227469b83c498d8dc7bcc5dd1c804b28c",
+      "unchangedCheckpointBodySha256": "dceff5c63ab3f2257f4f3e64712d1ccf9840f11fd3bf2b25fd2602368b22e9f2"
+    },
+    {
+      "path": "docs/journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md",
+      "beforeSha256": "14c7d1b5b6ce330302b28cf61b8fb8a0af1a9d2f296287adc5318ab6e5d5781f",
+      "afterSha256": "42057f659a8d1b3f2222fa89f20e648d50f3bce16fcb2f67a792d47df29714d1",
+      "unchangedCheckpointBodySha256": "6ebeedea138fcb9aa1897799b4ddb74e2ce485d5e8cf60af89d4deb69e94987a"
+    },
+    {
+      "path": "docs/journey/consolidation/96za-address-original-controls-with-family-keys.md",
+      "beforeSha256": "96d8753bc9bff1f393c67cf7a7b92cce83ed67918c48218afef3e280d90ef4eb",
+      "afterSha256": "9db08e4f605abf266d0f44288ca96aa09a552a7a7b5bcb103e1c59df5fd78716",
+      "unchangedCheckpointBodySha256": "5c32ee9c63e1c998308f4130beaba3d4d76a7b13a9a928a5cc42e56b3f768217"
+    },
+    {
+      "path": "docs/journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md",
+      "beforeSha256": "50ae3ecf06db711dbc8d5d0d9b8ad087565b12f098f4cdfb303d36c95179a0d3",
+      "afterSha256": "a7e83c249e8fff347c47be9f8c257091fe8ee5ea5cc0a22d160c0294220fa14d",
+      "unchangedCheckpointBodySha256": "5fe3011c50440cf47db2b551051559383c1213effc5b21d779bf2795488452c1"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md",
+      "beforeSha256": "42f01a7dc085e70f7565bc0fd62c72629e2c200a97b13fe5d93bd691b2f1f862",
+      "afterSha256": "67bf8d2ca2e80f65f067494012d60442ed3b168ffcb2fadbb9eaf2ab5250edd6",
+      "unchangedCheckpointBodySha256": "57ee78bd26996f9e03d6bd314dc1536568c52130fe94c0ff19862ac81ecdb762"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzg-grow-buffers-without-losing-rows.md",
+      "beforeSha256": "88278d83025f231f542c555b9179a4e08185fa6d443b1b345daa3c2579c0181a",
+      "afterSha256": "1472ad11dc0720a5bfd5e92fce31e0266235e65e853a425376fda26c2378511c",
+      "unchangedCheckpointBodySha256": "87a2dbb0a1b8cde6f6e53b63e01fe2c9ee8152ba95f3bbeda19c9d9ba6ab6081"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzu-separate-primitive-addresses-from-selection.md",
+      "beforeSha256": "e200b24392b9c47cd26cb3a07fb15c1c99b30c06a3f2eb2aced6453979406d17",
+      "afterSha256": "81670ad555fbe328017735edb322042b0ed40f53370215dda9546d579293f136",
+      "unchangedCheckpointBodySha256": "b3f6cfadd3e6c9ba108a1ae6404c9aa7aa885845d439bb00045b014406c0eaa1"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzs-allocate-stable-object-record-rows.md",
+      "beforeSha256": "68f674804f602aa29604e2dbe3cfe286cda64edd40b6941cd3089aa554d5cf31",
+      "afterSha256": "f62b10771ac2fcc361701a1a154689e5950951dc32ee5607eae939c414f1cd82",
+      "unchangedCheckpointBodySha256": "3b3cdc5782ddc2cd01df802e09204ee7b7fd83edc3f1cfb3a16100070ee9b139"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md",
+      "beforeSha256": "a876716189b3264b5651dddb332f9de6f489756dbbce138d55087eb68e2d8c1d",
+      "afterSha256": "cb391eec3688514551c9bd29c639f46a4acca149e83cc999b76475ce934e9323",
+      "unchangedCheckpointBodySha256": "48030b015acd425f28d189545c4171613eb1b34f3f45dc0c2e1d1a47990839f6"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md",
+      "beforeSha256": "685f80825725a2b0986682fd7be7c9f76d8466ac66fe272ea97fdcb6e802a358",
+      "afterSha256": "e6cb9f8cc6899f56dab253af8442afb79608d81d0a7f44c2dc38af7856b20daf",
+      "unchangedCheckpointBodySha256": "7a3d6aed809845c305ae3573c0131523bbc3f8da2efeb37b47e05edfb9e100a7"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md",
+      "beforeSha256": "9a0acd1eab85d6560cb8a666b5d0ea74e682e47d59a01338597a42992274ae56",
+      "afterSha256": "c7450d170aae01527de8eaf8624d49c475cfcaad05544a2f5c30ea4a8385bb44",
+      "unchangedCheckpointBodySha256": "d647b5c11a9b2f9de70c924a2e3ab28744eff46ecdb1ac46ecea087f170ddd74"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md",
+      "beforeSha256": "49f1c939b26af3d923525b60ba5b79b18b4925ecf01b6b50f1600a23891456f5",
+      "afterSha256": "f9ce4601d189742474d01a0908dcaf611951a139e6c1fe9a421aa36d5ff6e161",
+      "unchangedCheckpointBodySha256": "97b95bdabfe29053b52330e3d006b02b8638b6efc57becacc0e9ad0019eb106e"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md",
+      "beforeSha256": "80d29c11aa22307d827c8bfcca2e2726da18c8b72d9b0abcaae4532bb65c4eb1",
+      "afterSha256": "319ddc1b35bb5d3ffd6d208ffc0d284e35abb9ac6031f495942ea09ab57d7fa9",
+      "unchangedCheckpointBodySha256": "1e30cdbc16082ad6c8776435ac6c89001dde465a9c80c5fe862fd2fee868a127"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md",
+      "beforeSha256": "62ad32200cbf720737e1271f77eb78a4cde212f7d0a7acac3fde4528746d80bd",
+      "afterSha256": "231ad9d0d9771e05defd4aa012af936ad058c3bb3f37aaa9f13e3af7833e1eb9",
+      "unchangedCheckpointBodySha256": "a72d7e4dd3c6daaa5dd5d67d3a8b91929b0f15b7d5e7a5a185ccc81f20dff960"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md",
+      "beforeSha256": "0996b385ae327876d839178249fbf31aff89fd5799566ba693dcc8b4b66d8939",
+      "afterSha256": "76cbf518bca8b3cbf0d9ad4a8c17c4794ebbba55223bdfd73cbdd0611b4e8d1f",
+      "unchangedCheckpointBodySha256": "7bc3767cf71ded292a6ed105ad7bb16a706394205f1cb1a59a76e4b458a7bc4d",
+      "restoredBeforeLabelQualificationSha256": "612f077aedf3bc11c17e9c2391fbe3baed273eb988fe9fb7ed6402483c4501a4"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md",
+      "beforeSha256": "67dc8833c35c1dd98be9b1359e88b4e716141ec96fffd15ddb02ebe99b76a80f",
+      "afterSha256": "073e02c368949aa239c93c01d689e06bcb43a9a3cffef66b11df74831c72ae69",
+      "unchangedCheckpointBodySha256": "5e615d0f2f4795e69ffb0dfa4f4091ac82b41a0fb889f5cfa02266ef653eef7e",
+      "restoredBeforeLabelQualificationSha256": "f7502bdbfcff73fbb2b74b93f4baa41997980b3e4c0aa2fc5120b66848f1b50d"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md",
+      "beforeSha256": "4e359db1d7e22038fe80b1d719be41b998e32e1970181e57c21bac60d52a0e1c",
+      "afterSha256": "15994c52e86a73cfc5ed198b8847ca3596d88857aa53033a0d80541075293ab2",
+      "unchangedCheckpointBodySha256": "c895a250add3e99f18d5f5f52681b57ca20ccad6810719ad04704eb5a654363e",
+      "restoredBeforeLabelQualificationSha256": "c3b8bbdcd26594cfe88fc78f5d1af57e5c21716d29db18db2d8fde3701c51a71"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md",
+      "beforeSha256": "f1b3e0d9cff869e64a32328f477935c91f7dbde3556bb51897af874ffc3a30a0",
+      "afterSha256": "2920dbd030f9e08e81055510e735b94d91a55220e171942fe7682ce19bb066fe",
+      "unchangedCheckpointBodySha256": "1265add77d0353d70eb8ce80f862de6a13c61ff8d238276ee5af8dc437df3133",
+      "restoredBeforeLabelQualificationSha256": "357e24b19848484f96250de4cc0e770bbc6d1abcd3b44eb65772880c58787134"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md",
+      "beforeSha256": "d048abfcab562a3408cc7103853a863d3561613b8ebf641d497123d4f1ce3015",
+      "afterSha256": "5141f5a74fa0c28e8b37cb3d27ebcf459a08d654f9452d2a3724742c2456412a",
+      "unchangedCheckpointBodySha256": "715620780a7ad92937d2259384b45f239b5539895595f4bfa61b1882ddb2ee38",
+      "restoredBeforeLabelQualificationSha256": "2e85651108a0ee74d5592424bafe89ff6e8763e64245f6731c2ccdf36f167614"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+      "beforeSha256": "d2f725ea2e21504771613c9d10443dfc9060a6efb95ec8762a01b380ce31b771",
+      "afterSha256": "683e73f169f44a6c54c401221a26bdfe79b15732db2df79ef498e60f1ec7d373",
+      "unchangedCheckpointBodySha256": "69c91addd3223d5839c8b3195b174d7619feff10386aa779f4591541095318e1",
+      "restoredBeforeLabelQualificationSha256": "b659a13ae3716ecec82ff3e3af967db8c200ff159237755bf54d295ad8db8b41"
+    }
+  ],
+  "diagramLabelCorrection": {
+    "pages": [
+      "docs/journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md",
+      "docs/journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md",
+      "docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md",
+      "docs/journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md",
+      "docs/journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md",
+      "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md"
+    ],
+    "labelsAdjusted": 12,
+    "reason": "The diagrams claimed complete production parity despite open browser/integration requirements. Qualify only the outcome labels; preserve layout and every formatted checkpoint body."
+  }
+}

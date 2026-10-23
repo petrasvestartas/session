@@ -57,6 +57,20 @@
 </svg>
 </div>
 
+Share physical section data with outlines/ambient and pack surfaces without discarding source colour semantics.
+
+## Ownership and data flow
+
+Outlines and ambient consume the same current section/primitive addresses rather than sampling an unrelated stale image. Compact GPU vertices retain position, octahedral normal and RGBA; source RenderVertex values remain a separate CPU representation. Browser defaults are explicit view settings and must be audited against maintained startup, not inferred from an old reference image. Packing and default changes must not rewrite original colour arrays or source attributes.
+
+## The maintained implementation
+
+engine/gpu/arena.rs GpuVertex is 20 bytes: three f32 position values, one packed normal word and one RGBA word. engine/gpu/targets.rs stores physical primitive IDs as Rg16Uint; engine/gpu/view.rs reads actual defaults, including `lod_px=0` and `edl_strength=0.25`. The course default/control audit remains separate from byte-layout correctness.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../src/app/scene_sync/tombs.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient"></a>1. Share section addresses with outlines and ambient shading
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

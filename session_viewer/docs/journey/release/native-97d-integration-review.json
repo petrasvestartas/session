@@ -1,0 +1,85 @@
+{
+  "status": "PASS:1060/1060 unfiltered native tests, zero failed/ignored/filtered",
+  "recordedUtc": "2026-10-23T20:10:20.395Z",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "sourceFiles": 713,
+  "externalInventoryEntries": 433,
+  "scope": "Final learner native integration regression at the recorded source, lock, assets, production helper and software-GPU environment. This does not accept browser callbacks, WASM packaging, visual chapter review or global release.",
+  "tests": {
+    "passed": 1060,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 0,
+    "threads": 1
+  },
+  "manifest": {
+    "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/manifest.json",
+    "sha256": "027c6247176e0eb24124989504dc7eea35287eb95dc495a1fa725e5b8b52ef46"
+  },
+  "sourceFreeze": {
+    "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/source-freeze.json",
+    "sha256": "116b91c245fb8c25a20afbb7b3a6c7fbece16d15f61f772adff31845977329eb"
+  },
+  "testList": {
+    "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/test-list.json",
+    "sha256": "a7d2d206a44acc8b66c26c66d357a9d719b3208097a8555f3d6dc692a014f1a0"
+  },
+  "result": {
+    "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite-result.json",
+    "sha256": "5d593a3d7d33551063c2aeeb9ba2a0be9ac753814db1c7a977f4518adf7b5f1a"
+  },
+  "stdout": {
+    "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stdout.log",
+    "sha256": "17df2d8db27d2f76718efdc54fd9025965d659e40bd357ebe14563eafa08d465"
+  },
+  "stderr": {
+    "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "resources": {
+    "build": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/build.resources.json",
+      "sha256": "b18c7adc9087cb1498d0cb3609af8125aa05659a3daabce2cfcede814b8d0af3",
+      "elapsedSeconds": 86.375,
+      "peakJobCommitBytes": 3270975488
+    },
+    "run": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/run.resources.json",
+      "sha256": "2a492d076171c8bb22c9b7a8fd4fa27dd3d6b698814bf49d27411e50c7609ee6",
+      "elapsedSeconds": 1385.144,
+      "peakJobCommitBytes": 1512873984
+    }
+  },
+  "binary": {
+    "path": "target/course-windows-20261018/native-checkpoint/course-tests-97d4a9ff-20261023T194428611Z.exe",
+    "sha256": "0853a7f64250a806549d953095dafd6f9f828e3d2a23fb47a969a763a9d2966a"
+  },
+  "environment": {
+    "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_NET_OFFLINE": "true",
+    "REGEN_PROTO": "0",
+    "RUSTC_WRAPPER": "",
+    "RUSTC_WORKSPACE_WRAPPER": "",
+    "NO_COLOR": "true",
+    "WGPU_BACKEND": "dx12",
+    "VIEWER_GPU_WAIT_SECONDS": "60",
+    "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+    "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+    "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+    "RUSTFLAGS": null,
+    "CARGO_ENCODED_RUSTFLAGS": null,
+    "RUSTUP_TOOLCHAIN": null,
+    "RUSTUP_HOME": null,
+    "CARGO_HOME": null,
+    "RUST_BACKTRACE": null,
+    "WGPU_ADAPTER_NAME": null,
+    "WGPU_POWER_PREF": null,
+    "WGPU_DX12_COMPILER": null,
+    "WGPU_DX12_DXC_PATH": null
+  },
+  "gpuPolicy": "Final native helper explicitly selects DX12 Microsoft CPU WARP and adjacent DynamicDxc; pinned Vulkan ICD retained for legacy/dependency Vulkan users. Selection is not inferred from environment alone.",
+  "resourceScope": "Windows Job Object:4GiB, two processors, Cargo concurrency one, test threads one. Windows does not enforce a separate zero-swap quota.",
+  "historicalEvidence": "native-final-source-review.json retains original a45/1059 and later bounded source audit evidence; no earlier run is rebound to97d."
+}

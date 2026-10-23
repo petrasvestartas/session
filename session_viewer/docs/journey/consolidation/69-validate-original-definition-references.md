@@ -62,6 +62,20 @@
 </svg>
 </div>
 
+Prepare a source definition once and retain distinct editable instance identities through history and Save.
+
+## Ownership and data flow
+
+Validate every definition reference before walking used definitions. Instance bindings retain source definition identity and canonical original placement; each placed row has its own ID/colour while immutable geometry is shared. Part edits must protect shared originals rather than accidentally deform every instance. Saving retains definition namespaces/references instead of flattening every placed copy into independent geometry.
+
+## The maintained implementation
+
+app/scene_instances.rs Instancing batches one definition walk beneath a hidden row and maintains independent member rows. engine/gpu/instanced.rs and slots.rs map draw slots to members; Session definitions/InstanceRef remain the original source identity owners.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/scene_instances.rs](../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs).
+
 ## <a id="checkpoint-69-validate-original-definition-references"></a>1. Validate definition references
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

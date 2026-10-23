@@ -60,6 +60,20 @@
 </svg>
 </div>
 
+Retain original point rows and a valid octree while giving each placed cloud its own scene identity.
+
+## Ownership and data flow
+
+Validate coordinate/colour/normal/ID column lengths before allocation. Node point ranges and contained cubes must form one rooted tree with unique child ownership and disjoint source ranges. Prepared source owns original columns, bounds and spacing; independent f64 placement supplies world bounds without rewriting those columns. Scene insertion, current layer, whole selection and history preserve shared source ownership.
+
+## The maintained implementation
+
+app/walk/cloud.rs prepares maintained CloudRows, while engine/gpu/cloud.rs CloudLane owns growing position/colour/normal GPU buffers, Cloud descriptors, LodNode tables and resident Chunk mappings. An object row identifies placement; original point IDs remain a separate source address domain.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../src/app/cloud_query.rs).
+
 ## <a id="checkpoint-64-nodes"></a>1. Check cloud cubes against their point rows
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
