@@ -21608,7 +21608,7 @@
     "fingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
     "files": 713,
     "recordedAt": "2026-10-23T15:18:06.081401+00:00",
-    "courseSha256": "79e92591d4e6c616c785981de8ffc668a43be684c219604860fb7dc542c60988",
+    "courseSha256": "7ff01a99ec094fa20a8ac46f2448ab73b361d33250b6bb43e5a96e44ae4ea4bd",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
     "scope": "Current source replay and authoring checks pass. Native runtime hierarchy, tree-panel presentation and layer-property code changed after prior native acceptance; new source-matching native and browser verification remains pending. No feature row has complete final acceptance.",
     "state": "consolidation/current-state.json",
@@ -21636,7 +21636,7 @@
       "elapsedSeconds": 1468.642,
       "peakJobCommitBytes": 1480597504,
       "currentDelta": "Current source changes include native src/hierarchy.rs, src/tree_panel.rs and src/layer_properties.rs plus one src/feature_pick_tests.rs regression separating original editing targets from complete display membership. Prior browser/panel WASM and inventory metadata deltas also remain. The1059-test a45 run and any64-candidate reuse review are historical evidence; they do not validate this current native source.",
-      "currentFinalAcceptance": "pending focused hierarchy/property native regression, source-matching full native suite and original-owner browser acceptance"
+      "currentFinalAcceptance": "Current96y focused2/2 and full831/831 native suite pass after hierarchy correction. Final-endpoint full native suite and original-owner browser acceptance remain pending."
     },
     "browser": {
       "lastMeasuredFingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",

@@ -67,12 +67,15 @@
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
     "originalCoveredPlaneMatrix": "PASS: all 16 retained-original covered Plane pairs match exactly; 301.128 s, peak 976,039,936 B. Exact 2,223-byte SHA93caa5f9...194bf2 checked in every case; public record and four figures inspected. Previous single-case and 5,204-pixel failure evidence remain separate.",
-    "historical96yVerification": "Current 96y native phase PASS 831/831, zero failures/ignored, tests 74.61 s; target/course-checks/96y-address-feature-pixels-to-original-cad-owners-tests.resources.json exit0, 107.168 s including compilation, peak 2912653312 B. Optimized web and frame phases still run in root session 54490, historical-96y-hierarchy-verify.log. Prior 830-test evidence remains historical; current canonical browser and final-endpoint native acceptance remain pending.",
-    "historical96yBrowser": "Prior run failed after instance-feature display/locking/archive checks passed: pixel picking returned original owner49 while a named tree branch included derived alias51. Failure evidence is retained. Current hierarchy separates original editing targets and display membership; focused native tests pass, canonical browser retest pending.",
-    "hierarchyMembersNative": "PASS: focused current 96y feature_pick_tests 2/2, hierarchy-members-native.resources.json, 37.11 s, peak 2905546752 B; subsequent current 96y full native phase passes 831/831 with zero failures/ignored. Optimized web/frame phases are running. Canonical browser and final-endpoint native acceptance remain pending.",
+    "historical96yVerification": "PASS at current hierarchy source: WASM19.438s/1542856704B;831/831 native tests,0fail/ignored,107.168s/2912653312B; optimizedweb154.143s/1250836480B; WARPnativeframe28.277s/2444169216B. Nativeframe individually inspected; ownsample regenerated. Canonical browser running separately.",
+    "historical96yBrowser": "Current run failed after instance-feature checks and original-owner/locking/highlighting passed: Delete leaves one original and one live GPU path, but frozen assertion reads history-inclusive CPU memory total3 as if livecount1. Undo history correctly retains prior2-path scene. Failure JSON/PNG/log preserved; no memory telemetry change. Narrow harness correction under review.",
+    "hierarchyMembersNative": "PASS: focused2/2 plus fullcurrent96y831/831 native suite. Editable originals and complete display membership remain separate; canonical browser and final-endpoint native acceptance pending.",
     "planeNativeMatrices": "PASS: 80/80 exact production/course native RGBA pairs across plain, placed, generated covered, generated print and unchanged original covered matrices. Public per-matrix records retain exact source/pose scope and inspected figures. These comparisons establish neither owner-pick nor browser acceptance.",
     "approvedHarnesses": "Both user-approved corrections are applied: additive multi-selection preserves prior selection; outlines-off selected CAD matches production yellow without black core. Other source/archive/pick/display assertions remain. Focused multi-selection WARP passes both DPRs/projections; both affected full browser runs remain pending.",
-    "approvedMultiSelection": "PASS: focused canonical multi-selection helper at DPR1/2 and both projections; multi-selection-approved-smoke-warp.resources.json exit0,94.869 s, peak758722560 B. Full affected callbacks remain pending. Earlier non-WARP launcher ExecutionPolicy failure is retained separately."
+    "approvedMultiSelection": "PASS: focused canonical multi-selection helper at DPR1/2 and both projections; multi-selection-approved-smoke-warp.resources.json exit0,94.869 s, peak758722560 B. Full affected callbacks remain pending. Earlier non-WARP launcher ExecutionPolicy failure is retained separately.",
+    "finiteAcceptanceInventory": "Read-only audit produced28deduplicated actions/39feature requirements. Of111reader endpoints,1has current storedbuild acceptance,1stale and109absent;96y is an intermediate with currentbuild acceptance. Retained1361 IDs:2current,1stale,1358absent. Historical980 summary cannot be reused without original input-matching records. Ignored remaining-acceptance-actions.json and stored-acceptance-light-audit.json retain exact commands/scopes.",
+    "featureOwnerCountContract": "Explicit user approval applied: four fixture-specific live segment-count assertions now use data-path-gpu[0], retaining expected2/1/2/2 and every owner/locking/Delete/Undo/archive assertion. CPUmemory retains Undo/Redo accounting unchanged. Full96y rerun queued after94c.",
+    "readerInventoryPreflight": "PASS after exact96zzzzf/g metadata repair: all21 reader inventory gates and all5 queued gates verify433 external entries; zero stale inventories. All22 authoring tests/1361reconstructions/structure pass. Final713 runtime files remain identical at34d5e443."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -83,19 +86,18 @@
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
   "currentDefects": [
-    "Hierarchy Row.ids original targets and Row.members display membership are implemented; focused2/2 and current96y native831/831 pass. Current96y web/frame phases are running; canonical browser and final-endpoint native acceptance remain pending.",
+    "96y browser deletion assertion interprets retained Undo-memory path count3 as live path count1; current scene/GPU and original-owner picking are correct. Narrow source-backed harness correction under review; actual history-inclusive memory accounting remains unchanged.",
     "Both approved production-aligned harness corrections are applied; affected full browser checks remain pending.",
     "All80 Plane native RGBA pairs pass at their recorded sources; owner-pick, browser and complete display-family acceptance remain open.",
     "Historical fixture callbacks, remaining lifecycle and four route/live reload-grid combinations remain open.",
     "Nine owned chapter feature sets, complete coverage closure and final native/browser acceptance remain open. Combined-book review passes at the built source; latest hierarchy/progress metadata edits await docs rebuild."
   ],
   "onlyHeavy": {
-    "task": "current96y hierarchy four-phase verification: native831/831 passed; optimized web/frame running",
-    "log": "target/course-windows-20261018/historical-96y-hierarchy-verify.log",
-    "status": "running",
-    "rootSession": 54490
+    "task": "94c full canonical browser callback after approved additive-selection correction",
+    "manifest": "target/course-windows-20261018/historical-94c-approved-browser.resources.json",
+    "log": "target/course-windows-20261018/historical-94c-approved-browser.log"
   },
-  "next": "Finish current 96y four-phase verification and optimized bundle, then run its canonical ownership callback and affected complete browser checks. Continue with current final native/inventory and optimized WASM/browser acceptance, all four reload-grid combinations and the nine-chapter/twelve-entry queue. The built combined-book review passes; rebuild docs after the latest hierarchy/progress metadata edits. All 80 Plane native pairs are complete.",
+  "next": "Finish current94c full browser, then rerun96y with explicitly approved live-count correction. Matrix paired/browser witnesses are being prepared independently. Freshfinal native/build, fourreload/grid cases, readerendpoint proof and remainingchapterqueue follow.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -190,10 +192,10 @@
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Full-code checkpoint with measured scheduling, verified current lesson layouts, plain Plane pairs and integrated fetched upstream root/Wood sources pushed. Remaining release gates open.",
+    "status": "Pushed hierarchy original-target regression, both approved production-aligned harness corrections and all80Plane native records. Subsequent96y four-phase verification passes; browser found a history-inclusive memory assertion mismatch.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "7baf0e2e",
-    "parentCommit": "a6bc229",
+    "sessionCommit": "c05b15ac",
+    "parentCommit": "7b9555c",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
     "geminiHead": "a4ba2c22"
   },
@@ -238,6 +240,11 @@
       "target/course-windows-20261018/multi-selection-contract-review.json",
       "release/cad-selected-native-review.json"
     ],
-    "status": "Both corrections applied. Focused approved multi-selection WARP passes DPR1/2 and both projections; affected full browser runs pending."
+    "status": "Both corrections applied. Focused approved multi-selection WARP passes DPR1/2 and both projections; affected full browser runs pending.",
+    "additionalLiveCount": {
+      "userAnswer": "Apply the live-count correction",
+      "applied": "feature-original-pick.cjs four data-path-cpu to data-path-gpu replacements, expected2/1/2/2 unchanged",
+      "status": "Applied; full browser rerun queued."
+    }
   }
 }

@@ -1,0 +1,34 @@
+{
+  "status": "Explicitly approved and applied; full browser rerun pending",
+  "userAnswer": "Apply the live-count correction",
+  "applicationFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+  "callback": "../checks/browser/feature-original-pick.cjs",
+  "callbackBeforeSha256": "acb82fe78b8ba55403b4b68b24c1f2e4476549fb030cb5c226835b766363327f",
+  "callbackAfterSha256": "43f22bcfcab4cba83aa1d6e273cf9eb533e8e7417e2207025bc6e3cd5027c1ad",
+  "fixtureSha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+  "correction": "Four fixture-specific live segment-count assertions use data-path-gpu[0], retaining exact expected values and all behavior assertions.",
+  "expectedCounts": [
+    2,
+    1,
+    2,
+    2
+  ],
+  "retainedAssertions": [
+    "locked original cannot be selected",
+    "feature pixel selects original Element",
+    "highlight exists",
+    "Delete leaves one original",
+    "Undo restores two originals",
+    "saved archive reopens",
+    "generated pieces regenerate once"
+  ],
+  "failureObserved": {
+    "currentOriginals": 1,
+    "currentGpuSegments": 1,
+    "historyInclusiveCpuPaths": 3,
+    "explanation": "Live scene has one path; Undo retains the previous two-path scene. After Undo, Redo retains the one-path scene. This is correct retained-memory accounting."
+  },
+  "scope": "GPU field counts visible segment instances, not general path rows. This exact original fixture contains two one-segment generated lines. No memory diagnostic or original input bytes changed.",
+  "evidence": "../../../target/course-windows-20261018/historical-96y-hierarchy-failure.json",
+  "nativeAcceptance": "Current96y831/831 native tests and allfour build/frame phases pass; historical1059 result remains bound to a45."
+}

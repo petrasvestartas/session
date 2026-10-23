@@ -17,7 +17,10 @@
 - [x] Focused approved multi-selection WARP check passes at DPR1/2 and both projections; 94.869 s, peak 758,722,560 B.
 - [ ] Complete the affected full browser callbacks; focused helper success does not close fixture acceptance.
 - [x] Current 96y native phase passes 831/831 with zero failures or ignored tests (74.61 s test execution). The prior 830-test pass remains historical.
-- [ ] Finish current 96y optimized web/frame phases and canonical ownership callback; final-endpoint native acceptance remains separate.
+- [x] Current96y WASM, optimized web and inspected native WARP frame pass alongside831/831 native tests.
+- [x] The live-count correction has explicit approval and is applied: expected2/1/2/2 and all original-owner behavior assertions remain; Undo/Redo memory accounting is unchanged. [Source review](release/feature-owner-count-contract-review.json).
+- [x] All21 reader and5 queued inventory gates verify433 external entries after metadata-only repairs; zero stale inventories and identical final713 runtime files.
+- [ ] Complete the current96y original-owner browser rerun; final-endpoint native acceptance remains separate.
 - [ ] Historical fixture callbacks: 0/4 accepted in this pass. Preserve earlier failures and verify the current source and approved checkers.
 - [ ] Reload/grid browser combinations: 0/4 accepted.
 - [ ] Current integration chapter visual queue: chapters 11 and 13-20, nine feature sets through twelve canonical entry callbacks.

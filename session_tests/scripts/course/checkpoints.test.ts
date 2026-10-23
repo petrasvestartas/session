@@ -363,6 +363,13 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
     const files = expected(id);
+    assert.equal(fingerprint(files), '25d36bd703476561f0e2c024b16a28c352331b42cdd14b99785a12a0f07d553c');
+    const currentInputs = course().steps.find(step => step.id === '96zzzzg-own-shared-record-cap-pick-resources')!
+        .edits.find(edit => edit.path === 'src/current_inventory.json')!;
+    const archivedInputs = read(path.join(viewer, 'docs/journey/current-runtime-inputs-2026-10-14-cap-pick-resources.json'));
+    assert.equal(hash(archivedInputs), '18a81c3e4ab344ff247c7e182be386da254f27244709d4dd264a306236431476');
+    assert.equal(files[currentInputs.path], read(path.join(viewer, 'docs', currentInputs.snippet)));
+    files[currentInputs.path] = archivedInputs;
     assert.equal(fingerprint(files), '4508c4f44ff9f8f213a041f7425c0e36e09605ca55dc126f8f1c9b7a2b0a0f74');
     const ownership = course().steps.find(step => step.id === '96y-address-feature-pixels-to-original-cad-owners')!;
     const hierarchy = ownership.edits.filter(edit => ['src/hierarchy.rs', 'src/tree_panel.rs', 'src/layer_properties.rs'].includes(edit.path));
