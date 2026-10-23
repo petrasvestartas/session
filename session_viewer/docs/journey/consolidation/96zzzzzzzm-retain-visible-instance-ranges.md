@@ -1,10 +1,12 @@
 # 22.6 · Original display controls and remaining integration boundaries
 
-Control source families through semantic owners, draw standalone lines with the production ribbon, and retain visible instance ranges.
+Control what the viewer draws without changing the original document. This lesson connects family visibility, pen and glyph sizing, Plane frames and Matrix cells to their retained GPU owners.
 
 ## Ownership and data flow
 
-Keep visible instance/member ranges current when family toggles change; prepare/draw original point, line/curve, mesh-edge/control and CAD wire families through their actual lanes. A display control changes presentation, selection eligibility and dependent cache witnesses without recreating original sources. The final runnable learner checkpoint is `96zzzzzzzq-draw-original-cad-wire-curves`; the maintained-browser comparison `97-finish-with-the-maintained-browser-runtime` remains a separate reference, not a new lesson. The final checkpoint integrates the production Plane, glyph, sphere, Matrix and joined/vector programs with compact original-owner tables; native and browser acceptance are recorded separately.
+A display control changes presentation, selection eligibility and dependent caches while retaining the original sources. Keep visible instance and member ranges current when a family is hidden or shown. Each point, line, curve, mesh edge, control and CAD wire must still reach its own drawing lane and original selection owner.
+
+The final runnable learner checkpoint is `96zzzzzzzq-draw-original-cad-wire-curves`. It integrates the production Plane, glyph, sphere, Matrix and joined/vector programs with compact original-owner tables. The maintained-browser comparison `97-finish-with-the-maintained-browser-runtime` remains a separate reference. The supporting records below distinguish native results from browser acceptance, which remains incomplete.
 
 ## The maintained implementation
 
@@ -18,9 +20,13 @@ Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/rend
 
 Apply every input event to the document and camera in order. Request one animation frame to present the latest state after the previous GPU submission completes. A burst of wheel or resize events therefore changes the camera immediately while sharing one pending presentation. This keeps source geometry and its GPU buffers resident during navigation.
 
-The runtime owns that pending frame. Suspending the page cancels its callback while retaining one dirty frame for resumption; final disposal cancels it permanently. Late input and GPU completion callbacks cannot revive a disposed runtime. The native scheduler tests cover these transitions. The unchanged browser check now passes ordered input, one pending frame and final disposal without late submissions. Final pagehide stops before preview-upload work; a cached page retains cancellation state for resume. Identity-checked deferred teardown cannot stop a replacement runtime.
+The runtime owns that pending frame. Suspending the page cancels its callback while retaining one dirty frame for resumption; final disposal cancels it permanently. Late input and GPU completion callbacks cannot revive a disposed runtime. Stop final pagehide before preview uploads, retain cancellation state for a cached page, and check the runtime identity before deferred teardown.
+
+Native scheduler tests and the unchanged focused browser check pass ordered input, one pending frame and final disposal without late submissions. This focused result does not complete the remaining browser checks.
 
 ### Measured scheduling behavior
+
+**Supporting measurements.** Use these observations to check how scheduling behaves; they do not promise faster individual frames.
 
 The [source-bound WARP record](../release/runtime-performance-review.json) compares the same small two-triangle demo and default grid/UI at 900 by 760, DPR 1. It records one fresh process per version and six warm wheel interactions.
 
@@ -34,7 +40,7 @@ The [source-bound WARP record](../release/runtime-performance-review.json) compa
 
 The resize/wheel burst falls from 56 frames and 112 submissions to one frame and two submissions. Individual interaction timings do not consistently improve. This small observation set does not establish a steady-frame speedup, CAD performance or hardware FPS. Queue fence timings include submission, prior queue work and callback scheduling, rather than isolated GPU execution. The record retains raw observations, exact settings and source identities; the initial failed disposal run remains separate historical evidence.
 
-The learner library's normal native dependencies no longer include the maintained viewer. Reference comparisons use a development dependency, so the supplied comparison examples remain available without bringing the reference application into the learner's runtime.
+The learner library keeps the maintained viewer in a development dependency for reference comparisons. Its normal native runtime does not depend on that reference application.
 
 ## Reload and the shown grid
 
@@ -42,7 +48,7 @@ Prepare a replacement document separately, then publish its source into the curr
 
 Treat the shown base grid as a held world plane. `Construction Plane View` resolves the current view once; later view changes leave that plane fixed. Drawing tools can still use a view-following construction plane. Store the held frame in double precision and subtract the floating origin before converting its translation to GPU floats. Reapplying the same plane makes no GPU update, and an incomplete or cancelled plane command keeps the previous frame.
 
-The final implementation contains both behaviors. Four focused course native tests pass. The maintained viewer's actual GPU grid frames also agree exactly near the origin, at a 10¹²-unit world offset, and after returning. Removing the fractional offset changes 1,020 pixels. Deferred-load browser checks remain required before accepting this batch.
+**Supporting native evidence.** Four focused course tests pass. The maintained viewer's actual GPU grid frames also agree exactly near the origin, at a 10¹²-unit world offset, and after returning. Removing the fractional offset changes 1,020 pixels. Deferred-load browser checks remain required before accepting this batch.
 
 The two native 256 × 256 frames below show the fractional grid and its zero-offset control. The near, far and return fractional frames have identical image hashes; [source and settings provenance](../release/grid-native-review.json) records the original double-precision plane and anchored camera matrices. This is a grid precision check, separate from moving the browser camera during reload.
 
@@ -50,15 +56,15 @@ The two native 256 × 256 frames below show the fractional grid and its zero-off
 
 ![Native grid with the fractional origin removed shows the changed axis positions](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png)
 
-The [plain Plane comparison record](../release/plane-plain-native-review.json) adds 16 exact native full-frame pairs across DPR 1/2, one/four samples, sizes 50/100 and selection. This records an unobstructed source; covered and printed-fill controls remain separate.
-
 ## Pens, points and printed fills
 
 Keep presentation settings separate from source geometry. A pen width changes ribbon coverage; the production ribbon computes its AA analytically. The `aa` setting controls glyph feathering. Mesh edges and ordinary lines have separate visibility switches, while both keep original owner addresses for selection.
 
 Contact polygons use the production joined outline walk. Its packed face normal and contact colour tag give the boundary the same depth layer as the red fill. Reusing ordinary mesh-edge rows misses that relationship when projected-triangle storage falls back.
 
-An explicitly sized Point uses the production glyph's physical-pixel diameter: a width of 12 remains 12 pixels at DPR 1 and 2. Editable control handles retain their separate interaction sizing policy. Selection changes the Point colour without enlarging its disc. Eight native production/course comparisons match every pixel across DPR 1/2, one/four samples and selection; the [Point comparison record](../release/point-native-review.json) retains the original source, archive and GPU settings. Cloud scale, EDL and LOD remain cloud presentation settings, rather than edits to stored coordinates or point IDs.
+An explicitly sized Point uses the production glyph's physical-pixel diameter: a width of 12 remains 12 pixels at DPR 1 and 2. Selection changes its colour without enlarging its disc. Editable control handles retain their separate interaction sizing policy. Cloud scale, EDL and LOD change cloud presentation while retaining stored coordinates and point IDs.
+
+**Supporting Point evidence.** Eight native production/course comparisons match every pixel across DPR 1/2, one/four samples and selection. The [Point comparison record](../release/point-native-review.json) retains the original source, archive and GPU settings.
 
 ![Original Point keeps its authored physical-pixel diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-unselected-native-4x.png)
 
@@ -66,23 +72,37 @@ An explicitly sized Point uses the production glyph's physical-pixel diameter: a
 
 A mesh with exactly one zero line width is a printed fill. Draw its colour with read-only depth so it cannot hide an original line or take ownership of a physical triangle. Instance tint alpha multiplies the alpha emitted by the kernel's render vertices. Preserve the original source colour independently: the kernel currently emits opaque object-colour vertices even when that source colour stores alpha. Printed lettering has its own place after mesh spheres and before point glyphs.
 
-The mesh figures below use the actual production edge walk, facing words and pen rows. All eight native full-frame production/course comparisons match exactly across DPR 1/2, one/four samples and selection at the recorded original placement. With outlines disabled, selection retains the production yellow without adding a separate black contour. The [native comparison record](../release/mesh-native-review.json) contains the original bytes, pose, settings and source hashes; browser and subpart-picking acceptance remain separate.
+**Supporting mesh evidence.** The figures below use the actual production edge walk, facing words and pen rows. All eight native full-frame production/course comparisons match exactly across DPR 1/2, one/four samples and selection at the recorded original placement. With outlines disabled, selection retains the production yellow without adding a separate black contour. The [native comparison record](../release/mesh-native-review.json) contains the original bytes, pose, settings and source hashes; browser and subpart-picking acceptance remain separate.
 
 ![Unselected native mesh uses the production black border and blue fill](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png)
 
 ![Selected native mesh matches production yellow with outlines disabled](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png)
 
-The original Plane keeps its authored frame separate from its display half-size. A mirrored, nonuniformly scaled and rotated placement matches the actual production Plane across sixteen native comparisons: DPR 1/2, one/four samples, half-sizes 50/100 and selection. The [Plane comparison record](../release/plane-placed-native-review.json) retains source, archive, settings and complete frame results; plain, covered and printed-fill controls remain separate pending checks.
+The original Plane keeps its authored frame separate from its display half-size. Changing the display size must retain that frame; a mirrored, nonuniformly scaled placement must retain its placed axes.
+
+**Supporting Plane evidence.** The [plain Plane record](../release/plane-plain-native-review.json) and [placed Plane record](../release/plane-placed-native-review.json) each contain 16 exact native full-frame production/course pairs across DPR 1/2, one/four samples, half-sizes 50/100 and selection. Both retain original source bytes, archive, settings and complete frame results.
 
 ![Mirrored and nonuniformly scaled original Plane preserves its placed axes](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-native-4x.png)
 
 ![Selected original Plane retains the same placed frame at a larger display size](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png)
 
+**Supporting covered Plane evidence.** The [generated covered Plane record](../release/plane-generated-covered-native-review.json) adds 16 exact native production/course pairs with an opaque blue lid. The axes remain visible over the lid in both renderers. This records their matching display behavior; it does not establish covered-owner picking. Printed-fill controls and the full original-fixture matrix remain pending.
+
+![Unselected covered Plane axes remain visible over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-course.png)
+
+![Unselected covered Plane axes remain visible over the blue lid in production](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-production.png)
+
+![Selected covered Plane retains its axes over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-selected-course.png)
+
+![Selected covered Plane retains its axes over the blue lid in production](../../screenshots/journey/review/96zzzzzzzq-plane-covered-selected-production.png)
+
 ## Matrix cells and titles
 
 The final checkpoint also imports the current production Matrix program and its 16-word header plus three words per cell. Component-backed rows retain the original GUID, values and placement through archive reload. Cells run along +X and rows along -Y; nonzero values use procedural digits rounded to three decimals, while zero cells omit digits. Object picks select the whole Matrix, and selected borders use the production yellow. The world-plane title has its own text identity and lifetime, with no background plate.
 
-The full composed shader includes the maintained scene, clipping and ink-visibility code. Its provenance records the pushed Matrix source and the subsequent shared visibility correction. Native compilation and all five Matrix tests pass, including actual digit/selection rendering, original object picking, sample-count returns and archive identity. The unselected and selected one/four-sample frames were individually inspected. The complete browser path remains under verification. These are integration results, not final visual acceptance.
+The full composed shader includes the maintained scene, clipping and ink-visibility code. Keep the Matrix values and original ownership independent of these display programs.
+
+**Supporting Matrix evidence.** Provenance records the pushed Matrix source and the subsequent shared visibility correction. Native compilation and all five Matrix tests pass: actual digit/selection rendering, original object picking, sample-count returns and archive identity. The unselected and selected one/four-sample frames were individually inspected. The complete browser path remains under verification; these integration results do not complete visual acceptance.
 
 Actual native CPU/WARP fixture, 320 × 240: values \[-2, 1.2, 5; 0, 1.005, 5\], cell size 0.3, original placement (-0.3, 0.2, -0.4), fixed orthographic camera. The zero has no numeric glyph; the separate title has no plate. These are native renders, with [source/settings provenance](../release/matrix-native-review.json), and do not claim browser acceptance.
 
@@ -31768,7 +31788,7 @@ Record the actual pulled and locally corrected production source inventory at th
 <summary>Locate the existing block</summary>
 
 ```text
-assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),306);
+assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),312);
 ```
 
 </details>
@@ -45630,7 +45650,9 @@ pub fn verify(viewer:&std::path::Path,snapshot:&Snapshot)->Result<(),String>{
         if !recorded.insert((row.root.clone(),row.path.clone())){return Err("Duplicate current source record".into());}
         let root:&PathBuf=&roots.iter().find(|(name,_)|*name==row.root).ok_or("Unknown source root")?.1;
         let bytes=std::fs::read(root.join(&row.path)).map_err(|e|format!("{}: {e}",row.path))?;
-        if crate::origin::FileVersion::of(&bytes).hex()!=row.sha256{return Err(format!("Current source changed: {}/{}",row.root,row.path));}
+        let text=std::str::from_utf8(&bytes).ok().map(|text|text.replace("\r\n","\n"));
+        let bytes=text.as_ref().map_or(bytes.as_slice(),|text|text.as_bytes());
+        if crate::origin::FileVersion::of(bytes).hex()!=row.sha256{return Err(format!("Current source changed: {}/{}",row.root,row.path));}
     }
     if actual!=recorded{return Err("Current source file inventory changed".into());}
     Ok(())

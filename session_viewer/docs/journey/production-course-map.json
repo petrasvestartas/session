@@ -4,7 +4,7 @@
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
   "endpointStatus": "CAD visual/browser acceptance pending; Native/WASM prior evidence preserved, not rerun",
-  "courseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
+  "courseSha256": "13408659fb0576c6bc81812a2c21d13d3eb9fc4dcbd9cfae927a9ec5d8998876",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -69,7 +69,20 @@
         "34gc-messages"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source.",
+        "records": [
+          "release/runtime-performance-review.json"
+        ],
+        "remainingAcceptance": [
+          "Rebuild the final browser from the current fingerprint and rerun lifecycle, recovery and focused/unfocused Escape handoff.",
+          "Complete source-matching historical callbacks and inspect viewer frames; docs layout screenshots do not establish runtime acceptance."
+        ],
+        "chapterBrowserEntries": []
+      }
     },
     {
       "feature": "Mesh, materials, normals and lighting",
@@ -169,7 +182,41 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at the recorded translated orthographic pose; complete learner native suite passed.",
+        "records": [
+          "release/mesh-native-review.json"
+        ],
+        "remainingAcceptance": [
+          "Validate material, lighting, normal, clipping and opaque/transparent display controls against actual production.",
+          "Run chapter18 performance/render-quality and chapter20 arena callbacks at their own checkpoints, then inspect final feature frames."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 18,
+            "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+            "callback": "journey/checks/browser/performance.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Cloud octree, LOD, splats, depth and EDL",
@@ -237,7 +284,29 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Eight extracted splat/resolve pairs, eighteen actual 2,000,064-point LOD/placement pairs and twelve focused cloud/Line controls passed; these are bounded native results.",
+        "records": [
+          "../../target/course-windows-20261018/cloud-integrated-witness-run.json",
+          "../../target/course-windows-20261018/cloud-lod-production-pairs.json",
+          "../../target/course-windows-20261018/cloud-ink-production-after.json",
+          "consolidation/current-state.json"
+        ],
+        "remainingAcceptance": [
+          "Run the complete current cloud display-group and streaming controls, retaining resident counts and original owners.",
+          "Run cloud-points.cjs at 65c with its recursive checks and inspect current cloud/EDL feature images."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 11,
+            "checkpoint": "65c-cloud-point",
+            "callback": "journey/checks/browser/cloud-points.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Lines, joined strokes, widths and AA",
@@ -321,6 +390,27 @@
         "semanticChecksPassed": 4,
         "semanticChecksTotal": 5,
         "failed": "Coplanar section line disappears at production early surface-biased clipping; actual-production witness pending"
+      },
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Eight ordinary ribbon pairs and thirty-two actual resident Sheet ingress pairs matched full frames; broader joined/CAD browser acceptance is separate.",
+        "records": [
+          "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
+          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
+          "release/cad-selected-native-review.json"
+        ],
+        "remainingAcceptance": [
+          "Complete joined/headed/CAD width, AA, clipping, visibility and display-toggle controls against actual production.",
+          "Resolve the recorded selected CAD color contract conflict before claiming canonical cad-wire browser acceptance; preserve the assertion meanwhile."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 17,
+            "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+            "callback": "journey/checks/browser/caps.cjs"
+          }
+        ]
       }
     },
     {
@@ -371,7 +461,21 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Eight original Point and eight Mesh corrected translated-pose pairs match full RGBA across DPR1/2, samples1/4 and selection.",
+        "records": [
+          "release/point-native-review.json",
+          "release/mesh-native-review.json"
+        ],
+        "remainingAcceptance": [
+          "Validate marker/normal/glyph/sphere controls, depth occlusion and original-owner picks beyond the recorded orthographic pose.",
+          "Inspect current browser feature images after the unchanged recursive marker/normal/pick checks pass."
+        ],
+        "chapterBrowserEntries": []
+      }
     },
     {
       "feature": "BRep tessellation, trims, holes, borders and NURBS isolines",
@@ -428,7 +532,27 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "One selected canonical wire archive matches actual production full RGBA; original archive and course Object picks are checked. Production picks and control-point checks are excluded.",
+        "records": [
+          "release/cad-selected-native-review.json"
+        ],
+        "remainingAcceptance": [
+          "Resolve the black-core/yellow-fringe browser contract conflict: actual selected ordinary wire has zero black and372 yellow whole-frame pixels in this exact case.",
+          "Complete wire/mixed/trimmed-hole/isoline and mirrored/nonuniform family controls, source ownership and unchanged cad-wire browser acceptance.",
+          "Run the chapter15 network callback and inspect interior curve continuity rather than relying on aggregate pixel counts."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 15,
+            "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+            "callback": "journey/checks/browser/network.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Clipping, cap winding and source sections",
@@ -487,7 +611,41 @@
         "96zzzzi-adapt-incremental-slots-to-pulled-draws"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Complete native suite passed; retained staged cap/section fixtures do not independently establish full production extraction parity.",
+        "records": [
+          "consolidation/current-state.json"
+        ],
+        "remainingAcceptance": [
+          "Run caps.cjs at88ad with inherited clipping/section checks and inspect bores, holes, winding and cap color/pick ownership.",
+          "Compare actual production pass order, clip policy and selected/placed source sections on current final frames."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 17,
+            "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+            "callback": "journey/checks/browser/caps.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Selection, integer IDs and async picks",
@@ -564,7 +722,49 @@
         "96zzzzzza-match-physical-camera-defaults-and-limits"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Corrected Point/Mesh and selected-wire native records include bounded course Object ownership checks. The focused browser failure exposed an Escape handoff defect; authored fix and replay pass, browser retest pending.",
+        "records": [
+          "release/point-native-review.json",
+          "release/mesh-native-review.json",
+          "release/cad-selected-native-review.json",
+          "consolidation/current-state.json"
+        ],
+        "remainingAcceptance": [
+          "Pass unchanged gpu-pick-view and its enclosing historical callbacks after rebuilding the scoped Escape fix.",
+          "Run feature-original-pick.cjs at96y for feature IDs, then verify stale/cropped/rebased requests and final multi-owner selection with actual images."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 19,
+            "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+            "callback": "journey/checks/browser/inventory.cjs"
+          },
+          {
+            "chapter": 19,
+            "checkpoint": "96y-address-feature-pixels-to-original-cad-owners",
+            "callback": "journey/checks/browser/feature-original-pick.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Shared instances, packed vertices and GPU arenas",
@@ -632,7 +832,51 @@
         "96zzzzi-adapt-incremental-slots-to-pulled-draws"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Native suite passed; known normalized slot lookup correspondence remains scoped source evidence, not complete arena parity.",
+        "records": [
+          "consolidation/current-state.json"
+        ],
+        "remainingAcceptance": [
+          "Run nested-placements.cjs at70d, slot-pipeline.cjs at96zzo and arena-empty.cjs at96zzzzx on their own checkpoints.",
+          "Inspect mirrored/nonuniform owners, packed draw ranges, reuse/release and restored CAD after Undo; an empty terminal frame does not prove feature rendering."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 13,
+            "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+            "callback": "journey/checks/browser/nested-placements.cjs"
+          },
+          {
+            "chapter": 19,
+            "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+            "callback": "journey/checks/browser/inventory.cjs"
+          },
+          {
+            "chapter": 19,
+            "checkpoint": "96y-address-feature-pixels-to-original-cad-owners",
+            "callback": "journey/checks/browser/feature-original-pick.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Text, glyphs and drawing sheets",
@@ -700,7 +944,31 @@
         "76-copy-exact-planar-curve-definitions"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Thirty-two actual resident Sheet ingress pairs passed projection, placement, DPR, samples and selection. They do not exercise network streaming or all text shaping.",
+        "records": [
+          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json"
+        ],
+        "remainingAcceptance": [
+          "Run the inherited sheets/drawing checks through the chapter13/14 entry callbacks and inspect the actual Sheet state before later scene replacement.",
+          "Verify text shaping, glyph scale, placements, clipping, original queries and retained resource lifetime separately."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 13,
+            "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+            "callback": "journey/checks/browser/nested-placements.cjs"
+          },
+          {
+            "chapter": 14,
+            "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+            "callback": "journey/checks/browser/freeform.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Outlines, depth pyramids and ambient occlusion",
@@ -771,7 +1039,31 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Native suite passed and selected source matches remain recorded; no complete current browser GTAO/outline acceptance is inferred.",
+        "records": [
+          "consolidation/current-state.json"
+        ],
+        "remainingAcceptance": [
+          "Run chapter11 cloud/outline and chapter18 performance/render-quality entry callbacks.",
+          "Inspect actual outline/ambient-depth/GTAO inputs and multisample pass outputs with production-bound feature images."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 11,
+            "checkpoint": "65c-cloud-point",
+            "callback": "journey/checks/browser/cloud-points.cjs"
+          },
+          {
+            "chapter": 18,
+            "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+            "callback": "journey/checks/browser/performance.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Finite visibility and triangle tiles",
@@ -822,7 +1114,43 @@
         "96zzzzi-adapt-incremental-slots-to-pulled-draws"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract.",
+        "records": [
+          "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
+          "../../target/course-windows-20261018/cloud-ink-production-after.json",
+          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json"
+        ],
+        "remainingAcceptance": [
+          "Run chapter17 caps and chapter20 slot/arena callbacks, including hidden/reenabled families and original source picks.",
+          "Verify finite sag/tolerance, triangle addressing, clipping, coplanar depth and tiled visibility against production across affected families."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 17,
+            "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+            "callback": "journey/checks/browser/caps.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Transparency and Xray",
@@ -883,7 +1211,42 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Native opacity/printed-fill tests are covered by the full suite; the retained printed-lid Plane comparison is one bounded exact case.",
+        "records": [
+          "release/plane-original-covered-review.json",
+          "consolidation/current-state.json"
+        ],
+        "remainingAcceptance": [
+          "Compare transparent materials, Xray, locked/source selection, copied objects and clipping using actual production fixtures.",
+          "Run current chapter18/20 feature callbacks and inspect blend/depth behavior; the printed-lid case does not prove opaque occlusion."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 18,
+            "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+            "callback": "journey/checks/browser/performance.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "History, hierarchy, tools and persistence",
@@ -973,7 +1336,47 @@
         "96za-address-original-controls-with-family-keys"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Complete native suite passed. Existing original archive checks retain source identity; the new Escape authoring handoff is structure-tested but browser acceptance remains pending.",
+        "records": [
+          "consolidation/current-state.json",
+          "release/cad-selected-native-review.json"
+        ],
+        "remainingAcceptance": [
+          "Run freeform, network, current-commands and inventory entry callbacks at their declared checkpoints with recursive prerequisites.",
+          "Inspect edit/Undo/Redo, hierarchy, original save/open and measurements before Escape removes their annotations; preserve menu/rename/number input ownership."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 14,
+            "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+            "callback": "journey/checks/browser/freeform.cjs"
+          },
+          {
+            "chapter": 15,
+            "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+            "callback": "journey/checks/browser/network.cjs"
+          },
+          {
+            "chapter": 16,
+            "checkpoint": "85ay-exercise-current-original-commands-together",
+            "callback": "journey/checks/browser/current-commands.cjs"
+          },
+          {
+            "chapter": 19,
+            "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+            "callback": "journey/checks/browser/inventory.cjs"
+          },
+          {
+            "chapter": 19,
+            "checkpoint": "96y-address-feature-pixels-to-original-cad-owners",
+            "callback": "journey/checks/browser/feature-original-pick.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Streaming and GPU resource lifetime",
@@ -1042,7 +1445,36 @@
         "96zzzzi-adapt-incremental-slots-to-pulled-draws"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Measured browser scheduling preserves ordered input and coalesces a56-event burst to one frame with zero idle frames; lifecycle/disposal callback passed on63acaf79.",
+        "records": [
+          "release/runtime-performance-review.json"
+        ],
+        "remainingAcceptance": [
+          "Run measured-file-reader.cjs at96zzq and arena-empty.cjs at96zzzzx for their declared file/resource contracts.",
+          "Rerun final browser cancellation, generation ownership and disposal after the Escape change; complete deferred-load latest-camera cases separately."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 20,
+            "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+            "callback": "journey/checks/browser/slot-pipeline.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+            "callback": "journey/checks/browser/measured-file-reader.cjs"
+          },
+          {
+            "chapter": 20,
+            "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+            "callback": "journey/checks/browser/arena-empty.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Camera, original Plane and reload behavior",
@@ -1120,7 +1552,31 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Sixteen placed and sixteen plain original Plane pairs match full RGBA; one unchanged historical printed-lid case also matches. Maintained/course grid native precision and two Windows pairs pass.",
+        "records": [
+          "release/plane-placed-native-review.json",
+          "release/plane-plain-native-review.json",
+          "release/plane-original-covered-review.json",
+          "release/grid-native-review.json",
+          "release/grid-windows-pair-review.json"
+        ],
+        "remainingAcceptance": [
+          "Run all four maintained/course by route/live reload-grid combinations using the built maintained bundle and source-matching learner bundle.",
+          "Validate opaque-covered and full printed-fill Plane controls across DPR, samples, sizes and selection; the single original printed lid is not opaque occlusion evidence.",
+          "Inspect current camera/grid feature frames and preserve latest pose during deferred reload."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 14,
+            "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+            "callback": "journey/checks/browser/freeform.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Frame resources, multisampling and performance",
@@ -1188,7 +1644,27 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "All five categories are measured on the same small demo: cold load, input-to-frame, warm submit-to-GPU-fence, uploads/allocations and idle. Coalescing assertions pass; this is not a steady-frame or hardware speedup claim.",
+        "records": [
+          "release/runtime-performance-review.json"
+        ],
+        "remainingAcceptance": [
+          "Run the distinct95f canonical performance/cache-invalidation callback and inspect its feature output.",
+          "Rebuild and verify the current final browser; retain the63acaf79 measurement as historical evidence instead of relabeling it current.",
+          "Complete declared final MSAA/display-family and browser gates; no large CAD/cloud performance conclusion follows from the demo."
+        ],
+        "chapterBrowserEntries": [
+          {
+            "chapter": 18,
+            "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+            "callback": "journey/checks/browser/performance.cjs"
+          }
+        ]
+      }
     },
     {
       "feature": "Matrix cells, procedural digits and independent world titles",
@@ -1241,7 +1717,20 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "target/course-windows-20261018/matrix-accepted-build.json; matrix-accepted-tests.json; matrix-accepted-rendered/review-grid.png"
+      "evidence": "target/course-windows-20261018/matrix-accepted-build.json; matrix-accepted-tests.json; matrix-accepted-rendered/review-grid.png",
+      "currentVerification": {
+        "status": "partial",
+        "integration": "#/currentIntegration",
+        "acceptedScope": "Five focused Matrix native tests and four individually inspected frames cover actual cells/digits, selection, Object picks at1/4/1 samples, original archive/title and shader provenance.",
+        "records": [
+          "release/matrix-native-review.json"
+        ],
+        "remainingAcceptance": [
+          "Complete actual production/course Matrix full-frame pairs, independent title placement and display controls.",
+          "Run and inspect current Matrix browser interactions, picks and archive roundtrip; native images alone do not close browser acceptance."
+        ],
+        "chapterBrowserEntries": []
+      }
     }
   ],
   "lessons": [
@@ -20992,6 +21481,82 @@
       "course": [],
       "features": [],
       "basis": "no verified per-module course provenance link yet (not a feature-absence claim)"
+    },
+    {
+      "production": "src/app/walk/matrix.rs",
+      "sha256": "20bbee6ae44db1f8fee23ca919d3d535f224cf291f4c64d2258ede5f8bd7f62d",
+      "classification": "staged",
+      "course": [
+        "src/production_matrix.rs"
+      ],
+      "features": [
+        "Matrix cells, procedural digits and independent world titles"
+      ],
+      "basis": "Matrix component walker/defaults have a course owner; complete behavior and placement parity remain unverified.",
+      "hashBaseline": "current-viewer-2026-10-23.json"
+    },
+    {
+      "production": "src/engine/gpu/matrices.rs",
+      "sha256": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de",
+      "classification": "staged",
+      "course": [
+        "src/production_matrix_gpu.rs"
+      ],
+      "features": [
+        "Matrix cells, procedural digits and independent world titles"
+      ],
+      "basis": "Matrix row packing and GPU preparation have a course owner; complete layout/control parity remains unverified.",
+      "hashBaseline": "current-viewer-2026-10-23.json"
+    },
+    {
+      "production": "src/shaders/matrix.wgsl",
+      "sha256": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620",
+      "classification": "staged",
+      "course": [
+        "src/production_matrix.wgsl"
+      ],
+      "features": [
+        "Matrix cells, procedural digits and independent world titles"
+      ],
+      "basis": "Production Matrix shader has an extracted course counterpart; full production/course frame and browser acceptance remain unverified.",
+      "hashBaseline": "current-viewer-2026-10-23.json"
+    },
+    {
+      "production": "src/engine/gpu/splat/cloud_witness.rs",
+      "sha256": "10b59c7dccdd2e4cec910cd79c5ed63a9afa8353e86b84657c647d840554d862",
+      "classification": "staged",
+      "course": [],
+      "features": [
+        "Cloud octree, LOD, splats, depth and EDL"
+      ],
+      "basis": "Native actual-production comparison helper, not a learner runtime module; eight bounded pairs do not establish complete cloud parity.",
+      "hashBaseline": "current-viewer-2026-10-23.json"
+    },
+    {
+      "production": "src/engine/gpu/splat/cloud_witness/lod.rs",
+      "sha256": "4356bca21aa40df54efb546d48f6d489177893ca7a0dc810a9158f4905f1e2e8",
+      "classification": "staged",
+      "course": [],
+      "features": [
+        "Cloud octree, LOD, splats, depth and EDL"
+      ],
+      "basis": "Native production LOD preparation witness; eighteen bounded large-source pairs do not establish all cloud controls or browser parity.",
+      "hashBaseline": "current-viewer-2026-10-23.json"
+    },
+    {
+      "production": "src/selftest/stroke_witness.rs",
+      "sha256": "ba5124762568cdcfe6a6cca79f7e74b501fd94237b4afd948ecb3087d341d580",
+      "classification": "staged",
+      "course": [],
+      "features": [
+        "Lines, joined strokes, widths and AA",
+        "Markers, mesh dots and normals",
+        "BRep tessellation, trims, holes, borders and NURBS isolines",
+        "Text, glyphs and drawing sheets",
+        "Camera, original Plane and reload behavior"
+      ],
+      "basis": "Native actual-production family/Sheet witness, not a learner runtime module; corrected initial GPU rebase and camera setup underpin the listed bounded pairs.",
+      "hashBaseline": "current-viewer-2026-10-23.json"
     }
   ],
   "classificationMeaning": {
@@ -21028,10 +21593,81 @@
   },
   "currentIntegration": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+    "fingerprint": "64e13d5f3f0fdfbbf7a75b7da0c0d47d93dbbd5ae33dc1a81f80f3b59ea86bd9",
     "files": 713,
-    "recordedAt": "2026-10-23T10:09:33.393Z",
-    "scope": "Current native source1059/1059 PASS; optimized WASM/browser63acaf79 and five small-scene performance categories PASS. Historical callbacks,reload/grid,chapter feature evidence and final release gates remain open.",
-    "state": "consolidation/current-state.json"
+    "recordedAt": "2026-10-23T14:20:39.193464+00:00",
+    "courseSha256": "13408659fb0576c6bc81812a2c21d13d3eb9fc4dcbd9cfae927a9ec5d8998876",
+    "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
+    "scope": "Source and authoring metadata reconciled; bounded native and historical browser evidence retained with their original fingerprints. No feature row has complete final acceptance.",
+    "state": "consolidation/current-state.json",
+    "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
+    "authoring": {
+      "status": "passed",
+      "tests": 22,
+      "testsPassed": 22,
+      "checkpoints": 1361,
+      "readerLessons": 111,
+      "currentViewerSourceFiles": 307,
+      "referenceHistories": 43,
+      "archivedFinalFiles": 351,
+      "scope": "Authoring/reconstruction/structure only; docs layout screenshots are not viewer feature acceptance."
+    },
+    "native": {
+      "status": "passed-at-recorded-source",
+      "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+      "passed": 1059,
+      "failed": 0,
+      "ignored": 0,
+      "publicStatus": "consolidation/current-state.json",
+      "resources": "../../target/course-windows-20261018/integrated-full-native-source-freeze.json",
+      "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
+      "elapsedSeconds": 1468.642,
+      "peakJobCommitBytes": 1480597504,
+      "currentDelta": "Later compiled-code changes are WASM-only src/browser.rs and src/panel.rs. src/current_inventory.json additionally refreshes the maintained Trunk hook hash. Retain full native run at a45; focused native inventory verification remains pending."
+    },
+    "browser": {
+      "lastMeasuredFingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+      "performanceRecord": "release/runtime-performance-review.json",
+      "performanceCategoriesMeasured": 5,
+      "scope": "Small two-triangle demo, Windows WARP/Chrome145, one fresh process per version, six warm wheel samples. Submission-to-fence is GPU completion evidence, not compositor/FPS timing; no broad speedup claim.",
+      "currentFinalAcceptance": "pending source-matching optimized bundle, unchanged callbacks and individually inspected feature images",
+      "historical94c": "New-source four-phase verification in progress: WASM,800 native tests and optimized web reported passed; frame phase and subsequent unchanged browser callback require their own final records. The prior Escape-related browser failure is retained."
+    },
+    "maintainedOptimizedBuild": {
+      "status": "passed",
+      "resources": "../../target/course-windows-20261018/maintained-grid-web-tools.resources.json",
+      "elapsedSeconds": 155.692,
+      "peakJobCommitBytes": 2014339072,
+      "scope": "Maintained optimized web build only; four reload/grid browser combinations remain pending."
+    },
+    "productionSourceInventory": {
+      "path": "current-viewer-2026-10-23.json",
+      "sha256": "d1b034d79e4060c543ba4ce817098c26409c611d1ad7b0933f50ed911f8ee031",
+      "files": 307,
+      "mappedPaths": 307,
+      "historicalRowsPreserved": 301,
+      "addedRows": 6,
+      "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
+    },
+    "featureStatusCounts": {
+      "complete": 0,
+      "partial": 18,
+      "open": 0,
+      "meaning": "partial means implemented/source-accounted with bounded or aggregate evidence, while one or more declared acceptance gates remain open; it does not mean all feature behavior passed."
+    },
+    "remainingChapterBrowserQueue": {
+      "path": "../../target/course-windows-20261018/remaining-chapter-browser-queue.json",
+      "chapters": 9,
+      "entryCallbacks": 12,
+      "status": "planned, not acceptance",
+      "requirements": "Each entry needs its own checkpoint build signature, optimized bundle, original sample, unchanged recursive callback pass and individual feature-image review. Do not substitute the final runtime for historical layouts."
+    },
+    "remainingFinalGates": [
+      "Focused native inventory check after the Trunk metadata refresh.",
+      "Current final optimized WASM/browser and full declared canonical callbacks, retaining all failures and contract conflicts.",
+      "Four maintained/course by route/live reload-grid browser combinations.",
+      "Twelve entry callbacks for nine queued chapters, plus remaining final feature-specific controls/pairs and individual visual reviews listed per row.",
+      "Final source/inventory/coverage and publication review; authored22 chapters and307 accounted production files are not complete feature acceptance."
+    ]
   }
 }

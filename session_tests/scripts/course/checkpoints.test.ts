@@ -356,14 +356,14 @@ test('field renames replace whole references without changing longer names', () 
     assert.throws(() => edited(source, edit, 'self.targets.depth\n'), /two field references/);
 });
 
-test('the compact target-owner lesson preserves its accepted source apart from the scoped Escape repair', () => {
+test('the compact target-owner lesson preserves its accepted source apart from scoped Escape and inventory edits', () => {
     const id = '96zzzzzzv-reuse-coherent-frame-targets';
     const record = JSON.parse(read(path.join(viewer, 'docs/journey/visual-review.json'))).steps[id];
     const step = course().steps.find(step => step.id === id)!;
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
     const files = expected(id);
-    assert.equal(fingerprint(files), 'b087e7f4308e7a45b5c209792acfc250414fe928a3ed4844ce7aa65137021625');
+    assert.equal(fingerprint(files), '342f6fe2efc602f6af619374424d0bbf704ee25742d96ac86d5466f3648a2041');
     const escape = course().steps.find(step => step.id === '85as-register-current-names-views-and-command-aliases')!
         .edits.filter(edit => ['src/panel.rs', 'src/browser.rs'].includes(edit.path));
     assert.equal(escape.length, 2);
@@ -371,6 +371,19 @@ test('the compact target-owner lesson preserves its accepted source apart from t
         const after = read(path.join(viewer, 'docs', edit.snippet));
         files[edit.path] = edited(files[edit.path], {...edit, before: after}, edit.before!);
     }
+    const inventory = course().steps.find(step => step.id === '96h-prove-current-source-grammar-and-explicit-differences')!;
+    const audit = inventory.edits.filter(edit => edit.path === 'src/source_audit.rs');
+    assert.equal(audit.length, 1);
+    const after = read(path.join(viewer, 'docs', audit[0].snippet));
+    files[audit[0].path] = edited(files[audit[0].path], {...audit[0], before: after}, audit[0].before!);
+    const snapshot = inventory.edits.find(edit => edit.path === 'src/current_inventory.json')!;
+    const count = (text: string) => JSON.parse(text).files.filter((row: {root: string}) => row.root === 'viewer').length;
+    const previousCount = count(snapshot.before!);
+    const currentCount = count(read(path.join(viewer, 'docs', snapshot.snippet)));
+    assert.deepEqual([previousCount, currentCount], [306, 312]);
+    const testPath = 'src/inventory_tests.rs';
+    const assertion = (value: number) => `assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),${value});`;
+    files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);

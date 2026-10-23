@@ -8,11 +8,14 @@
 - [x] Current native source: 1,059/1,059 tests pass. The later browser-only correction leaves native code unchanged.
 - [x] Current learner WASM and optimized browser builds pass.
 - [x] Five performance categories measured on the same small demo; ordered input, idle behavior and final disposal browser checks pass. [Measurements and limits](release/runtime-performance-review.json).
-- [x] Current docs build, complete SVG diagram, desktop/phone layout and linked evidence checked in visible Chrome.
-- [ ] Historical fixture callbacks: 0/4 accepted in this pass; first checkpoint verification running.
+- [x] Earlier docs/SVG/desktop/phone evidence retained at its recorded source; latest combined docs build passes after Gemini and Escape edits.
+- [x] Portable Windows maintained build and optimized bundle pass; existing Bash dispatch retained for Linux/macOS.
+- [x] Escape-selection handoff repaired and focused actual-browser repeated Point picking after zoom passes; all 22 authoring tests and 1,361 reconstructions pass.
+- [ ] Inspect the latest combined book in visible Chrome before final docs acceptance.
+- [ ] Historical fixture callbacks: 0/4 accepted in this pass; the first checkpoint passes all four build/native phases. Its full callback reaches a conflicting Escape/Shift-click helper; the prepared correction awaits the user choice.
 - [ ] Reload/grid browser combinations: 0/4 accepted.
 - [ ] Current integration chapter visual queue: chapters 11 and 13-20, nine sets through twelve canonical entry callbacks.
-- [ ] Remaining Plane occlusion/print, CAD, joined/vector and display-control acceptance. Native Point/Mesh, plain/placed Plane and resident Sheet pairs retain their declared partial scopes.
+- [ ] Remaining original Plane controls/browser, CAD, joined/vector and display-control acceptance. Native Point/Mesh, plain/placed Plane and resident Sheet pairs retain their declared partial scopes.
 - [ ] Final release gates: 0/5 closed; complete runnable-lesson, feature and browser acceptance remains required.
 
 The checkpoint boxes below retain earlier inventory state. Current acceptance additionally requires matching source, fixtures and checker; aggregate test totals do not mark those boxes done. [Current manifest](consolidation/current-state.json) records exact evidence and remaining batches.
@@ -51,7 +54,7 @@ Every lesson opens with one outcome paragraph, at most 45 words. The main page g
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records how many checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
+**Study estimates:** the consolidated lessons teach substantial capabilities and retain their smaller implementation checkpoints. Historical typing estimates exclude reading and experiments. The final production integration spans several rendering families; its retained checkpoint is not a one-hour task. Use the grouped sections and source references rather than treating the older character-budget splits as the reading structure. Build and browser acceptance remain source-specific.
 
 - [x] Audit the added/changed code in all 503 authored checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.

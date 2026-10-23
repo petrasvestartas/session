@@ -53,13 +53,19 @@
     "fixtures": "Four generated deterministic original inputs and native source checks pass. Historical browser callbacks0/4; first94c verification running.",
     "windowsTooling": "PASS: guarded argument transport,root completion/descendant cleanup,docs lock,and memory override regressions. Two CPUs/one heavy job;2GiB default,4GiB builds,6GiB software-browser override. Windows has no separate zero-swap quota.",
     "currentCheckpointInventory": "Legacy79/1361 browser checklist counts require source/checker refresh. Aggregate native1059 and performance5/5 do not mark individual checkpoints accepted.",
-    "historical94cVerification": "PASS: source-matching WASM,native800/800,optimized web and native frame checks. Actual native PNG individually inspected; sample.pb generated at own checkpoint. Scripted browser callback pending.",
+    "historical94cVerification": "PASS afterEscapefix: currentsource3f02a2d8, fresh WASM/native800/800/optimizedweb/nativeWARPframe; actualPNGinspected, own sample regenerated. Fullcanonical browser callback running with assertionsunchanged.",
     "publicProgress": "PASS: progress-docs-build118.13s/1977106432B; progress-visible verifies desktop+390px done/left checklists and release scope,all4screenshots individually inspected,manifest5categories,zero document overflow/errors. Superseded checks archived.",
     "cadSelectionDiagnostic": "PASS: exact canonical wire archivec5ae22c6 and byte-exact embedded PB816e9f38,actual production/course selected RGBA0differences,0black/372yellow pixels. One DPR1/sample1 case,source/archive/Object-pick checks pass. Frozen black-core assertion unchanged; user contract choice pending.",
     "docsAfterGemini": "Combined docs rebuilt by actual maintained portable prehook after Gemini a4ba2c22 and Escape authoring changes. Fresh visible-browser inspection remains queued; previous images retain previous-source scope.",
-    "historical94cBrowser": "FAILED, preserved: after file/recovery/stroke/joined/Point/curve/color/normal/grid phases pass, gpu-pick-view second Point click times out. Focused exact helper confirms selected origin gizmo handles the click as ScaleUniform; GPU submissions stay1, no pending read. Failure JSON/PNG and focused log retained; canonical assertions unchanged.",
+    "historical94cBrowser": "Failed after 977.311 s, peak 948,834,304 B, in multi-selection-view.cjs:27 (one owner versus two). The original GPU-pick failure and later stale/subpart checks passed. Failure log, JSON and PNG are preserved; no canonical assertions changed.",
     "maintainedWindowsHook": "PASS: portableNode Windows docs prehook and maintained optimized bundle; maintained-grid-web-tools.resources.json exit0. Cargo lock unchanged; matching wasm-bindgen0.2.128 fetched. Linux/macOS dispatch retains Bash but not executed here.",
-    "escapeAuthoring": "PASS:22/22 authoring tests,1361 checkpoint replays/full structure and43 reference histories. Scoped85as focusedpanel/unconsumedcanvas Action::Escape handoff preserved in96zzzzzr full replacement. Browser retest pending; canonical assertions unchanged."
+    "escapeAuthoring": "PASS:22/22 authoring tests,1361 checkpoint replays/full structure and43 reference histories. Scoped85as focusedpanel/unconsumedcanvas Action::Escape handoff preserved in96zzzzzr full replacement. Browser retest pending; canonical assertions unchanged.",
+    "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
+    "historicalMetadataBackport": "22/22 authoring tests and full structure pass after the dated inventory, 312-entry count and LF-normalized audit updates at 96h/96v/96y. All 713 final files remain identical at 64e13d5f. Historical Opacity behavior and browser assertions remain unchanged; fresh execution is queued.",
+    "productionCoverageAccounting": "All 307 production source modules are accounted for; the original 301 records remain preserved. Each of 18 feature rows lists its partial evidence and remaining checks. All 111 lessons and 1,361 checkpoint mappings remain intact.",
+    "nativeReuseAudit": "Source audit passes: two changed modules compile only for WASM; the sole native metadata delta is the Trunk inventory hash. Native library/shader/dependency inputs match; all 433 declared external entries verify. Retain the 1,059-test run at a45. Fresh native compilation and the inventory test are queued.",
+    "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
+    "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -70,18 +76,18 @@
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
   "currentDefects": [
-    "Confirmed historical Escape handoff defect: focused panel swallows prepared Escape and unconsumed canvas branch cancels gesture without dispatching Action::Escape. Minimal scoped authoring fix at85as and downstream96zzzzzr being implemented; canonical assertions unchanged.",
+    "The frozen multi-selection helper sends Escape before each additive Shift-click, then expects the prior selection to remain. Production and the corrected runtime clear selection on Escape. The full 94c callback fails with one selected object instead of two; a one-line setup correction awaits the user choice.",
     "Frozen CAD browser assertion expects black core/yellow fringe with outlines off; actual production and tutorial both produce yellow only. Exact fixture proof and proposed one-assertion patch prepared; user choice pending.",
     "Matched Plane/CAD/joined/sheet ingress, controls and selected-family visual acceptance remain open",
     "Historical fixture callbacks, remaining startup/feature lifecycle and route/live camera-grid acceptance remain open",
     "Current chapter-specific feature images, coverage closure, checkpoint/tooling gates and final docs review remain open"
   ],
   "onlyHeavy": {
-    "task": "source-matching historical94c verification after Escape fix",
-    "session": 36757,
-    "logs": "target/course-checks/94c-prove-the-original-comparison-and-inspect-differences-*.log"
+    "task": "original covered Plane 16-case native comparison",
+    "session": 56323,
+    "manifest": "target/course-windows-20261018/plane-original-covered-complete.resources.json"
   },
-  "next": "Finish94c four-phase verification, regenerate its own sample and rerun unchanged browser callback; then fixed final learner/reload-grid/Plane and chapter queues.",
+  "next": "Complete the original Plane matrix, then verify isolated 96y ownership, fresh final native inventory/WASM, reload-grid and remaining chapter checks. Continue independent work while the two frozen-harness choices are pending.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -178,8 +184,8 @@
     "branch": "codex/viewer-course-checkpoints-20261023",
     "status": "Full-code checkpoint with measured scheduling, verified current lesson layouts, plain Plane pairs and integrated fetched upstream root/Wood sources pushed. Remaining release gates open.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "ab8e45c2",
-    "parentCommit": "96a3d3d",
+    "sessionCommit": "f4063490",
+    "parentCommit": "a89c5ba",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
     "geminiHead": "a4ba2c22"
   },
@@ -199,5 +205,17 @@
     "tutorialPreservation": "All Gemini and Codex commits/worktree edits preserved; no reset or clean. Root merge has no conflicts.",
     "nativeDependencyIdentity": "Wood entire rust/,src/proto/,data/,generated/ trees unchanged from tested07c57552. Incoming14commits update C++/tests/examples/docs."
   },
-  "historicalWindowsState": "history/2026-10-23-before-progress-reconciliation.json"
+  "historicalWindowsState": "history/2026-10-23-before-progress-reconciliation.json",
+  "pendingHarnessChoices": [
+    {
+      "check": "multi-selection-view.cjs",
+      "proposal": "Send Escape only before non-additive picks; preserve every selection assertion.",
+      "patch": "target/course-windows-20261018/multi-selection-contract-proposal.patch"
+    },
+    {
+      "check": "cad-wire.cjs",
+      "proposal": "Align one outlines-off selection assertion with the exact production result: yellow pixels and no black core.",
+      "patch": "target/course-windows-20261018/cad-selection-contract-proposal.patch"
+    }
+  ]
 }

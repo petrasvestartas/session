@@ -1,0 +1,115 @@
+{
+  "status": "PASS: source audit only; fresh execution pending",
+  "scope": "1059 tests remain bound to a45. This audit supports bounded native retesting; it is not a fresh full-suite run or browser/feature acceptance.",
+  "recordedAt": "2026-10-23T14:46:08.639153+00:00",
+  "links": {
+    "state": "../consolidation/current-state.json",
+    "sourceMap": "../production-course-map.json",
+    "pathBase": "Stage/artifact paths are relative to session_viewer. Ignored target evidence is local."
+  },
+  "observedSource": {
+    "sessionHead": "253ec420f35db5e6de28b0b0a820342b1637997f",
+    "rootHead": "a89c5ba7222b4d843aa9d12101e336bb884a1a6f",
+    "note": "Heads are context, not a clean-tree claim; application fingerprints identify compared source."
+  },
+  "originalFullNativeRun": {
+    "applicationFingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+    "passed": 1059,
+    "failed": 0,
+    "ignored": 0,
+    "elapsedSeconds": 1468.642,
+    "peakJobCommitBytes": 1480597504,
+    "resources": {
+      "path": "target/course-windows-20261018/integrated-full-native-source-freeze.json",
+      "sha256": "50a430ff2a313a5907abf2ed38640d5e22e8f828e7a7c5dde7624d3bb72af205"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/integrated-full-native-source-freeze.log",
+      "sha256": "73c29e219e0db64842cfcca136b6727d436ff954e75b8d5a247ea133ae3699e2",
+      "encoding": "UTF-16LE BOM",
+      "resultLine": 1063
+    }
+  },
+  "comparison": {
+    "frozenStage": "target/course-endpoint-integrated-final",
+    "freshStage": "target/course-endpoint-escape-handoff",
+    "freshApplicationFingerprint": "64e13d5f3f0fdfbbf7a75b7da0c0d47d93dbbd5ae33dc1a81f80f3b59ea86bd9",
+    "canonicalFiles": 713,
+    "matchesExpectedModel": true,
+    "unchangedCanonicalFiles": 710,
+    "changedFiles": [
+      "src/browser.rs",
+      "src/panel.rs",
+      "src/current_inventory.json"
+    ],
+    "compiledCodeScope": "a45 to63acaf79 changes browser pagehide disposal ordering;63acaf79 to64e13d5f adds panel/canvas Escape handoff. Both modules are WASM-only. No additional native runtime/shader/dependency delta found.",
+    "moduleGates": [
+      {
+        "path": "src/lib.rs",
+        "attributeLine": 257,
+        "attribute": "#[cfg(target_arch = \"wasm32\")]",
+        "moduleLine": 258,
+        "module": "mod browser;"
+      },
+      {
+        "path": "src/lib.rs",
+        "attributeLine": 300,
+        "attribute": "#[cfg(target_arch = \"wasm32\")]",
+        "moduleLine": 301,
+        "module": "mod panel;"
+      }
+    ]
+  },
+  "nativeMetadata": {
+    "file": "src/current_inventory.json",
+    "onlyStructuralDelta": {
+      "record": "viewer/Trunk.toml",
+      "pointer": "/files/2/sha256",
+      "before": "e36cf10ae1b9029bdcaa6b55468bef4dab8a3211db52763dcfc1e7521bebb9f8",
+      "after": "b597b1d06c7d8bbfcdf80a16d71de27bc3aa2f20c10a57742ac58d3cb027742a"
+    },
+    "consumer": "src/source_audit.rs:6 includes current_inventory.json",
+    "externalEntriesVerified": 433,
+    "externalMismatches": 0,
+    "hashPolicy": "All433 viewer/kernel/wood entries match disk: valid UTF-8 uses CRLF-to-LF normalization; invalid UTF-8 stays raw."
+  },
+  "physicalStageExceptions": {
+    "cargo": "Frozen Cargo.toml has eight extra diagnostic examples. Removing only that suffix reproduces a45; dependency/non-example tables match.",
+    "examples": [
+      "vector-witness",
+      "cad-witness",
+      "cloud-lod-witness",
+      "canonical-precise-sample",
+      "plane-witness",
+      "glyph-witness",
+      "grid-witness",
+      "sheet-witness"
+    ],
+    "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+    "lockStatus": "Both stages and canonical94-Cargo.lock are byte-identical.",
+    "historicalPpm": "Non-Windows current-grid-physical-{256,512}-2026-10-15.ppm headers change CRLF to LF; pixels match. Windows tests use separate October23 fixtures from viewer cwd; both raw hashes match.",
+    "frozenOnlyFiles": [
+      "assets/course-boxes.pb",
+      "assets/pb/course-boxes.pb",
+      "assets/pb/view_mixed_teapot.pb",
+      "assets/text/README.md"
+    ]
+  },
+  "reproduction": {
+    "audit": "target/course-windows-20261018/native-final-reuse-boundary.json",
+    "auditSha256": "af1898e9e3c5c8820f0497017675a6bfd23b3bf97676dc5be3b19f97a38057c9",
+    "contents": "Contains713 hashes, exact diffs, cfg gates, inventory delta and asset exceptions. Compare fresh files to expected(final ID); use canonical Cargo.toml with frozen files to reproduce a45.",
+    "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves"
+  },
+  "freshExecution": {
+    "nativeCompile": "pending",
+    "inventoryTest": {
+      "status": "pending",
+      "filter": "inventory_tests::all_declared_current_rust_sources_and_external_dependencies_match"
+    },
+    "optimizedWasm": "pending",
+    "browser": "pending; includes affected lifecycle/Escape and final canonical callbacks",
+    "fullNativeRun": "Not rerun or rebound. Retain original1059/1059 evidence at a45."
+  },
+  "limits": "Toolchain/driver/environment identity and unrecorded inputs are outside this audit. Subsequent source changes require a new comparison."
+}

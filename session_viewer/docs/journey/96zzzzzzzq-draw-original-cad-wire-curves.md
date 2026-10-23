@@ -24335,7 +24335,7 @@ Record the actual pulled and locally corrected production source inventory at th
 <summary>Locate the existing block</summary>
 
 ```text
-assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),306);
+assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),312);
 ```
 
 </details>
@@ -38197,7 +38197,9 @@ pub fn verify(viewer:&std::path::Path,snapshot:&Snapshot)->Result<(),String>{
         if !recorded.insert((row.root.clone(),row.path.clone())){return Err("Duplicate current source record".into());}
         let root:&PathBuf=&roots.iter().find(|(name,_)|*name==row.root).ok_or("Unknown source root")?.1;
         let bytes=std::fs::read(root.join(&row.path)).map_err(|e|format!("{}: {e}",row.path))?;
-        if crate::origin::FileVersion::of(&bytes).hex()!=row.sha256{return Err(format!("Current source changed: {}/{}",row.root,row.path));}
+        let text=std::str::from_utf8(&bytes).ok().map(|text|text.replace("\r\n","\n"));
+        let bytes=text.as_ref().map_or(bytes.as_slice(),|text|text.as_bytes());
+        if crate::origin::FileVersion::of(bytes).hex()!=row.sha256{return Err(format!("Current source changed: {}/{}",row.root,row.path));}
     }
     if actual!=recorded{return Err("Current source file inventory changed".into());}
     Ok(())
