@@ -1,5 +1,7 @@
 #- [ ] Current publication requires merging59 late-chapter introductions and20 teaching figures removed by active external schematic edits. Prior source-bound reviews remain historical; preserve Argo's new diagrams and restore Matrix teaching additively after handoff. [Integration record](release/concurrent-teaching-integration-review.json).
 
+- [x] Final CAD canonical native frame passes at97d:640x480, blue surfaces/black outlines and white corner assertions;42.738s,peak2,405,543,936B. Image individually reviewed. [Frame proof](release/final-cad-native-frame-review.json). Browser acceptance remains separate.
+
  The complete draft lesson checklist
 
 **Course status: 22 authored chapters, 111 reader lessons and 1,361 preserved checkpoints. Source-bound checkpoint acceptance is being refreshed.**
@@ -52,7 +54,7 @@ The [WARP wait record](release/warp-browser-wait-review.json) preserves the meas
 
 - [x] Restored authored introductions in 59 lessons (chapters 11–22), preserving formatted code and diagrams. Lesson 22.6 includes 15 restored figures and five accepted native-control figures. [Restoration proof](release/late-chapter-teaching-restoration.json). Docs build and scoped browser review pass. [Visible review](release/late-chapter-visible-review.json).
 
-- [x] Compiler-only lane: 9/101 endpoints and 18/202 phases pass; 92 endpoints remain. Native tests/examples are typechecked but not executed. [Shared compiler proof](release/reader-compilation-review.json).
+- [x] Compiler-only lane: 17/101 endpoints and 34/202 phases pass; 92 endpoints remain. Native tests/examples are typechecked but not executed. [Shared compiler proof](release/reader-compilation-review.json).
 
 ### Active validation queue
 

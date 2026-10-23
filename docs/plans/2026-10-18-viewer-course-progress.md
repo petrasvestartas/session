@@ -1,5 +1,7 @@
 #- [ ] Current publication requires merging59 late-chapter introductions and20 teaching figures removed by active external schematic edits. Prior source-bound reviews remain historical; preserve Argo's new diagrams and restore Matrix teaching additively after handoff. [Integration record](../../session_viewer/docs/journey/release/concurrent-teaching-integration-review.json).
 
+- [x] Final CAD canonical native frame passes at97d:640x480, blue surfaces/black outlines and white corner assertions;42.738s,peak2,405,543,936B. Image individually reviewed. [Frame proof](../../session_viewer/docs/journey/release/final-cad-native-frame-review.json). Browser acceptance remains separate.
+
  Session Viewer course: progress and remaining work
 
 Updated 2026-10-23 on Windows. This is the current execution plan, not a declaration that the viewer course is finished.
@@ -378,4 +380,4 @@ Reader compilation is a separate part of the existing integration proof group:10
 The [WARP wait record](../../session_viewer/docs/journey/release/warp-browser-wait-review.json) preserves the measured 58.331-second pick, unchanged assertions and the opt-in launcher setting. The helper itself is tracked in `session_tests/scripts/course/warp-browser-timeout.cjs`.
 
 
-- [x] Compiler-only lane: 9/101 endpoints and 18/202 phases pass; 92 endpoints remain. Native tests/examples are typechecked but not executed. [Shared compiler proof](../../session_viewer/docs/journey/release/reader-compilation-review.json).
+- [x] Compiler-only lane: 17/101 endpoints and 34/202 phases pass; 92 endpoints remain. Native tests/examples are typechecked but not executed. [Shared compiler proof](../../session_viewer/docs/journey/release/reader-compilation-review.json).

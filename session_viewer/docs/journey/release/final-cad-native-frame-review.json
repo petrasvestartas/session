@@ -1,0 +1,44 @@
+{
+  "status": "PASS: canonical native frame and explicit root visual review",
+  "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+  "manifest": {
+    "path": "target/course-windows-20261018/final-97d-frame-20261023T210857035Z/manifest.json",
+    "sha256": "6d30ff19439d842d4a806b22854aeea12c6c732ee3fd94bc71b467fa825ee6ec"
+  },
+  "frameSource": {
+    "path": "target/course-final-original-owners/examples/frame.rs",
+    "sha256": "7417b4fd08dc117e3cb218f059ac21a9edf113edb88ce503f4225b7ef5a76b80"
+  },
+  "frame": {
+    "path": "final-cad-native-frame.png",
+    "sha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+    "ppmSha256": "e4e0c94686318e302b4bcc174057c94a241f5661a5d0815773e104d52bfa082c",
+    "pixelsSha256": "3b8ae722f6a01af3e12f2133f52c634c7dbc783103438971e15ce1b09f61cf43",
+    "width": 640,
+    "height": 480,
+    "inspection": "Root explicitly supplied this exact PNG SHA after individual visual inspection"
+  },
+  "binary": {
+    "path": "target/course-build/x86_64-pc-windows-msvc/debug/examples/frame.exe",
+    "sha256": "433eeb797c8923c7b0d21726b30457b241225e2e3118c9dd38abeacbdecc7c7b"
+  },
+  "adapter": "Native frame adapter: AdapterInfo { name: \"Microsoft Basic Render Driver\", vendor: 5140, device: 140, device_type: Cpu, device_pci_bus_id: \"\", driver: \"10.0.26100.9711\", driver_info: \"\", backend: Dx12, subgroup_min_size: 4, subgroup_max_size: 4, transient_saves_memory: false }",
+  "phaseEvidence": {
+    "target/course-checks/final-97d-frame-20261023T210857035Z-canonical.log": "76f0b5d34eae7976b50935e5a3b5f3c76c1eef725acb395d05712b9eefd26cd8",
+    "target/course-checks/final-97d-frame-20261023T210857035Z-canonical.resources.json": "6d638a19d757ace323a97c7b59e28a97d3c5494fce851ac231c2ea3ad1e10ff9",
+    "target/course-checks/final-97d-frame-20261023T210857035Z-canonical.command.json": "04f07df1ad9976370d16757c4f1f4821b401a84b75a730a3f21379928d766873"
+  },
+  "resources": {
+    "elapsedSeconds": 42.738,
+    "peakJobCommitBytes": 2405543936,
+    "processors": 2,
+    "jobCommitLimitBytes": 4294967296
+  },
+  "actualAssertions": [
+    "Procedural original boxes/cylinders with isometric fitted camera and enabled outlines; one global outline usage.",
+    "Blue surface pixels >5000; black outline pixels >400; both corner probes white; canonical GPU readback completes before saved output."
+  ],
+  "scope": "Only the declared 640x480 canonical 94-comparison native-frame phase at current713-source checkpoint. Existing1060 native suite and optimized web proofs remain separately bound. This does not accept the full browser callback, every CAD/display control or the whole checkpoint."
+}

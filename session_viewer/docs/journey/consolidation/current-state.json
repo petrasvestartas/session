@@ -14,6 +14,7 @@
   "runtimeChanged": true,
   "fullPlanComplete": false,
   "checks": {
+    "finalCadNativeFrame": "PASS: canonical640x480 native frame at97d, exactPNG individually reviewed; release/final-cad-native-frame-review.json. Full browser and whole-checkpoint acceptance remain separate.",
     "finalChapterAudit": "PASS: 21 lessons, 197 checkpoints, 4840 original code blocks, 2346 snippet includes, 247 relative links",
     "navigation": "PASS: 111 lessons in contents/daily plan; 1360 aliases and all local links retained",
     "courseTools": "PASS: latest 22/22 authoring tests. Runtime, browser and final release acceptance remain separate.",
@@ -108,14 +109,13 @@
     "Matrix and Camera are2/18 complete;16 features remain partial and global release0/5. CAD baseline5 does not accept all named controls/browser checks; Original finite Camera/Plane criteria are complete; required76d browser remains globally pending."
   ],
   "onlyHeavy": {
-    "task": "Full canonical94c browser replay after three approved input corrections",
-    "rootSession": 28524,
+    "task": "Final CAD canonical browser on verified97d bundle",
     "status": "running",
-    "sourceProof": "target/course-windows-20261018/canonical-94c-approved-measure-focus-v1/browser-phase-proof.json",
-    "log": "target/course-windows-20261018/canonical-94c-approved-measure-focus-v1-browser.log",
+    "session": 66887,
     "memoryLimitMiB": 6144,
     "processors": 2,
-    "timeoutSeconds": 7200
+    "timeoutSeconds": 7200,
+    "proof": "target/course-windows-20261018/canonical-final-cad-97d-browser-only-v2/browser-phase-proof.json"
   },
   "next": "Finish the current focused 94c tail before another long canonical replay. Preserve the unchanged frozen callbacks; use the recorded opt-in WARP context budget without changing explicit operation timeouts. Retain accepted native ink controls 14, CAD 5, Plane 80, Matrix and reload 4. Continue the named remaining callbacks and exact unsupported controls; defer combined-book handoff while Gemini edits.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
@@ -240,7 +240,7 @@
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Native1060 and scoped teaching proofs pushed through68af002a; current94c replay is running. New external prose/schematic edits require additive teaching integration before final docs acceptance.",
+    "status": "Checkpoints pushed through78fdb650. Full94c ended in Split-tool timeout; acceptance pending. Final CAD frame now running; Argo teaching integration remains pending.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
     "sessionCommit": "df4b50a4ff2558cdc29dd3c8985098f74a78ef3d",
     "parentCommit": "5511e8b",
@@ -349,6 +349,13 @@
     }
   },
   "validationQueue": {
+    "finalCadNativeFrame": {
+      "status": "PASS scoped canonical native frame; individually reviewed",
+      "record": "release/final-cad-native-frame-review.json",
+      "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+      "reviewedPngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+      "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
+    },
     "status": "Active proportional queue; supersedes unconditional all-history execution proposals.",
     "basis": "Saved consolidation plan section4: focused semantic/affected visual checks after runtime changes; full suite at integration boundaries/final freeze; prose-only docs/link/build/visible-page checks; reuse only matching relevant inputs.",
     "historicalPlanCorrection": "The old ignored remaining-acceptance-actions.json attributed Compile every runnable checkpoint from its canonical snippets to the user as an exact quote. That sentence is absent from the saved plan; it and the1361fresh four-phase/1173full-suite expansion were agent-generated. Preserve the old record as historical, not an active mandate.",
@@ -534,13 +541,13 @@
     "finiteAudit": "target/course-windows-20261018/remaining17-finite-feature-audit.json",
     "latest94cBrowserAttempt": {
       "status": "FAILED; preserved, not accepted",
-      "seconds": 2171.988,
-      "peakJobCommitBytes": 1682427904,
-      "location": "journey/checks/browser/sheets.cjs:33",
-      "reason": "Timed out waiting for Select Edge metadata history after a sheet-axis click. No browser page errors were reported. Earlier rendering/picking/hierarchy/cloud prerequisites completed; full enclosing callback remains unaccepted.",
-      "evidence": "target/course-windows-20261018/canonical-94c-phase-native-v1-browser.log",
-      "diagnosticLimit": "Canonical catch captures the original page after the failing child context closes. Its image does not show the failing child-page click; focused child-state capture is next.",
-      "phaseReuse": "Successful native800/frame and unchanged WASM/web evidence remains valid; no rebuild is required for this browser diagnosis."
+      "seconds": 2603.825,
+      "peakJobCommitBytes": 1837105152,
+      "location": "journey/checks/browser/split.cjs:7",
+      "reason": "First line-click did not yield one selected owner. Snapshot retains Control pick mode and two original lines; no JS errors. Focused reproduction is being prepared before proposing correction.",
+      "evidence": "target/course-windows-20261018/canonical-94c-approved-measure-focus-v1/browser-phase-proof.json",
+      "failureSnapshot": "target/course-windows-20261018/canonical-94c-approved-measure-focus-v1/failed-split.json",
+      "phaseReuse": "Native800/frame and original WASM/web retain their qualified scopes; no renderer rebuild required for browser diagnosis."
     },
     "acceptedNativeInkControls": {
       "record": "release/ink-family-controls-native-review.json",
@@ -555,7 +562,7 @@
     "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
     "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs",
     "readerCompilerProof": {
-      "status": "Compiler-only lane:9/101 endpoints,18/202 phases passed",
+      "status": "Compiler-only lane:17/101 endpoints,34/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
@@ -563,9 +570,9 @@
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 9,
-      "remainingEndpoints": 92,
-      "successfulPhases": 18,
+      "successfulEndpoints": 17,
+      "remainingEndpoints": 84,
+      "successfulPhases": 34,
       "record": "docs/journey/release/reader-compilation-review.json"
     },
     "latest94cTailAttempt": {
@@ -604,6 +611,28 @@
       "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
       "accepted": "Separate shaping, glyph scale, placements, clipping, original queries and retained-resource-lifetime assertions in the recorded1060-suite.",
       "remaining": "Required chapter13/14 source-specific callbacks and actual Sheet-state image inspection; all other unproved control/material/browser and global obligations remain."
+    },
+    "previous94cBrowserAttempts": [
+      {
+        "status": "FAILED; preserved, not accepted",
+        "seconds": 2171.988,
+        "peakJobCommitBytes": 1682427904,
+        "location": "journey/checks/browser/sheets.cjs:33",
+        "reason": "Timed out waiting for Select Edge metadata history after a sheet-axis click. No browser page errors were reported. Earlier rendering/picking/hierarchy/cloud prerequisites completed; full enclosing callback remains unaccepted.",
+        "evidence": "target/course-windows-20261018/canonical-94c-phase-native-v1-browser.log",
+        "diagnosticLimit": "Canonical catch captures the original page after the failing child context closes. Its image does not show the failing child-page click; focused child-state capture is next.",
+        "phaseReuse": "Successful native800/frame and unchanged WASM/web evidence remains valid; no rebuild is required for this browser diagnosis."
+      }
+    ],
+    "splitInputCandidate": {
+      "status": "prepared-tested-not-applied",
+      "record": "target/course-windows-20261018/split-control-candidate-v1/report.json",
+      "seconds": 41.194,
+      "peakJobCommitBytes": 787517440,
+      "originalAssertions": "All retained, passDPR1/2; twoPNGs individuallyrootreviewed",
+      "correction": "Add Select Object immediately after Split setup Close to release inherited Control mode.",
+      "baseline": "Original full run failed firstlineclick withControlmode; no redundant baseline rerun.",
+      "limit": "Focusedcandidateonly. Frozen canonical Split remains unchanged pending explicit userapproval."
     }
   },
   "concurrentTeachingIntegration": {

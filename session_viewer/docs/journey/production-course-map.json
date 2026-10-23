@@ -21666,6 +21666,13 @@
     "tutorialFilesChangedByPull": 0
   },
   "currentIntegration": {
+    "finalCadNativeFrame": {
+      "status": "PASS scoped canonical native frame; individually reviewed",
+      "record": "release/final-cad-native-frame-review.json",
+      "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+      "reviewedPngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+      "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
+    },
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
     "fingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
     "files": 713,
@@ -22097,7 +22104,7 @@
     },
     "docsCurrent": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
     "readerCompilerProof": {
-      "status": "Compiler-only lane:9/101 endpoints,18/202 phases passed",
+      "status": "Compiler-only lane:17/101 endpoints,34/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
@@ -22105,9 +22112,9 @@
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 9,
-      "remainingEndpoints": 92,
-      "successfulPhases": 18,
+      "successfulEndpoints": 17,
+      "remainingEndpoints": 84,
+      "successfulPhases": 34,
       "record": "docs/journey/release/reader-compilation-review.json"
     },
     "lateChapterTeaching": {
