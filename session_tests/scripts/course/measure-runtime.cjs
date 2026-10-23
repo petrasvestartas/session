@@ -30,13 +30,25 @@ async function main() {
             await page.addInitScript(() => {
                 const counts={frames:0,submits:0,completed:0,buffers:0,textures:0,writeBytes:0}, queues=new Set();
                 const timing={lastCompletedAt:0,lastPresentedAt:0};
+                const fences={interaction:null,limit:256,records:[],dropped:0};
                 const submit=GPUQueue.prototype.submit, write=GPUQueue.prototype.writeBuffer;
                 const buffer=GPUDevice.prototype.createBuffer, texture=GPUDevice.prototype.createTexture;
                 const current=GPUCanvasContext.prototype.getCurrentTexture;
                 GPUQueue.prototype.submit=function(commands){queues.add(this);counts.submits++;
-                    const result=submit.call(this,commands);this.onSubmittedWorkDone().then(()=>{
+                    let record;
+                    if(fences.interaction!==null){
+                        if(fences.records.length<fences.limit){record={interaction:fences.interaction,
+                            submission:counts.submits,frame:counts.frames,textureAcquiredAt:timing.lastPresentedAt,
+                            submittedAt:performance.now(),submitReturnedAt:null,completedAt:null,error:null};
+                            fences.records.push(record);
+                        }else fences.dropped++;
+                    }
+                    const result=submit.call(this,commands);
+                    if(record)record.submitReturnedAt=performance.now();
+                    this.onSubmittedWorkDone().then(()=>{
                         counts.completed++;timing.lastCompletedAt=performance.now();
-                    },()=>{});return result;};
+                        if(record)record.completedAt=timing.lastCompletedAt;
+                    },error=>{if(record)record.error=String(error);});return result;};
                 GPUQueue.prototype.writeBuffer=function(...args){const data=args[2];
                     const element=data.BYTES_PER_ELEMENT||1;
                     counts.writeBytes+=args[4]===undefined ? data.byteLength-(args[3]||0)*element : args[4]*element;
@@ -44,7 +56,7 @@ async function main() {
                 GPUDevice.prototype.createBuffer=function(...args){counts.buffers++;return buffer.apply(this,args);};
                 GPUDevice.prototype.createTexture=function(...args){counts.textures++;return texture.apply(this,args);};
                 GPUCanvasContext.prototype.getCurrentTexture=function(...args){counts.frames++;timing.lastPresentedAt=performance.now();return current.apply(this,args);};
-                window.__runtimeMeasure={counts,queues,timing};
+                window.__runtimeMeasure={counts,queues,timing,fences};
             });
             const started=Date.now();
             await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
@@ -55,7 +67,7 @@ async function main() {
                 return {vendor:info.vendor,architecture:info.architecture,isFallbackAdapter:info.isFallbackAdapter};});
             assert.deepEqual(adapter,{vendor:'microsoft',architecture:'warp',isFallbackAdapter:true});
             const measured=await page.evaluate(async()=>{
-                const {counts,queues,timing}=window.__runtimeMeasure, canvas=document.querySelector('canvas');
+                const {counts,queues,timing,fences}=window.__runtimeMeasure, canvas=document.querySelector('canvas');
                 const frame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
                 const bounded=async promise=>{let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{
                     timer=setTimeout(()=>reject(Error('GPU/frame measurement timed out')),15000);
@@ -78,11 +90,32 @@ async function main() {
                     clientX:rect.left+rect.width/2,clientY:rect.top+rect.height/2,bubbles:true,cancelable:true}));
                 const interaction=[];
                 for(const delta of [50,-20,40,-40,20,-50]) {
+                    fences.interaction=interaction.length+1;
                     const frames=counts.frames,start=performance.now();wheel(delta);
                     while(counts.frames===frames){if(performance.now()-start>15000)throw Error('No input frame');await frame();}
                     await settled();interaction.push({inputToPresentationStartMs:timing.lastPresentedAt-start,
                         inputToGpuCompletionMs:timing.lastCompletedAt-start,settledMs:performance.now()-start});
                 }
+                fences.interaction=null;
+                const frameGroups=new Map();
+                for(const record of fences.records){const key=`${record.interaction}:${record.frame}`;
+                    if(!frameGroups.has(key))frameGroups.set(key,[]);frameGroups.get(key).push(record);}
+                const frameFences=[...frameGroups.values()].map(records=>{
+                    const complete=records.every(record=>record.completedAt!==null&&record.error===null);
+                    const submittedAt=Math.min(...records.map(record=>record.submittedAt));
+                    const completedAt=complete?Math.max(...records.map(record=>record.completedAt)):null;
+                    return {interaction:records[0].interaction,frame:records[0].frame,submissions:records.length,
+                        submittedAt,completedAt,submissionToFenceCallbackMs:complete?completedAt-submittedAt:null};
+                });
+                const durations=frameFences.map(frame=>frame.submissionToFenceCallbackMs).filter(ms=>ms!==null).sort((a,b)=>a-b);
+                const n=durations.length;
+                const warmInteractionFrameFences={submissionLimit:fences.limit,submissions:fences.records,
+                    droppedSubmissions:fences.dropped,frames:frameFences,completeFrames:n,
+                    incompleteFrames:frameFences.length-n,
+                    summaryMs:n&&fences.dropped===0?{min:durations[0],max:durations[n-1],
+                        median:(durations[Math.floor((n-1)/2)]+durations[Math.floor(n/2)])/2,
+                        mean:durations.reduce((sum,ms)=>sum+ms,0)/n}:null,
+                    scope:'Six settled warm wheel interactions only. Frames group submissions by the current getCurrentTexture counter. Duration is first submit invocation to latest observed onSubmittedWorkDone callback for that group; includes CPU submission, prior queue work and callback scheduling, not isolated GPU execution or compositor presentation. Summary excludes incomplete frames and is omitted if capture overflows.'};
                 const before={...counts},start=performance.now();
                 for(let i=0;i<48;i++)window.dispatchEvent(new Event('resize'));
                 for(const delta of [50,-20,40,-40,20,-50])wheel(delta);
@@ -94,7 +127,7 @@ async function main() {
                 if(JSON.stringify(initialGeometry)!==JSON.stringify(finalGeometry))throw Error('View-only input changed geometry counters');
                 if(!finalMatrix.every((value,i)=>Math.abs(value-initialMatrix[i])<=1e-9*Math.max(1,Math.abs(initialMatrix[i]))))throw Error('Balanced input changed final pose');
                 if(idle.frames||idle.submits)throw Error('Idle runtime submitted frames');
-                return {initial,initialGeometry,initialMatrix,finalGeometry,finalMatrix,interaction,burst,idle,
+                return {initial,initialGeometry,initialMatrix,finalGeometry,finalMatrix,interaction,warmInteractionFrameFences,burst,idle,
                     timingScope:'Presentation start is getCurrentTexture; completion is the GPU queue fence, not a compositor timestamp'};
             });
             const entry={label,url,adapter,coldLoadReadyWallMs,...measured,errors};

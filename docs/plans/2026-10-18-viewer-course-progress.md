@@ -254,3 +254,19 @@ Latest verification: all 29 original failing tests have now passed in focused ru
 - [x] Portable pull launcher safety:8isolated Bash/cmd cases pass (help,invalid arguments,dirty worktree,unpublished commit). Every case preserves HEAD and payload.
 - [ ] Complete learner native suite running from correct fixture cwd:integrated-full-native-source-freeze,1800s/6GiB,twoCPUs,one test thread. No acceptance before completion.
 - [ ] Fresh strict docs build and browser review are required after Gemini and current visual/prose edits; previous successful docs evidence remains bound to its earlier inputs.
+
+
+### Clean current learner native suite - completed
+
+- [x] All1,059learner native tests PASS;zero failures andzero ignored tests. Guard1468.642seconds,peak1,480,597,504bytes,twoCPUs,one test thread. Evidence:integrated-full-native-source-freeze.json/log. Runtime/model fingerprinta45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c,713files.
+- [x] Allfive latest Matrix tests andthree compact Matrix owner tests pass in this full run. Previously failing fixture/owner checks also pass in the complete run.
+- [ ] Combined docs build is running after Gemini sections1-10 and current11-22 visual/prose updates.
+- [ ] Final release gates remain open: learner WASM/optimized rebuild,full browser/feature/performance/reload and runnable-checkpoint acceptance are not implied by the native pass.
+
+
+### Current source freeze and combined browser review
+
+- [x] Current 713-file a45 source passes native 1059/1059, locked WASM (25.384s), and optimized browser build (190.879s). No native failures remain.
+- [x] Combined Gemini and Codex docs build passes. Prior 26 route/layout captures were individually reviewed; the subsequent shared SVG parser fix passes five focused tests and a fresh build. Visible Chrome confirms the complete first diagram, current Matrix, decoded Point/Plane images and linked evidence records.
+- [x] The EXACT original 2223-byte covered Plane input passes its retained case with zero RGBA differences (6.955s); distinct generated controls remain separate.
+- [ ] Performance baseline optimized build running, followed by paired measured categories. Four historical fixture callbacks, four reload/grid combinations, nine owned chapter visual sets, remaining display controls and full runnable-checkpoint/release acceptance remain open.

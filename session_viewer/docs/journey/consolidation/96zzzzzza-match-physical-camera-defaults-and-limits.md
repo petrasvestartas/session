@@ -4,7 +4,7 @@ Match maintained camera rays, finite grid depth reach and CSS wheel navigation w
 
 ## Ownership and data flow
 
-Keep target, eye/up, distance, world-up, projection and free-canvas frame as explicit camera state. Compute world rays directly from camera axes and target-plane scale, with parallel orthographic rays and perspective rays from the eye. Cached world bounds and the finite construction grid determine far reach; grid shader generates physical lines and BRG axes in the chosen world frame. Wheel input changes navigation state and framed projection without document history. Reload/latest-camera retention and base-grid stability remain a later implementation acceptance batch.
+Keep target, eye/up, distance, world-up, projection and free-canvas frame as explicit camera state. Compute world rays directly from camera axes and target-plane scale, with parallel orthographic rays and perspective rays from the eye. Cached world bounds and the finite construction grid determine far reach; grid shader generates physical lines and BRG axes in the chosen world frame. Wheel input changes navigation state and framed projection without document history. This checkpoint introduces navigation. The final integration in lesson22.6 adds latest-camera publication and a held world-grid plane; focused native checks pass, while the four browser reload/grid combinations remain pending.
 
 ## The maintained implementation
 

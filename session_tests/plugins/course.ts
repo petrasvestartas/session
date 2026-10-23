@@ -11,6 +11,7 @@ import { codeTheme, renderCode } from '../src/codeTheme';
 import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
 import { readingBook } from '../src/courseBook';
+import { svgHtml } from './svg';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SESSION = path.resolve(HERE, '../..');
@@ -295,6 +296,7 @@ export default function coursePlugin(): Plugin {
 
     const md = new Marked({ gfm: true });
     md.use({
+      tokenizer: { html: svgHtml },
       renderer: {
         heading(this: any, { tokens, depth }: Tokens.Heading) {
           const inner = this.parser.parseInline(tokens);

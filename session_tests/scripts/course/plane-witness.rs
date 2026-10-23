@@ -48,9 +48,11 @@ fn ppm(path:&Path,rgba:&[u8],size:[u32;2])->Result<()> {
 }
 
 fn main()->Result<()> {
-    let args=std::env::args_os().collect::<Vec<_>>();ensure!(args.len()>=3,"usage: plane-witness OUTPUT COURSE_SRC [CASE_FILTER]; e.g. plain-dpr1-samples1-size100-unselected");
+    let args=std::env::args_os().collect::<Vec<_>>();ensure!(args.len()>=3,"usage: plane-witness OUTPUT COURSE_SRC [CASE_FILTER] [ORIGINAL_COVERED_PB]; e.g. plain-dpr1-samples1-size100-unselected");
     let output=Path::new(&args[1]);let source_dir=Path::new(&args[2]);std::fs::create_dir_all(output)?;
     let filter=args.get(3).map(|v|v.to_string_lossy().into_owned());
+    let supplied=args.get(4).map(Path::new);
+    ensure!(supplied.is_none() || filter.as_deref().is_some_and(|filter|filter.starts_with("covered-")),"An original covered fixture requires a covered-case filter");
     let course_source=std::fs::read_to_string(source_dir.join("production_plane.wgsl"))?;
     ensure!(course_source==viewer_journey::production_plane::SOURCE,"source snapshot differs from linked course shader");
     let provenance:Value=serde_json::from_str(viewer_journey::production_plane::PROVENANCE)?;
@@ -64,7 +66,9 @@ fn main()->Result<()> {
     let matrix=Xform::orthographic(-250.0,250.0,-187.5,187.5,1000.0,0.0).to_f32();
     let mut records=Vec::new();let mut failures=Vec::new();
     for name in ["plain","placed","covered","print"] {
-        let(bytes,model)=specimen(name);let input=session_rust::proto::Session::decode(bytes.as_slice())?;
+        let(mut bytes,model)=specimen(name);
+        if name=="covered" {if let Some(source)=supplied {bytes=std::fs::read(source)?;}}
+        let input=session_rust::proto::Session::decode(bytes.as_slice())?;
         std::fs::write(output.join(format!("{name}.pb")),&bytes)?;
         for density in [1.0f32,2.0] {for samples in [1,4] {for half_size in [50.0,100.0] {for selected in [false,true] {
             let stem=format!("{name}-dpr{}-samples{samples}-size{}-{}",density as u32,half_size as u32,if selected{"selected"}else{"unselected"});
@@ -119,7 +123,7 @@ fn main()->Result<()> {
             if changed!=0{failures.push(stem.clone());}
             let record=json!({"case":stem,"source_file":format!("{name}.pb"),"source_sha256":digest(&bytes),"archive_sha256":digest(&saved),"original_plane_guid":OBJECT,"placement_f64":model.m,"half_size":half_size,"selected":selected,"production":production.identity,"course":{"device":"same device and queue returned by actual production rendering","viewport":size,"density":density,"samples":samples,"matrix_f32":matrix,"anchor":course.anchor(),"output":"Rgba8UnormSrgb","plane_rows":course.plane_usage(),"pick":picked},"comparison":{"scope":"entire RGBA frame, no tolerance or cropped exclusion","changed_pixels":changed,"production_ink":prod_ink,"course_ink":course_ink,"exact":changed==0},"elapsed_ms":{"production":production_ms,"course_readback":course_ms}});
             std::fs::write(output.join(format!("{stem}.json")),serde_json::to_vec_pretty(&record)?)?;records.push(record);
-            std::fs::write(output.join("manifest.json"),serde_json::to_vec_pretty(&json!({"binary_sha256":binary_hash,"shader_provenance":provenance,"cases":records,"failed_exact_pairs":failures,"scope":"Actual ordinary Plane; source bytes, f64 placement, matrix, viewport, DPR, samples, pen, plane size, selection and output encoding matched. Offscreen guard is the same real original Line in both ingresses."}))?)?;
+            std::fs::write(output.join("manifest.json"),serde_json::to_vec_pretty(&json!({"binary_sha256":binary_hash,"input_override":supplied.map(|path|path.to_string_lossy()),"shader_provenance":provenance,"cases":records,"failed_exact_pairs":failures,"scope":"Actual ordinary Plane; source bytes, f64 placement, matrix, viewport, DPR, samples, pen, plane size, selection and output encoding matched. Offscreen guard is the same real original Line in both ingresses."}))?)?;
             eprintln!("FINISH {stem}: changed={changed}, production={production_ms}ms course={course_ms}ms");
         }}}}
     }
