@@ -1,20 +1,87 @@
 # 4.1 · Browser callbacks with a real lifetime
 
-Dispose listeners and pending authority safely while keeping a cached page reusable for Back navigation.
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.1** (Redraft `3.8`) · **3 checkpoints (`33-owner` → `33b-cache`)**
 
-## Ownership and data flow
+> **Learning Goal:** Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
 
-A listener owner retains both Closure and successful EventTarget registrations. Drop removes handlers before freeing captured Rust values. Runtime disposal first revokes file/fetch authority, then detaches callbacks; deferred cleanup avoids dropping the callback currently executing. A persisted pagehide is suspension, so it cancels an active gesture without permanently disposing the runtime needed on pageshow.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="190" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Active Runtime Owner</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
+    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Closure::wrap listener table</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Drop removes EventListeners</text>
+    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Late callbacks after dispose</text>
+    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  become safe no-ops</text>
 
-lib.rs owns the maintained winit App/event loop, app/input.rs routes events and app/loader.rs owns load generations. The learner DOM Listener/Runtime owners model the lifetime explicitly; production does not contain the same standalone browser.rs runtime.
+    <line x1="208" y1="138" x2="238" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-Production Rust paths above are relative to `session_viewer/src`. The maintained report storage, heartbeat and browser failure observers actually live in `session_viewer/assets/diagnostics.js`, loaded by `index.html`; `app/feedback.rs` only bridges to them. Its Report command downloads the current run with eligible previous evidence attached; the checkpoint’s separate `Report Previous` command is staged behavior, not a maintained command name. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="240" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Lifecycle &amp; Fault Telemetry</text>
+    <text x="252" y="108" font-size="10.5" fill="#7c2d12">• visibilitychange / pagehide (bfcache):</text>
+    <text x="252" y="123" font-size="10" fill="#7c2d12">  Pause heartbeat timers &amp; animation frame</text>
+    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#c2410c">• device.on_uncaptured_error:</text>
+    <text x="252" y="158" font-size="10" fill="#7c2d12">  Record into bounded ring-buffer (schema v1)</text>
+    <text x="252" y="175" font-size="10" fill="#7c2d12">• Exportable Diagnostic JSON Report</text>
+    <text x="252" y="193" font-size="10" fill="#7c2d12">• pageshow: resume cleanly</text>
 
-## Build the capability
+    <line x1="505" y1="138" x2="535" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+    <rect x="537" y="68" width="283" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Conservative GPU Device Recovery</text>
+    <text x="549" y="108" font-size="10.5" fill="#064e3b">• Detect GPUDevice lost / surface outdated</text>
+    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#047857">• Request fresh Adapter &amp; Device at safe</text>
+    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#047857">  1x sample count &amp; conservative density</text>
+    <text x="549" y="160" font-size="10.5" fill="#064e3b">• Rebuild pipelines &amp; re-upload retained</text>
+    <text x="549" y="176" font-size="10.5" fill="#064e3b">  Editor scene without losing user edits!</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+Rust Closure → successful EventTarget bindings → owner Drop → remove handlers → free captured values.
+Live runtime → pagehide → next microtask → cancel read/fetch → detach eighteen listeners → release captures.
+pagehide → cancel drag → persisted? → keep owner for cached return; otherwise deferred disposal.
+```
+
+- Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
+- Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.
+- Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer.
+- **Why it works (Why must event listeners be removed before the Rust closure is dropped?):** The browser keeps JavaScript references to the callback. Dropping its Rust environment first would leave a registered handler that can invoke an invalid closure. Detach every handler while the closure is still valid.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
+| **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
+| **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
+
+**Production source (`session_viewer/src`):** `session_viewer/src`
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-33-owner"></a>
 
@@ -891,9 +958,9 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 33b-cache
@@ -904,14 +971,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. `window.wasmBindings.runtime_running()` stays true and typed commands still work.
 
-Remove the persisted check and run the retained-runtime assertions. Explain why a fresh normal load could conceal the broken cached-return path.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Remove the persisted check and run the retained-runtime assertions. Explain why a fresh normal load could conceal the broken cached-return path.
 
 Continue with [First failure and independent diagnostic reports](34-fault.md).

@@ -1,20 +1,87 @@
 # 4.5 · Measured phases and conservative GPU recovery
 
-Retain bounded browser failures and actual load timings, then recover once from device loss at reduced density.
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.5** (Redraft `3.12`) · **15 checkpoints (`34gc-messages` → `34geb-reload`)**
 
-## Ownership and data flow
+> **Learning Goal:** Keep browser failure text readable and small enough for the existing report.
 
-Sanitize browser errors and adapter metadata before retention. Measure operations at their actual start and completion boundaries: CPU preparation is different from GPU queue completion, and a stale fetch ticket must not become an accepted revision. Keep the CPU editor separately owned so GPU runtime disposal does not itself destroy the document. Recovery policy permits one device-loss reload, adopts reduced density/AA settings and cleans its recovery URL; a second failure reports instead of looping.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="190" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Active Runtime Owner</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
+    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Closure::wrap listener table</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Drop removes EventListeners</text>
+    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Late callbacks after dispose</text>
+    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  become safe no-ops</text>
 
-engine/performance.rs records maintained milestones; engine/gpu/timing.rs tracks GPU timing; app/loader.rs measures loading work. app/route.rs recover_from_device_loss/adopt_recovery and engine/gpu/view.rs implement reduced device scale/no MSAA recovery. The lesson CPU-editor Rc split is staged: maintained State still directly owns both Scene and Gpu, so it is not evidence of in-place GPU reconstruction.
+    <line x1="208" y1="138" x2="238" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-Production Rust paths above are relative to `session_viewer/src`. The maintained report storage, heartbeat and browser failure observers actually live in `session_viewer/assets/diagnostics.js`, loaded by `index.html`; `app/feedback.rs` only bridges to them. Its Report command downloads the current run with eligible previous evidence attached; the checkpoint’s separate `Report Previous` command is staged behavior, not a maintained command name. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="240" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Lifecycle &amp; Fault Telemetry</text>
+    <text x="252" y="108" font-size="10.5" fill="#7c2d12">• visibilitychange / pagehide (bfcache):</text>
+    <text x="252" y="123" font-size="10" fill="#7c2d12">  Pause heartbeat timers &amp; animation frame</text>
+    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#c2410c">• device.on_uncaptured_error:</text>
+    <text x="252" y="158" font-size="10" fill="#7c2d12">  Record into bounded ring-buffer (schema v1)</text>
+    <text x="252" y="175" font-size="10" fill="#7c2d12">• Exportable Diagnostic JSON Report</text>
+    <text x="252" y="193" font-size="10" fill="#7c2d12">• pageshow: resume cleanly</text>
 
-## Build the capability
+    <line x1="505" y1="138" x2="535" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+    <rect x="537" y="68" width="283" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Conservative GPU Device Recovery</text>
+    <text x="549" y="108" font-size="10.5" fill="#064e3b">• Detect GPUDevice lost / surface outdated</text>
+    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#047857">• Request fresh Adapter &amp; Device at safe</text>
+    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#047857">  1x sample count &amp; conservative density</text>
+    <text x="549" y="160" font-size="10.5" fill="#064e3b">• Rebuild pipelines &amp; re-upload retained</text>
+    <text x="549" y="176" font-size="10.5" fill="#064e3b">  Editor scene without losing user edits!</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+browser detail + source position → bounded Unicode text → diagnostic message.
+clock → operation result → valid duration → metadata observer → original result.
+current device loss → saved report → recovery URL → reduced drawing → clean URL → ordinary reload.
+```
+
+- Keep browser failure text readable and small enough for the existing report.
+- Measure CPU work without changing its success or failure.
+- Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload.
+- **Why it works (Why limit the detail and source separately?):** One long source path must not consume the whole failure message. Separate budgets retain useful detail and leave space for labels and positions.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
+| **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
+| **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
+
+**Production source (`session_viewer/src`):** `session_viewer/src`
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-34gc-messages"></a>
 
@@ -6551,9 +6618,9 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 34geb-reload
@@ -6564,12 +6631,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 A real device loss triggers one reload. The recovered canvas uses device scale at most one; `Report Previous` downloads the failed run.
 
-Lose the recovered device again. It reports failure without another reload. Reload normally to restore the original canvas density.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Lose the recovered device again. It reports failure without another reload. Reload normally to restore the original canvas density.
