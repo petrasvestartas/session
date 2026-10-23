@@ -1,0 +1,7 @@
+    pub lit:bool,pub backfaces:bool,
+    pub outlines:bool,
+    pub plane_size:f64,
+    pub display:crate::display_settings::Settings,
+    pub ink_visibility:crate::ink_ranges::Visibility,
+    pub clipping_enabled:bool,pub clipping_solid:bool,
+    pub interaction_epoch:u64,

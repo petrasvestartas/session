@@ -1,0 +1,1 @@
+[&mut renderer.paths,&mut renderer.markers]

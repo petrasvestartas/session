@@ -1,0 +1,1 @@
+let pixel=at(&image,160,120);if kind=="authored"{assert_eq!(pixel,[204,51,102,255],"Authored point colour remains exact");}else{assert!(pixel[0]>=25&&pixel[0]<=26&&pixel[0]==pixel[1]&&pixel[1]==pixel[2]&&pixel[3]==255,"Production spheres use float grey 0.1, quantized at the UNORM8 half-byte boundary: {pixel:?}");}

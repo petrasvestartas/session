@@ -1,0 +1,31 @@
+{
+  "source_commit": "a391b104",
+  "composition": "shared(ink_source(shader!(plane.wgsl))): expanded/minified entry, ink visibility, scene, clipping, normals, physical output.",
+  "pristine_sha256": "dcec594779d142accff697ddf28e2f75b55eb45f955a7e371b49f5641e804173",
+  "compiled_sha256": "da61272c559bce5199eb81fe3d7ac6d901f674b387413f4696a45df5c85e2736",
+  "ownership_adapter": {
+    "original": "return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);",
+    "replacement": "return vec2<u32>(course_owners[in.inst_id], 1u);",
+    "declaration": "\n@group(3) @binding(1) var<storage, read> course_owners: array<u32>;\n"
+  },
+  "sources": {
+    "app/walk/frames.rs": "1bf83056cc5e36a94514c86ab43ef13d7a10ad9b9de62cfc8df847e3dbd33d8f",
+    "engine/gpu/planes.rs": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61",
+    "engine/pipelines/mod.rs": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5",
+    "app/command/verbs/view.rs": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39",
+    "shaders/plane.wgsl": "e9934e566c2cdb31ce648cd0f221f1ba7728df130f15fe8e69b8eba44d452312",
+    "shaders/arrow.wgsl": "41166470f26b141dda7c03a753e14542dfdf3ed572f7f6920850c09afb03b80d",
+    "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+    "shaders/projected_triangle.wgsl": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+    "shaders/scene.wgsl": "e17b1d992b7c986e48abececae70cb1be1edc356125a0ae1f2805cd6a6a73281",
+    "shaders/clip.wgsl": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+    "shaders/normals.wgsl": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+    "shaders/physical.wgsl": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35"
+  },
+  "adapters": [
+    "PlaneRow and walk_plane retain production field layout and frame equations; the owning row collection and bounds-return type are local adapters. Initial bound size is the production default 100 scene units.",
+    "The common vector/plane GPU owner selects the actual vs_plane entry and 186 vertices per plane. Shared object, translation, line, clipping and ink visibility bindings retain production layout.",
+    "The only shader edit changes the whole-object integer output to the original Scene ID. No grid, arrow, visibility, depth, coverage or selection expression changes.",
+    "View Plane Size is per viewer and updates line uniform byte 76 without rewalking or reuploading source rows. Ordinary Plane and Clipping Plane remain separate display paths."
+  ]
+}

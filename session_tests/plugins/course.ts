@@ -403,7 +403,10 @@ export default function coursePlugin(): Plugin {
     const errors: string[] = [];
     assets = new Map();
     const next = new Map<string, Page>();
-    for (const [slug, file] of bySlug) next.set(slug, renderPage(file, slug, bySlug, links, errors));
+    for (const [slug, file] of bySlug) {
+      try { next.set(slug, renderPage(file, slug, bySlug, links, errors)); }
+      catch (cause) { throw new Error(`Cannot render ${posix(path.relative(SESSION, file))}`, { cause }); }
+    }
     // journey/ is the course still being written: its unwritten snippets warn, every other page fails the build
     const drafts = errors.filter((e) => e.includes('/docs/journey/'));
     const hard = errors.filter((e) => !e.includes('/docs/journey/'));

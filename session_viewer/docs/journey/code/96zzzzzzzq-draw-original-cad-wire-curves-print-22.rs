@@ -1,0 +1,1 @@
+if !meshes.iter().any(|m|!m.printed()&&(all||m.selected()))

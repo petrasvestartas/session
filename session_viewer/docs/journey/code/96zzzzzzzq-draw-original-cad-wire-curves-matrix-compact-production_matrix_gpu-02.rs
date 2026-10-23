@@ -1,0 +1,7 @@
+    objects: wgpu::Buffer,
+    translations: wgpu::Buffer,
+    segments: wgpu::Buffer,
+    owners: wgpu::Buffer,
+    empty_depth: [wgpu::TextureView; 2],
+    empty_primitive: [wgpu::TextureView; 2],
+    rows: Rows,

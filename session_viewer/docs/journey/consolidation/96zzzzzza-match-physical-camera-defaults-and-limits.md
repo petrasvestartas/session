@@ -8,7 +8,7 @@ Keep target, eye/up, distance, world-up, projection and free-canvas frame as exp
 
 ## The maintained implementation
 
-camera.rs depth_reach/view_proj_anchored/ray use actual units, NEAR_FRACTION and grid reach. src/shaders/grid.wgsl draws STEP1000/HALF5000 through GridFrame then subtracts line.anchor. app/cplane.rs owns explicit plane choice; state.rs clear stores load_camera and fit_loaded conditionally fits only while pose is unchanged. That current guard is not acceptance that whole-scene reload preserves the latest pose and base world plane under all in-flight motion/rebases.
+camera.rs depth_reach/view_proj_anchored/ray use actual units, NEAR_FRACTION and grid reach. src/shaders/grid.wgsl draws with `STEP=1000` and `HALF=5000` through `GridFrame` then subtracts line.anchor. app/cplane.rs owns explicit plane choice; state.rs clear stores load_camera and fit_loaded conditionally fits only while pose is unchanged. That current guard is not acceptance that whole-scene reload preserves the latest pose and base world plane under all in-flight motion/rebases.
 
 All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
 

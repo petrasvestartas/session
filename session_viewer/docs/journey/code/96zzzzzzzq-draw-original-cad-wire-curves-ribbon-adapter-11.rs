@@ -1,0 +1,1 @@
+        match self.picker.take_mapped(view,|pixel|self.strokes.translate(pixel)) {

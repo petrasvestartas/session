@@ -65,8 +65,18 @@ export function referenceStructure() {
         if (chapter) assert.deepEqual(files, snapshot(chapter as string, names), `Checkpoint ${chapter}`);
     }
     assert.deepEqual(Object.fromEntries(Object.entries(files).map(([name, text]) => [name, hash(text)])), data.files);
-    const production = filesIn(path.join(viewer, 'src')).map(file => path.relative(viewer, file)).sort();
-    assert.deepEqual(names.filter(name => name.startsWith('src/')).sort(), production);
+    const archivedSource = names.filter(name => name.startsWith('src/')).sort();
+    const historical = json(path.join(docs, 'journey/current-source-inventory-2026-10-11.json'));
+    const recordedSource = new Set(historical.files
+        .filter((file: any) => file.root === 'viewer' && file.path.startsWith('src/'))
+        .map((file: any) => file.path.replaceAll('\\', '/')));
+    // This archived typing manifest is a source subset; structure() checks today's full inventory.
+    assert.deepEqual(archivedSource.filter(name => !recordedSource.has(name)), [],
+        'Archived typing source must belong to the recorded 2026-10-11 viewer inventory');
+    const production = new Set(filesIn(path.join(viewer, 'src'))
+        .map(file => path.relative(viewer, file).split(path.sep).join('/')));
+    assert.deepEqual(archivedSource.filter(name => !production.has(name)), [],
+        'Every archived typing source file must still exist in the current viewer');
     assert(!data.external.some((name: string) => /^(src|examples|tests)\//.test(name)), 'Implementation is hidden in supplied assets');
     console.log(`${data.chapters.length} reference checkpoints match all displayed edits and ${names.length} final files.`);
 }

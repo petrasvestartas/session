@@ -1,0 +1,55 @@
+{
+  "recorded": "2026-10-20T20:10:21.322Z",
+  "scope": "Native CPU/WARP fixture rendering; not browser or hardware FPS evidence",
+  "sourceCommit": "a391b104",
+  "featureCommit": "98e64f4d",
+  "fixture": "src/matrix_tests.rs::actual_matrix_colors_digits_selection_and_object_picks_survive_sample_returns",
+  "sourceValues": [
+    [
+      -2,
+      1.2,
+      5
+    ],
+    [
+      0,
+      1.005,
+      5
+    ]
+  ],
+  "title": "stiffness",
+  "cell": 0.3,
+  "placement": [
+    -0.3,
+    0.2,
+    -0.4
+  ],
+  "viewport": [
+    320,
+    240
+  ],
+  "projection": "cap_gpu_tests::matrix orthographic[-1,1], reversed depth",
+  "adapter": {
+    "name": "Microsoft Basic Render Driver",
+    "vendor": 5140,
+    "device": 140,
+    "backend": "Dx12",
+    "deviceType": "Cpu"
+  },
+  "evidence": "target/course-windows-20261018/matrix-accepted-tests.json",
+  "frames": [
+    {
+      "file": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-native-1x.png",
+      "sha256": "fd9783559d047c743ec1433b71b9c23508f96df7dca37931fcdfe05ac33de4ca",
+      "samples": 1,
+      "selected": false,
+      "individuallyInspected": true
+    },
+    {
+      "file": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-selected-native-4x.png",
+      "sha256": "96e3066ef205fa19d4e1a452b16e817d68e4ef06d82ec8cb64d4418768a16bf6",
+      "samples": 4,
+      "selected": true,
+      "individuallyInspected": true
+    }
+  ]
+}

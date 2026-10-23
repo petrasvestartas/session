@@ -68,14 +68,21 @@ fn clip_cut(flags: u32, p: vec3<f32>) -> bool {
     return false;
 }
 
-// True when one plane cuts both `a` and `b` away.
+// Ink on the plane survives dot-product rounding; surfaces use clip_distance instead.
+fn clip_ink_outside(plane: vec4<f32>, point: vec4<f32>) -> bool {
+    let rounding = 9.5367431640625e-7 * dot(abs(plane), abs(point)); // eight f32 epsilons
+    return dot(plane, point) < -rounding;
+}
+
+// True when one plane cuts both ink endpoints away.
 fn clip_cut_both(flags: u32, a: vec3<f32>, b: vec3<f32>) -> bool {
     if ((flags & FLAG_CLIPPING_PLANE) != 0u) {
         return false;
     }
 
     for (var i = 0u; i < clipping.count; i++) {
-        if (clip_distance(i, a) < 0.0 && clip_distance(i, b) < 0.0) {
+        let plane = clipping.planes[i];
+        if (clip_ink_outside(plane, vec4<f32>(a, 1.0)) && clip_ink_outside(plane, vec4<f32>(b, 1.0))) {
             return true;
         }
     }
@@ -96,6 +103,21 @@ fn clip_cut_ndc(flags: u32, ndc: vec3<f32>) -> bool {
 
     for (var i = 0u; i < clipping.count; i++) {
         if (dot(clipping.screen[i], vec4<f32>(ndc, 1.0)) < 0.0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Classify the ink center line in canvas clip space with the same rounding bound.
+fn clip_cut_ink_ndc(flags: u32, ndc: vec3<f32>) -> bool {
+    if ((flags & FLAG_CLIPPING_PLANE) != 0u) {
+        return false;
+    }
+
+    for (var i = 0u; i < clipping.count; i++) {
+        if (clip_ink_outside(clipping.screen[i], vec4<f32>(ndc, 1.0))) {
             return true;
         }
     }

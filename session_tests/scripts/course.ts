@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor} from './course/model.ts';
 import {save, restore} from './course/checkpoints.ts';
 import {generate} from './course/render.ts';
-import {structure, verify, runCommand} from './course/verify.ts';
+import {structure, verify, runCommand, nativeTarget} from './course/verify.ts';
 import {serve} from './course/serve.ts';
 import {verifyReference, parity} from './course/reference.ts';
 import {diagrams} from './course/diagrams.ts';
@@ -96,21 +96,25 @@ function main() {
         // Verification reconstructs each checkpoint from scratch. Recreate its
         // handwritten specimen before Chrome opens the file picker.
         for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
+            const directory = path.join(viewer, 'target', `course-${step.id}`);
             const uploads = (step.browser_actions || []).filter(action => 'file' in action);
-            if (!uploads.length) continue;
             if (uploads.some(action => 'file' in action && action.file !== 'sample.pb')) {
                 throw Error(`${step.id}: unsupported browser specimen`);
             }
+            if (!fs.existsSync(path.join(directory, 'examples/sample.rs'))) {
+                if (uploads.length) throw Error(`${step.id}: missing original sample generator`);
+                continue;
+            }
             runCommand(`${step.id}-sample`, ['cargo', 'run', '--example', 'sample', '--locked',
-                '--target', 'x86_64-unknown-linux-gnu', '-j4'], path.join(viewer, 'target', `course-${step.id}`));
+                '--target', nativeTarget(), '-j1'], directory);
         }
         // Each checkpoint owns its browser context. Init probes and storage-denial
         // fixtures must not leak into the next checkpoint's Back-navigation test.
         for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
             const capture = step.browser_check === 'journey/checks/browser/final.cjs' ? 'capture_current.cjs' : 'capture_journey.cjs';
-            const result = spawnSync(process.execPath, [path.join(docs, capture), step.id], {cwd: viewer, stdio: 'inherit',
-                env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
-            if (result.status !== 0) throw Error(`Browser capture failed for ${step.id}; see the error above.`);
+            runCommand(`${step.id}-browser`, [process.execPath, path.join(docs, capture), step.id], viewer,
+                {NODE_PATH: path.join(viewer, 'target/course-tools/node_modules'), COURSE_SAMPLES_PREPARED: '1',
+                    COURSE_MEMORY_MIB: process.env.COURSE_BROWSER_MEMORY_MIB || '6144'});
         }
         generate();
     } else if (action === 'serve') {

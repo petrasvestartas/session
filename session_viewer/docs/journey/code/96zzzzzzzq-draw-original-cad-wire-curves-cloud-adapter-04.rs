@@ -1,0 +1,1 @@
+pub fn new(ctx: &GpuCtx, format: wgpu::TextureFormat,clipping:&wgpu::Buffer)

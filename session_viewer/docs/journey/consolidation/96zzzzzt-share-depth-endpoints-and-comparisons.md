@@ -4,7 +4,7 @@ Use one near/far convention across surfaces, ink, points, sections and queries.
 
 ## Ownership and data flow
 
-Reverse-Z makes the near endpoint depth1 and far endpoint depth0; clear values and comparison operators must change together. Homogeneous near clipping occurs before dividing by w or computing stroke directions, preserving finite projected geometry when an endpoint crosses the camera plane. All family shaders, first-pick targets, cap counts and sampled visibility must use matching endpoint/depth conventions; a local surface-only migration leaves incorrect hidden ink and integer picks.
+Reverse-Z makes the near endpoint depth 1 and far endpoint depth 0; clear values and comparison operators must change together. Homogeneous near clipping occurs before dividing by w or computing stroke directions, preserving finite projected geometry when an endpoint crosses the camera plane. All family shaders, first-pick targets, cap counts and sampled visibility must use matching endpoint/depth conventions; a local surface-only migration leaves incorrect hidden ink and integer picks.
 
 ## The maintained implementation
 

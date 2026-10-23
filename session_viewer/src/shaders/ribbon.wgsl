@@ -528,11 +528,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 
     o.head_cuts = cuts;
     o.sag = sag;
-    // a headed curve's bare open ends are flat at their points, as the vector lane's
+    // Camera cuts and a headed curve's bare ends are flat.
     o.style = vec3<f32>(
         select(0.0, 1.0, seg.facing != FACING_UNKNOWN),
-        select(0.0, 1.0, headed && seg.previous == 0xffffffffu),
-        select(0.0, 1.0, headed && seg.next == 0xffffffffu),
+        select(0.0, 1.0, f0 > 0.0 || (headed && seg.previous == 0xffffffffu)),
+        select(0.0, 1.0, f1 > 0.0 || (headed && seg.next == 0xffffffffu)),
     );
     return o;
 }
@@ -655,7 +655,7 @@ fn axis_cut(in: VsOut) -> bool {
     }
 
     let axis = ink_axis(in);
-    return clip_cut_ndc(instances[in.inst_id].flags, clip_ndc(axis.at + line.origin, line.frame, axis.depth));
+    return clip_cut_ink_ndc(instances[in.inst_id].flags, clip_ndc(axis.at + line.origin, line.frame, axis.depth));
 }
 
 @fragment

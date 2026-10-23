@@ -4,7 +4,9 @@
     <p class="lead">
       Learn the existing Session Viewer's implementation, from GPU ownership to its developed rendering paths.
       {{ consolidatedChapterCount }} of {{ chapterGroups.length }} chapters are consolidated. The route currently has
-      {{ readerLessonCount.toLocaleString('en-US') }} reader-facing lessons; consolidation of the remaining chapters and rendering reconciliation are pending.
+      {{ readerLessonCount.toLocaleString('en-US') }} reader-facing lessons.
+      <template v-if="consolidatedChapterCount < chapterGroups.length">Consolidation of the remaining chapters is pending.</template>
+      Rendering reconciliation and runtime acceptance remain pending.
       The complete implementation reference stays available below.
     </p>
     <p><router-link to="/course/journey/contents">Book contents: chapters and sections</router-link></p>

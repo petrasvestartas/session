@@ -1,0 +1,1 @@
+depth_compare: Some(crate::depth::CLOSER),

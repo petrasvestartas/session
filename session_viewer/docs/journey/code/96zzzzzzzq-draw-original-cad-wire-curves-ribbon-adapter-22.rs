@@ -1,0 +1,1 @@
+records:Option<(&crate::instance_gpu::Lane,&wgpu::RenderPipeline)>,ordinary:Option<&crate::production_ribbon_gpu::Lane>,transform:[f32;16],density:f32) -> wgpu::CommandBuffer {

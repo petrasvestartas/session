@@ -1,0 +1,1 @@
+for mesh in self.meshes.iter().filter(|row|!row.printed()&&(self.opacity.get()<1.||!self.instance_rows.contains(&row.id)))

@@ -1,0 +1,7 @@
+  "include_dependencies": [
+    "projected_triangle.wgsl"
+  ],
+  "compiled_sha256": "b0579c9828446bae6f49724cb587202b2456c37c0d9fa51b65d2c410fd7e95c7",
+  "sources": {
+    "src/app/walk/matrix.rs": "5bc9c6feea9922f5d7920bc0acc3c4d6314751c05d1daebca57f57f86e378c61",
+    "src/engine/gpu/matrices.rs": "2569511c8fb95e77b30b19b9914e43ec1c0a2a148700520ebcc241871bdb6c9e",

@@ -8,7 +8,7 @@ Outlines and ambient consume the same current section/primitive addresses rather
 
 ## The maintained implementation
 
-engine/gpu/arena.rs GpuVertex is 20 bytes: three f32 position values, one packed normal word and one RGBA word. engine/gpu/targets.rs stores physical primitive IDs as Rg16Uint; engine/gpu/view.rs reads actual defaults, including LOD0 and EDL0.25. The course default/control audit remains separate from byte-layout correctness.
+engine/gpu/arena.rs GpuVertex is 20 bytes: three f32 position values, one packed normal word and one RGBA word. engine/gpu/targets.rs stores physical primitive IDs as Rg16Uint; engine/gpu/view.rs reads actual defaults, including `lod_px=0` and `edl_strength=0.25`. The course default/control audit remains separate from byte-layout correctness.
 
 All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
 

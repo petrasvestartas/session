@@ -1,0 +1,1 @@
+    strokes: crate::production_ribbon_gpu::Lane,

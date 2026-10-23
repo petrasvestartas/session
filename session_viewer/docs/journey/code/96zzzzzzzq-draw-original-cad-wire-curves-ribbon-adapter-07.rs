@@ -1,0 +1,1 @@
+        self.strokes.set_scene(&self.device,scene,&self.sources.line_ids,anchor,&[]).expect("Prepared production line rows");

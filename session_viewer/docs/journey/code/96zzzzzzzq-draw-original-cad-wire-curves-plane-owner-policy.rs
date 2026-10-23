@@ -1,0 +1,1 @@
+assert!(row.mesh.parts.edges.is_empty(),"Production ordinary Plane has a whole-object owner; seven synthetic mesh edges belong only to clipping planes");

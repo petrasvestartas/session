@@ -1,0 +1,28 @@
+{
+  "source_commit": "a391b104",
+  "shader": "Existing complete production_joined.wgsl, ownership-only fragment adapter from production ribbon pipeline",
+  "compiled_shader_sha256": "177fcadef6325b5edf384bff97a1cdcc9f209782313ed7d0a251a1e7a9076355",
+  "sources": {
+    "app/walk/mesh_ink.rs": "349f85de9cb23dcb928a80b520468c58e84c4a03a6fd6d60280d2ec10a85cef4",
+    "app/walk/mesh.rs": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
+    "app/walk/brep.rs": "e49dcc0911686b0f2f4fbd7c9aacc411bb989e45b5c0c1444544f087d886c285",
+    "app/walk/brep_edges.rs": "2a19dd35e93bf62103e9549fc16f9c9d0fe6859a68be424b970d60dea17b5d2d",
+    "app/walk/brep_shapes.rs": "c1621011e4006473015572ec811300241204838db2b96d4372b84a740e6fae2c",
+    "app/walk/encode.rs": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
+    "engine/gpu/segments.rs": "a152ead3eb15a3e44ceab8f11cb3d804c549d879a4871d1897c9bdeaf760aeb6",
+    "shaders/ribbon.wgsl": "950172d6d383b37009bd9c8d6e1edb63adf835e7b2926e91aba043f6a22f9f3f",
+    "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
+  },
+  "extracted_modules": {
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+    "production_brep_ink.rs": "56b3acfc39c0afe26907bd60a4d6fcf618f1699ceff5b7b1b2315bf02a208776"
+  },
+  "adapters": [
+    "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag and silhouette algorithms retain production functions. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
+    "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
+    "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
+    "The legacy line lane retains clipping/OBB frames and active control nets; original source query arrays are preserved."
+  ]
+}

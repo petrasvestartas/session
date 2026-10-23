@@ -2,13 +2,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare, assetsFor} from './model.ts';
+import {fileURLToPath} from 'node:url';
+import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare, assetsFor, withExpectedSequence} from './model.ts';
 import {png, ppm} from './png.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
 
 export const evidence = path.join(viewer, 'target/course-checks');
-const native = 'x86_64-unknown-linux-gnu';
 const pictures = path.join(docs, 'screenshots/journey');
+let host: string;
+
+export function nativeTarget() {
+    if (!host) {
+        const result = spawnSync('rustc', ['-vV'], {encoding: 'utf8'});
+        host = result.stdout?.match(/^host: (.+)$/m)?.[1]?.trim() || '';
+        if (result.error || result.status !== 0 || !host) throw Error('Cannot determine the installed Rust host target');
+    }
+    return host;
+}
 
 export function signature(id: string) {
     const step = course().steps.find(step => step.id === id)!;
@@ -22,25 +32,51 @@ export function signature(id: string) {
         constructor: step.frame_constructor || '',
         frame_size: JSON.stringify(step.frame_size || [640, 480]),
         ...(step.frame ? {frame: read(path.join(docs, step.frame))} : {}),
-        harness: read(path.join(docs, 'journey/frame.rs')), checker: read(new URL(import.meta.url).pathname)});
+        harness: read(path.join(docs, 'journey/frame.rs')), checker: read(fileURLToPath(import.meta.url))});
 }
 
 export function runCommand(name: string, args: string[], directory: string, extra: Record<string, string> = {}) {
     fs.mkdirSync(evidence, {recursive: true});
     const log = path.join(evidence, `${name}.log`);
     const descriptor = fs.openSync(log, 'w');
-    const env = {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: 'true', NO_COLOR: 'true',
-        CARGO_BUILD_JOBS: '4', RUST_TEST_THREADS: '1', REGEN_PROTO: '0',
+    const env: Record<string, string | undefined> = {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: process.env.CARGO_NET_OFFLINE || 'true', NO_COLOR: 'true',
+        CARGO_BUILD_JOBS: '1', RUST_TEST_THREADS: '1', REGEN_PROTO: '0',
         CARGO_TARGET_DIR: path.join(viewer, 'target/course-build'), ...extra};
     let result;
     try {
-        result = spawnSync('buildslot', ['timeout', '10m', 'prlimit', '--data=6442450944', '--', ...args],
-            {cwd: directory, env, stdio: ['ignore', descriptor, descriptor]});
+        if (process.platform === 'win32') {
+            const guard = fileURLToPath(new URL('../run-guarded.ps1', import.meta.url));
+            const command = path.join(evidence, `${name}.command.json`);
+            write(command, JSON.stringify({executable: args[0], arguments: args.slice(1)}) + '\n');
+            result = spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', guard,
+                '-ManifestPath', path.join(evidence, `${name}.resources.json`), '-WorkingDirectory', directory,
+                '-TimeoutSeconds', env.COURSE_TIMEOUT_SECONDS || '600',
+                '-MemoryLimitMiB', env.COURSE_MEMORY_MIB || '2048', '-CommandFile', command],
+                {cwd: directory, env, stdio: ['ignore', descriptor, descriptor]});
+        } else {
+            result = spawnSync('buildslot', ['timeout', '10m', 'prlimit', '--data=6442450944', '--', ...args],
+                {cwd: directory, env, stdio: ['ignore', descriptor, descriptor]});
+        }
     } finally {
         fs.closeSync(descriptor);
     }
     if (result.error || result.status !== 0) throw Error(`${name} failed. Read ${log}\n${read(log).slice(-4000)}`);
     return {name, args, returncode: result.status};
+}
+
+export function removeGenerated(directory: string, root: string) {
+    const within = (parent: string, child: string) => {
+        const relative = path.relative(parent, child);
+        return relative !== '' && relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative);
+    };
+    const actualRoot = fs.realpathSync(root);
+    assert(within(fs.realpathSync(viewer), actualRoot), 'Generated root must remain inside the viewer workspace');
+    assert(within(actualRoot, path.resolve(directory)), 'Cleanup must remain inside its generated root');
+    let existing = directory;
+    while (!fs.existsSync(existing)) existing = path.dirname(existing);
+    const actual = fs.realpathSync(existing);
+    assert(actual === actualRoot || within(actualRoot, actual), 'Cleanup cannot follow a link outside its generated root');
+    fs.rmSync(directory, {recursive: true, force: true});
 }
 
 export function verify(ids: string[], stored = false) {
@@ -67,15 +103,15 @@ export function verify(ids: string[], stored = false) {
         delete records[id];
         write(report, JSON.stringify(records, null, 2) + '\n');
         const target = path.join(viewer, 'target', `course-${id}`);
-        fs.rmSync(target, {recursive: true, force: true});
+        removeGenerated(target, path.join(viewer, 'target'));
         materialize(expected(id), target, lockFor(id), assetsFor(id));
         assert.deepEqual(compare(expected(id), target), [], `${id}: the build must use the displayed source`);
         const record: any = {source: signature(id), commands: [], browser: 'not verified'};
-        record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j4'], target));
-        if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', native, '-j4'], target));
+        record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j1'], target));
+        if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', nativeTarget(), '-j1'], target));
         record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--release', '--public-url', './'], target));
         const bundle = path.join(evidence, id, 'dist');
-        fs.rmSync(bundle, {recursive: true, force: true});
+        removeGenerated(bundle, evidence);
         fs.mkdirSync(path.dirname(bundle), {recursive: true});
         fs.cpSync(path.join(target, 'dist'), bundle, {recursive: true});
         if (id !== '01-canvas') {
@@ -99,7 +135,7 @@ export function verify(ids: string[], stored = false) {
             }
             code = code.replace('// COURSE_DRAW', draw);
             write(path.join(target, 'examples/frame.rs'), code);
-            const command = ['cargo', 'run', '--example', 'frame', '--locked', '--target', native, '-j4'];
+            const command = ['cargo', 'run', '--example', 'frame', '--locked', '--target', nativeTarget(), '-j1'];
             record.commands.push(runCommand(`${id}-frame`, command, target, {COURSE_FRAME: id === '02-clear' ? 'clear' : 'triangle'}));
             const frame = path.join(target, 'frame.ppm');
             const original = ppm(frame).pixels;
@@ -120,6 +156,16 @@ export function verify(ids: string[], stored = false) {
 }
 
 export function structure() {
+    return withExpectedSequence(structureChecks);
+}
+
+function sourceHash(file: string) {
+    const bytes = fs.readFileSync(file);
+    const text = bytes.toString('utf8');
+    return hash(Buffer.from(text, 'utf8').equals(bytes) ? text.replaceAll('\r\n', '\n') : bytes);
+}
+
+function structureChecks() {
     const images = new Map<string, string>();
     const steps = course().steps;
     for (const step of steps) {
@@ -145,13 +191,13 @@ export function structure() {
         }
     }
     const destination = json(path.join(docs, course().inventory || 'journey/current-viewer-2026-10-09.json'));
-    const names = filesIn(path.join(viewer, 'src')).map(file => path.relative(viewer, file));
+    const names = filesIn(path.join(viewer, 'src')).map(file => path.relative(viewer, file).split(path.sep).join('/'));
     assert.deepEqual(names.sort(), Object.keys(destination.files).sort());
     for (const [name, record] of Object.entries(destination.files) as [string, {sha256: string; course: string}][]) {
-        assert.equal(hash(fs.readFileSync(path.join(viewer, name))), record.sha256, `Reference changed: ${name}`);
+        assert.equal(sourceHash(path.join(viewer, name)), record.sha256, `Reference changed: ${name}`);
         assert(destination.courses.some((course: {id: string}) => course.id === record.course));
     }
-    for (const [name, digest] of Object.entries(destination.inputs)) assert.equal(hash(fs.readFileSync(path.join(viewer, name))), digest, name);
+    for (const [name, digest] of Object.entries(destination.inputs)) assert.equal(sourceHash(path.join(viewer, name)), digest, name);
     const mapped = destination.courses.flatMap((course: {reference_steps: string[]}) => course.reference_steps);
     assert.equal(mapped.length, new Set(mapped).size);
     assert.deepEqual(mapped.sort(), reference().chapters.map((chapter: {id: string}) => chapter.id).sort());

@@ -1,0 +1,7 @@
+    ids:Rc<std::collections::HashSet<ObjectId>>,
+    pub view:Rc<crate::view_flags::Flags>,
+    pub forest:crate::hierarchy::Forest,
+    matrices:Vec<crate::production_matrix::Row>,
+    sheets:Vec<crate::sheet_source::Row>,
+    streamed:Vec<crate::range_cloud::Row>,
+    clouds:Vec<crate::cloud::Row>,

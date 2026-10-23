@@ -1,0 +1,1 @@
+[&self.mesh_ink,&self.paths,&self.markers,&self.grid].into_iter().map(crate::stroke_gpu::Lane::clipping_bytes).chain(std::iter::once(self.strokes.clipping_bytes())).fold(self.highlight.clipping_bytes(),|a,b|[a[0]+b[0],a[1]+b[1]])

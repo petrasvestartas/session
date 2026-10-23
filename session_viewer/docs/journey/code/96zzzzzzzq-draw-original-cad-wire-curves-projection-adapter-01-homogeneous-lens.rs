@@ -1,0 +1,1 @@
+1.0 / (60.0_f32 * 0.5).to_radians().tan() * matrix[3].hypot(matrix[7]).hypot(matrix[11]),

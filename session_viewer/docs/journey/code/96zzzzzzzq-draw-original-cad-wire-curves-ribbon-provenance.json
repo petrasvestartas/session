@@ -1,0 +1,93 @@
+{
+  "authority": "session_viewer/src",
+  "scope": "Exact ordinary ribbon shader, storage layout and line preprocessing; chain/vector/mesh-edge/marker integration remains staged.",
+  "assembly": "build.rs expand+minify; pipelines::shared(pipelines::ink_source(shader!(ribbon.wgsl)))",
+  "compiled_shader_sha256": "a48adab74a1102c086d360b1a3d6e53498f690789ff4cfb3b32ae59265d06d34",
+  "sources": [
+    {
+      "path": "build.rs",
+      "sha256": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f"
+    },
+    {
+      "path": "src/engine/pipelines/mod.rs",
+      "sha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5"
+    },
+    {
+      "path": "src/engine/pipelines/layouts.rs",
+      "sha256": "2152f1a6ab2fe4fd17e7d3a3eea01606dcab2a6b80ba69bf0760a216d42d3f45"
+    },
+    {
+      "path": "src/engine/gpu/segments.rs",
+      "sha256": "a152ead3eb15a3e44ceab8f11cb3d804c549d879a4871d1897c9bdeaf760aeb6"
+    },
+    {
+      "path": "src/engine/gpu/frame.rs",
+      "sha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228"
+    },
+    {
+      "path": "src/engine/gpu/instance.rs",
+      "sha256": "89198da7abf06d41040aae716580d539eab2eed5b4e68763f348c5b7de31bd70"
+    },
+    {
+      "path": "src/engine/gpu/slots.rs",
+      "sha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd"
+    },
+    {
+      "path": "src/app/walk/curves.rs",
+      "sha256": "4da38304e6eb4dbed57d0406fe36a9dc4da823eb4f044d4434160983792756d7"
+    },
+    {
+      "path": "src/app/walk/encode.rs",
+      "sha256": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83"
+    },
+    {
+      "path": "src/shaders/clip.wgsl",
+      "sha256": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544"
+    },
+    {
+      "path": "src/shaders/ink_visibility.wgsl",
+      "sha256": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
+    },
+    {
+      "path": "src/shaders/normals.wgsl",
+      "sha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733"
+    },
+    {
+      "path": "src/shaders/physical.wgsl",
+      "sha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35"
+    },
+    {
+      "path": "src/shaders/projected_triangle.wgsl",
+      "sha256": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73"
+    },
+    {
+      "path": "src/shaders/ribbon.wgsl",
+      "sha256": "950172d6d383b37009bd9c8d6e1edb63adf835e7b2926e91aba043f6a22f9f3f"
+    },
+    {
+      "path": "src/shaders/scene.wgsl",
+      "sha256": "e17b1d992b7c986e48abececae70cb1be1edc356125a0ae1f2805cd6a6a73281"
+    }
+  ],
+  "abi": {
+    "segment_bytes": 52,
+    "instance_bytes": 96,
+    "line_uniform_bytes": 80,
+    "radius_offset": 12,
+    "color_offset": 32,
+    "previous_offset": 40,
+    "next_offset": 44,
+    "sag_offset": 48
+  },
+  "preprocessing": [
+    "curves::walk_line",
+    "encode::encode_width",
+    "encode::pack_rgba",
+    "segments::joined_rows standalone defaults"
+  ],
+  "integration_limits": [
+    "Other ink families retain their existing staged path.",
+    "The canonical camera-cut flat-cap assertion is preserved and may expose the known production/course terminal conflict.",
+    "Projected triangle and cap integration require the existing finite visibility checks; matching empty scenes does not accept them."
+  ]
+}

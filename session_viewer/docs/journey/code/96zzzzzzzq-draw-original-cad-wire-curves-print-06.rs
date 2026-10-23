@@ -1,0 +1,1 @@
+spacing:0.,print_fill:false,print_text:false,parts: Default::default()

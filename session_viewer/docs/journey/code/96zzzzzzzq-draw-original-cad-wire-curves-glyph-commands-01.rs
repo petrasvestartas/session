@@ -1,0 +1,7 @@
+    ("View Show All",||Action::Show),
+    ("View Outline",||Action::ViewOutline(None)),
+    ("View Plane Size",||Action::PlaneSize(crate::production_plane::DEFAULT_SIZE)),
+    ("View Point Size",||Action::PointSize(1.0)),
+    ("Arctic",||Action::Arctic(None)),
+    ("View Lighting",||Action::Lighting(None)),
+    ("View Backfaces",||Action::Backfaces(None)),

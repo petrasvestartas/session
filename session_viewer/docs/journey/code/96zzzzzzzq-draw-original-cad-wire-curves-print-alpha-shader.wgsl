@@ -1,0 +1,1 @@
+vec4f(select(color.rgb*tint,SELECTION_COLOR,(object.selection.x&1u)!=0u),color.a*bitcast<f32>(object.range.w))

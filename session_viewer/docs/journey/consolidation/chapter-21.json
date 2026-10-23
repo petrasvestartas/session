@@ -1,5 +1,5 @@
 {
-  "status": "consolidated prose and coverage; integration and current runtime/visual acceptance pending",
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
   "chapter": 21,
   "title": "Precise camera and browser coordinates",
   "first": "96zzzzy-prepare-unit-aware-anchored-camera-space",
@@ -374,8 +374,8 @@
   ],
   "remaining_defects": [
     "Current endpoint runtime and visual acceptance pending integrator queue.",
-    "No embedded figures: historical screenshots were not individually inspected in this batch.",
-    "Earlier course-only lane/record/finite-AA abstractions remain staged where divergent; current production extraction and matched acceptance are pending.",
-    "Latest-camera preservation during scene reload and unchanged base world-grid plane remain a later implementation/acceptance batch, including in-flight camera motion and floating-origin rebases."
+    "Retained historical figures are candidates, not current acceptance. Only individually inspected figures tied to recorded source and settings count as accepted evidence; consult the current visual-review and chapter evidence records.",
+    "Earlier course-only lane/record/finite-AA checkpoints remain staged prerequisites. Production extraction is integrated in the final endpoint; complete matched visual, browser and final release acceptance remains pending.",
+    "Latest-camera publication during reload and the held world-grid plane are implemented. Four focused course native regressions and three maintained grid checks pass; all four maintained/course reload/grid browser combinations remain pending, including motion during loading and floating-origin rebases."
   ]
 }

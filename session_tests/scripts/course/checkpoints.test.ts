@@ -9,8 +9,35 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {save, restore, savedPath} from './checkpoints.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
+import {removeGenerated} from './verify.ts';
 import {expected, edited, typingLoad, fingerprint, withExpectedSequence, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines} from './model.ts';
 const browserFingerprint = createRequire(import.meta.url)(path.join(viewer, 'docs/journey/checks/fingerprint.cjs'));
+
+test('generated cleanup rejects traversal and links outside its owned root', () => {
+    const root = fs.mkdtempSync(path.join(viewer, 'target/course-cleanup-test-'));
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-cleanup-outside-'));
+    const link = path.join(root, 'linked');
+    try {
+        const child = path.join(root, 'checkpoint');
+        fs.mkdirSync(child);
+        fs.writeFileSync(path.join(child, 'owned'), 'temporary');
+        removeGenerated(child, root);
+        assert(!fs.existsSync(child));
+        assert.throws(() => removeGenerated(root, root), /inside its generated root/);
+        assert.throws(() => removeGenerated(path.join(root, '../other'), root), /inside its generated root/);
+        fs.writeFileSync(path.join(outside, 'keep'), 'preserved');
+        fs.symlinkSync(outside, link, process.platform === 'win32' ? 'junction' : 'dir');
+        assert.throws(() => removeGenerated(link, root), /link outside/);
+        assert.throws(() => removeGenerated(path.join(link, 'missing'), root), /link outside/);
+        assert.equal(fs.readFileSync(path.join(outside, 'keep'), 'utf8'), 'preserved');
+    } finally {
+        if (fs.existsSync(link)) fs.unlinkSync(link);
+        assert.equal(path.dirname(fs.realpathSync(root)), fs.realpathSync(path.join(viewer, 'target')));
+        assert.equal(path.dirname(fs.realpathSync(outside)), fs.realpathSync(os.tmpdir()));
+        fs.rmSync(root, {recursive: true, force: true});
+        fs.rmSync(outside, {recursive: true, force: true});
+    }
+});
 
 function fixture(run: (folder: string) => void) {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-'));

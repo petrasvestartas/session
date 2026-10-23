@@ -1,0 +1,2 @@
+            self.strokes.draw(&mut pass);self.matrices.draw(&mut pass);pass.set_bind_group(2,&clip_group,&[]);if self.ink_visibility.lines{self.sheets.draw(&mut pass);}pass.set_bind_group(2,&clip_group,&[]);
+            self.mesh_ink.draw(&mut pass,&self.view_group);

@@ -1,0 +1,7 @@
+    pub mesh_ink: Vec<crate::stroke::Stroke>,
+    pub mesh_ids: Vec<[u32; 2]>,
+    pub mesh_metadata:Vec<u32>,
+    pub mesh_legacy:Vec<u8>,
+    pub line_ids: Vec<[u32; 2]>,
+    pub wire_segments:Vec<crate::chain::Segment>,
+    pub path_ids: Vec<[u32; 2]>,

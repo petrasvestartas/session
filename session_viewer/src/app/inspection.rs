@@ -92,6 +92,11 @@ pub fn publish(state: &State) {
     snapshot["undo_depth"] = undo_depth(state); // register:document
     snapshot["snap_enabled"] = serde_json::json!(state.features.snap.enabled); // register:editing
     snapshot["construction_plane"] = state.construction_plane_status(); // register:construction_plane
+    let shown = state.grid_plane();
+    let (x, y) = shown.axes();
+    let origin = shown.origin();
+    snapshot["shown_grid"] = serde_json::json!({"origin":[origin[0],origin[1],origin[2]],"x":[x[0],x[1],x[2]],"y":[y[0],y[1],y[2]]});
+    snapshot["camera_pose"] = serde_json::json!({"target":state.camera.target,"position":state.camera.position,"up":state.camera.up,"perspective":state.camera.perspective,"distance":state.camera.distance});
     snapshot["snap_modes"] = serde_json::json!(state.features.snap.modes); // register:editing
     snapshot["snap_bar"] = serde_json::json!(state.features.snap.bar); // register:editing
     snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);

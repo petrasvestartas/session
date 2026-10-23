@@ -1,0 +1,7 @@
+        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
+        let faces = crate::face_pick::Faces::new(&device);
+        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
+        let sheets=crate::production_sheet_gpu::Lane::new(&device,format);
+        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
+        let mut renderer = Self {ink_visibility:Default::default(),surface_options:Default::default(),world_bounds:Default::default(),space:Default::default(),opacity:std::cell::Cell::new(1.),ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),global_outline:Default::default(),outlines_enabled:Default::default(),outline_composite:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,output_format,device, queue, surfaces, highlight, preview, widget, meshes: Vec::new(),
+            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,

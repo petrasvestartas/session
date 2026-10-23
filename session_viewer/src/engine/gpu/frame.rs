@@ -176,6 +176,16 @@ pub struct FrameUniforms {
 }
 
 impl FrameUniforms {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn line_uniform_buffer(&self) -> &wgpu::Buffer {
+        &self.line_buffer
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn clip_uniform_buffer(&self) -> &wgpu::Buffer {
+        &self.clip_buffer
+    }
+
     /// Bind groups 0-2 for a scene draw.
     pub fn binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
         Binds {

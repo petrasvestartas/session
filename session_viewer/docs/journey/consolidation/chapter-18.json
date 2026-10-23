@@ -982,9 +982,9 @@
   ],
   "remaining_defects": [
     "Current endpoint runtime and visual acceptance pending integrator queue.",
-    "No embedded figures: historical screenshots were not individually inspected in this batch.",
-    "Retained early finite predicate/stroke-chain AA implementations are staged; actual ribbon/vector algorithm reconciliation and current matched visual acceptance remain pending.",
+    "Retained historical figures are candidates, not current acceptance. Only individually inspected figures tied to recorded source and settings count as accepted evidence; consult the current visual-review and chapter evidence records.",
+    "Early finite predicate/stroke-chain AA checkpoints remain staged prerequisites. The final endpoint integrates production ribbon/vector programs; complete family-level matched and browser acceptance remains pending.",
     "No comparison capture or performance benchmark run in this prose batch. Historical software-GPU costs and private proposals do not establish final hardware performance or whole-renderer parity.",
-    "Element startup-default audit: historical course fixture Attributes Off/Interactions On versus maintained Scene attributes=true/interactions=true; lesson marks this staging divergence."
+    "Maintained Scene defaults are Attributes Off and Interactions On (attributes=false, interactions=true), matching the historical course defaults. This default audit does not establish complete display-control or visual acceptance."
   ]
 }

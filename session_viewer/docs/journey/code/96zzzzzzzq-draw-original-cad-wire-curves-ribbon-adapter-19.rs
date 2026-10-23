@@ -1,0 +1,1 @@
+records.map(|rows|(rows,&self.record_pipeline)),ordinary,request.transform,request.density)]);

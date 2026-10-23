@@ -1,0 +1,7 @@
+    view_group: wgpu::BindGroup,
+    targets:crate::frame_targets::Targets,
+    strokes: crate::production_ribbon_gpu::Lane,
+    matrices: crate::production_matrix_gpu::Lane,
+    paths: crate::stroke_gpu::Lane,
+    markers: crate::stroke_gpu::Lane,
+    grid: crate::stroke_gpu::Lane,

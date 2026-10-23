@@ -1,0 +1,7 @@
+    pub ids: Vec<[u32; 2]>,
+    pub edges: Vec<u32>,
+    pub heads: Vec<u8>,
+    pub planes: Vec<u8>,
+    pub object_ids: Vec<ObjectId>,
+    pub pick_owners: Vec<u32>,
+    pub line_count: usize,

@@ -8,7 +8,7 @@ Original pen width/colour and boundary facing determine which edges produce disp
 
 ## The maintained implementation
 
-app/walk/mesh_ink.rs and encode.rs prepare maintained edge pens/facing; engine/gpu/segments.rs stores linked ribbon rows and glyphs.rs owns dots. src/shaders/ribbon.wgsl, vector.wgsl/arrow.wgsl and glyph.wgsl are authoritative shape/filter paths. Old course boundary/AA fragments remain staged until the runtime worker’s existing-boundary production extraction is integrated and rechecked.
+app/walk/mesh_ink.rs and encode.rs prepare maintained edge pens/facing; engine/gpu/segments.rs stores linked ribbon rows and glyphs.rs owns dots. src/shaders/ribbon.wgsl, vector.wgsl/arrow.wgsl and glyph.wgsl are authoritative shape/filter paths. Old course boundary/AA fragments remain staged until production extraction is integrated into the existing checkpoints and rechecked.
 
 All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
 

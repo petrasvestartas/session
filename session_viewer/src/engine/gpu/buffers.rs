@@ -292,10 +292,13 @@ pub fn replace_buffer(slot: &mut wgpu::Buffer, fresh: wgpu::Buffer) {
 
 /// A small buffer holding one `T` for shaders to read.
 pub fn uniform_buffer<T: Pod>(device: &wgpu::Device, label: &str, value: &T) -> wgpu::Buffer {
+    let usage = wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST;
+    #[cfg(not(target_arch = "wasm32"))]
+    let usage = usage | wgpu::BufferUsages::COPY_SRC;
     device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some(label),
         contents: bytemuck::bytes_of(value),
-        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        usage,
     })
 }
 

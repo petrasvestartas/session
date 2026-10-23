@@ -16,7 +16,8 @@ async function capture() {
     const args = process.env.VIEWER_CHROME_ARGS ? JSON.parse(process.env.VIEWER_CHROME_ARGS)
         : process.platform === 'linux' ? ['--enable-unsafe-webgpu', '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE', '--disable-vulkan-surface', '--ozone-platform=x11'] : [];
     const headless = process.env.VIEWER_HEADLESS === '1';
-    const browser = await chromium.launch({channel: 'chrome', headless, args});
+    const executablePath = process.env.VIEWER_BROWSER_EXECUTABLE;
+    const browser = await chromium.launch({...(executablePath ? {executablePath} : {channel: 'chrome'}), headless, args});
     const output = 'docs/screenshots/journey';
     const saved = path.join(output, 'browser.json');
     const records = fs.existsSync(saved) ? JSON.parse(fs.readFileSync(saved)) : {steps: {}};

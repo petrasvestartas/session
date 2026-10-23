@@ -1,0 +1,2 @@
+self.matrices.prepare(&self.device,&self.queue,*transform,self.size,self.density,self.opacity.get(),&self.clipping.borrow().buffer,&tables,&self.targets.depth);self.highlight.finite_frame(&self.device,&tables,&self.targets.depth);
+        self.printed.prepare(&self.device,self.format,self.targets.samples,&self.meshes);

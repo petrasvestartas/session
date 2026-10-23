@@ -1,0 +1,19 @@
+  },
+  "glyph": {
+    "pristine_sha256": "97080e42d0a87868a47acfa656f43f22f839efdbb41245bb6d015111bdf277a2",
+    "compiled_sha256": "4d96b5748ffe620415dfec814d6b978bc10e4e738500c2c284e47abe8220ef25",
+    "ownership_adapter": {
+      "original": "return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG | (in.point_index + 1u));",
+      "replacement": "return vec2<u32>(course_owners[in.inst_id], 1u);",
+      "declaration": "\n@group(3) @binding(1) var<storage, read> course_owners: array<u32>;\n"
+    }
+  },
+  "sphere": {
+    "pristine_sha256": "d7026228dc4c9bc7c39650ea74924d0efb082dac1b8a5f87413651e82e47fe92",
+    "compiled_sha256": "0a2886d5370e19345687104a7e4615b5f0ba20c7f46802c72c31c68f5f63a8a7",
+    "ownership_adapter": {
+      "original": "return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);",
+      "replacement": "return vec2<u32>(course_owners[in.inst_id], 1u);",
+      "declaration": "\n@group(3) @binding(1) var<storage, read> course_owners: array<u32>;\n"
+    }
+  },

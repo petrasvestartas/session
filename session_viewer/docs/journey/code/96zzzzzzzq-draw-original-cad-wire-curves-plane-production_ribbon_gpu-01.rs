@@ -1,0 +1,8 @@
+    slot: wgpu::Buffer,
+    picks: wgpu::Buffer,
+    heads:crate::production_vector_gpu::Heads,
+    planes:crate::production_vector_gpu::Heads,
+    pub plane_size:f32,
+    edge_highlight:Option<crate::pick_sources::Target>,
+    empty_depth: [wgpu::TextureView; 2],
+    empty_primitive: [wgpu::TextureView; 2],

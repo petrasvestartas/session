@@ -1,0 +1,1 @@
+  frame_group:wgpu::BindGroup,address_layout:wgpu::BindGroupLayout,clip_revision:u64,

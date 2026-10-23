@@ -1,0 +1,7 @@
+    selected: Vec<crate::scene::ObjectId>,
+    highlighted: Option<crate::scene::ObjectId>,
+    pub visible: bool,
+    pub edges_visible:bool,
+    pub uploads: u64,
+    pub uploaded_bytes: u64,
+    pub anchor: [f64; 3],

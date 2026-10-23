@@ -1,0 +1,1 @@
+self.strokes.draw(&mut pass);pass.set_bind_group(2,&clip_group,&[]);if self.ink_visibility.lines{self.sheets.draw(&mut pass);}

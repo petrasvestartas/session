@@ -1,0 +1,3 @@
+let yellow=edge.chunks_exact(4).filter(|p|p[0]>220&&p[1]>220&&p[2]<30).count();
+    let other_black=(47..=48).flat_map(|y|(35..150).map(move|x|(y*320+x)*4)).filter(|&i|edge[i..i+3].iter().all(|v|*v<160)).count();
+    assert!(changed>80&&yellow>80,"The actual production selected source edge is yellow");assert_eq!(black,0,"Production selection replaces the selected edge colour");assert!(other_black>80,"Unselected source edges retain their black colour");

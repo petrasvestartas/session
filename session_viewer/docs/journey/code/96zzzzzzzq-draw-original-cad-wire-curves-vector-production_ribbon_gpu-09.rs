@@ -1,0 +1,7 @@
+                image(wgpu::TextureFormat::Rg16Uint, 1),
+                image(wgpu::TextureFormat::Rg16Uint, 4),
+            ],
+            rows: Rows::default(),
+            ids: Vec::new(),
+            selected: Vec::new(),
+            highlighted: None,

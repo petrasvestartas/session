@@ -1,0 +1,111 @@
+{
+  "authority": "session_viewer/src",
+  "scope": "Exact production splat projection, clipping, normal shading, disc coverage and EDL resolve; course cached-ID output has a separate page-address uniform.",
+  "assembly": "build.rs expand+minify; pipelines::shared(shader!(splat.wgsl)); pipelines::shared(shader!(splat_resolve.wgsl))",
+  "compiled_point_sha256": "d9936427c09332d370790b7ddb550783df26363fb8f299a92b577f1feba222a5",
+  "compiled_resolve_sha256": "2172311744b1b1fbb6599e3c930e111bc565ca260199d4d76f5d30e6d7d90469",
+  "sources": [
+    {
+      "path": "build.rs",
+      "sha256": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f"
+    },
+    {
+      "path": "src/engine/pipelines/mod.rs",
+      "sha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5"
+    },
+    {
+      "path": "src/engine/pipelines/layouts.rs",
+      "sha256": "2152f1a6ab2fe4fd17e7d3a3eea01606dcab2a6b80ba69bf0760a216d42d3f45"
+    },
+    {
+      "path": "src/engine/gpu/splat.rs",
+      "sha256": "d73fee1ea1d342651adc059ffd6c0c5faef1eb1046a055c6e722ba7299c843ea"
+    },
+    {
+      "path": "src/engine/gpu/render.rs",
+      "sha256": "48150fc2c3afa9a453af5fa0d0aa35768ed42ee57454a3c46ef0016a518dfabc"
+    },
+    {
+      "path": "src/engine/gpu/frame.rs",
+      "sha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228"
+    },
+    {
+      "path": "src/engine/gpu/lod.rs",
+      "sha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08"
+    },
+    {
+      "path": "src/app/walk/cloud.rs",
+      "sha256": "813e12a5731d575101f15a1f18c5d5db2759ab400ba0d8e1701b7047f37207ce"
+    },
+    {
+      "path": "src/camera.rs",
+      "sha256": "2eb0d51723129bdea1cddc3f35760217923959afe2a50dfe1fc6e129c8a3d58f"
+    },
+    {
+      "path": "src/shaders/splat.wgsl",
+      "sha256": "38fa50b2d6aedcf8dd923f534a21b6f05fc4a94c32b6855e2d2ecd6b3559eda4"
+    },
+    {
+      "path": "src/shaders/splat_resolve.wgsl",
+      "sha256": "529a0f871e59615087bce401df552a09243406da12240c3c84c64663a9decc0a"
+    },
+    {
+      "path": "src/shaders/clip.wgsl",
+      "sha256": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544"
+    },
+    {
+      "path": "src/shaders/normals.wgsl",
+      "sha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733"
+    },
+    {
+      "path": "src/shaders/physical.wgsl",
+      "sha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35"
+    }
+  ],
+  "abi": {
+    "header_bytes": 16,
+    "record_bytes": 160,
+    "cloud_uniform_bytes": 48,
+    "clip_uniform_bytes": 448,
+    "tint_offset": 64,
+    "first_offset": 80,
+    "count_offset": 84,
+    "cumulative_offset": 88,
+    "k_offset": 92,
+    "rotation_offset": 96,
+    "normals_offset": 144,
+    "instance_offset": 148,
+    "flags_offset": 152,
+    "selected_point_offset": 156
+  },
+  "pipelines": {
+    "point": {
+      "samples": 1,
+      "color": "Rgba8Unorm",
+      "depth": "Depth32Float",
+      "compare": "Greater",
+      "blend": null
+    },
+    "resolve": {
+      "samples": [
+        1,
+        4
+      ],
+      "primitive": "Rg16Uint",
+      "compare": "Greater",
+      "blend": null
+    }
+  },
+  "adapter": {
+    "source": "cloud_point_ids.wgsl",
+    "sha256": "85dde767f2dd1ce362c0507971aa7a76008ad630a957669d7ae000b68a7e69e5",
+    "role": "Retains the exact production vertex/project/outside functions; the output-only fragment adds cached integer ownership using a separate group 2 page-address uniform.",
+    "selected_point": "Word 39 remains the production optional selected row plus one; zero while the existing course control highlight owner is in use.",
+    "camera": "The course perspective matrix has homogeneous millimetre scale; its existing k multiplier of 1000 preserves production k/clip.w. Both radius terms receive physical point size."
+  },
+  "integration_limits": [
+    "The course retains its cached integer-ID texture and snapshot-local page-address translation.",
+    "Individual control-point highlighting remains owned by the existing course highlight overlay.",
+    "Fresh 2-million-point LOD, streamed eviction, placements and full shared-family acceptance remain required."
+  ]
+}

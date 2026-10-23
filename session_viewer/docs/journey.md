@@ -2,7 +2,7 @@
 
 Learn the existing `session_viewer` implementation using the Session geometry kernel. Introduce production Rust and WGSL in dependency order, retaining its developed rendering algorithms. Early checkpoints establish the owners needed by later production paths. Work through coherent lessons and save at the retained intermediate checkpoints when you need a stopping point.
 
-**Current release: 287 reader-facing lessons and 1,361 preserved implementation checkpoints.** 18 of 22 chapters are consolidated, retaining 1163 original checkpoint IDs. The [source and coverage map](journey/production-course-map.md) tracks the retained lessons and remaining implementation coverage. Check the [release evidence](journey/release.md) before starting; consolidation does not revalidate historical GPU evidence.
+**Current release: 111 reader-facing lessons and 1,361 preserved implementation checkpoints.** All 22 chapters are consolidated, retaining 1,360 original coding checkpoint IDs. The maintained-runtime comparison remains a separate reference. The [source and coverage map](journey/production-course-map.md) tracks remaining implementation coverage. Check the [release evidence](journey/release.md) before starting; consolidation does not revalidate historical GPU evidence.
 
 The [complete lesson checklist](journey/roadmap.md) lists **1361 authored checkpoints**. Use the [daily coding route](journey/daily-plan.md) to group small checkpoints. Its lesson checkboxes track fresh build and browser acceptance.
 

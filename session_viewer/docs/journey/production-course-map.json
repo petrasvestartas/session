@@ -218,8 +218,8 @@
           "exists": true
         }
       ],
-      "classification": "divergent",
-      "remainingDefect": "Observed course DPR1/2 cloud density difference needs matched production source/camera/settings/DPR/sample evidence; it is not yet an established production mismatch. The 1,681-point witness is below the 2,000,000-point LOD threshold. Both paths use the same four-neighbor EDL equation; this alone does not establish composed splat/LOD parity.",
+      "classification": "staged",
+      "remainingDefect": "Production splat/resolve extraction passed eight DPR/sample/EDL pairs; 18 actual production/course LOD pairs used the original 2,000,064-point source and placed owners. Twelve focused cloud/Line controls pass after the shared visibility correction. These bounded results replace the earlier unresolved DPR diagnosis; complete current display-group and browser acceptance remain open.",
       "proposedLessons": [
         "63-radius",
         "64-nodes",
@@ -286,8 +286,8 @@
           "exists": true
         }
       ],
-      "classification": "divergent",
-      "remainingDefect": "Course stroke coverage is a capsule-distance clamp; production ribbon has its own joined extrusion and coverage path. Known fine terminal/AA mismatch needs matched source/camera/DPR/samples/encoding witness, not an invented final replacement.",
+      "classification": "staged",
+      "remainingDefect": "Eight ordinary non-sheet production/course pairs matched all pixels with actual GPU pen inputs verified. Actual resident Sheet ingress passed all32 projection/placement/DPR/sample/selection pairs after correcting witness camera setup. Joined/CAD families and complete current display controls still require their own source-bound visual and browser evidence.",
       "proposedLessons": [
         "35-stroke",
         "36-chain",
@@ -308,7 +308,20 @@
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+      "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
+      "currentEvidence": {
+        "date": "2026-10-19",
+        "manifest": "target/course-windows-20261018/stroke-production-fixed/manifest.json",
+        "inspection": "target/course-windows-20261018/stroke-production-fixed/inspection.json",
+        "pairs": 8,
+        "imagesInspected": 16,
+        "ordinaryPairParityAccepted": true,
+        "broaderGroupAccepted": false,
+        "shader": "b1c47337e5155722be6d77fe7ff726469f71c93f38579ce2d15296c32dc99ef6",
+        "semanticChecksPassed": 4,
+        "semanticChecksTotal": 5,
+        "failed": "Coplanar section line disappears at production early surface-biased clipping; actual-production witness pending"
+      }
     },
     {
       "feature": "Markers, mesh dots and normals",
@@ -1079,8 +1092,8 @@
           "exists": true
         }
       ],
-      "classification": "missing",
-      "remainingDefect": "Original Plane display/control coverage is incomplete. Camera-on-reload and fixed-base-grid requirements remain unimplemented in maintained/course runtimes; include motion during load and floating-origin world-plane checks.",
+      "classification": "staged",
+      "remainingDefect": "Latest-camera publication and held world-grid behavior are implemented in maintained/course runtimes; focused native checks and actual maintained-grid near/far/rebase frames pass. All four deferred-load browser reload/grid combinations remain unaccepted. Original Plane placement/depth evidence needs the corrected initial GPU translation witness.",
       "proposedLessons": [
         "46-tool-panel",
         "47-registry",
@@ -1176,6 +1189,59 @@
       ],
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance."
+    },
+    {
+      "feature": "Matrix cells, procedural digits and independent world titles",
+      "chapters": [
+        22
+      ],
+      "production": [
+        {
+          "path": "src/app/walk/matrix.rs",
+          "exists": true
+        },
+        {
+          "path": "src/engine/gpu/matrices.rs",
+          "exists": true
+        },
+        {
+          "path": "src/shaders/matrix.wgsl",
+          "exists": true
+        },
+        {
+          "path": "src/app/decode.rs",
+          "exists": true
+        },
+        {
+          "path": "src/app/scene_text.rs",
+          "exists": true
+        }
+      ],
+      "course": [
+        {
+          "path": "src/production_matrix.rs",
+          "exists": true
+        },
+        {
+          "path": "src/production_matrix_gpu.rs",
+          "exists": true
+        },
+        {
+          "path": "src/production_matrix.wgsl",
+          "exists": true
+        },
+        {
+          "path": "src/matrix_tests.rs",
+          "exists": true
+        }
+      ],
+      "classification": "staged",
+      "remainingDefect": "Five Matrix native tests pass, including actual GPU cells/digits/selection/object-picking at1/4/1 samples, archive identity/title and shader provenance. Four rendered images individually inspected. Browser and full production/course image parity remain pending.",
+      "proposedLessons": [
+        "96zzzzzzzm-retain-visible-instance-ranges"
+      ],
+      "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "evidence": "target/course-windows-20261018/matrix-accepted-build.json; matrix-accepted-tests.json; matrix-accepted-rendered/review-grid.png"
     }
   ],
   "lessons": [
@@ -6308,7 +6374,8 @@
         "Outlines, depth pyramids and ambient occlusion",
         "Transparency and Xray",
         "Camera, original Plane and reload behavior",
-        "Frame resources, multisampling and performance"
+        "Frame resources, multisampling and performance",
+        "Matrix cells, procedural digits and independent world titles"
       ],
       "representativeEvidence": {
         "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
@@ -20944,10 +21011,27 @@
   },
   "progress": {
     "chaptersAuthored": 22,
-    "chaptersConsolidated": 18,
+    "chaptersConsolidated": 22,
     "chaptersTotal": 22,
-    "readerFacingLessons": 287,
+    "readerFacingLessons": 111,
     "preservedCheckpoints": 1361
   },
-  "authoredReaderLessons": 111
+  "authoredReaderLessons": 111,
+  "latestSourceSync": {
+    "date": "2026-10-20",
+    "root": "95a14e08",
+    "session": "a391b104",
+    "repositories": 16,
+    "backup": "C:/Users/Petras/Downloads/viewer-course-source-sync-20261020",
+    "tutorialFilesVerified": 25829,
+    "tutorialFilesChangedByPull": 0
+  },
+  "currentIntegration": {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+    "files": 713,
+    "recordedAt": "2026-10-23T08:47:16.211Z",
+    "scope": "Full-code checkpoint preparation; clean native final suite, browser/performance/reload/coverage gates remain open",
+    "state": "consolidation/current-state.json"
+  }
 }

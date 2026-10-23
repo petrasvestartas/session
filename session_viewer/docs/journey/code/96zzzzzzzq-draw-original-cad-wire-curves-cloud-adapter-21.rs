@@ -1,0 +1,2 @@
+        crate::shader_check::check(&device, crate::production_cloud::point_source(), "Production cloud points");
+        crate::shader_check::check(&device, crate::production_cloud::RESOLVE_SOURCE.into(), "Production cloud resolve");

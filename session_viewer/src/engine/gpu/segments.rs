@@ -301,6 +301,11 @@ pub struct SegmentLane {
 }
 
 impl SegmentLane {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn first_ribbon_buffer(&self) -> Option<&wgpu::Buffer> {
+        (!self.ribbons.buf.is_empty()).then_some(&self.ribbons.buf.buf)
+    }
+
     /// Compile ordinary visible strokes; picking, selection and masks stay lazy.
     pub(super) fn prewarm(&self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
         let pipes = build_pipelines(ctx, layouts, &self.shader, target);

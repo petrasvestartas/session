@@ -1,0 +1,2 @@
+    let frame_group = resource_group(ctx, &layouts.frame, "production cloud frame", [(0, settings.as_entire_binding()), (1, clipping.as_entire_binding())]);
+    let window = make_buffer("cloud pick origin", 16);

@@ -1,0 +1,1 @@
+records.filter(|records|!meshes.iter().any(GpuMesh::printed)&&records.lookup.is_some()

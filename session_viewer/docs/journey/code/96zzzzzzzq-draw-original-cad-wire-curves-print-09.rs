@@ -1,0 +1,1 @@
+(flags|cap_flags|if object.mesh.print_fill(){8}else{0}).to_ne_bytes()
